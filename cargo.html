@@ -3,15 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
     <title>Ridgeline Bed And Cargo</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Interface</a>
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
       </header>
-      <main>
+      <main id="top">
         <section class="section-page-hero">
           <p class="eyebrow">Section Page</p>
           <h1>Bed And Cargo Utility</h1>
@@ -19,7 +30,108 @@
             In-Bed Trunk, tie-downs, cargo dimensions, and bed-related references.
           </p>
         </section>
+        <section class="section-page-stack">
+          <div class="section-callout">
+            This page is set up like a cargo quick-reference sheet. The bed
+            dimensions below are the ones you will care about when checking if
+            sheet goods, coolers, recovery gear, or a spare tire setup will fit
+            without grabbing a tape measure first.
+          </div>
+        </section>
         <section class="section-page-grid">
+          <article class="tech-card diagram-card">
+            <h3>Bed Dimension Diagram</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 680 360" role="img" aria-label="Ridgeline bed dimension diagram">
+                <defs>
+                  <marker id="arrow-bed" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#61dfff"></path>
+                  </marker>
+                </defs>
+                <rect x="120" y="70" width="370" height="190" rx="18" fill="#111c2c" stroke="#61dfff" stroke-width="3"></rect>
+                <rect x="210" y="115" width="40" height="100" rx="10" fill="#253447"></rect>
+                <rect x="360" y="115" width="40" height="100" rx="10" fill="#253447"></rect>
+                <rect x="505" y="78" width="70" height="174" rx="14" fill="#1a2636" stroke="#ff915e" stroke-width="3"></rect>
+                <text x="539" y="170" text-anchor="middle" fill="#dce8f5" font-size="16" font-weight="700">Tailgate</text>
+                <line x1="120" y1="290" x2="490" y2="290" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-bed)" marker-end="url(#arrow-bed)"></line>
+                <text x="305" y="320" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">64 in tailgate up</text>
+                <line x1="120" y1="42" x2="575" y2="42" stroke="#ff915e" stroke-width="2" marker-start="url(#arrow-bed)" marker-end="url(#arrow-bed)"></line>
+                <text x="347" y="28" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">83 in tailgate down</text>
+                <line x1="210" y1="102" x2="400" y2="102" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-bed)" marker-end="url(#arrow-bed)"></line>
+                <text x="305" y="92" text-anchor="middle" fill="#dce8f5" font-size="17" font-weight="700">49 in between wheel arches</text>
+                <line x1="120" y1="70" x2="490" y2="70" stroke="#9bd8ff" stroke-width="2" marker-start="url(#arrow-bed)" marker-end="url(#arrow-bed)"></line>
+                <text x="305" y="58" text-anchor="middle" fill="#dce8f5" font-size="16" font-weight="700">60 in at bed walls</text>
+              </svg>
+            </div>
+            <p class="diagram-caption">
+              Key bed numbers to remember: 64 inches with the tailgate up,
+              83 inches with it down, and enough width to lay 4-foot material
+              flat.
+            </p>
+          </article>
+          <article class="tech-card">
+            <h3>Bed Quick Specs</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>Length</dt>
+                <dd>64.0 in with tailgate up</dd>
+              </div>
+              <div>
+                <dt>Length</dt>
+                <dd>83.0 in with tailgate down</dd>
+              </div>
+              <div>
+                <dt>Width</dt>
+                <dd>49.0 in between wheel arches</dd>
+              </div>
+              <div>
+                <dt>Width</dt>
+                <dd>60.0 in at bed walls</dd>
+              </div>
+              <div>
+                <dt>Cleats</dt>
+                <dd>Eight tie-down cleats rated at 350 lb each</dd>
+              </div>
+              <div>
+                <dt>Volume</dt>
+                <dd>7.3 cu ft In-Bed Trunk</dd>
+              </div>
+            </dl>
+          </article>
+          <article class="tech-card diagram-card">
+            <h3>In-Bed Trunk Diagram</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 680 300" role="img" aria-label="Approximate in-bed trunk dimensions">
+                <defs>
+                  <marker id="arrow-trunk" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#61dfff"></path>
+                  </marker>
+                </defs>
+                <rect x="120" y="80" width="410" height="120" rx="22" fill="#111c2c" stroke="#61dfff" stroke-width="3"></rect>
+                <path d="M410 80 L530 80 L530 130 L475 130 Q445 130 430 110 Z" fill="#223144" stroke="#61dfff" stroke-width="2"></path>
+                <line x1="120" y1="228" x2="530" y2="228" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-trunk)" marker-end="url(#arrow-trunk)"></line>
+                <text x="325" y="255" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">Approx. 45 in wide</text>
+                <line x1="555" y1="80" x2="555" y2="200" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-trunk)" marker-end="url(#arrow-trunk)"></line>
+                <text x="590" y="144" transform="rotate(-90 590 144)" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">Approx. 19 in deep</text>
+                <line x1="120" y1="56" x2="290" y2="56" stroke="#ff915e" stroke-width="2" marker-start="url(#arrow-trunk)" marker-end="url(#arrow-trunk)"></line>
+                <text x="205" y="40" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">Approx. 18 in front-to-back</text>
+              </svg>
+            </div>
+            <p class="diagram-caption">
+              Honda publishes the volume, not a rectangular dimension chart.
+              The measurements above are a useful owner-measured approximation
+              for the second-generation Ridgeline trunk shape.
+            </p>
+          </article>
+          <article class="tech-card info-card">
+            <h3>Useful Cargo Notes</h3>
+            <ul class="highlight-list">
+              <li>The lockable trunk can fit large items such as an 82-quart cooler.</li>
+              <li>The drain plug lets you use the trunk as a cooler or rinse out wet gear.</li>
+              <li>The compact spare rides in the front area of the trunk on a sliding tray.</li>
+              <li>The dual-action tailgate swings open for easier trunk access in tight spaces.</li>
+            </ul>
+          </article>
           <article class="tech-card">
             <h3>References</h3>
             <div class="reference-list">
@@ -29,10 +141,23 @@
               <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Exterior-Features/Innovative-In-Bed-Trunk/" target="_blank" rel="noreferrer">
                 Honda In-Bed Trunk details
               </a>
+              <a href="https://www.battisonhonda.com/blog/there-2019-honda-ridgeline-has-innovative-storage-space-inside-its-bed/" target="_blank" rel="noreferrer">
+                Bed dimension summary with tailgate-up and tailgate-down lengths
+              </a>
+              <a href="https://www.ridgelineownersclub.com/threads/2g-in-bed-trunk-dimensions.164601/" target="_blank" rel="noreferrer">
+                Owner-measured 2G In-Bed Trunk dimensions
+              </a>
             </div>
           </article>
         </section>
       </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="maintenance.html">Specs</a>
+        <a href="garage.html">Garage</a>
+        <a href="#top">Top</a>
+      </nav>
     </div>
+    <script type="module" src="shared-ui.js"></script>
   </body>
 </html>

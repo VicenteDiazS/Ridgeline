@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline Maintenance Specs</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
+      </header>
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">Maintenance</p>
+          <h1>Fluids, Torque, Bulbs, And Wipers</h1>
+          <p class="section-copy">This page collects the service specs you are likely to need repeatedly when working on the truck.</p>
+          <div class="section-utility-nav">
+            <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
+            <a class="utility-link" href="#torque">Torque Specs</a>
+            <a class="utility-link" href="#bulbs">Bulbs</a>
+            <a class="utility-link" href="garage.html">Garage Log</a>
+          </div>
+        </section>
+
+        <section class="section-page-grid">
+          <article class="tech-card" id="fluids">
+            <h3>Fluids And Capacities</h3>
+            <table class="fuse-table" aria-label="Maintenance fluids and capacities">
+              <tr><th>Item</th><th>Spec</th><th>Notes</th></tr>
+              <tr><td>Engine oil</td><td>0W-20</td><td>Honda recommends API-certified oil of the specified viscosity.</td></tr>
+              <tr><td>Brake fluid</td><td>Honda Heavy Duty Brake Fluid DOT 3</td><td>Use from a sealed container.</td></tr>
+              <tr><td>Automatic transmission fluid</td><td>Honda ATF Type 2.0</td><td>Specified fluid per owner-manual specifications section.</td></tr>
+              <tr><td>Rear differential fluid</td><td>Not applicable on your 2WD truck</td><td>Applies to AWD only.</td></tr>
+              <tr><td>Transfer assembly fluid</td><td>Not applicable on your 2WD truck</td><td>Applies to AWD only.</td></tr>
+              <tr><td>Washer fluid</td><td>Windshield washer fluid</td><td>Keep topped off; no fixed capacity listed in the owner manual.</td></tr>
+            </table>
+          </article>
+
+          <article class="tech-card" id="torque">
+            <h3>Verified Torque Specs</h3>
+            <table class="fuse-table" aria-label="Verified service torque specs">
+              <tr><th>Fastener</th><th>Torque</th><th>Source Confidence</th></tr>
+              <tr><td>Wheel nuts</td><td>94 lb-ft</td><td>Owner manual flat-tire procedure</td></tr>
+              <tr><td>Engine oil drain bolt</td><td>29 lb-ft</td><td>Owner manual oil-change procedure</td></tr>
+              <tr><td>Engine oil fill cap</td><td>Hand-tight</td><td>Owner manual procedure guidance</td></tr>
+            </table>
+            <p class="source-note">I only listed the torque values I could verify cleanly from owner-manual style sources. If you want a deeper torque library for spark plugs, brake hardware, suspension, or hitch fasteners, the next step would be a service-manual-based pass.</p>
+          </article>
+
+          <article class="tech-card" id="bulbs">
+            <h3>Bulbs</h3>
+            <table class="fuse-table" aria-label="Bulb replacement reference">
+              <tr><th>Position</th><th>Spec</th><th>Notes</th></tr>
+              <tr><td>High beam headlight</td><td>60W HB3 (halogen type)</td><td>LED low-beam models still use service guidance for other lamps.</td></tr>
+              <tr><td>Low beam headlight</td><td>LED or 55W H11 (halogen type)</td><td>Depends on trim.</td></tr>
+              <tr><td>Back-up light</td><td>21W</td><td>Rear pillar assembly.</td></tr>
+              <tr><td>Rear turn signal</td><td>21W</td><td>Rear pillar assembly.</td></tr>
+              <tr><td>Rear license plate</td><td>5W</td><td>Serviceable bulb.</td></tr>
+              <tr><td>Brake / taillight</td><td>LED</td><td>Dealer/qualified technician replacement.</td></tr>
+              <tr><td>High-mount brake light</td><td>LED</td><td>Dealer/qualified technician replacement.</td></tr>
+            </table>
+          </article>
+
+          <article class="tech-card" id="wipers">
+            <h3>Wipers</h3>
+            <ul class="highlight-list">
+              <li>Inspect blade condition at least every six months.</li>
+              <li>Use the maintenance position/service procedure from the owner manual before changing blades.</li>
+              <li>I did not add exact blade lengths yet because I want to verify those from a primary source instead of guessing from aftermarket listings.</li>
+            </ul>
+          </article>
+
+          <article class="tech-card">
+            <h3>Service Rhythm</h3>
+            <ul class="highlight-list">
+              <li>Maintenance Minder is the primary service guide.</li>
+              <li>Monthly checks: engine oil, coolant, washer fluid, brake fluid, battery terminals, exterior lights, and tires.</li>
+              <li>When towing or hauling often, keep a closer eye on fluids, brakes, and tire condition.</li>
+            </ul>
+          </article>
+
+          <article class="tech-card">
+            <h3>Source Notes</h3>
+            <p class="source-note">
+              Maintenance and bulb information on this page is based on the 2019 owner-manual maintenance and specifications sections, plus Honda Info Center specs where applicable.
+            </p>
+            <div class="reference-list">
+              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=recommended+oil" target="_blank" rel="noreferrer">Owner manual maintenance section</a>
+              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=light+bulbs" target="_blank" rel="noreferrer">Owner manual bulb replacement pages</a>
+              <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/" target="_blank" rel="noreferrer">Honda specifications</a>
+            </div>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="#fluids">Fluids</a>
+        <a href="#torque">Torque</a>
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+  </body>
+</html>

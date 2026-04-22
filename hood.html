@@ -3,21 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
     <title>Ridgeline Hood And Engine Bay</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Interface</a>
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
-          <a href="index.html#viewer">3D Truck</a>
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
           <a href="#fuses">Fuses</a>
           <a href="#wiring">Wiring</a>
           <a href="#parts">Parts</a>
         </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
       </header>
-      <main>
+      <main id="top">
         <section class="section-page-hero">
           <p class="eyebrow">Section Page</p>
           <h1>Hood And Front Engine Bay</h1>
@@ -25,6 +32,21 @@
             Use this page for under-hood references like fuse access, engine
             specs, battery information, and front-bay service notes.
           </p>
+          <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#fuses">Open Fuse Tables</a>
+            <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
+            <a class="utility-link" href="index.html#systems">All Zones</a>
+            <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+          </div>
+        </section>
+        <section class="section-page-stack">
+          <div class="section-callout">
+            Front-bay quick reference for your VIN-decoded 2019 Ridgeline 2WD.
+            The V6 is a 3.5-liter SOHC i-VTEC engine, the primary under-hood
+            fuse box is on the passenger-side damper-house area, and the
+            interior jump-start negative point is not the buried negative
+            battery post.
+          </div>
         </section>
         <section class="section-page-grid">
           <article class="tech-card">
@@ -46,41 +68,462 @@
                 <dt>Torque</dt>
                 <dd>262 lb-ft at 4,700 rpm</dd>
               </div>
+              <div>
+                <dt>Drive</dt>
+                <dd>2WD from VIN 5FPYK2F64KB002267</dd>
+              </div>
             </dl>
           </article>
           <article class="tech-card" id="fuses">
             <h3>Fuse Boxes</h3>
-            <div class="reference-list">
-              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=fuse+box+location" target="_blank" rel="noreferrer">
-                Owner's manual fuse locations
-              </a>
-              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=fuse+chart" target="_blank" rel="noreferrer">
-                Owner's manual fuse chart
-              </a>
-              <a href="https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses" target="_blank" rel="noreferrer">
-                External fuse layout reference
-              </a>
+            <ul class="highlight-list">
+              <li>Fuse Box A: passenger-side damper-house area under the hood.</li>
+              <li>Fuse Box B: near the brake-fluid reservoir on the opposite side of the bay.</li>
+              <li>Cabin fuse box: under the driver-side lower dash.</li>
+            </ul>
+            <div class="fuse-layout">
+              <div class="fuse-diagram">
+                <svg viewBox="0 0 760 320" role="img" aria-label="Simplified top view of Ridgeline engine bay fuse box locations">
+                  <rect x="100" y="82" width="560" height="160" rx="28" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                  <rect x="140" y="110" width="120" height="70" rx="16" fill="#1b2a3f" stroke="#61dfff" stroke-width="3"></rect>
+                  <text x="200" y="150" text-anchor="middle" fill="#dce8f5" font-size="21" font-weight="700">Fuse Box B</text>
+                  <text x="200" y="176" text-anchor="middle" fill="#9dc0da" font-size="14">Brake-fluid side</text>
+                  <rect x="500" y="110" width="120" height="70" rx="16" fill="#1b2a3f" stroke="#ff915e" stroke-width="3"></rect>
+                  <text x="560" y="150" text-anchor="middle" fill="#dce8f5" font-size="21" font-weight="700">Fuse Box A</text>
+                  <text x="560" y="176" text-anchor="middle" fill="#9dc0da" font-size="14">Passenger damper-house side</text>
+                  <rect x="285" y="106" width="190" height="78" rx="22" fill="#223144"></rect>
+                  <text x="380" y="150" text-anchor="middle" fill="#dce8f5" font-size="20" font-weight="700">Engine Cover Area</text>
+                  <text x="380" y="36" text-anchor="middle" fill="#dce8f5" font-size="20" font-weight="700">Front of truck</text>
+                  <text x="96" y="276" fill="#ffcfbd" font-size="16" font-weight="700">Driver side</text>
+                  <text x="558" y="276" fill="#9fdfff" font-size="16" font-weight="700">Passenger side</text>
+                </svg>
+              </div>
+              <p class="source-note">
+                <strong>What forum posts usually call these:</strong> Fuse Box B
+                often gets described as the brake-fluid-side box or the
+                driver-side rear under-hood box. Fuse Box A usually gets called
+                the passenger-side under-hood box or the strut-tower /
+                damper-house-side box.
+              </p>
+              <p class="source-note">
+                <strong>Fuse type note:</strong> Honda separates the large
+                screw-down engine-bay fuses from the smaller puller-style fuses.
+                The <em>fuse type</em> column below is an on-page service label
+                based on that distinction: <em>high-current bolt-down</em> for
+                the large engine-bay blocks and <em>blade / puller-style</em>
+                for the smaller service fuses.
+              </p>
+              <p class="source-note">
+                <strong>Verification note:</strong> I re-checked these rows
+                against 2019 owner-manual page mirrors and 2017-2019 chart
+                reproductions. Where those sources do not agree, the row is now
+                marked as a <em>source conflict</em> instead of pretending it is
+                fully settled. On those specific positions, confirm against the
+                label on your truck's fuse-box cover before replacing anything.
+              </p>
+              <h4 class="subsection-title">Fuse Box A Numbered Panel</h4>
+              <div class="fuse-diagram" data-fuse-diagram="hood-a">
+                <svg viewBox="0 0 760 500" role="img" aria-label="Redrawn numbered panel diagram for Honda Ridgeline under-hood fuse box A">
+                  <rect x="54" y="36" width="652" height="420" rx="26" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                  <text x="380" y="72" text-anchor="middle" fill="#dce8f5" font-size="26" font-weight="700">Fuse Box A</text>
+                  <text x="380" y="100" text-anchor="middle" fill="#9dc0da" font-size="15">Passenger-side damper-house box. Large grouped blocks are shown as 1A-1F, 2A-2L, and 3A-3D.</text>
+
+                  <rect x="86" y="126" width="212" height="92" rx="18" fill="#18263a" stroke="#ff915e" stroke-width="2.5"></rect>
+                  <text x="192" y="152" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">Group 1</text>
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="102" y="166" width="28" height="32" rx="6"></rect>
+                    <rect x="136" y="166" width="28" height="32" rx="6"></rect>
+                    <rect x="170" y="166" width="28" height="32" rx="6"></rect>
+                    <rect x="204" y="166" width="28" height="32" rx="6"></rect>
+                    <rect x="238" y="166" width="28" height="32" rx="6"></rect>
+                    <rect x="272" y="166" width="28" height="32" rx="6"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="13" font-weight="700" text-anchor="middle">
+                    <text x="116" y="187">1A</text>
+                    <text x="150" y="187">1B</text>
+                    <text x="184" y="187">1C</text>
+                    <text x="218" y="187">1D</text>
+                    <text x="252" y="187">1E</text>
+                    <text x="286" y="187">1F</text>
+                  </g>
+
+                  <rect x="322" y="126" width="352" height="92" rx="18" fill="#18263a" stroke="#ff915e" stroke-width="2.5"></rect>
+                  <text x="498" y="152" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">Group 2</text>
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="340" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="366" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="392" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="418" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="444" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="470" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="496" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="522" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="548" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="574" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="600" y="166" width="22" height="32" rx="5"></rect>
+                    <rect x="626" y="166" width="22" height="32" rx="5"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="11.5" font-weight="700" text-anchor="middle">
+                    <text x="351" y="186">2A</text>
+                    <text x="377" y="186">2B</text>
+                    <text x="403" y="186">2C</text>
+                    <text x="429" y="186">2D</text>
+                    <text x="455" y="186">2E</text>
+                    <text x="481" y="186">2F</text>
+                    <text x="507" y="186">2G</text>
+                    <text x="533" y="186">2H</text>
+                    <text x="559" y="186">2I</text>
+                    <text x="585" y="186">2J</text>
+                    <text x="611" y="186">2K</text>
+                    <text x="637" y="186">2L</text>
+                  </g>
+
+                  <rect x="86" y="244" width="152" height="84" rx="18" fill="#18263a" stroke="#ff915e" stroke-width="2.5"></rect>
+                  <text x="162" y="270" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">Group 3</text>
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="102" y="286" width="28" height="26" rx="5"></rect>
+                    <rect x="136" y="286" width="28" height="26" rx="5"></rect>
+                    <rect x="170" y="286" width="28" height="26" rx="5"></rect>
+                    <rect x="204" y="286" width="28" height="26" rx="5"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="12.5" font-weight="700" text-anchor="middle">
+                    <text x="116" y="304">3A</text>
+                    <text x="150" y="304">3B</text>
+                    <text x="184" y="304">3C</text>
+                    <text x="218" y="304">3D</text>
+                  </g>
+
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="272" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="320" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="368" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="416" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="464" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="512" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="560" y="246" width="36" height="36" rx="6"></rect>
+                    <rect x="608" y="246" width="36" height="36" rx="6"></rect>
+
+                    <rect x="272" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="320" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="368" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="416" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="464" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="512" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="560" y="292" width="36" height="36" rx="6"></rect>
+                    <rect x="608" y="292" width="36" height="36" rx="6"></rect>
+
+                    <rect x="296" y="338" width="36" height="36" rx="6"></rect>
+                    <rect x="344" y="338" width="36" height="36" rx="6"></rect>
+                    <rect x="392" y="338" width="36" height="36" rx="6"></rect>
+                    <rect x="440" y="338" width="36" height="36" rx="6"></rect>
+                    <rect x="488" y="338" width="36" height="36" rx="6"></rect>
+                    <rect x="536" y="338" width="36" height="36" rx="6"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="13" font-weight="700" text-anchor="middle">
+                    <text x="290" y="268">4</text><text x="338" y="268">5</text><text x="386" y="268">6</text><text x="434" y="268">7</text><text x="482" y="268">8</text><text x="530" y="268">9</text><text x="578" y="268">10</text><text x="626" y="268">11</text>
+                    <text x="290" y="314">12</text><text x="338" y="314">13</text><text x="386" y="314">14</text><text x="434" y="314">15</text><text x="482" y="314">16</text><text x="530" y="314">17</text><text x="578" y="314">18</text><text x="626" y="314">19</text>
+                    <text x="314" y="360">20</text><text x="362" y="360">21</text><text x="410" y="360">22</text><text x="458" y="360">23</text><text x="506" y="360">24</text><text x="554" y="360">25</text>
+                  </g>
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="118" y="366" width="44" height="36" rx="6"></rect>
+                    <rect x="172" y="366" width="44" height="36" rx="6"></rect>
+                    <rect x="118" y="408" width="44" height="36" rx="6"></rect>
+                    <rect x="172" y="408" width="44" height="36" rx="6"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="13" font-weight="700" text-anchor="middle">
+                    <text x="140" y="389">26</text>
+                    <text x="194" y="389">27</text>
+                    <text x="140" y="431">28</text>
+                    <text x="194" y="431">29</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="fuse-inspector" data-fuse-inspector="hood-a" hidden>
+                <p class="eyebrow">Selected Fuse</p>
+                <h5 class="fuse-inspector-title">Choose a fuse</h5>
+                <p class="fuse-inspector-copy">Tap a numbered position in the diagram to see its location, rating, type, and circuit.</p>
+                <dl class="fuse-inspector-meta">
+                  <div><dt>Position</dt><dd data-fuse-field="position">-</dd></div>
+                  <div><dt>Location</dt><dd data-fuse-field="location">-</dd></div>
+                  <div><dt>Fuse Type</dt><dd data-fuse-field="type">-</dd></div>
+                  <div><dt>Rating</dt><dd data-fuse-field="rating">-</dd></div>
+                </dl>
+                <p class="fuse-inspector-circuit" data-fuse-field="circuit">-</p>
+                <div class="inspector-actions">
+                  <button class="ghost-button" type="button" data-save-fuse>Save Fuse</button>
+                  <a class="utility-link" href="garage.html">Open Garage Log</a>
+                </div>
+                <div class="acronym-panel" data-acronym-panel hidden>
+                  <p class="eyebrow">Acronym Guide</p>
+                  <div class="acronym-list" data-acronym-list></div>
+                </div>
+              </div>
+              <h4 class="subsection-title">Fuse Box A Full Table</h4>
+              <div class="table-scroll">
+                <table class="fuse-table" data-fuse-table="hood-a" aria-label="Full under-hood fuse box A entries">
+                  <tr>
+                    <th>Position</th>
+                    <th>Location</th>
+                    <th>Fuse Type</th>
+                    <th>Rating</th>
+                    <th>Circuit</th>
+                  </tr>
+                  <tr><td>1A</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>70A</td><td>Not used without AC outlet / AC inverter with AC outlet</td></tr>
+                  <tr><td>1B</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>RR blower without AC outlet / not used with AC outlet</td></tr>
+                  <tr><td>1C</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>40A</td><td>VSA motor</td></tr>
+                  <tr><td>1D</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>20A</td><td>VSA FSR</td></tr>
+                  <tr><td>1E</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Main fan without AC outlet / not used with AC outlet</td></tr>
+                  <tr><td>1F</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>150A</td><td>Main fuse</td></tr>
+                  <tr><td>2A</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Sub fan</td></tr>
+                  <tr><td>2B</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Wiper motor</td></tr>
+                  <tr><td>2C</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>20A</td><td>Washer</td></tr>
+                  <tr><td>2D</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>20A or -</td><td>Source conflict: Tailgate lock main on some 2019 manual reproductions / unused on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>2E</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A or -</td><td>Source conflict: ACM on some 2019 manual reproductions / unused on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>2F</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>40A</td><td>Front blower</td></tr>
+                  <tr><td>2G</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Audio amp</td></tr>
+                  <tr><td>2H</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Rear defogger</td></tr>
+                  <tr><td>2I</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>2J</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>40A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>2K</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Rear defogger (model-dependent)</td></tr>
+                  <tr><td>2L</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>20A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>3A</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Not used without AC outlet / rear blower with AC outlet</td></tr>
+                  <tr><td>3B</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>3C</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>3D</td><td>Fuse Box A, passenger-side damper house</td><td>High-current bolt-down</td><td>30A</td><td>Not used without AC outlet / main fan with AC outlet</td></tr>
+                  <tr><td>4</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Small without AC outlet / Stop with AC outlet</td></tr>
+                  <tr><td>5</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A or -</td><td>Source conflict: Tailgate lock on some 2019 manual reproductions / unused on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>6</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Stop without AC outlet / Small with AC outlet</td></tr>
+                  <tr><td>7</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A or -</td><td>Source conflict: Tailgate unlock on some 2019 manual reproductions / unused on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>8</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A / 7.5A</td><td>Left low headlight without AC outlet / IGPS with AC outlet</td></tr>
+                  <tr><td>9</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>7.5A or -</td><td>Source conflict: Cruise cancel switch on some 2019 manual reproductions / unused on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>10</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Right low headlight without AC outlet / left low headlight with AC outlet</td></tr>
+                  <tr><td>11</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>7.5A / 10A</td><td>IGPS without AC outlet / right low headlight with AC outlet</td></tr>
+                  <tr><td>12</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A / 15A</td><td>Injector without AC outlet / ignition coil with AC outlet</td></tr>
+                  <tr><td>13</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A / 15A</td><td>Low-headlight main without AC outlet / DBW with AC outlet</td></tr>
+                  <tr><td>14</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A</td><td>AC inverter relay</td></tr>
+                  <tr><td>15</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Front fog without AC outlet / back up with AC outlet</td></tr>
+                  <tr><td>16</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A</td><td>Hazard without AC outlet / main relay with AC outlet</td></tr>
+                  <tr><td>17</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A</td><td>Passenger power seat recline</td></tr>
+                  <tr><td>18</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A</td><td>Passenger power seat slide</td></tr>
+                  <tr><td>19</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A or 20A</td><td>Source conflict: TCU on some 2019 manual reproductions / ACM on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>20</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>7.5A</td><td>Magnetic clutch</td></tr>
+                  <tr><td>21</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A</td><td>Main relay without AC outlet / hazard with AC outlet</td></tr>
+                  <tr><td>22</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A</td><td>FI sub</td></tr>
+                  <tr><td>23</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A / 20A</td><td>Ignition coil without AC outlet / injector with AC outlet</td></tr>
+                  <tr><td>24</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>15A / 20A</td><td>DBW without AC outlet / low-headlight main with AC outlet</td></tr>
+                  <tr><td>25</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A</td><td>Small / stop main</td></tr>
+                  <tr><td>26</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A / 15A</td><td>Back up without AC outlet / front fog with AC outlet</td></tr>
+                  <tr><td>27</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Heated steering wheel</td></tr>
+                  <tr><td>28</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>10A</td><td>Horn</td></tr>
+                  <tr><td>29</td><td>Fuse Box A, passenger-side damper house</td><td>Blade / puller-style</td><td>20A</td><td>Radio</td></tr>
+                </table>
+              </div>
+              <h4 class="subsection-title">Fuse Box B Numbered Panel</h4>
+              <div class="fuse-diagram" data-fuse-diagram="hood-b">
+                <svg viewBox="0 0 760 460" role="img" aria-label="Redrawn numbered panel diagram for Honda Ridgeline under-hood fuse box B">
+                  <rect x="72" y="40" width="616" height="372" rx="24" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                  <text x="380" y="78" text-anchor="middle" fill="#dce8f5" font-size="26" font-weight="700">Fuse Box B</text>
+                  <text x="380" y="104" text-anchor="middle" fill="#9dc0da" font-size="15">Brake-fluid-reservoir side box. Position 1 is a grouped high-current block.</text>
+
+                  <rect x="104" y="130" width="270" height="98" rx="18" fill="#18263a" stroke="#ff915e" stroke-width="2.5"></rect>
+                  <text x="239" y="158" text-anchor="middle" fill="#ffcfbd" font-size="18" font-weight="700">Group 1</text>
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="122" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="152" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="182" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="212" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="242" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="272" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="302" y="172" width="26" height="34" rx="5"></rect>
+                    <rect x="332" y="172" width="26" height="34" rx="5"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="12" font-weight="700" text-anchor="middle">
+                    <text x="135" y="193">1A</text><text x="165" y="193">1B</text><text x="195" y="193">1C</text><text x="225" y="193">1D</text>
+                    <text x="255" y="193">1E</text><text x="285" y="193">1F</text><text x="315" y="193">1G</text><text x="345" y="193">1H</text>
+                  </g>
+
+                  <rect x="406" y="132" width="56" height="54" rx="8" fill="#24354c" stroke="#61dfff" stroke-width="1.8"></rect>
+                  <text x="434" y="166" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">2</text>
+
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="488" y="132" width="50" height="42" rx="8"></rect>
+                    <rect x="548" y="132" width="50" height="42" rx="8"></rect>
+                    <rect x="608" y="132" width="50" height="42" rx="8"></rect>
+                    <rect x="488" y="184" width="50" height="42" rx="8"></rect>
+                    <rect x="548" y="184" width="50" height="42" rx="8"></rect>
+                    <rect x="608" y="184" width="50" height="42" rx="8"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="16" font-weight="700" text-anchor="middle">
+                    <text x="513" y="158">3</text><text x="573" y="158">4</text><text x="633" y="158">5</text>
+                    <text x="513" y="210">6</text><text x="573" y="210">7</text><text x="633" y="210">8</text>
+                  </g>
+
+                  <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                    <rect x="124" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="184" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="244" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="304" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="364" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="424" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="484" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="544" y="258" width="50" height="42" rx="8"></rect>
+                    <rect x="604" y="258" width="50" height="42" rx="8"></rect>
+                  </g>
+                  <g fill="#dce8f5" font-size="16" font-weight="700" text-anchor="middle">
+                    <text x="149" y="284">9</text><text x="209" y="284">10</text><text x="269" y="284">11</text><text x="329" y="284">12</text><text x="389" y="284">13</text><text x="449" y="284">14</text><text x="509" y="284">15</text><text x="569" y="284">16</text><text x="629" y="284">17</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="fuse-inspector" data-fuse-inspector="hood-b" hidden>
+                <p class="eyebrow">Selected Fuse</p>
+                <h5 class="fuse-inspector-title">Choose a fuse</h5>
+                <p class="fuse-inspector-copy">Tap a numbered position in the diagram to see its location, rating, type, and circuit.</p>
+                <dl class="fuse-inspector-meta">
+                  <div><dt>Position</dt><dd data-fuse-field="position">-</dd></div>
+                  <div><dt>Location</dt><dd data-fuse-field="location">-</dd></div>
+                  <div><dt>Fuse Type</dt><dd data-fuse-field="type">-</dd></div>
+                  <div><dt>Rating</dt><dd data-fuse-field="rating">-</dd></div>
+                </dl>
+                <p class="fuse-inspector-circuit" data-fuse-field="circuit">-</p>
+                <div class="inspector-actions">
+                  <button class="ghost-button" type="button" data-save-fuse>Save Fuse</button>
+                  <a class="utility-link" href="garage.html">Open Garage Log</a>
+                </div>
+                <div class="acronym-panel" data-acronym-panel hidden>
+                  <p class="eyebrow">Acronym Guide</p>
+                  <div class="acronym-list" data-acronym-list></div>
+                </div>
+              </div>
+              <h4 class="subsection-title">Fuse Box B Full Table</h4>
+              <div class="table-scroll">
+                <table class="fuse-table" data-fuse-table="hood-b" aria-label="Full under-hood fuse box B entries">
+                  <tr>
+                    <th>Position</th>
+                    <th>Location</th>
+                    <th>Fuse Type</th>
+                    <th>Rating</th>
+                    <th>Circuit</th>
+                  </tr>
+                  <tr><td>1A</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>40A</td><td>ST CUT1</td></tr>
+                  <tr><td>1B</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>20A</td><td>4WD (unused on your VIN-decoded 2WD truck)</td></tr>
+                  <tr><td>1C</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>30A</td><td>IG MAIN</td></tr>
+                  <tr><td>1D</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>30A</td><td>IG MAIN2</td></tr>
+                  <tr><td>1E</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>40A</td><td>Unused / model-dependent spare position</td></tr>
+                  <tr><td>1F</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>60A</td><td>F/B MAIN2</td></tr>
+                  <tr><td>1G</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>60A</td><td>F/B MAIN</td></tr>
+                  <tr><td>1H</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>60A</td><td>EPS</td></tr>
+                  <tr><td>2</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>High-current bolt-down</td><td>-</td><td>Unused</td></tr>
+                  <tr><td>3</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A</td><td>Trailer electric brake</td></tr>
+                  <tr><td>4</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>7.5A</td><td>BMS</td></tr>
+                  <tr><td>5</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A</td><td>High-headlight main</td></tr>
+                  <tr><td>6</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>7.5A</td><td>+B trailer hazard</td></tr>
+                  <tr><td>7</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>7.5A</td><td>+B trailer backup</td></tr>
+                  <tr><td>8</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A</td><td>Center accessory socket</td></tr>
+                  <tr><td>9</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A or 30A</td><td>Trailer small (sources disagree on 20A vs 30A listing)</td></tr>
+                  <tr><td>10</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>10A</td><td>ACC / IG2_MAIN</td></tr>
+                  <tr><td>11</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A</td><td>Trailer charge</td></tr>
+                  <tr><td>12</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>30A</td><td>ST CUT1 on some manual reproductions / blank on some 2017-2019 chart reproductions</td></tr>
+                  <tr><td>13</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>30A</td><td>Idle stop or blank depending on chart reproduction</td></tr>
+                  <tr><td>14</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>30A</td><td>Idle stop or blank depending on chart reproduction</td></tr>
+                  <tr><td>15</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>15A</td><td>Front de-icer</td></tr>
+                  <tr><td>16</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>20A / 7.5A</td><td>Rear heated seat or BMS depending on LED parking-light configuration</td></tr>
+                  <tr><td>17</td><td>Fuse Box B, brake-fluid-reservoir side</td><td>Blade / puller-style</td><td>7.5A</td><td>STRLD</td></tr>
+                </table>
+              </div>
+              <p class="source-note">
+                Full under-hood data here is built from the 2017-2019 fuse-box
+                chart and a 2019 owner-manual-style reproduction. Where those
+                reproductions conflict, I called that out directly in the
+                circuit text instead of pretending one value was certain.
+              </p>
             </div>
           </article>
           <article class="tech-card" id="wiring">
             <h3>Wiring And Electrical</h3>
-            <ul class="inspector-points">
-              <li>Battery and jump-start procedures</li>
-              <li>Electrical diagnosis starting points</li>
-              <li>Front engine bay troubleshooting notes</li>
-            </ul>
+            <p>
+              Positive jump connection is at the battery. The commonly cited
+              Ridgeline jump-start ground point is the engine hanger bracket
+              under the engine cover, not the hidden negative terminal.
+            </p>
+            <div class="mini-specs">
+              <div class="mini-spec">
+                <span>Battery</span>
+                <span>12V Group 48 / H6 fitment</span>
+              </div>
+              <div class="mini-spec">
+                <span>Common CCA</span>
+                <span>~680 to 760 A</span>
+              </div>
+              <div class="mini-spec">
+                <span>Check First</span>
+                <span>Installed label on your current battery</span>
+              </div>
+            </div>
           </article>
           <article class="tech-card" id="parts">
             <h3>Parts And Service</h3>
-            <ul class="inspector-points">
-              <li>Oil filter: add your preferred part number</li>
-              <li>Engine air filter: add your preferred part number</li>
-              <li>Battery model and install date: add here</li>
-              <li>Belt and maintenance notes: add here</li>
+            <ul class="highlight-list">
+              <li>Battery fitment footprint: BCI Group 48 / DIN H6.</li>
+              <li>Battery size: 12 1/16 x 6 7/8 x 7 9/16 in.</li>
+              <li>Replacement chemistry can be flooded, EFB, or AGM in the same case size.</li>
+              <li>Write your actual installed battery brand, CCA, and install date here after you confirm it on the label.</li>
             </ul>
+          </article>
+          <article class="tech-card diagram-card">
+            <h3>Battery Fitment Diagram</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 640 260" role="img" aria-label="Battery size diagram for Group 48 H6">
+                <defs>
+                  <marker id="arrow-battery" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#61dfff"></path>
+                  </marker>
+                </defs>
+                <rect x="120" y="60" width="360" height="126" rx="18" fill="#111c2c" stroke="#61dfff" stroke-width="3"></rect>
+                <rect x="170" y="42" width="62" height="24" rx="8" fill="#ff915e"></rect>
+                <rect x="370" y="42" width="62" height="24" rx="8" fill="#61dfff"></rect>
+                <text x="201" y="59" text-anchor="middle" fill="#08111c" font-size="13" font-weight="700">-</text>
+                <text x="401" y="59" text-anchor="middle" fill="#08111c" font-size="13" font-weight="700">+</text>
+                <line x1="120" y1="212" x2="480" y2="212" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-battery)" marker-end="url(#arrow-battery)"></line>
+                <text x="300" y="236" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">12 1/16 in length</text>
+                <line x1="90" y1="60" x2="90" y2="186" stroke="#61dfff" stroke-width="2" marker-start="url(#arrow-battery)" marker-end="url(#arrow-battery)"></line>
+                <text x="58" y="132" transform="rotate(-90 58 132)" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">7 9/16 in height</text>
+                <line x1="505" y1="60" x2="505" y2="186" stroke="#ff915e" stroke-width="2" marker-start="url(#arrow-battery)" marker-end="url(#arrow-battery)"></line>
+                <text x="540" y="132" transform="rotate(-90 540 132)" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">6 7/8 in width</text>
+              </svg>
+            </div>
+            <p class="diagram-caption">
+              This is the case-size footprint most replacement guides list for
+              the 2019 Ridgeline. CCA is not fixed by the case size, so always
+              confirm the label on the battery currently installed in your
+              truck.
+            </p>
+          </article>
+          <article class="tech-card info-card">
+            <h3>Battery And Jump Notes</h3>
+            <ul class="highlight-list">
+              <li>Use a 12-volt booster battery only.</li>
+              <li>Connect positive at the battery's positive terminal.</li>
+              <li>Use the specified engine-bay ground point for the negative lead.</li>
+              <li>Keep the fuse-box cover diagrams handy before troubleshooting power issues.</li>
+            </ul>
+            <p class="source-note">
+              Source language behind this section: forum posts often describe
+              the battery as being tucked under the hood with the negative side
+              buried, while the manual-style guidance points to the engine
+              hanger bracket as the jump ground.
+            </p>
           </article>
         </section>
       </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="#fuses">Fuses</a>
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="index.html#systems">Zones</a>
+        <a href="#top">Top</a>
+      </nav>
     </div>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="fuse-interactive.js"></script>
   </body>
 </html>

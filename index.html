@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
     <meta
       name="description"
-      content="Futuristic 2019 Honda Ridgeline mobile reference with an interactive 3D truck viewer, hotspots, fuse help, and technical documentation."
+      content="Mobile-first 2019 Honda Ridgeline service reference with an interactive vehicle map, fuse help, specs, and truck-specific documentation."
     />
     <title>Ridgeline Interface</title>
+    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
     <script type="importmap">
       {
@@ -21,65 +23,193 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#top">Ridgeline Interface</a>
+        <a class="brand" href="#top">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
-          <a href="#viewer">3D Truck</a>
-          <a href="#systems">Systems</a>
+          <a href="#viewer">Vehicle Map</a>
+          <a href="#systems">Zones</a>
           <a href="#technical">Specs</a>
-          <a href="#references">References</a>
+          <a href="#references">Sources</a>
         </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
       </header>
 
       <main id="top">
         <section class="hero-panel">
           <div class="hero-copy">
-            <p class="eyebrow">Garage Console</p>
-            <h1>Truck Service Access</h1>
+            <p class="eyebrow">Personal Garage Reference</p>
+            <h1>Fast Access For The Truck Info You Actually Use</h1>
             <p class="hero-subtitle">2019 Honda Ridgeline</p>
             <p class="hero-text">
-              Quick access to the truck areas and references you use while
-              diagnosing, servicing, or checking specs.
+              Built for quick checks in the driveway or garage: rotate the truck,
+              open a service area, and jump straight into fuse info, battery
+              notes, towing references, and dimensions.
             </p>
             <div class="hero-actions">
-              <a class="primary-button" href="#viewer">Open Viewer</a>
-              <a class="secondary-button" href="#systems">Open Systems</a>
+              <a class="primary-button" href="#viewer">Open Vehicle Map</a>
+              <a class="secondary-button" href="#systems">Browse Zones</a>
             </div>
           </div>
 
           <div class="hero-readout">
             <div class="readout-card">
-              <span>Vehicle</span>
-              <strong>2019 Ridgeline</strong>
+              <span>VIN</span>
+              <strong>5FPYK2F64KB002267</strong>
             </div>
             <div class="readout-card">
-              <span>Theme</span>
-              <strong>Sonic Gray</strong>
+              <span>Drive</span>
+              <strong>2WD</strong>
             </div>
             <div class="readout-card">
               <span>Engine</span>
-              <strong>3.5L i-VTEC V6</strong>
+              <strong>3.5L SOHC i-VTEC V6</strong>
             </div>
             <div class="readout-card">
-              <span>Priority</span>
-              <strong>Fast access</strong>
+              <span>Built</span>
+              <strong>Lincoln, Alabama</strong>
             </div>
+          </div>
+        </section>
+
+        <section class="quickbar-section" aria-label="Quick actions">
+          <a class="quickbar-card" href="hood.html#fuses">
+            <span>Quick Open</span>
+            <strong>Fuse Boxes</strong>
+            <p>Driver-left dash, Fuse Box A, and Fuse Box B.</p>
+          </a>
+          <a class="quickbar-card" href="hood.html#wiring">
+            <span>Quick Open</span>
+            <strong>Battery / Jump</strong>
+            <p>Battery fitment, jump points, and front-bay electrical notes.</p>
+          </a>
+          <a class="quickbar-card" href="cargo.html">
+            <span>Quick Open</span>
+            <strong>Bed / Trunk</strong>
+            <p>Bed dimensions, In-Bed Trunk notes, and cargo diagrams.</p>
+          </a>
+          <a class="quickbar-card" href="rear-hitch.html">
+            <span>Quick Open</span>
+            <strong>Trailer Wiring</strong>
+            <p>Connector type, towing notes, and hitch references.</p>
+          </a>
+        </section>
+
+        <section class="quickbar-section" aria-label="Garage tools">
+          <a class="quickbar-card" href="maintenance.html">
+            <span>Toolbox</span>
+            <strong>Maintenance Specs</strong>
+            <p>Fluids, verified torque values, bulbs, and wiper service notes.</p>
+          </a>
+          <a class="quickbar-card" href="diagnostics.html">
+            <span>Toolbox</span>
+            <strong>Diagnostics</strong>
+            <p>Symptom-based shortcuts for common garage problems.</p>
+          </a>
+          <a class="quickbar-card" href="garage.html">
+            <span>Toolbox</span>
+            <strong>Garage Log</strong>
+            <p>Personal notes, maintenance tracker, saved fuse favorites, and photos.</p>
+          </a>
+          <a class="quickbar-card" href="hood.html#fuses">
+            <span>Toolbox</span>
+            <strong>Fuse Acronyms</strong>
+            <p>Tap a fuse in the diagrams and get acronym definitions automatically.</p>
+          </a>
+        </section>
+
+        <section class="truck-profile-section" id="truck-profile">
+          <div class="section-head">
+            <p class="eyebrow">Truck Snapshot</p>
+            <h2>This Truck</h2>
+            <p class="section-copy">
+              Key details decoded from your VIN so the rest of the site stays grounded in your actual truck.
+            </p>
+          </div>
+
+          <div class="technical-grid">
+            <article class="tech-card">
+              <h3>Decoded From VIN</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>VIN</dt>
+                  <dd>5FPYK2F64KB002267</dd>
+                </div>
+                <div>
+                  <dt>Year</dt>
+                  <dd>2019</dd>
+                </div>
+                <div>
+                  <dt>Make / Model</dt>
+                  <dd>Honda Ridgeline</dd>
+                </div>
+                <div>
+                  <dt>Body</dt>
+                  <dd>Crew cab pickup</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Powertrain</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Engine</dt>
+                  <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
+                </div>
+                <div>
+                  <dt>Output</dt>
+                  <dd>280 hp / 262 lb-ft</dd>
+                </div>
+                <div>
+                  <dt>Transmission</dt>
+                  <dd>6-speed automatic</dd>
+                </div>
+                <div>
+                  <dt>Drive</dt>
+                  <dd>2WD</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Build Info</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Plant</dt>
+                  <dd>Honda Manufacturing of Alabama, Lincoln</dd>
+                </div>
+                <div>
+                  <dt>WMI</dt>
+                  <dd>5FP</dd>
+                </div>
+                <div>
+                  <dt>Platform</dt>
+                  <dd>Second-generation Ridgeline</dd>
+                </div>
+                <div>
+                  <dt>Note</dt>
+                  <dd>Exact paint color and every option are not encoded in the VIN.</dd>
+                </div>
+              </dl>
+            </article>
           </div>
         </section>
 
         <section class="viewer-section" id="viewer">
           <div class="viewer-header">
             <div>
-              <p class="eyebrow">Interactive Vehicle Map</p>
-              <h2>3D Truck Viewer</h2>
+              <p class="eyebrow">Live Vehicle Map</p>
+              <h2>Live Vehicle Map</h2>
               <p class="section-copy">
-                Drag to rotate, pinch to zoom, and tap glowing points to pull up
-                documentation for the selected area.
+                Rotate the truck until a hotspot appears, then tap it to open the matching service area.
               </p>
             </div>
             <div class="viewer-tips">
               <span>Touch: rotate</span>
-              <span>Pinch: zoom</span>
               <span>Tap hotspot: docs</span>
+              <span>Reset if lost</span>
             </div>
           </div>
 
@@ -89,14 +219,10 @@
               <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
               <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
               <div id="viewer-status" class="viewer-status" hidden></div>
-              <div class="viewer-overlay">
-                <div class="overlay-badge">Live Vehicle Map</div>
-                <p>Stylized 3D Ridgeline-like model for interactive navigation.</p>
-              </div>
             </div>
 
             <aside class="inspector-panel">
-              <p class="eyebrow">Selected Area</p>
+              <p class="eyebrow">Current Selection</p>
               <h3 id="inspector-title">Under-Hood Fuse Box A</h3>
               <p id="inspector-description" class="inspector-description">
                 Primary under-hood fuse box for major electrical protection and
@@ -122,9 +248,6 @@
                 <button class="ghost-button" id="open-area-window" type="button">
                   Open Area Window
                 </button>
-                <button class="ghost-button" id="focus-selected" type="button">
-                  Focus Selected Area
-                </button>
                 <button class="ghost-button" id="reset-camera" type="button">
                   Reset Camera
                 </button>
@@ -137,11 +260,10 @@
 
         <section class="systems-section" id="systems">
           <div class="section-head">
-            <p class="eyebrow">Vehicle Systems</p>
-            <h2>Tap-First Documentation Zones</h2>
+            <p class="eyebrow">Documentation Zones</p>
+            <h2>Quick Entry Areas</h2>
             <p class="section-copy">
-              These match the selectable zones in the 3D viewer and give you a
-              fast way to jump into the same content if you prefer a flat list.
+              These match the selectable areas on the vehicle map and give you a faster flat-list way to get where you need to go.
             </p>
           </div>
           <div id="system-grid" class="system-grid"></div>
@@ -149,7 +271,7 @@
 
         <section class="technical-section" id="technical">
           <div class="section-head">
-            <p class="eyebrow">Technical Specifications</p>
+            <p class="eyebrow">Technical Reference</p>
             <h2>Powertrain And Chassis</h2>
           </div>
 
@@ -236,8 +358,8 @@
 
         <section class="references-section" id="references">
           <div class="section-head">
-            <p class="eyebrow">Source Links</p>
-            <h2>Core References</h2>
+            <p class="eyebrow">Reference Backbone</p>
+            <h2>Core Sources</h2>
           </div>
 
           <div class="reference-list">
@@ -283,6 +405,7 @@
       </section>
     </div>
 
+    <script type="module" src="shared-ui.js"></script>
     <script type="module" src="script.js"></script>
   </body>
 </html>

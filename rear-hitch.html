@@ -3,15 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
     <title>Ridgeline Rear Hitch And Towing</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Interface</a>
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
       </header>
-      <main>
+      <main id="top">
         <section class="section-page-hero">
           <p class="eyebrow">Section Page</p>
           <h1>Rear Hitch And Towing</h1>
@@ -19,7 +30,91 @@
             Hitch, towing, trailer wiring, and rear utility references.
           </p>
         </section>
+        <section class="section-page-stack">
+          <div class="section-callout">
+            Connector quick note: Honda says AWD Ridgelines came with a standard
+            7-pin connector. Your VIN decodes as a 2WD truck, so verify whether
+            your specific truck has the connector installed or only the hitch /
+            tow-plug provision.
+          </div>
+        </section>
         <section class="section-page-grid">
+          <article class="tech-card connector-grid">
+            <div class="diagram-card">
+              <h3>Trailer Connector Picture</h3>
+              <div class="diagram-frame">
+                <svg viewBox="0 0 360 300" role="img" aria-label="7-way blade trailer connector face">
+                  <circle cx="180" cy="150" r="104" fill="#111c2c" stroke="#61dfff" stroke-width="4"></circle>
+                  <circle cx="180" cy="150" r="30" fill="#253447" stroke="#ff915e" stroke-width="3"></circle>
+                  <rect x="169" y="63" width="22" height="28" rx="6" fill="#dce8f5"></rect>
+                  <rect x="250" y="101" width="22" height="28" rx="6" transform="rotate(50 261 115)" fill="#dce8f5"></rect>
+                  <rect x="250" y="171" width="22" height="28" rx="6" transform="rotate(130 261 185)" fill="#dce8f5"></rect>
+                  <rect x="169" y="209" width="22" height="28" rx="6" fill="#dce8f5"></rect>
+                  <rect x="88" y="171" width="22" height="28" rx="6" transform="rotate(-130 99 185)" fill="#dce8f5"></rect>
+                  <rect x="88" y="101" width="22" height="28" rx="6" transform="rotate(-50 99 115)" fill="#dce8f5"></rect>
+                  <text x="180" y="284" text-anchor="middle" fill="#dce8f5" font-size="16" font-weight="700">7-way blade / RV-style connector</text>
+                </svg>
+              </div>
+              <p class="diagram-caption">
+                This is the common rear trailer connector style associated with
+                Ridgeline 7-way harness setups: a round socket with flat blade
+                contacts.
+              </p>
+            </div>
+            <div class="info-card">
+              <h3>What It Is Called</h3>
+              <div class="label-cloud">
+                <span class="label-pill">7-way blade</span>
+                <span class="label-pill">7-pin RV-style</span>
+                <span class="label-pill">7-way flat blade</span>
+              </div>
+              <p class="small-note">
+                If your truck is equipped with the Ridgeline 7-way harness, this
+                is the connector type you want to match when buying trailer
+                adapters, testers, or replacement sockets.
+              </p>
+              <div class="mini-specs">
+                <div class="mini-spec">
+                  <span>2WD VIN</span>
+                  <span>3,500 lb max towing</span>
+                </div>
+                <div class="mini-spec">
+                  <span>AWD Factory Note</span>
+                  <span>Standard 7-pin connector</span>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="tech-card">
+            <h3>Connector Types You Can Use</h3>
+            <div class="connector-types">
+              <div class="connector-type">
+                <strong>4-flat trailer plug</strong>
+                <span>Use a 7-way to 4-flat adapter for basic running, brake, and turn lights.</span>
+              </div>
+              <div class="connector-type">
+                <strong>5-flat trailer plug</strong>
+                <span>Use an adapter when your trailer has an added reverse-lockout or auxiliary lead.</span>
+              </div>
+              <div class="connector-type">
+                <strong>6-pole trailer plug</strong>
+                <span>Adapters are available for round 6-way connectors used on some utility trailers.</span>
+              </div>
+              <div class="connector-type">
+                <strong>7-way blade trailer plug</strong>
+                <span>Direct match when the trailer uses the same RV-style 7-way socket.</span>
+              </div>
+            </div>
+          </article>
+          <article class="tech-card info-card">
+            <h3>Wiring And Towing Notes</h3>
+            <ul class="highlight-list">
+              <li>Tekonsha's custom-fit Ridgeline harness documentation describes a 7-way blade connector.</li>
+              <li>That harness plugs into a gray 12-pin tow plug at the back wall of the cab.</li>
+              <li>A connector bracket is helpful so the plug is fixed near the hitch instead of hanging loose.</li>
+              <li>Use dielectric grease on trailer electrical connections to reduce corrosion.</li>
+            </ul>
+          </article>
           <article class="tech-card">
             <h3>References</h3>
             <div class="reference-list">
@@ -29,10 +124,20 @@
               <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=towing" target="_blank" rel="noreferrer">
                 Owner's manual towing section
               </a>
+              <a href="https://www.etrailer.com/Custom-Fit-Vehicle-Wiring/Honda/Ridgeline/2019/118288.html" target="_blank" rel="noreferrer">
+                Tekonsha 7-way blade harness fitment and connector details
+              </a>
             </div>
           </article>
         </section>
       </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="hood.html#fuses">Fuses</a>
+        <a href="diagnostics.html">Diagnostics</a>
+        <a href="#top">Top</a>
+      </nav>
     </div>
+    <script type="module" src="shared-ui.js"></script>
   </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "Ridgeline Service Console",
+  "short_name": "Ridgeline",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#071019",
+  "theme_color": "#071019",
+  "description": "Offline-friendly service reference for a 2019 Honda Ridgeline.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%23071019'/%3E%3Cpath d='M20 76h88v16H20z' fill='%2379d4ff'/%3E%3Cpath d='M34 54h60c9 0 14 4 14 12v10H20V66c0-8 5-12 14-12z' fill='%23bed3e8'/%3E%3Ccircle cx='40' cy='92' r='10' fill='%23ff915e'/%3E%3Ccircle cx='88' cy='92' r='10' fill='%23ff915e'/%3E%3C/svg%3E",
+      "sizes": "128x128",
+      "type": "image/svg+xml"
+    }
+  ]
+}

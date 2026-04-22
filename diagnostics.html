@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline Diagnostics</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="hood.html#fuses">Fuses</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
+      </header>
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">Diagnostics</p>
+          <h1>Symptom-Based Shortcuts</h1>
+          <p class="section-copy">These are fast entry points for the problems most likely to send you back to the site in the middle of a repair.</p>
+        </section>
+        <section class="system-grid">
+          <article class="system-card">
+            <h3>No Crank / No Start</h3>
+            <p>Start with battery condition, jump-point setup, and the engine-bay fuse pages.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
+              <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Accessory Socket Dead</h3>
+            <p>Check the center accessory socket fuse and the cabin / under-hood related accessory circuits.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+              <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Trailer Lights Not Working</h3>
+            <p>Move through connector type, trailer-specific fuse positions, and the hitch reference page.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="rear-hitch.html">Trailer Wiring</a>
+              <a class="utility-link" href="hood.html#fuses">Trailer Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Tailgate Will Not Lock / Unlock</h3>
+            <p>Check the tailgate-related under-hood fuse positions first, especially where the sources show model-dependent conflict.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="hood.html#fuses">Tailgate-Related Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Power Window Problem</h3>
+            <p>Cabin fuse box is the first stop for driver, passenger, and rear window circuits.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="cabin.html#fuses">Window Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Need A Fast Spec</h3>
+            <p>Jump straight to oil, brake fluid, torque specs, and bulb references.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="maintenance.html">Maintenance Specs</a>
+            </div>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="hood.html#fuses">Fuses</a>
+        <a href="maintenance.html">Specs</a>
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+  </body>
+</html>

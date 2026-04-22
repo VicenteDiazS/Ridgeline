@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline Garage Log</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="maintenance.html">Maintenance</a>
+          <a href="diagnostics.html">Diagnostics</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
+      </header>
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">Garage Log</p>
+          <h1>Notes, Tracker, Favorites, And Photos</h1>
+          <p class="section-copy">This is the personal layer of the site. Use it to store what is actually installed on your truck and what you have already serviced.</p>
+        </section>
+        <section class="section-page-grid">
+          <article class="tech-card">
+            <h3>Parts And Notes</h3>
+            <form class="form-stack" data-notes-form>
+              <label><span>Battery</span><input name="battery" type="text" placeholder="Brand, model, CCA, install date" /></label>
+              <label><span>Engine oil / filter</span><input name="oil_filter" type="text" placeholder="Oil brand, viscosity, filter part number" /></label>
+              <label><span>Air filter</span><input name="air_filter" type="text" placeholder="Engine / cabin filter part numbers" /></label>
+              <label><span>Wipers</span><input name="wipers" type="text" placeholder="Preferred blade brand / size" /></label>
+              <label><span>General notes</span><textarea name="general_notes" rows="6" placeholder="Anything you want to remember about the truck"></textarea></label>
+            </form>
+          </article>
+
+          <article class="tech-card">
+            <h3>Maintenance Tracker</h3>
+            <form class="form-stack" data-tracker-form>
+              <label><span>Oil change</span><input name="oil_change" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Tire rotation</span><input name="tire_rotation" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Brake service</span><input name="brake_service" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Transmission service</span><input name="trans_service" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Battery install</span><input name="battery_install" type="text" placeholder="Date / mileage" /></label>
+            </form>
+          </article>
+
+          <article class="tech-card">
+            <h3>Saved Fuse Favorites</h3>
+            <div class="section-page-stack" data-favorites-list></div>
+          </article>
+
+          <article class="tech-card">
+            <h3>Reference Photos</h3>
+            <p class="small-note">Upload photos of your actual truck's fuse-box covers, battery label, hitch connector, bed, or any other area you want handy. They stay local to this browser.</p>
+            <input class="utility-link" data-photo-input type="file" accept="image/*" multiple />
+            <div class="photo-grid" data-photo-grid></div>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="hood.html#fuses">Fuses</a>
+        <a href="maintenance.html">Specs</a>
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="garage.js"></script>
+  </body>
+</html>

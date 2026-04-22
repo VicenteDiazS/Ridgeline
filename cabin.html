@@ -3,36 +3,367 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
     <title>Ridgeline Cabin And Electronics</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Interface</a>
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
+          <a href="#fuses">Fuses</a>
+          <a href="hood.html#fuses">Engine Fuses</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" data-open-search>Search</button>
+          <button class="ghost-button" type="button" data-install-app>Install</button>
+        </div>
       </header>
-      <main>
+      <main id="top">
         <section class="section-page-hero">
           <p class="eyebrow">Section Page</p>
           <h1>Cabin And Electronics</h1>
           <p class="section-copy">
             Interior fuse access, cabin electronics, display audio, and charging references.
           </p>
+          <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#fuses">Open Fuse Tables</a>
+            <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
+            <a class="utility-link" href="index.html#systems">All Zones</a>
+            <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
+          </div>
+        </section>
+        <section class="section-page-stack">
+          <div class="section-callout">
+            Yes, the driver-left fuse box is included. This is the interior fuse
+            box under the dash on the left side of the driver area. People on
+            forums often call it the under-dash fuse box, driver kick-panel fuse
+            box, lower-left dash fuse box, or the fuse box by your left knee.
+          </div>
         </section>
         <section class="section-page-grid">
-          <article class="tech-card">
-            <h3>References</h3>
-            <div class="reference-list">
-              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=fuse+box+location" target="_blank" rel="noreferrer">
-                Owner's manual fuse locations
-              </a>
-              <a href="https://manualsnet.com/honda/ridgeline-2019" target="_blank" rel="noreferrer">
-                Navigation manual mirror
-              </a>
+          <article class="tech-card" id="fuses">
+            <h3>Cabin Fuse Access</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>Location</dt>
+                <dd>Under the dashboard on the driver's side, left lower dash area</dd>
+              </div>
+              <div>
+                <dt>Use</dt>
+                <dd>Start here for cabin electronics, outlets, and accessory issues</dd>
+              </div>
+              <div>
+                <dt>Check</dt>
+                <dd>Match the fuse number to the side-panel label before replacing anything</dd>
+              </div>
+            </dl>
+          </article>
+          <article class="tech-card diagram-card">
+            <h3>Driver-Left Fuse Box Diagram</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 680 300" role="img" aria-label="Simplified driver-side lower dash fuse box location">
+                <rect x="90" y="52" width="500" height="168" rx="24" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                <path d="M170 70 L340 70 L340 120 Q310 132 288 165 L170 165 Z" fill="#223144"></path>
+                <text x="230" y="106" text-anchor="middle" fill="#dce8f5" font-size="20" font-weight="700">Steering column area</text>
+                <rect x="136" y="174" width="128" height="28" rx="10" fill="#1b2a3f" stroke="#ff915e" stroke-width="3"></rect>
+                <text x="200" y="193" text-anchor="middle" fill="#dce8f5" font-size="16" font-weight="700">Fuse box panel</text>
+                <line x1="264" y1="188" x2="402" y2="188" stroke="#ff915e" stroke-width="3"></line>
+                <text x="450" y="178" fill="#ffcfbd" font-size="17" font-weight="700">Left side of driver footwell</text>
+                <text x="450" y="202" fill="#9dc0da" font-size="15">Behind / beside the side-panel cover</text>
+                <text x="96" y="258" fill="#dce8f5" font-size="17" font-weight="700">Driver door side</text>
+              </svg>
             </div>
+            <p class="diagram-caption">
+              The interior fuse box is the one you were describing under the
+              driver side on the left. This diagram is a local redraw based on
+              the owner-manual style location notes and forum wording.
+            </p>
+          </article>
+          <article class="tech-card">
+            <h3>Full Cabin Fuse Table</h3>
+            <p class="source-note">
+              The main under-dash panel is listed below as <strong>Interior Fuse
+              Box Type A</strong>, and the supplemental under-dash panel is
+              listed as <strong>Interior Fuse Box Type B</strong>. The fuse type
+              for both is the smaller puller-style blade fuse used in the
+              vehicle interior.
+            </p>
+            <p class="source-note">
+              <strong>Verification note:</strong> The cabin tables are much more
+              consistent across the sources I checked, but positions 29 and 31
+              still show naming differences between 2019 manual-style listings
+              and 2017-2019 chart reproductions. Those rows are called out
+              explicitly below.
+            </p>
+            <h4 class="subsection-title">Interior Fuse Box Type A Numbered Panel</h4>
+            <div class="fuse-diagram" data-fuse-diagram="cabin-a">
+              <svg viewBox="0 0 760 540" role="img" aria-label="Redrawn numbered panel diagram for Honda Ridgeline interior fuse box type A">
+                <rect x="76" y="34" width="608" height="460" rx="24" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                <text x="380" y="70" text-anchor="middle" fill="#dce8f5" font-size="26" font-weight="700">Interior Fuse Box Type A</text>
+                <text x="380" y="96" text-anchor="middle" fill="#9dc0da" font-size="15">Driver-left under-dash panel. Read left to right, top to bottom within each row.</text>
+
+                <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                  <rect x="116" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="130" width="58" height="40" rx="8"></rect>
+
+                  <rect x="116" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="182" width="58" height="40" rx="8"></rect>
+
+                  <rect x="116" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="234" width="58" height="40" rx="8"></rect>
+
+                  <rect x="116" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="286" width="58" height="40" rx="8"></rect>
+
+                  <rect x="116" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="338" width="58" height="40" rx="8"></rect>
+
+                  <rect x="116" y="390" width="58" height="40" rx="8"></rect>
+                  <rect x="184" y="390" width="58" height="40" rx="8"></rect>
+                  <rect x="252" y="390" width="58" height="40" rx="8"></rect>
+                  <rect x="320" y="390" width="58" height="40" rx="8"></rect>
+                  <rect x="388" y="390" width="58" height="40" rx="8"></rect>
+                  <rect x="456" y="390" width="58" height="40" rx="8"></rect>
+
+                  <rect x="542" y="130" width="58" height="40" rx="8"></rect>
+                  <rect x="542" y="182" width="58" height="40" rx="8"></rect>
+                  <rect x="542" y="234" width="58" height="40" rx="8"></rect>
+                  <rect x="542" y="286" width="58" height="40" rx="8"></rect>
+                  <rect x="542" y="338" width="58" height="40" rx="8"></rect>
+                  <rect x="542" y="390" width="58" height="40" rx="8"></rect>
+                </g>
+                <g fill="#dce8f5" font-size="16" font-weight="700" text-anchor="middle">
+                  <text x="145" y="155">1</text><text x="213" y="155">2</text><text x="281" y="155">3</text><text x="349" y="155">4</text><text x="417" y="155">5</text><text x="485" y="155">6</text><text x="571" y="155">37</text>
+                  <text x="145" y="207">7</text><text x="213" y="207">8</text><text x="281" y="207">9</text><text x="349" y="207">10</text><text x="417" y="207">11</text><text x="485" y="207">12</text><text x="571" y="207">38</text>
+                  <text x="145" y="259">13</text><text x="213" y="259">14</text><text x="281" y="259">15</text><text x="349" y="259">16</text><text x="417" y="259">17</text><text x="485" y="259">18</text><text x="571" y="259">39</text>
+                  <text x="145" y="311">19</text><text x="213" y="311">20</text><text x="281" y="311">21</text><text x="349" y="311">22</text><text x="417" y="311">23</text><text x="485" y="311">24</text><text x="571" y="311">40</text>
+                  <text x="145" y="363">25</text><text x="213" y="363">26</text><text x="281" y="363">27</text><text x="349" y="363">28</text><text x="417" y="363">29</text><text x="485" y="363">30</text><text x="571" y="363">41</text>
+                  <text x="145" y="415">31</text><text x="213" y="415">32</text><text x="281" y="415">33</text><text x="349" y="415">34</text><text x="417" y="415">35</text><text x="485" y="415">36</text><text x="571" y="415">42</text>
+                </g>
+              </svg>
+            </div>
+            <div class="fuse-inspector" data-fuse-inspector="cabin-a" hidden>
+              <p class="eyebrow">Selected Fuse</p>
+              <h5 class="fuse-inspector-title">Choose a fuse</h5>
+              <p class="fuse-inspector-copy">Tap a numbered position in the diagram to see its location, rating, type, and circuit.</p>
+              <dl class="fuse-inspector-meta">
+                <div><dt>Position</dt><dd data-fuse-field="position">-</dd></div>
+                <div><dt>Location</dt><dd data-fuse-field="location">-</dd></div>
+                <div><dt>Fuse Type</dt><dd data-fuse-field="type">-</dd></div>
+                <div><dt>Rating</dt><dd data-fuse-field="rating">-</dd></div>
+              </dl>
+              <p class="fuse-inspector-circuit" data-fuse-field="circuit">-</p>
+              <div class="inspector-actions">
+                <button class="ghost-button" type="button" data-save-fuse>Save Fuse</button>
+                <a class="utility-link" href="garage.html">Open Garage Log</a>
+              </div>
+              <div class="acronym-panel" data-acronym-panel hidden>
+                <p class="eyebrow">Acronym Guide</p>
+                <div class="acronym-list" data-acronym-list></div>
+              </div>
+            </div>
+            <h4 class="subsection-title">Interior Fuse Box Type A</h4>
+            <div class="table-scroll">
+              <table class="fuse-table" data-fuse-table="cabin-a" aria-label="Full interior fuse box type A entries">
+                <tr>
+                  <th>Position</th>
+                  <th>Location</th>
+                  <th>Fuse Type</th>
+                  <th>Rating</th>
+                  <th>Circuit</th>
+                </tr>
+                <tr><td>1</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Driver power window</td></tr>
+                <tr><td>2</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Door lock</td></tr>
+                <tr><td>3</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>SMART</td></tr>
+                <tr><td>4</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Passenger power window</td></tr>
+                <tr><td>5</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Front accessory socket</td></tr>
+                <tr><td>6</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Fuel pump</td></tr>
+                <tr><td>7</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>15A</td><td>ACG</td></tr>
+                <tr><td>8</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Front wiper</td></tr>
+                <tr><td>9</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>ABS / VSA</td></tr>
+                <tr><td>10</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>SRS</td></tr>
+                <tr><td>11</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Rear left power window</td></tr>
+                <tr><td>12</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Back power window</td></tr>
+                <tr><td>13</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Rear right power window</td></tr>
+                <tr><td>14</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Sunroof / fuel lid</td></tr>
+                <tr><td>15</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Driver power seat recline</td></tr>
+                <tr><td>16</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Cargo light</td></tr>
+                <tr><td>17</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Front seat heater</td></tr>
+                <tr><td>18</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Interior light</td></tr>
+                <tr><td>19</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Driver rear door unlock</td></tr>
+                <tr><td>20</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Passenger-side door unlock</td></tr>
+                <tr><td>21</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>DRL</td></tr>
+                <tr><td>22</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Key lock</td></tr>
+                <tr><td>23</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>A/C</td></tr>
+                <tr><td>24</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>IG1a feedback</td></tr>
+                <tr><td>25</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Instrument panel lights</td></tr>
+                <tr><td>26</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Lumbar support</td></tr>
+                <tr><td>27</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Parking lights</td></tr>
+                <tr><td>28</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Option</td></tr>
+                <tr><td>29</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Source conflict: Meter on several 2017-2019 chart reproductions / Back LT on some 2019 manual-style listings</td></tr>
+                <tr><td>30</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>-</td><td>Unused</td></tr>
+                <tr><td>31</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Source conflict: MISS SOL on several 2017-2019 chart reproductions / ST MOTOR on some 2019 manual-style listings</td></tr>
+                <tr><td>32</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>SRS</td></tr>
+                <tr><td>33</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Passenger-side door lock</td></tr>
+                <tr><td>34</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Driver door lock</td></tr>
+                <tr><td>35</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Driver door unlock</td></tr>
+                <tr><td>36</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Driver power seat slide</td></tr>
+                <tr><td>37</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Right high headlight</td></tr>
+                <tr><td>38</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Left high headlight</td></tr>
+                <tr><td>39</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>IG1b feedback</td></tr>
+                <tr><td>40</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>ACC</td></tr>
+                <tr><td>41</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Driver rear door lock</td></tr>
+                <tr><td>42</td><td>Under dash, driver-left fuse box</td><td>Blade / puller-style</td><td>-</td><td>Unused</td></tr>
+              </table>
+            </div>
+            <h4 class="subsection-title">Interior Fuse Box Type B Numbered Panel</h4>
+            <div class="fuse-diagram" data-fuse-diagram="cabin-b">
+              <svg viewBox="0 0 760 250" role="img" aria-label="Redrawn numbered panel diagram for Honda Ridgeline interior fuse box type B">
+                <rect x="120" y="42" width="520" height="146" rx="24" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                <text x="380" y="78" text-anchor="middle" fill="#dce8f5" font-size="26" font-weight="700">Interior Fuse Box Type B</text>
+                <g fill="#24354c" stroke="#61dfff" stroke-width="1.8">
+                  <rect x="172" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="238" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="304" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="370" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="436" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="502" y="110" width="54" height="40" rx="8"></rect>
+                  <rect x="568" y="110" width="54" height="40" rx="8"></rect>
+                </g>
+                <g fill="#dce8f5" font-size="18" font-weight="700" text-anchor="middle">
+                  <text x="199" y="136">A</text>
+                  <text x="265" y="136">B</text>
+                  <text x="331" y="136">C</text>
+                  <text x="397" y="136">D</text>
+                  <text x="463" y="136">E</text>
+                  <text x="529" y="136">F</text>
+                  <text x="595" y="136">G</text>
+                </g>
+              </svg>
+            </div>
+            <div class="fuse-inspector" data-fuse-inspector="cabin-b" hidden>
+              <p class="eyebrow">Selected Fuse</p>
+              <h5 class="fuse-inspector-title">Choose a fuse</h5>
+              <p class="fuse-inspector-copy">Tap a numbered position in the diagram to see its location, rating, type, and circuit.</p>
+              <dl class="fuse-inspector-meta">
+                <div><dt>Position</dt><dd data-fuse-field="position">-</dd></div>
+                <div><dt>Location</dt><dd data-fuse-field="location">-</dd></div>
+                <div><dt>Fuse Type</dt><dd data-fuse-field="type">-</dd></div>
+                <div><dt>Rating</dt><dd data-fuse-field="rating">-</dd></div>
+              </dl>
+              <p class="fuse-inspector-circuit" data-fuse-field="circuit">-</p>
+              <div class="inspector-actions">
+                <button class="ghost-button" type="button" data-save-fuse>Save Fuse</button>
+                <a class="utility-link" href="garage.html">Open Garage Log</a>
+              </div>
+              <div class="acronym-panel" data-acronym-panel hidden>
+                <p class="eyebrow">Acronym Guide</p>
+                <div class="acronym-list" data-acronym-list></div>
+              </div>
+            </div>
+            <h4 class="subsection-title">Interior Fuse Box Type B</h4>
+            <div class="table-scroll">
+              <table class="fuse-table" data-fuse-table="cabin-b" aria-label="Full interior fuse box type B entries">
+                <tr>
+                  <th>Position</th>
+                  <th>Location</th>
+                  <th>Fuse Type</th>
+                  <th>Rating</th>
+                  <th>Circuit</th>
+                </tr>
+                <tr><td>A</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>Meter</td></tr>
+                <tr><td>B</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>ABS / VSA</td></tr>
+                <tr><td>C</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>ACG</td></tr>
+                <tr><td>D</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>MICU</td></tr>
+                <tr><td>E</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>20A</td><td>Audio</td></tr>
+                <tr><td>F</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>10A</td><td>Back up</td></tr>
+                <tr><td>G</td><td>Supplemental under-dash fuse box</td><td>Blade / puller-style</td><td>7.5A</td><td>ACC</td></tr>
+              </table>
+            </div>
+            <p class="source-note">
+              I also kept the wording flexible where online 2017-2019 chart
+              reproductions disagree, such as <em>Meter</em> versus
+              <em>Back LT</em> for position 29 and <em>MISS SOL</em> versus
+              <em>ST MOTOR</em> for position 31.
+            </p>
+          </article>
+          <article class="tech-card">
+            <h3>Charging And Connectivity</h3>
+            <ul class="highlight-list">
+              <li>All 2019 Ridgelines have 12-volt outlets in both the center stack and center console.</li>
+              <li>RT, Sport, and RTL trims use a 1.0-amp USB Audio Interface in the center stack.</li>
+              <li>The center-console USB on RT, Sport, and RTL became a 2.5-amp charging-only outlet for 2019.</li>
+              <li>RTL-T and above add a 1.5-amp USB Smartphone/Audio Interface in the center stack.</li>
+            </ul>
+          </article>
+          <article class="tech-card">
+            <h3>Audio System By Trim</h3>
+            <div class="mini-specs">
+              <div class="mini-spec">
+                <span>RT / Sport / RTL</span>
+                <span>200 W, 7 speakers</span>
+              </div>
+              <div class="mini-spec">
+                <span>RTL-T</span>
+                <span>225 W, 7 speakers</span>
+              </div>
+              <div class="mini-spec">
+                <span>RTL-E / Black</span>
+                <span>540 W, 8 speakers</span>
+              </div>
+            </div>
+            <p class="small-note">
+              VIN alone does not tell us your exact trim, so this section keeps
+              the trim-specific differences together for quick checking.
+            </p>
+          </article>
+          <article class="tech-card">
+            <h3>Source Notes</h3>
+            <p class="source-note">
+              Location wording here is based on sources that describe the box as
+              being under the dashboard on the driver side, plus forum-style
+              wording such as under-dash fuse box, kick-panel fuse box, and the
+              left-side panel by the driver's knee. The fuse tables shown here
+              are local full-table rebuilds from 2017-2019 chart reproductions
+              and 2019 owner-manual-style listings.
+            </p>
           </article>
         </section>
       </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="#fuses">Fuses</a>
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="index.html#systems">Zones</a>
+        <a href="#top">Top</a>
+      </nav>
     </div>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="fuse-interactive.js"></script>
   </body>
 </html>
