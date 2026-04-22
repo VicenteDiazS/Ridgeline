@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Futuristic 2019 Honda Ridgeline mobile reference with an interactive 3D truck viewer, hotspots, fuse help, and technical documentation."
+    />
+    <title>Ridgeline Interface</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top">Ridgeline Interface</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="#viewer">3D Truck</a>
+          <a href="#systems">Systems</a>
+          <a href="#technical">Specs</a>
+          <a href="#references">References</a>
+        </nav>
+      </header>
+
+      <main id="top">
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <p class="eyebrow">Garage Console</p>
+            <h1>Truck Service Access</h1>
+            <p class="hero-subtitle">2019 Honda Ridgeline</p>
+            <p class="hero-text">
+              Quick access to the truck areas and references you use while
+              diagnosing, servicing, or checking specs.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-button" href="#viewer">Open Viewer</a>
+              <a class="secondary-button" href="#systems">Open Systems</a>
+            </div>
+          </div>
+
+          <div class="hero-readout">
+            <div class="readout-card">
+              <span>Vehicle</span>
+              <strong>2019 Ridgeline</strong>
+            </div>
+            <div class="readout-card">
+              <span>Theme</span>
+              <strong>Sonic Gray</strong>
+            </div>
+            <div class="readout-card">
+              <span>Engine</span>
+              <strong>3.5L i-VTEC V6</strong>
+            </div>
+            <div class="readout-card">
+              <span>Priority</span>
+              <strong>Fast access</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="viewer-section" id="viewer">
+          <div class="viewer-header">
+            <div>
+              <p class="eyebrow">Interactive Vehicle Map</p>
+              <h2>3D Truck Viewer</h2>
+              <p class="section-copy">
+                Drag to rotate, pinch to zoom, and tap glowing points to pull up
+                documentation for the selected area.
+              </p>
+            </div>
+            <div class="viewer-tips">
+              <span>Touch: rotate</span>
+              <span>Pinch: zoom</span>
+              <span>Tap hotspot: docs</span>
+            </div>
+          </div>
+
+          <div class="viewer-layout">
+            <div class="viewer-stage">
+              <div class="viewer-backdrop"></div>
+              <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
+              <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
+              <div id="viewer-status" class="viewer-status" hidden></div>
+              <div class="viewer-overlay">
+                <div class="overlay-badge">Live Vehicle Map</div>
+                <p>Stylized 3D Ridgeline-like model for interactive navigation.</p>
+              </div>
+            </div>
+
+            <aside class="inspector-panel">
+              <p class="eyebrow">Selected Area</p>
+              <h3 id="inspector-title">Under-Hood Fuse Box A</h3>
+              <p id="inspector-description" class="inspector-description">
+                Primary under-hood fuse box for major electrical protection and
+                troubleshooting.
+              </p>
+
+              <div class="inspector-meta">
+                <div class="meta-block">
+                  <span>Area</span>
+                  <strong id="inspector-area">Front engine bay</strong>
+                </div>
+                <div class="meta-block">
+                  <span>Use Case</span>
+                  <strong id="inspector-use">Electrical diagnosis</strong>
+                </div>
+              </div>
+
+              <ul id="inspector-points" class="inspector-points"></ul>
+
+              <div id="inspector-links" class="inspector-links"></div>
+
+              <div class="inspector-actions">
+                <button class="ghost-button" id="open-area-window" type="button">
+                  Open Area Window
+                </button>
+                <button class="ghost-button" id="focus-selected" type="button">
+                  Focus Selected Area
+                </button>
+                <button class="ghost-button" id="reset-camera" type="button">
+                  Reset Camera
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div id="system-chips" class="system-chips" aria-label="System shortcuts"></div>
+        </section>
+
+        <section class="systems-section" id="systems">
+          <div class="section-head">
+            <p class="eyebrow">Vehicle Systems</p>
+            <h2>Tap-First Documentation Zones</h2>
+            <p class="section-copy">
+              These match the selectable zones in the 3D viewer and give you a
+              fast way to jump into the same content if you prefer a flat list.
+            </p>
+          </div>
+          <div id="system-grid" class="system-grid"></div>
+        </section>
+
+        <section class="technical-section" id="technical">
+          <div class="section-head">
+            <p class="eyebrow">Technical Specifications</p>
+            <h2>Powertrain And Chassis</h2>
+          </div>
+
+          <div class="technical-grid">
+            <article class="tech-card">
+              <h3>Engine</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Name</dt>
+                  <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
+                </div>
+                <div>
+                  <dt>Fueling</dt>
+                  <dd>Direct injection</dd>
+                </div>
+                <div>
+                  <dt>Output</dt>
+                  <dd>280 hp at 6,000 rpm</dd>
+                </div>
+                <div>
+                  <dt>Torque</dt>
+                  <dd>262 lb-ft at 4,700 rpm</dd>
+                </div>
+                <div>
+                  <dt>Systems</dt>
+                  <dd>VCM, drive-by-wire, Eco Assist, ACM, ANC</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Drivetrain</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Transmission</dt>
+                  <dd>6-speed automatic</dd>
+                </div>
+                <div>
+                  <dt>Drive</dt>
+                  <dd>2WD or i-VTM4 all-wheel drive</dd>
+                </div>
+                <div>
+                  <dt>Modes</dt>
+                  <dd>Normal, Snow, and on AWD also Mud and Sand</dd>
+                </div>
+                <div>
+                  <dt>Fuel</dt>
+                  <dd>Regular unleaded</dd>
+                </div>
+                <div>
+                  <dt>Tow Rating</dt>
+                  <dd>3,500 lb 2WD / 5,000 lb AWD</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Chassis</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Front</dt>
+                  <dd>MacPherson strut suspension</dd>
+                </div>
+                <div>
+                  <dt>Rear</dt>
+                  <dd>Multi-link independent suspension</dd>
+                </div>
+                <div>
+                  <dt>Steering</dt>
+                  <dd>Electric power-assisted rack-and-pinion</dd>
+                </div>
+                <div>
+                  <dt>Brakes</dt>
+                  <dd>4-wheel disc with ABS, EBD, and Brake Assist</dd>
+                </div>
+                <div>
+                  <dt>Tires</dt>
+                  <dd>P245/60 R18 105H all-season</dd>
+                </div>
+              </dl>
+            </article>
+          </div>
+        </section>
+
+        <section class="references-section" id="references">
+          <div class="section-head">
+            <p class="eyebrow">Source Links</p>
+            <h2>Core References</h2>
+          </div>
+
+          <div class="reference-list">
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/3-5-Liter-i-VTEC-V-6-Engine/" target="_blank" rel="noreferrer">
+              Honda engine reference
+            </a>
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/" target="_blank" rel="noreferrer">
+              Honda towing reference
+            </a>
+            <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=fuse+box+location" target="_blank" rel="noreferrer">
+              Owner's manual fuse locations
+            </a>
+            <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=towing" target="_blank" rel="noreferrer">
+              Owner's manual towing section
+            </a>
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Features-by-Trim/" target="_blank" rel="noreferrer">
+              Honda trim and engineering guide
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="area-modal" id="area-modal" hidden>
+      <div class="area-modal-backdrop" id="area-modal-backdrop"></div>
+      <section class="area-modal-panel" aria-labelledby="area-modal-title" aria-modal="true" role="dialog">
+        <div class="area-modal-head">
+          <div>
+            <p class="eyebrow">Area Actions</p>
+            <h2 id="area-modal-title">Front Engine Bay</h2>
+          </div>
+          <button class="modal-close" id="close-area-modal" type="button" aria-label="Close area window">
+            Close
+          </button>
+        </div>
+
+        <p class="area-modal-copy" id="area-modal-copy">
+          Choose what you want to see for this section of the truck.
+        </p>
+
+        <div class="area-modal-meta" id="area-modal-meta"></div>
+        <div class="area-modal-actions" id="area-modal-actions"></div>
+      </section>
+    </div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
