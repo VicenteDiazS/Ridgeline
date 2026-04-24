@@ -18,6 +18,18 @@ export const searchIndex = [
     keywords: ["engine", "transmission", "suspension", "brakes", "wheels", "tire size"]
   },
   {
+    title: "AR Lab",
+    url: "ar-lab.html",
+    category: "Showcase",
+    keywords: ["ar", "augmented reality", "model viewer", "spatial", "showcase"]
+  },
+  {
+    title: "Photo Atlas",
+    url: "photo-atlas.html",
+    category: "Showcase",
+    keywords: ["photo atlas", "real truck photos", "area photos", "hood photo", "cabin photo", "hitch photo"]
+  },
+  {
     title: "Fuse Boxes",
     url: "hood.html#fuses",
     category: "Electrical",
@@ -40,6 +52,12 @@ export const searchIndex = [
     url: "hood.html#wiring",
     category: "Electrical",
     keywords: ["battery", "jump start", "ground point", "front bay", "cca", "group 48", "h6"]
+  },
+  {
+    title: "Battery Service",
+    url: "hood.html#battery-service",
+    category: "Electrical",
+    keywords: ["battery size", "group 48", "h6", "battery dimensions", "battery service", "cca"]
   },
   {
     title: "Maintenance Specs",
@@ -88,6 +106,24 @@ export const searchIndex = [
     url: "maintenance.html#torque",
     category: "Maintenance",
     keywords: ["torque", "wheel nuts", "drain bolt", "lb-ft", "oil drain", "service torque"]
+  },
+  {
+    title: "Maintenance Minder Codes",
+    url: "maintenance.html#minder",
+    category: "Maintenance",
+    keywords: ["maintenance minder", "service codes", "code a", "code b", "code 1", "code 2", "code 3", "code 4", "code 5", "code 6", "code 7"]
+  },
+  {
+    title: "Brake / Tire Service",
+    url: "maintenance.html#brake-tire",
+    category: "Maintenance",
+    keywords: ["brakes", "tire size", "wheel torque", "bolt pattern", "center bore", "offset", "jack points"]
+  },
+  {
+    title: "Jack Points",
+    url: "maintenance.html#jack-points",
+    category: "Maintenance",
+    keywords: ["jack", "jacking point", "flat tire", "spare tire", "wheel nut torque", "roadside"]
   },
   {
     title: "Bulbs",
@@ -174,6 +210,24 @@ export const searchIndex = [
     keywords: ["4-flat", "5-flat", "6-pole", "7-way", "adapter types"]
   },
   {
+    title: "7-Way Pinout",
+    url: "rear-hitch.html#pinout",
+    category: "Towing",
+    keywords: ["7-way", "pinout", "reverse lights", "12v power", "left turn", "right turn", "brake output", "running lights"]
+  },
+  {
+    title: "Towing Checklist",
+    url: "rear-hitch.html#tow-checklist",
+    category: "Towing",
+    keywords: ["tow checklist", "hookup", "safety chains", "coupler", "light check", "towing prep"]
+  },
+  {
+    title: "Emergency Quick Sheet",
+    url: "quick-sheet.html",
+    category: "Navigation",
+    keywords: ["quick sheet", "emergency", "battery", "oil", "tires", "jack", "fuses", "towing"]
+  },
+  {
     title: "Rear Hitch Journal",
     url: "rear-hitch.html#area-journal",
     category: "Personal",
@@ -184,6 +238,12 @@ export const searchIndex = [
     url: "garage.html",
     category: "Personal",
     keywords: ["notes", "parts", "tracker", "favorites", "photos", "maintenance log"]
+  },
+  {
+    title: "Garage Dashboard",
+    url: "garage.html#dashboard",
+    category: "Personal",
+    keywords: ["dashboard", "garage dashboard", "truck profile", "photo count", "service status"]
   },
   {
     title: "Area Journals",

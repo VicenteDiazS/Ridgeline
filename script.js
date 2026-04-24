@@ -52,7 +52,7 @@ const systems = [
       }
     ],
     labelOffset: { x: 138, y: -72 },
-    highlightMeshes: ["fuseBoxAZone", "frontBayZone"],
+    highlightMeshes: ["fuseBoxAHighlight"],
     point: new THREE.Vector3(-2.34, 1.5, -0.82),
     camera: new THREE.Vector3(-4.8, 2.4, -4.0),
     target: new THREE.Vector3(-2.16, 1.38, -0.62)
@@ -375,6 +375,8 @@ const areaModalTitle = document.getElementById("area-modal-title");
 const areaModalCopy = document.getElementById("area-modal-copy");
 const areaModalMeta = document.getElementById("area-modal-meta");
 const areaModalActions = document.getElementById("area-modal-actions");
+const explodedToggle = document.getElementById("exploded-toggle");
+const cinematicToggle = document.getElementById("cinematic-toggle");
 const mainElement = document.getElementById("top");
 const heroPanel = document.querySelector(".hero-panel");
 
@@ -385,10 +387,30 @@ if (mainElement && viewerElement && heroPanel) {
   }
 }
 
+if (!location.hash) {
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
+  const resetOpeningScroll = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  };
+
+  window.addEventListener("load", resetOpeningScroll);
+  window.addEventListener("pageshow", resetOpeningScroll);
+}
+
 let renderer;
+const isPhoneViewer =
+  window.matchMedia("(max-width: 900px)").matches ||
+  window.matchMedia("(pointer: coarse)").matches;
 
 try {
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer = new THREE.WebGLRenderer({
+    antialias: !isPhoneViewer,
+    alpha: true,
+    powerPreference: "high-performance"
+  });
 } catch (error) {
   viewerStatus.hidden = false;
   viewerStatus.textContent =
@@ -403,19 +425,19 @@ if (!renderer) {
   const defaultCameraPosition = new THREE.Vector3(-7.35, 2.9, 0.16);
   const defaultCameraTarget = new THREE.Vector3(0, 1.2, 0);
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.shadowMap.enabled = !isPhoneViewer;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   viewerElement.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x08111c, 20, 36);
+  scene.fog = new THREE.Fog(0x08111c, 24, 46);
 
   const camera = new THREE.PerspectiveCamera(37, 1, 0.1, 100);
   camera.position.copy(defaultCameraPosition);
 
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  controls.enableDamping = !isPhoneViewer;
   controls.enablePan = true;
   controls.minDistance = 4;
   controls.maxDistance = 13;
@@ -425,17 +447,17 @@ if (!renderer) {
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.04;
+  renderer.toneMappingExposure = 0.96;
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.05).texture;
 
-  scene.add(new THREE.HemisphereLight(0xdff4ff, 0x122030, 1.55));
+  scene.add(new THREE.HemisphereLight(0xdff4ff, 0x122030, 1.34));
 
-  const keyLight = new THREE.DirectionalLight(0xe3f5ff, 3.1);
+  const keyLight = new THREE.DirectionalLight(0xe3f5ff, 2.45);
   keyLight.position.set(6.5, 8.5, 4.2);
-  keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.castShadow = !isPhoneViewer;
+  keyLight.shadow.mapSize.set(isPhoneViewer ? 512 : 1024, isPhoneViewer ? 512 : 1024);
   keyLight.shadow.camera.near = 1;
   keyLight.shadow.camera.far = 24;
   keyLight.shadow.camera.left = -7;
@@ -445,29 +467,33 @@ if (!renderer) {
   keyLight.shadow.bias = -0.0002;
   scene.add(keyLight);
 
-  const rimLight = new THREE.DirectionalLight(0x7ecfff, 1.9);
+  const rimLight = new THREE.DirectionalLight(0x7ecfff, 1.4);
   rimLight.position.set(-8, 4.8, -3.8);
   scene.add(rimLight);
 
-  const fillLight = new THREE.PointLight(0x8fdcff, 14, 20, 2);
-  fillLight.position.set(-0.4, 3.1, 1.2);
-  scene.add(fillLight);
+  if (!isPhoneViewer) {
+    const fillLight = new THREE.PointLight(0x8fdcff, 8, 18, 2);
+    fillLight.position.set(-0.4, 3.1, 1.2);
+    scene.add(fillLight);
+  }
 
-  const warmLight = new THREE.DirectionalLight(0xffd6b8, 1.35);
+  const warmLight = new THREE.DirectionalLight(0xffd6b8, 1.05);
   warmLight.position.set(1.8, 3.8, -6.5);
   scene.add(warmLight);
 
-  const sideRevealLight = new THREE.DirectionalLight(0xb8f1ff, 1.15);
-  sideRevealLight.position.set(-2.8, 2.1, 7);
-  scene.add(sideRevealLight);
+  if (!isPhoneViewer) {
+    const sideRevealLight = new THREE.DirectionalLight(0xb8f1ff, 0.92);
+    sideRevealLight.position.set(-2.8, 2.1, 7);
+    scene.add(sideRevealLight);
 
-  const rearGlowLight = new THREE.PointLight(0x6fd8ff, 10, 18, 2);
-  rearGlowLight.position.set(0.3, 1.9, -5.8);
-  scene.add(rearGlowLight);
+    const rearGlowLight = new THREE.PointLight(0x6fd8ff, 5.5, 16, 2);
+    rearGlowLight.position.set(0.3, 1.9, -5.8);
+    scene.add(rearGlowLight);
 
-  const frontLiftLight = new THREE.PointLight(0xffd7b4, 7, 14, 2);
-  frontLiftLight.position.set(-3.8, 1.7, 2.4);
-  scene.add(frontLiftLight);
+    const frontLiftLight = new THREE.PointLight(0xffd7b4, 4.5, 12, 2);
+    frontLiftLight.position.set(-3.8, 1.7, 2.4);
+    scene.add(frontLiftLight);
+  }
 
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(7.5, 80),
@@ -490,7 +516,7 @@ if (!renderer) {
   );
   shadowCatcher.rotation.x = -Math.PI / 2;
   shadowCatcher.position.y = 0.031;
-  shadowCatcher.receiveShadow = true;
+  shadowCatcher.receiveShadow = !isPhoneViewer;
   scene.add(shadowCatcher);
 
   const truck = new THREE.Group();
@@ -498,6 +524,10 @@ if (!renderer) {
   scene.add(truck);
   const meshRegistry = new Map();
   const highlightOutlines = new Map();
+  const explodableNodes = [];
+  let importedModelRoot = null;
+  let explodedMode = false;
+  let cinematicMode = false;
 
   function registerMesh(name, mesh) {
     mesh.userData.partName = name;
@@ -524,50 +554,85 @@ if (!renderer) {
     highlightOutlines.set(name, outline);
   }
 
+  function refreshExplodableNodes(root = importedModelRoot || truck) {
+    explodableNodes.length = 0;
+
+    const candidates =
+      root === truck
+        ? truck.children.filter((child) => child.visible && child.userData.isFallbackVisual)
+        : root.children.filter((child) => child.visible && child.type !== "Bone");
+
+    candidates.forEach((child) => {
+      const bounds = new THREE.Box3().setFromObject(child);
+      const center = new THREE.Vector3();
+      bounds.getCenter(center);
+      const direction = center.clone().sub(defaultCameraTarget);
+      if (direction.lengthSq() < 0.001) {
+        direction.set(0, 0.2, 0.4);
+      }
+
+      explodableNodes.push({
+        node: child,
+        basePosition: child.position.clone(),
+        direction: direction.normalize()
+      });
+    });
+  }
+
+  function applyExplodedState(enabled) {
+    explodedMode = enabled;
+    explodedToggle?.setAttribute("aria-pressed", enabled ? "true" : "false");
+
+    explodableNodes.forEach(({ node, basePosition, direction }) => {
+      const distance = enabled ? 0.22 : 0;
+      node.position.copy(basePosition).addScaledVector(direction, distance);
+    });
+  }
+
   const paint = new THREE.MeshPhysicalMaterial({
-    color: 0x727b84,
-    metalness: 0.72,
-    roughness: 0.16,
-    clearcoat: 1,
-    clearcoatRoughness: 0.06,
-    sheen: 0.34,
+    color: 0x747474,
+    metalness: 0.48,
+    roughness: 0.38,
+    clearcoat: 0.48,
+    clearcoatRoughness: 0.32,
+    sheen: 0.2,
     sheenColor: new THREE.Color(0xb6c0c9),
-    specularIntensity: 1.04
+    specularIntensity: 0.54
   });
 
   const paintDark = new THREE.MeshPhysicalMaterial({
-    color: 0x5e6770,
-    metalness: 0.64,
-    roughness: 0.2,
-    clearcoat: 0.92,
-    clearcoatRoughness: 0.12,
-    specularIntensity: 0.88
+    color: 0x626262,
+    metalness: 0.4,
+    roughness: 0.44,
+    clearcoat: 0.42,
+    clearcoatRoughness: 0.34,
+    specularIntensity: 0.46
   });
 
   const darkTrim = new THREE.MeshStandardMaterial({
-    color: 0x07090b,
-    metalness: 0.16,
-    roughness: 0.82
+    color: 0x020304,
+    metalness: 0.04,
+    roughness: 0.98
   });
 
   const plasticTrim = new THREE.MeshStandardMaterial({
-    color: 0x0b0d10,
-    metalness: 0.04,
-    roughness: 0.9
+    color: 0x000000,
+    metalness: 0.01,
+    roughness: 1
   });
 
   const chrome = new THREE.MeshStandardMaterial({
-    color: 0xe5eaef,
-    metalness: 0.95,
-    roughness: 0.09
+    color: 0x9aa3ac,
+    metalness: 0.68,
+    roughness: 0.42
   });
 
   const glass = new THREE.MeshPhysicalMaterial({
-    color: 0x7ca8c4,
+    color: 0x5f666b,
     transmission: 0.62,
     transparent: true,
     opacity: 0.5,
-    roughness: 0.05,
+    roughness: 0.34,
     metalness: 0.06
   });
 
@@ -679,6 +744,60 @@ if (!renderer) {
     new THREE.Vector3(-2.3, 1.6, -0.82),
     { z: -0.04 }
   );
+
+  function createFuseBoxHighlight(name, position, rotation = {}) {
+    const highlight = new THREE.Group();
+    highlight.userData.partName = name;
+    highlight.visible = false;
+
+    const shell = new THREE.Mesh(
+      makeRoundedBox(0.26, 0.08, 0.18, 0.02, 4),
+      new THREE.MeshStandardMaterial({
+        color: 0xffa26e,
+        emissive: 0x6a2f12,
+        metalness: 0.1,
+        roughness: 0.34,
+        transparent: true,
+        opacity: 0.38
+      })
+    );
+    highlight.add(shell);
+
+    const lid = new THREE.Mesh(
+      makeRoundedBox(0.22, 0.02, 0.14, 0.012, 3),
+      new THREE.MeshStandardMaterial({
+        color: 0xffc3a0,
+        emissive: 0x7d3a18,
+        metalness: 0.08,
+        roughness: 0.28,
+        transparent: true,
+        opacity: 0.48
+      })
+    );
+    lid.position.y = 0.048;
+    highlight.add(lid);
+
+    const lip = new THREE.LineSegments(
+      new THREE.EdgesGeometry(makeRoundedBox(0.26, 0.08, 0.18, 0.02, 4), 18),
+      new THREE.LineBasicMaterial({
+        color: 0xff9a63,
+        transparent: true,
+        opacity: 0.9
+      })
+    );
+    highlight.add(lip);
+
+    highlight.position.copy(position);
+    highlight.rotation.set(rotation.x ?? 0, rotation.y ?? 0, rotation.z ?? 0);
+    truck.add(highlight);
+    meshRegistry.set(name, highlight);
+    return highlight;
+  }
+
+  createFuseBoxHighlight("fuseBoxAHighlight", new THREE.Vector3(-2.3, 1.64, -0.82), {
+    z: -0.04
+  });
+
   createServiceZone(
     "batteryZone",
     0.44,
@@ -1027,6 +1146,9 @@ if (!renderer) {
     child.userData.isFallbackVisual = !isServiceZone && !isServiceOutline;
   });
 
+  refreshExplodableNodes();
+  applyExplodedState(false);
+
   truck.rotation.y = -0.45;
 
   const modelLoader = new GLTFLoader();
@@ -1055,14 +1177,15 @@ if (!renderer) {
 
     if (nameIncludes(tokenText, ["glass", "window", "windshield", "mirror"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0xa9c4d6);
+      nextMaterial.color = new THREE.Color(0x62686c);
       nextMaterial.metalness = 0;
-      nextMaterial.roughness = 0.05;
-      nextMaterial.transmission = 0.6;
+      nextMaterial.roughness = 0.42;
+      nextMaterial.transmission = 0.08;
       nextMaterial.transparent = true;
-      nextMaterial.opacity = 0.58;
+      nextMaterial.opacity = 0.96;
       nextMaterial.ior = 1.45;
       nextMaterial.thickness = 0.02;
+      nextMaterial.depthWrite = true;
       return nextMaterial;
     }
 
@@ -1093,25 +1216,25 @@ if (!renderer) {
     if (nameIncludes(tokenText, ["chrome", "badge", "logo", "emblem", "handle"])) {
       if (nameIncludes(tokenText, ["logo", "badge", "emblem"])) {
         clearDiffuseMap();
-        nextMaterial.color = new THREE.Color(0x111111);
-        nextMaterial.metalness = 0.62;
-        nextMaterial.roughness = 0.24;
+        nextMaterial.color = new THREE.Color(0x090a0c);
+        nextMaterial.metalness = 0.28;
+        nextMaterial.roughness = 0.62;
         return nextMaterial;
       }
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0xe4e8ec);
-      nextMaterial.metalness = 1;
-      nextMaterial.roughness = 0.14;
+      nextMaterial.color = new THREE.Color(0x6d747b);
+      nextMaterial.metalness = 0.48;
+      nextMaterial.roughness = 0.62;
       return nextMaterial;
     }
 
     if (nameIncludes(tokenText, ["lamp", "head", "tail", "light", "fog"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0xe9f5ff);
+      nextMaterial.color = new THREE.Color(0xc7d2da);
       nextMaterial.emissive = new THREE.Color(0x402018);
-      nextMaterial.emissiveIntensity = 0.24;
+      nextMaterial.emissiveIntensity = 0.12;
       nextMaterial.metalness = 0.06;
-      nextMaterial.roughness = 0.12;
+      nextMaterial.roughness = 0.22;
       return nextMaterial;
     }
 
@@ -1140,9 +1263,9 @@ if (!renderer) {
       ])
     ) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x090b0d);
-      nextMaterial.metalness = 0.06;
-      nextMaterial.roughness = 0.97;
+      nextMaterial.color = new THREE.Color(0x000000);
+      nextMaterial.metalness = 0.01;
+      nextMaterial.roughness = 1;
       return nextMaterial;
     }
 
@@ -1162,29 +1285,31 @@ if (!renderer) {
       ])
     ) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x7a838c);
-      nextMaterial.metalness = 0.86;
-      nextMaterial.roughness = 0.16;
-      nextMaterial.clearcoat = 1;
-      nextMaterial.clearcoatRoughness = 0.06;
+      nextMaterial.color = new THREE.Color(0x767676);
+      nextMaterial.metalness = 0.38;
+      nextMaterial.roughness = 0.46;
+      nextMaterial.clearcoat = 0.34;
+      nextMaterial.clearcoatRoughness = 0.4;
+      nextMaterial.specularIntensity = 0.42;
       return nextMaterial;
     }
 
     if (sourceHsl.l <= 0.24) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x090b0d);
-      nextMaterial.metalness = 0.06;
-      nextMaterial.roughness = 0.97;
+      nextMaterial.color = new THREE.Color(0x06080a);
+      nextMaterial.metalness = 0.03;
+      nextMaterial.roughness = 0.98;
       return nextMaterial;
     }
 
     if (sourceHsl.l >= 0.32) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x7a838c);
-      nextMaterial.metalness = 0.86;
-      nextMaterial.roughness = 0.16;
-      nextMaterial.clearcoat = 1;
-      nextMaterial.clearcoatRoughness = 0.06;
+      nextMaterial.color = new THREE.Color(0x767676);
+      nextMaterial.metalness = 0.38;
+      nextMaterial.roughness = 0.46;
+      nextMaterial.clearcoat = 0.34;
+      nextMaterial.clearcoatRoughness = 0.4;
+      nextMaterial.specularIntensity = 0.42;
       return nextMaterial;
     }
 
@@ -1203,8 +1328,8 @@ if (!renderer) {
 
       modelRoot.traverse((child) => {
         if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
+          child.castShadow = !isPhoneViewer;
+          child.receiveShadow = !isPhoneViewer;
           const meshName = `${child.name || ""} ${child.parent?.name || ""}`.toLowerCase();
           if (child.material) {
             const materials = Array.isArray(child.material) ? child.material : [child.material];
@@ -1248,6 +1373,13 @@ if (!renderer) {
 
       modelRoot.rotation.y += Math.PI;
       truck.add(modelRoot);
+      importedModelRoot = modelRoot;
+      refreshExplodableNodes(modelRoot);
+      if (explodedMode) {
+        applyExplodedState(true);
+      }
+      rebuildOcclusionMeshes();
+      visibilityDirty = true;
 
       truck.children.forEach((child) => {
         if (child !== modelRoot && child.userData.isFallbackVisual) {
@@ -1296,14 +1428,30 @@ if (!renderer) {
 
   let selectedSystem = systems[0];
   let cameraTween = null;
+  const defaultInspectorState = {
+    title: titleEl.textContent,
+    description: descriptionEl.textContent,
+    area: areaEl.textContent,
+    use: useEl.textContent
+  };
 
   const projected = new THREE.Vector3();
   const cameraLocal = new THREE.Vector3();
+  const pointWorld = new THREE.Vector3();
+  const rayDirection = new THREE.Vector3();
+  const raycaster = new THREE.Raycaster();
+  const occlusionMeshes = [];
+  const occlusionVisibility = new Map();
+  const lastCameraPosition = new THREE.Vector3();
+  const lastCameraQuaternion = new THREE.Quaternion();
   const hotspotButtons = new Map();
   const calloutElements = new Map();
   const systemCards = new Map();
   const chipButtons = new Map();
   const orientationPoint = new THREE.Vector3(0.28, 1.34, 1.24);
+  let lastVisibilitySample = 0;
+  let visibilityDirty = true;
+  let isViewerInteracting = false;
 
   const orientationCallout = document.createElement("div");
   orientationCallout.className = "hotspot-callout";
@@ -1325,7 +1473,7 @@ if (!renderer) {
     button.setAttribute("aria-label", system.label);
     button.addEventListener("click", () => {
       stopShowcaseRotation();
-      selectSystem(system.id, false);
+      selectSystem(system.id, cinematicMode);
       openAreaModal(system);
     });
     hotspotLayer.appendChild(button);
@@ -1359,7 +1507,7 @@ if (!renderer) {
     `;
     card.addEventListener("click", () => {
       stopShowcaseRotation();
-      selectSystem(system.id, false);
+      selectSystem(system.id, cinematicMode);
       document.getElementById("viewer").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     systemGrid.appendChild(card);
@@ -1371,11 +1519,65 @@ if (!renderer) {
     chip.textContent = system.label;
     chip.addEventListener("click", () => {
       stopShowcaseRotation();
-      selectSystem(system.id, false);
+      selectSystem(system.id, cinematicMode);
     });
     chipRow.appendChild(chip);
     chipButtons.set(system.id, chip);
   });
+  rebuildOcclusionMeshes();
+
+  function rebuildOcclusionMeshes() {
+    occlusionMeshes.length = 0;
+    truck.traverse((child) => {
+      if (!child.isMesh || !child.visible) {
+        return;
+      }
+
+      const partName = child.userData.partName;
+      const outlineFor = child.userData.outlineFor;
+      const isServiceZone = partName && serviceZoneNames.has(partName);
+      const isServiceOutline = outlineFor && serviceZoneNames.has(outlineFor);
+      if (isServiceZone || isServiceOutline) {
+        return;
+      }
+
+      occlusionMeshes.push(child);
+    });
+  }
+
+  function isPointVisibleToCamera(localPoint) {
+    pointWorld.copy(localPoint).applyMatrix4(truck.matrixWorld);
+    rayDirection.copy(pointWorld).sub(camera.position);
+    const targetDistance = rayDirection.length();
+
+    if (targetDistance <= 0.001) {
+      return true;
+    }
+
+    rayDirection.normalize();
+    raycaster.set(camera.position, rayDirection);
+    raycaster.far = targetDistance - 0.06;
+
+    const intersections = raycaster.intersectObjects(occlusionMeshes, true);
+    return intersections.length === 0;
+  }
+
+  function sampleOcclusionVisibility(now) {
+    if (isPhoneViewer && isViewerInteracting) {
+      return;
+    }
+
+    if (!visibilityDirty && now - lastVisibilitySample < (isPhoneViewer ? 120 : 70)) {
+      return;
+    }
+
+    systems.forEach((system) => {
+      occlusionVisibility.set(system.id, isPointVisibleToCamera(system.point));
+    });
+    occlusionVisibility.set("orientation", isPointVisibleToCamera(orientationPoint));
+    lastVisibilitySample = now;
+    visibilityDirty = false;
+  }
 
   function setInspector(system) {
     titleEl.textContent = system.label;
@@ -1438,6 +1640,36 @@ if (!renderer) {
     document.body.classList.remove("modal-open");
   }
 
+  function clearSelection() {
+    selectedSystem = null;
+    titleEl.textContent = defaultInspectorState.title;
+    descriptionEl.textContent = "Tap a circle on the truck to inspect that area.";
+    areaEl.textContent = defaultInspectorState.area;
+    useEl.textContent = defaultInspectorState.use;
+    pointsEl.innerHTML = "";
+    linksEl.innerHTML = "";
+
+    systems.forEach((entry, index) => {
+      hotspotButtons.get(entry.id)?.classList.remove("active");
+      systemCards.get(entry.id)?.classList.remove("active");
+      chipButtons.get(entry.id)?.classList.remove("active");
+      calloutElements.get(entry.id)?.pill.classList.remove("active");
+      hotspotMeshes[index].material.color.set(0x61dfff);
+      hotspotMeshes[index].scale.setScalar(1);
+
+      entry.highlightMeshes.forEach((meshName) => {
+        const mesh = meshRegistry.get(meshName);
+        if (mesh) {
+          mesh.visible = false;
+        }
+        const outline = highlightOutlines.get(meshName);
+        if (outline) {
+          outline.visible = false;
+        }
+      });
+    });
+  }
+
   function animateCamera(system) {
     cameraTween = {
       from: camera.position.clone(),
@@ -1474,12 +1706,12 @@ if (!renderer) {
 
       entry.highlightMeshes.forEach((meshName) => {
         const mesh = meshRegistry.get(meshName);
-        if (mesh && serviceZoneNames.has(meshName)) {
+        if (mesh) {
           mesh.visible = isActive;
         }
         const outline = highlightOutlines.get(meshName);
         if (outline) {
-          outline.visible = isActive;
+          outline.visible = false;
         }
       });
     });
@@ -1489,7 +1721,7 @@ if (!renderer) {
       .forEach((entry) => {
         entry.highlightMeshes.forEach((meshName) => {
           const mesh = meshRegistry.get(meshName);
-          if (mesh && serviceZoneNames.has(meshName)) {
+          if (mesh) {
             mesh.visible = false;
           }
           const outline = highlightOutlines.get(meshName);
@@ -1511,24 +1743,25 @@ if (!renderer) {
     camera.updateProjectionMatrix();
   }
 
-  function projectHotspots() {
+  function projectHotspots(now) {
     const width = viewerElement.clientWidth;
     const height = viewerElement.clientHeight;
     cameraLocal.copy(camera.position);
     truck.worldToLocal(cameraLocal);
     const visibleSideSign = cameraLocal.z >= 0 ? 1 : -1;
+    const visibleFrontSign = cameraLocal.x >= 0 ? 1 : -1;
 
     systems.forEach((system) => {
       const button = hotspotButtons.get(system.id);
       const callout = calloutElements.get(system.id);
       projected.copy(system.point).applyMatrix4(truck.matrixWorld).project(camera);
-      const isActive = system.id === selectedSystem.id;
-      const isCenterZone = Math.abs(system.point.z) < 0.22;
+      const isVisible = projected.z < 1 && projected.z > -1;
+      const isCenterSide = Math.abs(system.point.z) < 0.24;
+      const isCenterFront = Math.abs(system.point.x) < 0.64;
       const isVisibleSideZone =
-        isCenterZone || Math.sign(system.point.z || visibleSideSign) === visibleSideSign;
-      let buttonVisible = false;
-
-      const isVisible = projected.z < 1;
+        isCenterSide || Math.sign(system.point.z || visibleSideSign) === visibleSideSign;
+      const isVisibleFrontZone =
+        isCenterFront || Math.sign(system.point.x || visibleFrontSign) === visibleFrontSign;
       if (!isVisible) {
         button.style.display = "none";
         if (callout) {
@@ -1548,7 +1781,7 @@ if (!renderer) {
         return;
       }
 
-      if (!isVisibleSideZone) {
+      if (!isVisibleSideZone || !isVisibleFrontZone) {
         button.style.display = "none";
         if (callout) {
           callout.root.style.display = "none";
@@ -1557,15 +1790,9 @@ if (!renderer) {
       }
 
       button.style.display = "block";
-      buttonVisible = true;
       button.style.left = `${x}px`;
       button.style.top = `${y}px`;
       if (!callout) {
-        return;
-      }
-
-      if (!buttonVisible || (!isActive && !isVisibleSideZone)) {
-        callout.root.style.display = "none";
         return;
       }
 
@@ -1586,7 +1813,11 @@ if (!renderer) {
     });
 
     projected.copy(orientationPoint).applyMatrix4(truck.matrixWorld).project(camera);
-    const orientationVisible = projected.z < 1;
+    const orientationVisible =
+      projected.z < 1 &&
+      projected.z > -1 &&
+      (Math.abs(orientationPoint.z) < 0.24 ||
+        Math.sign(orientationPoint.z || visibleSideSign) === visibleSideSign);
 
     if (!orientationVisible) {
       orientationCallout.style.display = "none";
@@ -1636,8 +1867,16 @@ if (!renderer) {
     }
 
     controls.update();
+    if (
+      camera.position.distanceToSquared(lastCameraPosition) > 0.0004 ||
+      1 - Math.abs(camera.quaternion.dot(lastCameraQuaternion)) > 0.00002
+    ) {
+      visibilityDirty = true;
+      lastCameraPosition.copy(camera.position);
+      lastCameraQuaternion.copy(camera.quaternion);
+    }
     renderer.render(scene, camera);
-    projectHotspots();
+    projectHotspots(now);
     requestAnimationFrame(tick);
   }
 
@@ -1655,19 +1894,55 @@ if (!renderer) {
 
   openAreaWindowButton.addEventListener("click", () => {
     stopShowcaseRotation();
+    if (!selectedSystem) {
+      return;
+    }
     openAreaModal(selectedSystem);
+  });
+
+  explodedToggle?.addEventListener("click", () => {
+    applyExplodedState(!explodedMode);
+  });
+
+  cinematicToggle?.addEventListener("click", () => {
+    cinematicMode = !cinematicMode;
+    cinematicToggle.setAttribute("aria-pressed", cinematicMode ? "true" : "false");
+    if (cinematicMode && selectedSystem) {
+      animateCamera(selectedSystem);
+    }
   });
 
   closeAreaModalButton.addEventListener("click", closeAreaModal);
   areaModalBackdrop.addEventListener("click", closeAreaModal);
 
-  renderer.domElement.addEventListener("pointerdown", stopShowcaseRotation);
+  controls.addEventListener("start", () => {
+    if (!isPhoneViewer) {
+      return;
+    }
+    isViewerInteracting = true;
+  });
+
+  controls.addEventListener("end", () => {
+    if (!isPhoneViewer) {
+      return;
+    }
+    isViewerInteracting = false;
+    visibilityDirty = true;
+    projectHotspots(performance.now());
+  });
+
+  renderer.domElement.addEventListener("pointerdown", () => {
+    stopShowcaseRotation();
+    clearSelection();
+  });
   renderer.domElement.addEventListener("wheel", stopShowcaseRotation, { passive: true });
   renderer.domElement.addEventListener("touchstart", stopShowcaseRotation, { passive: true });
 
   window.addEventListener("resize", resizeRenderer);
 
   resizeRenderer();
+  lastCameraPosition.copy(camera.position);
+  lastCameraQuaternion.copy(camera.quaternion);
   selectSystem(selectedSystem.id, false);
   requestAnimationFrame(tick);
 }

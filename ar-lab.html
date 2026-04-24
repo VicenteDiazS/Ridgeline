@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline AR Lab</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="photo-atlas.html">Photo Atlas</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">AR Lab</p>
+          <h1>Place The Truck In Your Space</h1>
+          <p class="section-copy">
+            This is the showcase view for placing the Ridgeline in a room, garage, or driveway to preview
+            zones and impress people with a more product-like presentation.
+          </p>
+          <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#ar-model">Open AR Viewer</a>
+            <a class="utility-link" href="#capabilities">Capabilities</a>
+            <a class="utility-link" href="#notes">Readiness Notes</a>
+            <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
+          </div>
+        </section>
+
+        <section class="section-page-stack">
+          <div class="section-callout">
+            Current truck profile: 2019 Ridgeline, VIN 5FPYK2F64KB002267, 2WD, 3.5L SOHC i-VTEC V6.
+          </div>
+        </section>
+
+        <section class="section-page-grid">
+          <article class="tech-card span-2" id="ar-model">
+            <h3>AR / Spatial Preview</h3>
+            <div class="ar-model-shell">
+              <model-viewer
+                src="./assets/ridgeline-2021/honda-ridgeline-2021.glb"
+                ar
+                ar-modes="webxr scene-viewer quick-look"
+                camera-controls
+                touch-action="pan-y"
+                shadow-intensity="0.8"
+                exposure="0.95"
+                auto-rotate
+                interaction-prompt="none"
+                alt="Honda Ridgeline AR preview"
+              ></model-viewer>
+            </div>
+            <p class="field-hint">
+              On supported devices this can hand off to an AR-capable viewer. On unsupported devices it
+              still works as a clean 3D showcase inside the page.
+            </p>
+          </article>
+
+          <article class="tech-card" id="capabilities">
+            <h3>Why This Is Impressive</h3>
+            <ul class="highlight-list">
+              <li>Lets the truck live inside the same site instead of feeling like a separate demo.</li>
+              <li>Gives you a high-end “product reveal” mode for showing off the model itself.</li>
+              <li>Works as a bridge toward future zone overlays and real AR service annotations.</li>
+            </ul>
+          </article>
+
+          <article class="tech-card" id="notes">
+            <h3>Readiness Notes</h3>
+            <ul class="highlight-list">
+              <li>The page uses your local truck model from this project, not a third-party hosted asset.</li>
+              <li>AR behavior depends on device/browser support, so fallback 3D remains the baseline.</li>
+              <li>This is meant as a showcase lab for now, while the service reference remains on the main map.</li>
+            </ul>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="photo-atlas.html">Photo Atlas</a>
+        <a href="garage.html">Garage</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+  </body>
+</html>

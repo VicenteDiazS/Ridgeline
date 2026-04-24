@@ -1,18 +1,21 @@
 import { searchIndex } from "./search-data.js";
 
-const searchButton = document.querySelector("[data-open-search]");
+const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
+const topbarActions = document.querySelector(".topbar-actions");
 
-const routeLinks = [
-  { label: "Map", href: "index.html#viewer", match: "index.html" },
-  { label: "Fuses", href: "hood.html#fuses", match: "hood.html" },
-  { label: "Cabin", href: "cabin.html#fuses", match: "cabin.html" },
-  { label: "Cargo", href: "cargo.html", match: "cargo.html" },
-  { label: "Towing", href: "rear-hitch.html", match: "rear-hitch.html" },
-  { label: "Maint", href: "maintenance.html", match: "maintenance.html" },
-  { label: "Oil", href: "maintenance.html#oil-service", match: "maintenance.html" },
-  { label: "Diag", href: "diagnostics.html", match: "diagnostics.html" },
-  { label: "Garage", href: "garage.html", match: "garage.html" }
+const menuLinks = [
+  { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
+  { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Spatial preview and showcase mode" },
+  { label: "Photo Atlas", href: "photo-atlas.html", match: "photo-atlas.html", note: "Real truck area photos grouped by zone" },
+  { label: "Fuse Boxes", href: "hood.html#fuses", match: "hood.html", note: "Under-hood and driver-left fuse references" },
+  { label: "Cabin", href: "cabin.html#fuses", match: "cabin.html", note: "Interior fuse and electronics section" },
+  { label: "Cargo", href: "cargo.html", match: "cargo.html", note: "Bed, trunk, and dimensions" },
+  { label: "Towing", href: "rear-hitch.html", match: "rear-hitch.html", note: "Connector, pinout, and towing checklist" },
+  { label: "Maintenance", href: "maintenance.html", match: "maintenance.html", note: "Oil, filters, service codes, brakes, tires, and fluids" },
+  { label: "Quick Sheet", href: "quick-sheet.html", match: "quick-sheet.html", note: "One-page fast reference for common specs" },
+  { label: "Diagnostics", href: "diagnostics.html", match: "diagnostics.html", note: "Symptom-based troubleshooting shortcuts" },
+  { label: "Garage Log", href: "garage.html", match: "garage.html", note: "Your notes, service history, and saved references" }
 ];
 
 function currentPageName() {
@@ -20,28 +23,82 @@ function currentPageName() {
   return page || "index.html";
 }
 
-function buildRouteStrip() {
-  if (!topbar) {
-    return;
+function buildSiteMenu() {
+  if (!topbarActions) {
+    return null;
   }
 
-  const strip = document.createElement("nav");
-  strip.className = "route-strip";
-  strip.setAttribute("aria-label", "Quick page navigation");
+  const button = document.createElement("button");
+  button.className = "menu-toggle";
+  button.type = "button";
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-controls", "site-menu");
+  button.textContent = "Menu";
+  topbarActions.insertBefore(button, topbarActions.firstChild);
 
   const page = currentPageName();
+  const menu = document.createElement("div");
+  menu.className = "site-menu";
+  menu.id = "site-menu";
+  menu.hidden = true;
 
-  routeLinks.forEach((link) => {
-    const anchor = document.createElement("a");
-    anchor.href = link.href;
-    anchor.textContent = link.label;
-    if (page === link.match) {
-      anchor.classList.add("is-active");
+  const linkMarkup = menuLinks
+    .map((link) => {
+      const activeClass = page === link.match ? " is-active" : "";
+      return `
+        <a class="site-menu-link${activeClass}" href="${link.href}">
+          <strong>${link.label}</strong>
+          <span>${link.note}</span>
+        </a>
+      `;
+    })
+    .join("");
+
+  menu.innerHTML = `
+    <div class="site-menu-backdrop" data-close-menu></div>
+    <aside class="site-menu-panel" aria-modal="true" role="dialog" aria-labelledby="site-menu-title">
+      <div class="site-menu-head">
+        <div>
+          <p class="eyebrow">Site Menu</p>
+          <h2 id="site-menu-title">Open A Section Fast</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-menu aria-label="Close menu">Close</button>
+      </div>
+      <div class="site-menu-links">
+        ${linkMarkup}
+      </div>
+    </aside>
+  `;
+
+  document.body.appendChild(menu);
+
+  const openMenu = () => {
+    menu.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    document.body.classList.add("modal-open");
+  };
+
+  const closeMenu = () => {
+    menu.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+    if (searchModal.hidden) {
+      document.body.classList.remove("modal-open");
     }
-    strip.appendChild(anchor);
+  };
+
+  button.addEventListener("click", () => {
+    if (menu.hidden) {
+      openMenu();
+    } else {
+      closeMenu();
+    }
   });
 
-  topbar.insertAdjacentElement("afterend", strip);
+  menu.querySelectorAll("[data-close-menu], .site-menu-link").forEach((element) => {
+    element.addEventListener("click", closeMenu);
+  });
+
+  return { menu, closeMenu };
 }
 
 function buildSearchModal() {
@@ -72,6 +129,36 @@ function buildSearchModal() {
 const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
+const siteMenu = buildSiteMenu();
+const brandLink = document.querySelector(".brand");
+
+function applyGarageMode(enabled) {
+  document.body.classList.toggle("garage-mode", enabled);
+  localStorage.setItem("ridgeline-garage-mode", enabled ? "1" : "0");
+}
+
+applyGarageMode(localStorage.getItem("ridgeline-garage-mode") === "1");
+
+if (brandLink) {
+  let tapCount = 0;
+  let tapTimer = null;
+
+  brandLink.addEventListener("click", (event) => {
+    tapCount += 1;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => {
+      tapCount = 0;
+    }, 700);
+
+    if (tapCount < 4) {
+      return;
+    }
+
+    event.preventDefault();
+    tapCount = 0;
+    applyGarageMode(!document.body.classList.contains("garage-mode"));
+  });
+}
 
 function renderResults(query = "") {
   const value = query.trim().toLowerCase();
@@ -113,12 +200,14 @@ function openSearch() {
 
 function closeSearch() {
   searchModal.hidden = true;
-  document.body.classList.remove("modal-open");
+  if (!siteMenu || siteMenu.menu.hidden) {
+    document.body.classList.remove("modal-open");
+  }
 }
 
-buildRouteStrip();
-
-searchButton?.addEventListener("click", openSearch);
+document.querySelectorAll("[data-open-search]").forEach((button) => {
+  button.addEventListener("click", openSearch);
+});
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {
   el.addEventListener("click", closeSearch);
 });
@@ -137,6 +226,10 @@ document.addEventListener("keydown", (event) => {
 
   if (event.key === "Escape" && !searchModal.hidden) {
     closeSearch();
+  }
+
+  if (event.key === "Escape" && siteMenu && !siteMenu.menu.hidden) {
+    siteMenu.closeMenu();
   }
 });
 

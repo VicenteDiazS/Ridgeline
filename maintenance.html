@@ -28,11 +28,14 @@
           <p class="section-copy">This page collects the service specs you are likely to need repeatedly when working on the truck.</p>
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
+            <a class="utility-link" href="#minder">Service Codes</a>
             <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
+            <a class="utility-link" href="#brake-tire">Brakes / Tires</a>
             <a class="utility-link" href="#torque">Torque Specs</a>
             <a class="utility-link" href="#filter-cross">Filters</a>
             <a class="utility-link" href="#service-quick">Quick Jobs</a>
             <a class="utility-link" href="#bulbs">Bulbs</a>
+            <a class="utility-link" href="quick-sheet.html">Quick Sheet</a>
             <a class="utility-link" href="garage.html">Garage Log</a>
           </div>
         </section>
@@ -117,6 +120,44 @@
             </div>
           </article>
 
+          <article class="tech-card span-2" id="minder">
+            <h3>Maintenance Minder Code Guide</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <h3>Main Items</h3>
+                <table class="fuse-table" aria-label="Maintenance Minder main items">
+                  <tr><th>Code</th><th>Meaning</th></tr>
+                  <tr><td>A</td><td>Replace engine oil.</td></tr>
+                  <tr><td>B</td><td>Replace engine oil and oil filter, inspect front and rear brakes, check parking brake adjustment, inspect tie-rod ends, steering gearbox and boots, suspension components, driveshaft boots, brake hoses and lines including ABS/VSA, all fluid levels and condition, exhaust system, and fuel lines and connections.</td></tr>
+                </table>
+                <p class="field-hint">
+                  Honda's 2019 Ridgeline Maintenance Minder sheet also says to replace brake fluid every 3 years
+                  regardless of the main-item display and to adjust the valves during services A, B, 1, 2, or 3 if they are noisy.
+                </p>
+              </div>
+
+              <div class="tech-card">
+                <h3>Sub Items</h3>
+                <table class="fuse-table" aria-label="Maintenance Minder sub items">
+                  <tr><th>Code</th><th>Meaning</th></tr>
+                  <tr><td>1</td><td>Rotate tires.</td></tr>
+                  <tr><td>2</td><td>Replace engine air filter, replace cabin dust/pollen filter, inspect drive belt.</td></tr>
+                  <tr><td>3</td><td>Replace transmission fluid and transfer fluid. On your 2WD truck, the transfer-fluid part does not apply.</td></tr>
+                  <tr><td>4</td><td>Replace spark plugs, replace timing belt and inspect water pump, inspect valve clearance.</td></tr>
+                  <tr><td>5</td><td>Replace engine coolant.</td></tr>
+                  <tr><td>6</td><td>Replace rear differential fluid. This does not apply to your 2WD truck.</td></tr>
+                  <tr><td>7</td><td>Brake-fluid replacement reminder. Honda also states brake fluid should be replaced every 3 years even apart from the main-item message.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="label-cloud">
+              <span class="label-pill">A1 = oil + tire rotation</span>
+              <span class="label-pill">B1 = oil + filter + inspections + tire rotation</span>
+              <span class="label-pill">B12 = B service + rotate tires + both air filters</span>
+              <span class="label-pill">B127 = B service + rotate tires + filters + brake fluid</span>
+            </div>
+          </article>
+
           <article class="tech-card diagram-card">
             <h3>Maintenance Reference Map</h3>
             <div class="diagram-frame">
@@ -180,6 +221,118 @@
               cross-reference sources. The added Mobil 1, Bosch, and K&amp;N rows come from the current
               O'Reilly Auto Parts vehicle fitment listing for this filter size.
             </p>
+          </article>
+
+          <article class="tech-card span-2" id="brake-tire">
+            <h3>Brake, Tire, And Roadside Service</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <h3>Brake Snapshot</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Brake fluid</dt>
+                    <dd>Honda Heavy Duty Brake Fluid DOT 3</dd>
+                  </div>
+                  <div>
+                    <dt>Wheel nut torque</dt>
+                    <dd>94 lb-ft (127 N-m)</dd>
+                  </div>
+                  <div>
+                    <dt>Maintenance Minder</dt>
+                    <dd>Inspect brakes during B service</dd>
+                  </div>
+                  <div>
+                    <dt>Parking brake</dt>
+                    <dd>Adjustment check is part of B service</dd>
+                  </div>
+                </dl>
+                <ul class="highlight-list">
+                  <li>Brake-fluid level should stay between the MIN and MAX marks on the reservoir.</li>
+                  <li>Use brake fluid from a sealed container and keep moisture exposure low.</li>
+                  <li>If the truck pulls, squeals heavily, or pulsates under braking, inspect before towing or highway use.</li>
+                </ul>
+              </div>
+
+              <div class="tech-card">
+                <h3>Tire And Wheel Snapshot</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Common tire size</dt>
+                    <dd>245/60R18</dd>
+                  </div>
+                  <div>
+                    <dt>Wheel size</dt>
+                    <dd>18 x 8</dd>
+                  </div>
+                  <div>
+                    <dt>Bolt pattern</dt>
+                    <dd>5 x 120 mm</dd>
+                  </div>
+                  <div>
+                    <dt>Center bore</dt>
+                    <dd>64.1 mm</dd>
+                  </div>
+                  <div>
+                    <dt>Typical offset</dt>
+                    <dd>ET55</dd>
+                  </div>
+                </dl>
+                <p class="field-hint">
+                  The tire size is from Honda's 2019 Ridgeline feature guide. The bolt pattern, center bore,
+                  and offset are common aftermarket fitment references for 2017-2019 Ridgeline 18-inch wheels.
+                  Always verify the actual wheel or door placard before ordering parts.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech-card span-2 diagram-card" id="jack-points">
+            <h3>Jack Points And Spare-Tire Quick Map</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 760 320" role="img" aria-label="Ridgeline jack-point and spare-tire quick map">
+                <rect x="90" y="126" width="580" height="84" rx="28" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                <circle cx="190" cy="228" r="34" fill="#162338" stroke="#ff915e" stroke-width="3"></circle>
+                <circle cx="570" cy="228" r="34" fill="#162338" stroke="#ff915e" stroke-width="3"></circle>
+                <rect x="168" y="106" width="24" height="16" rx="4" fill="#ffcfbd"></rect>
+                <rect x="250" y="106" width="24" height="16" rx="4" fill="#ffcfbd"></rect>
+                <rect x="486" y="106" width="24" height="16" rx="4" fill="#ffcfbd"></rect>
+                <rect x="568" y="106" width="24" height="16" rx="4" fill="#ffcfbd"></rect>
+                <text x="380" y="74" text-anchor="middle" fill="#dce8f5" font-size="22" font-weight="700">Use the jacking point closest to the flat tire</text>
+                <text x="180" y="98" text-anchor="middle" fill="#9dc0da" font-size="13">Front left point</text>
+                <text x="262" y="98" text-anchor="middle" fill="#9dc0da" font-size="13">Rear left point</text>
+                <text x="498" y="98" text-anchor="middle" fill="#9dc0da" font-size="13">Front right point</text>
+                <text x="580" y="98" text-anchor="middle" fill="#9dc0da" font-size="13">Rear right point</text>
+                <rect x="292" y="232" width="176" height="38" rx="14" fill="#18263a" stroke="#61dfff" stroke-width="2.5"></rect>
+                <text x="380" y="257" text-anchor="middle" fill="#dce8f5" font-size="18" font-weight="700">Compact spare in trunk / in-bed trunk area</text>
+              </svg>
+            </div>
+            <div class="checklist-grid">
+              <div class="checklist-card">
+                <h4>Flat-Tire Basics</h4>
+                <ul class="highlight-list">
+                  <li>Park safely, set the parking brake, and block the opposite wheel if needed.</li>
+                  <li>Use the jacking point closest to the tire being changed.</li>
+                  <li>Lower the truck before final wheel-nut tightening.</li>
+                  <li>Tighten wheel nuts in a star pattern to 94 lb-ft.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>TPMS Reminder</h4>
+                <ul class="highlight-list">
+                  <li>Check tire pressures monthly when cold.</li>
+                  <li>The display pressure can be slightly different from a hand gauge.</li>
+                  <li>Inflate to the vehicle placard pressure after repair or seasonal changes.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Shop-Lift Notes</h4>
+                <ul class="highlight-list">
+                  <li>The roadside jack uses the closest side jacking point.</li>
+                  <li>For shop work, use proper lift points and support stands; never rely on the emergency jack alone.</li>
+                  <li>If a wheel or jack point looks damaged, stop and inspect before lifting.</li>
+                </ul>
+              </div>
+            </div>
           </article>
 
           <article class="tech-card">
@@ -329,9 +482,10 @@
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#minder">Codes</a>
         <a href="#fluids">Fluids</a>
-        <a href="#torque">Torque</a>
-        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#brake-tire">Brakes / Tires</a>
+        <a href="quick-sheet.html">Quick Sheet</a>
         <a href="#top">Top</a>
       </nav>
     </div>

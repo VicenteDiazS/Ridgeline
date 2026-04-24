@@ -14,6 +14,7 @@ const photosInput = document.querySelector("[data-photo-input]");
 const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
+const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 
 if (notesForm) {
   hydrateForm(notesForm, loadJson(STORAGE.notes, {}));
@@ -159,6 +160,47 @@ function renderAreaSummary() {
   });
 }
 
+function renderDashboard() {
+  if (!dashboardGrid) {
+    return;
+  }
+
+  const notes = loadJson(STORAGE.notes, {});
+  const tracker = loadJson(STORAGE.tracker, {});
+  const favorites = loadJson(STORAGE.favorites, []);
+  const photos = loadJson(STORAGE.photos, []);
+  const areas = ["hood", "cabin", "cargo", "rear-hitch"].map((key) => loadAreaJournal(key));
+  const noteFields = Object.values(notes).filter(Boolean).length;
+  const trackerFields = Object.values(tracker).filter(Boolean).length;
+  const areaPhotos = areas.reduce((sum, area) => sum + (area.photos || []).length, 0);
+  const areaNotes = areas.reduce(
+    (sum, area) => sum + Object.values(area.notes || {}).filter(Boolean).length,
+    0
+  );
+
+  const cards = [
+    ["Truck Profile", "VIN 5FPYK2F64KB002267", "2019 Ridgeline / 2WD / 3.5L V6"],
+    ["Saved Notes", `${noteFields} fields`, "Installed parts and general truck memory"],
+    ["Service Tracker", `${trackerFields} entries`, "Mileage and last-service checkpoints"],
+    ["Fuse Saves", `${favorites.length} favorites`, "Frequently checked circuits saved locally"],
+    ["Photo Atlas", `${photos.length + areaPhotos} photos`, "Garage and area-reference images"],
+    ["Area Journals", `${areaNotes} notes`, "Hood, cabin, cargo, and hitch journals"]
+  ];
+
+  dashboardGrid.innerHTML = cards
+    .map(
+      ([label, value, note]) => `
+        <article class="dashboard-card">
+          <span>${label}</span>
+          <strong>${value}</strong>
+          <p>${note}</p>
+        </article>
+      `
+    )
+    .join("");
+}
+
 renderPhotos();
 renderFavorites();
 renderAreaSummary();
+renderDashboard();

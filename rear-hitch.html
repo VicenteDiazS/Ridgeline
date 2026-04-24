@@ -30,8 +30,11 @@
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#connector">Open Connector Diagram</a>
+            <a class="utility-link" href="#pinout">7-Way Pinout</a>
+            <a class="utility-link" href="#tow-checklist">Tow Checklist</a>
             <a class="utility-link" href="#adapter-types">Adapter Types</a>
             <a class="utility-link" href="#area-journal">Area Notes</a>
+            <a class="utility-link" href="quick-sheet.html">Quick Sheet</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="diagnostics.html">Diagnostics</a>
           </div>
@@ -112,6 +115,79 @@
               </div>
             </div>
           </article>
+          <article class="tech-card" id="pinout">
+            <h3>7-Way Blade Pinout</h3>
+            <div class="pinout-studio">
+              <div class="diagram-frame">
+                <svg viewBox="0 0 360 320" role="img" aria-label="Interactive 7-way blade pinout">
+                  <circle cx="180" cy="150" r="106" fill="#111c2c" stroke="#61dfff" stroke-width="4"></circle>
+                  <circle cx="180" cy="150" r="32" fill="#253447" stroke="#ff915e" stroke-width="3"></circle>
+                  <g class="pinout-pins">
+                    <circle cx="180" cy="150" r="17" class="pinout-node" data-pin="center"></circle>
+                    <circle cx="180" cy="78" r="17" class="pinout-node" data-pin="aux"></circle>
+                    <circle cx="246" cy="110" r="17" class="pinout-node" data-pin="right"></circle>
+                    <circle cx="246" cy="190" r="17" class="pinout-node" data-pin="brake"></circle>
+                    <circle cx="180" cy="222" r="17" class="pinout-node" data-pin="ground"></circle>
+                    <circle cx="114" cy="190" r="17" class="pinout-node" data-pin="left"></circle>
+                    <circle cx="114" cy="110" r="17" class="pinout-node" data-pin="running"></circle>
+                  </g>
+                  <text x="180" y="292" text-anchor="middle" fill="#dce8f5" font-size="16" font-weight="700">
+                    Tap a pin to explain it
+                  </text>
+                </svg>
+              </div>
+              <div class="pinout-detail" data-pinout-detail>
+                <p class="eyebrow">Interactive Pinout</p>
+                <h4>Center Pin</h4>
+                <p>Reverse light circuit for backup lamps or reverse-lockout feed.</p>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="7-way blade pinout">
+                <tr><th>Clock position</th><th>Function</th><th>Quick use</th></tr>
+                <tr><td>Center</td><td>Reverse lights</td><td>Backup lamps or reverse-lockout feed</td></tr>
+                <tr><td>1:00</td><td>12V power</td><td>Battery charge / auxiliary feed</td></tr>
+                <tr><td>3:00</td><td>Right turn / brake</td><td>Right signal and stop light</td></tr>
+                <tr><td>5:00</td><td>Electric brake output</td><td>Trailer brake control circuit</td></tr>
+                <tr><td>7:00</td><td>Ground</td><td>Main return path</td></tr>
+                <tr><td>9:00</td><td>Left turn / brake</td><td>Left signal and stop light</td></tr>
+                <tr><td>11:00</td><td>Running lights</td><td>Marker / tail / clearance lamps</td></tr>
+              </table>
+            </div>
+            <p class="field-hint">
+              This is the standard RV-style 7-way blade layout used by the trailer side connector.
+              Vehicle-side sockets are the mirror image when you look into the truck socket.
+            </p>
+          </article>
+          <article class="tech-card" id="tow-checklist">
+            <h3>Towing Checklist</h3>
+            <div class="checklist-grid">
+              <div class="checklist-card">
+                <h4>Before Hookup</h4>
+                <ul class="highlight-list">
+                  <li>Confirm the trailer plug matches your truck or adapter.</li>
+                  <li>Check hitch pin, coupler latch, chains, and connector latch.</li>
+                  <li>On a 2WD Ridgeline, stay within the 3,500 lb properly equipped rating.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Light Check</h4>
+                <ul class="highlight-list">
+                  <li>Test running lights, left turn, right turn, brake lights, and reverse if used.</li>
+                  <li>If one side is dead, check the adapter first before pulling apart the trailer.</li>
+                  <li>Use dielectric grease on exposed trailer electrical connections.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Road Check</h4>
+                <ul class="highlight-list">
+                  <li>Recheck hitch pin, coupler lock, and safety chains after a short drive.</li>
+                  <li>Watch tire pressure and brake feel more closely when towing in heat.</li>
+                  <li>Premium unleaded is recommended by Honda when towing more than 3,500 lb.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
           <article class="tech-card info-card">
             <h3>Wiring And Towing Notes</h3>
             <ul class="highlight-list">
@@ -160,12 +236,13 @@
       </main>
       <nav class="section-dock" aria-label="Quick return">
         <a href="index.html#viewer">Vehicle Map</a>
-        <a href="hood.html#fuses">Fuses</a>
-        <a href="diagnostics.html">Diagnostics</a>
+        <a href="#pinout">Pinout</a>
+        <a href="#tow-checklist">Checklist</a>
         <a href="#top">Top</a>
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
     <script type="module" src="section-tools.js"></script>
+    <script type="module" src="pinout-interactive.js"></script>
   </body>
 </html>

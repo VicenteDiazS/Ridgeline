@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline Photo Atlas</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="ar-lab.html">AR Lab</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">Photo Atlas</p>
+          <h1>Real Truck Areas, Photo First</h1>
+          <p class="section-copy">
+            This page turns your uploaded area photos into a cleaner service atlas so you can move from the
+            3D model to real-world truck reference shots without leaving the site.
+          </p>
+          <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#hood-atlas">Hood</a>
+            <a class="utility-link" href="#cabin-atlas">Cabin</a>
+            <a class="utility-link" href="#cargo-atlas">Cargo</a>
+            <a class="utility-link" href="#hitch-atlas">Hitch</a>
+            <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+          </div>
+        </section>
+
+        <section class="section-page-grid photo-atlas-grid">
+          <article class="tech-card atlas-card" id="hood-atlas" data-atlas-area="hood">
+            <h3>Hood / Engine Bay Atlas</h3>
+            <p class="small-note">Best for fuse boxes, battery, jump point, engine cover, and service labels.</p>
+            <div class="atlas-legend">
+              <span class="label-pill">Fuse Box A</span>
+              <span class="label-pill">Fuse Box B</span>
+              <span class="label-pill">Battery</span>
+              <span class="label-pill">Jump Ground</span>
+            </div>
+            <div class="photo-grid" data-atlas-grid></div>
+          </article>
+
+          <article class="tech-card atlas-card" id="cabin-atlas" data-atlas-area="cabin">
+            <h3>Cabin Atlas</h3>
+            <p class="small-note">Best for driver-left fuse box, glove box, cabin filter access, and electronics.</p>
+            <div class="atlas-legend">
+              <span class="label-pill">Driver-Left Fuse Box</span>
+              <span class="label-pill">Center Console</span>
+              <span class="label-pill">Glove Box</span>
+            </div>
+            <div class="photo-grid" data-atlas-grid></div>
+          </article>
+
+          <article class="tech-card atlas-card" id="cargo-atlas" data-atlas-area="cargo">
+            <h3>Cargo Atlas</h3>
+            <p class="small-note">Best for bed dimensions, trunk opening, drain points, and stored gear layout.</p>
+            <div class="atlas-legend">
+              <span class="label-pill">In-Bed Trunk</span>
+              <span class="label-pill">Bed Rails</span>
+              <span class="label-pill">Tie-Downs</span>
+            </div>
+            <div class="photo-grid" data-atlas-grid></div>
+          </article>
+
+          <article class="tech-card atlas-card" id="hitch-atlas" data-atlas-area="rear-hitch">
+            <h3>Rear Hitch Atlas</h3>
+            <p class="small-note">Best for the 7-way connector, hitch label, adapters, and coupler setup photos.</p>
+            <div class="atlas-legend">
+              <span class="label-pill">7-Way Connector</span>
+              <span class="label-pill">Adapters</span>
+              <span class="label-pill">Hitch Label</span>
+            </div>
+            <div class="photo-grid" data-atlas-grid></div>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="garage.html#photos">All Photos</a>
+        <a href="ar-lab.html">AR Lab</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="photo-atlas.js"></script>
+  </body>
+</html>

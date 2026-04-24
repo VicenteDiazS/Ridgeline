@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline Emergency Quick Sheet</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="maintenance.html">Maintenance</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+      <main id="top" class="section-page-main">
+        <section class="section-page-hero">
+          <p class="eyebrow">Quick Sheet</p>
+          <h1>Emergency And Garage Fast Reference</h1>
+          <p class="section-copy">
+            One-page quick access for the specs and locations you are most likely to need in the middle of a job.
+          </p>
+          <div class="section-utility-nav">
+            <a class="utility-link utility-link-strong" href="#oil">Oil</a>
+            <a class="utility-link" href="#battery">Battery</a>
+            <a class="utility-link" href="#tires">Tires / Jack</a>
+            <a class="utility-link" href="#fuses">Fuses</a>
+            <a class="utility-link" href="#towing">Towing</a>
+            <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+          </div>
+        </section>
+
+        <section class="section-page-stack">
+          <div class="section-callout">
+            This page is meant to be the fastest route back to the numbers and locations you use repeatedly:
+            oil, jump-starting, tires, fuse locations, and trailer connector functions.
+          </div>
+        </section>
+
+        <section class="section-page-grid">
+          <article class="tech-card" id="oil">
+            <h3>Oil Service</h3>
+            <dl class="spec-list">
+              <div><dt>Oil type</dt><dd>SAE 0W-20</dd></div>
+              <div><dt>With filter</dt><dd>5.7 qt (5.4 L)</dd></div>
+              <div><dt>Without filter</dt><dd>5.3 qt (5.0 L)</dd></div>
+              <div><dt>Drain bolt</dt><dd>29 lb-ft</dd></div>
+              <div><dt>OEM filter</dt><dd>15400-PLM-A02</dd></div>
+            </dl>
+            <div class="inspector-actions">
+              <a class="utility-link" href="maintenance.html#oil-service">Open Oil Section</a>
+              <a class="utility-link" href="maintenance.html#filter-cross">Open Filters</a>
+            </div>
+          </article>
+
+          <article class="tech-card" id="battery">
+            <h3>Battery / Jump</h3>
+            <dl class="spec-list">
+              <div><dt>Battery size</dt><dd>Group 48 / H6</dd></div>
+              <div><dt>Typical CCA</dt><dd>680 to 800 CCA</dd></div>
+              <div><dt>Jump method</dt><dd>Positive terminal + designated ground point</dd></div>
+              <div><dt>Reminder</dt><dd>Do not use a buried negative post as the jump ground</dd></div>
+            </dl>
+            <div class="inspector-actions">
+              <a class="utility-link" href="hood.html#battery-service">Open Battery Info</a>
+              <a class="utility-link" href="hood.html#wiring">Jump Notes</a>
+            </div>
+          </article>
+
+          <article class="tech-card" id="tires">
+            <h3>Tires / Wheels / Jack</h3>
+            <dl class="spec-list">
+              <div><dt>Common size</dt><dd>245/60R18</dd></div>
+              <div><dt>Wheel nut torque</dt><dd>94 lb-ft</dd></div>
+              <div><dt>Bolt pattern</dt><dd>5 x 120 mm</dd></div>
+              <div><dt>Center bore</dt><dd>64.1 mm</dd></div>
+              <div><dt>Jacking note</dt><dd>Use the point closest to the flat tire</dd></div>
+            </dl>
+            <div class="inspector-actions">
+              <a class="utility-link" href="maintenance.html#brake-tire">Open Brake / Tire Section</a>
+              <a class="utility-link" href="maintenance.html#jack-points">Open Jack Map</a>
+            </div>
+          </article>
+
+          <article class="tech-card" id="fuses">
+            <h3>Fuse Locations</h3>
+            <ul class="highlight-list">
+              <li>Fuse Box A: passenger-side damper-house area under the hood.</li>
+              <li>Fuse Box B: near the brake-fluid reservoir.</li>
+              <li>Cabin fuse box: under driver-side lower dash.</li>
+            </ul>
+            <div class="inspector-actions">
+              <a class="utility-link" href="hood.html#fuses">Open Under-Hood Fuses</a>
+              <a class="utility-link" href="cabin.html#fuses">Open Cabin Fuses</a>
+            </div>
+          </article>
+
+          <article class="tech-card span-2" id="towing">
+            <h3>Towing / 7-Way Quick Reference</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <dl class="spec-list">
+                  <div><dt>2WD towing</dt><dd>3,500 lb properly equipped</dd></div>
+                  <div><dt>Connector</dt><dd>7-way blade / RV-style</dd></div>
+                  <div><dt>1:00</dt><dd>12V power</dd></div>
+                  <div><dt>3:00</dt><dd>Right turn / brake</dd></div>
+                  <div><dt>5:00</dt><dd>Trailer brakes</dd></div>
+                  <div><dt>7:00</dt><dd>Ground</dd></div>
+                  <div><dt>9:00</dt><dd>Left turn / brake</dd></div>
+                  <div><dt>11:00</dt><dd>Running lights</dd></div>
+                  <div><dt>Center</dt><dd>Reverse lights</dd></div>
+                </dl>
+              </div>
+              <div class="tech-card">
+                <h3>Hookup Checklist</h3>
+                <ul class="highlight-list">
+                  <li>Latch coupler, pin the hitch, connect safety chains, then plug in wiring.</li>
+                  <li>Test running lights, both turns, and brake lights before moving.</li>
+                  <li>Recheck coupler, pin, and chains after a short drive.</li>
+                </ul>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="rear-hitch.html#pinout">Open Full Pinout</a>
+                  <a class="utility-link" href="rear-hitch.html#tow-checklist">Open Tow Checklist</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="#oil">Oil</a>
+        <a href="#battery">Battery</a>
+        <a href="#tires">Tires</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+  </body>
+</html>
