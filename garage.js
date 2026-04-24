@@ -1,63 +1,33 @@
+import {
+  filesToPhotoEntries,
+  formPayload,
+  hydrateForm,
+  loadAreaJournal,
+  loadJson,
+  saveJson,
+  STORAGE
+} from "./garage-data.js";
+
 const notesForm = document.querySelector("[data-notes-form]");
 const trackerForm = document.querySelector("[data-tracker-form]");
 const photosInput = document.querySelector("[data-photo-input]");
 const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
-
-const STORAGE = {
-  notes: "ridgeline-notes",
-  tracker: "ridgeline-tracker",
-  photos: "ridgeline-photos",
-  favorites: "ridgeline-favorites"
-};
-
-function loadJson(key, fallback) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
+const areaSummary = document.querySelector("[data-area-summary]");
 
 if (notesForm) {
-  const saved = loadJson(STORAGE.notes, {});
-  [...notesForm.elements].forEach((field) => {
-    if (field.name && saved[field.name]) {
-      field.value = saved[field.name];
-    }
-  });
+  hydrateForm(notesForm, loadJson(STORAGE.notes, {}));
 
   notesForm.addEventListener("input", () => {
-    const payload = {};
-    [...notesForm.elements].forEach((field) => {
-      if (field.name) {
-        payload[field.name] = field.value;
-      }
-    });
-    saveJson(STORAGE.notes, payload);
+    saveJson(STORAGE.notes, formPayload(notesForm));
   });
 }
 
 if (trackerForm) {
-  const saved = loadJson(STORAGE.tracker, {});
-  [...trackerForm.elements].forEach((field) => {
-    if (field.name && saved[field.name]) {
-      field.value = saved[field.name];
-    }
-  });
+  hydrateForm(trackerForm, loadJson(STORAGE.tracker, {}));
 
   trackerForm.addEventListener("input", () => {
-    const payload = {};
-    [...trackerForm.elements].forEach((field) => {
-      if (field.name) {
-        payload[field.name] = field.value;
-      }
-    });
-    saveJson(STORAGE.tracker, payload);
+    saveJson(STORAGE.tracker, formPayload(trackerForm));
   });
 }
 
@@ -103,19 +73,8 @@ function renderPhotos() {
 photosInput?.addEventListener("change", async () => {
   const files = [...photosInput.files].slice(0, 4);
   const current = loadJson(STORAGE.photos, []).slice(0, 8);
-
-  for (const file of files) {
-    const src = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
-
-    current.push({
-      label: file.name.replace(/\.[^.]+$/, ""),
-      src
-    });
-  }
+  const additions = await filesToPhotoEntries(files);
+  current.push(...additions);
 
   saveJson(STORAGE.photos, current.slice(0, 8));
   renderPhotos();
@@ -166,5 +125,40 @@ function renderFavorites() {
   });
 }
 
+function renderAreaSummary() {
+  if (!areaSummary) {
+    return;
+  }
+
+  const areas = [
+    { key: "hood", title: "Hood / Engine Bay", url: "hood.html#area-journal" },
+    { key: "cabin", title: "Cabin / Electronics", url: "cabin.html#area-journal" },
+    { key: "cargo", title: "Bed / In-Bed Trunk", url: "cargo.html#area-journal" },
+    { key: "rear-hitch", title: "Rear Hitch / Wiring", url: "rear-hitch.html#area-journal" }
+  ];
+
+  areaSummary.innerHTML = "";
+
+  areas.forEach((area) => {
+    const journal = loadAreaJournal(area.key);
+    const noteCount = Object.values(journal.notes || {}).filter(Boolean).length;
+    const photoCount = (journal.photos || []).length;
+    const card = document.createElement("article");
+    card.className = "tech-card";
+    card.innerHTML = `
+      <h3>${area.title}</h3>
+      <div class="mini-specs">
+        <div class="mini-spec"><span>Saved fields</span><span>${noteCount}</span></div>
+        <div class="mini-spec"><span>Photos</span><span>${photoCount}</span></div>
+      </div>
+      <div class="inspector-actions">
+        <a class="utility-link" href="${area.url}">Open Area Journal</a>
+      </div>
+    `;
+    areaSummary.appendChild(card);
+  });
+}
+
 renderPhotos();
 renderFavorites();
+renderAreaSummary();

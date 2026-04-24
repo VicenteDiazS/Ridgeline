@@ -1,7 +1,48 @@
 import { searchIndex } from "./search-data.js";
 
 const searchButton = document.querySelector("[data-open-search]");
-let installPrompt = null;
+const topbar = document.querySelector(".topbar");
+
+const routeLinks = [
+  { label: "Map", href: "index.html#viewer", match: "index.html" },
+  { label: "Fuses", href: "hood.html#fuses", match: "hood.html" },
+  { label: "Cabin", href: "cabin.html#fuses", match: "cabin.html" },
+  { label: "Cargo", href: "cargo.html", match: "cargo.html" },
+  { label: "Towing", href: "rear-hitch.html", match: "rear-hitch.html" },
+  { label: "Maint", href: "maintenance.html", match: "maintenance.html" },
+  { label: "Oil", href: "maintenance.html#oil-service", match: "maintenance.html" },
+  { label: "Diag", href: "diagnostics.html", match: "diagnostics.html" },
+  { label: "Garage", href: "garage.html", match: "garage.html" }
+];
+
+function currentPageName() {
+  const page = location.pathname.split("/").pop();
+  return page || "index.html";
+}
+
+function buildRouteStrip() {
+  if (!topbar) {
+    return;
+  }
+
+  const strip = document.createElement("nav");
+  strip.className = "route-strip";
+  strip.setAttribute("aria-label", "Quick page navigation");
+
+  const page = currentPageName();
+
+  routeLinks.forEach((link) => {
+    const anchor = document.createElement("a");
+    anchor.href = link.href;
+    anchor.textContent = link.label;
+    if (page === link.match) {
+      anchor.classList.add("is-active");
+    }
+    strip.appendChild(anchor);
+  });
+
+  topbar.insertAdjacentElement("afterend", strip);
+}
 
 function buildSearchModal() {
   const modal = document.createElement("div");
@@ -75,6 +116,8 @@ function closeSearch() {
   document.body.classList.remove("modal-open");
 }
 
+buildRouteStrip();
+
 searchButton?.addEventListener("click", openSearch);
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {
   el.addEventListener("click", closeSearch);
@@ -95,23 +138,6 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !searchModal.hidden) {
     closeSearch();
   }
-});
-
-window.addEventListener("beforeinstallprompt", (event) => {
-  event.preventDefault();
-  installPrompt = event;
-  document.body.classList.add("pwa-install-ready");
-});
-
-const installButton = document.querySelector("[data-install-app]");
-installButton?.addEventListener("click", async () => {
-  if (!installPrompt) {
-    return;
-  }
-  installPrompt.prompt();
-  await installPrompt.userChoice;
-  installPrompt = null;
-  document.body.classList.remove("pwa-install-ready");
 });
 
 if ("serviceWorker" in navigator) {

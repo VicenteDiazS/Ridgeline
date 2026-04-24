@@ -18,8 +18,7 @@
           <a href="diagnostics.html">Diagnostics</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
       <main id="top">
@@ -31,6 +30,7 @@
             <a class="utility-link utility-link-strong" href="#notes">Open Notes</a>
             <a class="utility-link" href="#favorites">Saved Fuses</a>
             <a class="utility-link" href="#photos">Reference Photos</a>
+            <a class="utility-link" href="#areas">Area Journals</a>
             <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
           </div>
         </section>
@@ -71,6 +71,8 @@
               <label><span>Engine oil / filter</span><input name="oil_filter" type="text" placeholder="Oil brand, viscosity, filter part number" /></label>
               <label><span>Air filter</span><input name="air_filter" type="text" placeholder="Engine / cabin filter part numbers" /></label>
               <label><span>Wipers</span><input name="wipers" type="text" placeholder="Preferred blade brand / size" /></label>
+              <label><span>Brake parts</span><input name="brakes" type="text" placeholder="Pads, rotors, fluid date, hardware" /></label>
+              <label><span>Trailer setup</span><input name="trailer_setup" type="text" placeholder="Adapter, ball mount, hitch pin, tester" /></label>
               <label><span>General notes</span><textarea name="general_notes" rows="6" placeholder="Anything you want to remember about the truck"></textarea></label>
             </form>
           </article>
@@ -83,7 +85,15 @@
               <label><span>Brake service</span><input name="brake_service" type="text" placeholder="Date / mileage" /></label>
               <label><span>Transmission service</span><input name="trans_service" type="text" placeholder="Date / mileage" /></label>
               <label><span>Battery install</span><input name="battery_install" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Air filters</span><input name="filters" type="text" placeholder="Date / mileage" /></label>
+              <label><span>Trailer wiring check</span><input name="trailer_wiring" type="text" placeholder="Date / mileage" /></label>
             </form>
+          </article>
+
+          <article class="tech-card" id="areas">
+            <h3>Area Journals</h3>
+            <p class="small-note">Each main section now has its own notes and photo journal so you can keep area-specific reminders close to the right diagrams.</p>
+            <div class="system-grid" data-area-summary></div>
           </article>
 
           <article class="tech-card" id="favorites">

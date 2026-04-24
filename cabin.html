@@ -19,8 +19,7 @@
           <a href="hood.html#fuses">Engine Fuses</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
       <main id="top">
@@ -35,6 +34,7 @@
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="index.html#systems">All Zones</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
+            <a class="utility-link" href="#area-journal">Area Notes</a>
           </div>
         </section>
         <section class="section-page-stack">
@@ -353,6 +353,27 @@
               and 2019 owner-manual-style listings.
             </p>
           </article>
+          <article class="tech-card span-2" id="area-journal" data-area-journal="cabin">
+            <h3>Cabin Area Journal</h3>
+            <p class="small-note">
+              Use this section for cabin-specific reminders like which outlet you tested,
+              trim-level equipment you confirmed, or photos of the driver-left panel and connector areas.
+            </p>
+            <div class="form-grid">
+              <form class="form-stack" data-area-form>
+                <label><span>Cabin electrical notes</span><input name="electrical" type="text" placeholder="Outlet issue, radio note, charging port reminder" /></label>
+                <label><span>Interior trim details</span><input name="trim" type="text" placeholder="Audio package, seat heaters, ports, accessories" /></label>
+                <label><span>Driver-left fuse notes</span><textarea name="fuse_notes" rows="4" placeholder="Common cabin fuses you check, side-panel quirks, label wording"></textarea></label>
+                <label><span>General cabin notes</span><textarea name="notes" rows="4" placeholder="Anything useful inside the cab"></textarea></label>
+              </form>
+              <div class="tech-card">
+                <h3>Area Photos</h3>
+                <p class="small-note">Store photos of the under-dash panel, outlet labels, console connections, or trim-specific equipment.</p>
+                <input class="utility-link" data-area-photo-input type="file" accept="image/*" multiple />
+                <div class="photo-grid compact" data-area-photo-grid></div>
+              </div>
+            </div>
+          </article>
         </section>
       </main>
 
@@ -365,5 +386,6 @@
     </div>
     <script type="module" src="shared-ui.js"></script>
     <script type="module" src="fuse-interactive.js"></script>
+    <script type="module" src="section-tools.js"></script>
   </body>
 </html>

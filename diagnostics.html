@@ -18,8 +18,7 @@
           <a href="garage.html">Garage Log</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
       <main id="top">
@@ -31,6 +30,7 @@
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+            <a class="utility-link" href="#quick-checks">Quick Checks</a>
             <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
           </div>
         </section>
@@ -65,6 +65,17 @@
             <p class="diagram-caption">
               The site works best when diagnostics route you into a diagram-heavy section instead of making you guess where to start.
             </p>
+          </article>
+          <article class="tech-card" id="quick-checks">
+            <h3>Quick Checks Before You Chase The Wrong Problem</h3>
+            <table class="fuse-table quick-table" aria-label="Diagnostic quick checks">
+              <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
+              <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="hood.html#wiring">Hood wiring</a></td></tr>
+              <tr><td>Accessory socket dead</td><td>Interior accessory fuse and outlet-specific circuit</td><td><a href="cabin.html#fuses">Cabin fuses</a></td></tr>
+              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="rear-hitch.html">Rear hitch</a></td></tr>
+              <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
+              <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
+            </table>
           </article>
         </section>
         <section class="system-grid">
@@ -111,6 +122,30 @@
             <p>Jump straight to oil, brake fluid, torque specs, and bulb references.</p>
             <div class="inspector-actions">
               <a class="utility-link" href="maintenance.html">Maintenance Specs</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Battery Drain / Weak Battery</h3>
+            <p>Start with the installed battery details, terminal condition, and recent accessory changes before blaming the alternator.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
+              <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Cabin Electronics Acting Strange</h3>
+            <p>Use the driver-left fuse page first, then keep track of what you tested in the cabin journal so repeat diagnostics are faster.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+              <a class="utility-link" href="cabin.html#area-journal">Cabin Journal</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Bed / Trunk Rattle Or Fit Question</h3>
+            <p>Use the cargo page for dimensions, trunk notes, and your own setup photos before pulling the bed apart.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="cargo.html">Cargo Page</a>
+              <a class="utility-link" href="cargo.html#area-journal">Cargo Journal</a>
             </div>
           </article>
         </section>

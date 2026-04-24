@@ -18,8 +18,7 @@
           <a href="garage.html">Garage Log</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
       <main id="top">
@@ -32,6 +31,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#connector">Open Connector Diagram</a>
             <a class="utility-link" href="#adapter-types">Adapter Types</a>
+            <a class="utility-link" href="#area-journal">Area Notes</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="diagnostics.html">Diagnostics</a>
           </div>
@@ -135,6 +135,27 @@
               </a>
             </div>
           </article>
+          <article class="tech-card span-2" id="area-journal" data-area-journal="rear-hitch">
+            <h3>Rear Hitch Journal</h3>
+            <p class="small-note">
+              Keep your own towing setup here: which adapter lives in the truck, what trailer plugs you use,
+              and any connector photos or troubleshooting notes that save time later.
+            </p>
+            <div class="form-grid">
+              <form class="form-stack" data-area-form>
+                <label><span>Primary trailer / adapter</span><input name="primary_setup" type="text" placeholder="7-way, 4-flat adapter, brake controller note" /></label>
+                <label><span>Tow gear stored in truck</span><input name="tow_gear" type="text" placeholder="Ball mount, pins, tester, grease, adapters" /></label>
+                <label><span>Connector notes</span><textarea name="connector_notes" rows="4" placeholder="Corrosion note, pinout reminder, preferred tester, trailer-specific quirks"></textarea></label>
+                <label><span>Towing reminders</span><textarea name="tow_notes" rows="4" placeholder="Load balance, fuel note, safety chain routing, brake-light checks"></textarea></label>
+              </form>
+              <div class="tech-card">
+                <h3>Area Photos</h3>
+                <p class="small-note">Store pictures of your connector, adapter chain, hitch label, or trailer plug wiring.</p>
+                <input class="utility-link" data-area-photo-input type="file" accept="image/*" multiple />
+                <div class="photo-grid compact" data-area-photo-grid></div>
+              </div>
+            </div>
+          </article>
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
@@ -145,5 +166,6 @@
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="section-tools.js"></script>
   </body>
 </html>

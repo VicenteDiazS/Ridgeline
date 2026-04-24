@@ -31,8 +31,7 @@
           <a href="#references">Sources</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
 
@@ -100,7 +99,12 @@
           <a class="quickbar-card" href="maintenance.html">
             <span>Toolbox</span>
             <strong>Maintenance Specs</strong>
-            <p>Fluids, verified torque values, bulbs, and wiper service notes.</p>
+            <p>Oil type, capacities, oil filters, air filters, fluids, torque, bulbs, and wiper notes.</p>
+          </a>
+          <a class="quickbar-card" href="maintenance.html#oil-service">
+            <span>Toolbox</span>
+            <strong>Oil + Filters</strong>
+            <p>Oil spec, fill amount, oil filters, engine air filters, and cabin air filters.</p>
           </a>
           <a class="quickbar-card" href="diagnostics.html">
             <span>Toolbox</span>
@@ -203,15 +207,6 @@
           <div class="viewer-header">
             <div>
               <p class="eyebrow">Live Vehicle Map</p>
-              <h2>Live Vehicle Map</h2>
-              <p class="section-copy">
-                Rotate the truck until a hotspot appears, then tap it to open the matching service area.
-              </p>
-            </div>
-            <div class="viewer-tips">
-              <span>Touch: rotate</span>
-              <span>Tap hotspot: docs</span>
-              <span>Reset if lost</span>
             </div>
           </div>
 
@@ -223,10 +218,6 @@
               <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
               <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
               <div id="viewer-status" class="viewer-status" hidden></div>
-              <div class="viewer-stage-label" aria-hidden="true">
-                <span>Vehicle Interface</span>
-                <strong>Rotate And Tap A Zone</strong>
-              </div>
             </div>
 
             <aside class="inspector-panel">

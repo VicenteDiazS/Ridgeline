@@ -18,8 +18,7 @@
           <a href="garage.html">Garage Log</a>
         </nav>
         <div class="topbar-actions">
-          <button class="ghost-button" type="button" data-open-search>Search</button>
-          <button class="ghost-button" type="button" data-install-app>Install</button>
+          <button class="search-button" type="button" data-open-search>Search</button>
         </div>
       </header>
       <main id="top">
@@ -32,6 +31,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#bed-diagram">Open Bed Diagram</a>
             <a class="utility-link" href="#trunk-diagram">In-Bed Trunk</a>
+            <a class="utility-link" href="#area-journal">Area Notes</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="garage.html">Garage Log</a>
           </div>
@@ -155,6 +155,27 @@
               </a>
             </div>
           </article>
+          <article class="tech-card span-2" id="area-journal" data-area-journal="cargo">
+            <h3>Cargo Area Journal</h3>
+            <p class="small-note">
+              Save the bed setup details you actually use: tonneau notes, strap locations, cooler fit,
+              trunk measurements you trust, or photos of how you load gear.
+            </p>
+            <div class="form-grid">
+              <form class="form-stack" data-area-form>
+                <label><span>Common cargo loadout</span><input name="loadout" type="text" placeholder="Bins, tools, cooler, ramps, recovery gear" /></label>
+                <label><span>Bed accessories</span><input name="accessories" type="text" placeholder="Tonneau, divider, rail system, bed extender" /></label>
+                <label><span>Measurements to remember</span><textarea name="measurements" rows="4" placeholder="Your own fit notes for plywood, bikes, coolers, or storage bins"></textarea></label>
+                <label><span>Area notes</span><textarea name="notes" rows="4" placeholder="Anything that helps when loading or working around the bed"></textarea></label>
+              </form>
+              <div class="tech-card">
+                <h3>Area Photos</h3>
+                <p class="small-note">Keep pictures of your bed setup, trunk divider, drain plug, spare tray, or tie-down layout.</p>
+                <input class="utility-link" data-area-photo-input type="file" accept="image/*" multiple />
+                <div class="photo-grid compact" data-area-photo-grid></div>
+              </div>
+            </div>
+          </article>
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
@@ -165,5 +186,6 @@
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="section-tools.js"></script>
   </body>
 </html>

@@ -3,19 +3,43 @@ export const searchIndex = [
     title: "Vehicle Map",
     url: "index.html#viewer",
     category: "Navigation",
-    keywords: ["3d", "truck", "viewer", "hotspots", "zones", "map"]
+    keywords: ["3d", "truck", "viewer", "hotspots", "zones", "map", "explorer"]
+  },
+  {
+    title: "Truck Snapshot",
+    url: "index.html#truck-profile",
+    category: "Navigation",
+    keywords: ["vin", "2wd", "engine", "powertrain", "build info", "this truck"]
+  },
+  {
+    title: "Technical Specs",
+    url: "index.html#technical",
+    category: "Specs",
+    keywords: ["engine", "transmission", "suspension", "brakes", "wheels", "tire size"]
   },
   {
     title: "Fuse Boxes",
     url: "hood.html#fuses",
     category: "Electrical",
-    keywords: ["fuse", "fuses", "hood", "engine bay", "battery", "jump"]
+    keywords: ["fuse", "fuses", "hood", "engine bay", "battery", "jump", "box a", "box b"]
   },
   {
     title: "Cabin Fuses",
     url: "cabin.html#fuses",
     category: "Electrical",
-    keywords: ["fuse", "cabin", "driver-left", "kick panel", "under dash"]
+    keywords: ["fuse", "cabin", "driver-left", "kick panel", "under dash", "interior fuse"]
+  },
+  {
+    title: "Fuse Favorites",
+    url: "garage.html#favorites",
+    category: "Electrical",
+    keywords: ["saved fuse", "favorite fuse", "common fuse", "bookmark fuse"]
+  },
+  {
+    title: "Battery / Jump",
+    url: "hood.html#wiring",
+    category: "Electrical",
+    keywords: ["battery", "jump start", "ground point", "front bay", "cca", "group 48", "h6"]
   },
   {
     title: "Maintenance Specs",
@@ -24,16 +48,88 @@ export const searchIndex = [
     keywords: ["fluids", "oil", "coolant", "brake fluid", "bulbs", "wipers", "torque", "specs"]
   },
   {
-    title: "Garage Log",
-    url: "garage.html",
-    category: "Personal",
-    keywords: ["notes", "parts", "tracker", "favorites", "photos", "maintenance log"]
+    title: "Service Quick Hits",
+    url: "maintenance.html#service-quick",
+    category: "Maintenance",
+    keywords: ["quick jobs", "service quick", "oil", "atf", "coolant", "towing", "tire size"]
+  },
+  {
+    title: "Oil Service",
+    url: "maintenance.html#oil-service",
+    category: "Maintenance",
+    keywords: ["oil type", "oil capacity", "0w-20", "5.7 qt", "5.3 qt", "oil change", "drain bolt"]
+  },
+  {
+    title: "Fluids And Capacities",
+    url: "maintenance.html#fluids",
+    category: "Maintenance",
+    keywords: ["engine oil", "brake fluid", "atf", "coolant", "washer fluid", "fluid type"]
+  },
+  {
+    title: "Oil Filter Cross Reference",
+    url: "maintenance.html#filter-cross",
+    category: "Maintenance",
+    keywords: ["oil filter", "15400-plm-a02", "fram ph7317", "wix 57356", "microgard msl57356", "mobil 1", "bosch", "k&n"]
+  },
+  {
+    title: "Engine Air Filter Cross Reference",
+    url: "maintenance.html#filter-cross",
+    category: "Maintenance",
+    keywords: ["engine air filter", "17220-5j6-a10", "fram ca12061", "wix wa10339", "microgard mga10339", "msa31067"]
+  },
+  {
+    title: "Cabin Air Filter Cross Reference",
+    url: "maintenance.html#filter-cross",
+    category: "Maintenance",
+    keywords: ["cabin air filter", "80292-tz5-a41", "fram cf11182", "wix 24201", "3752", "vf2033", "glove box"]
+  },
+  {
+    title: "Torque Specs",
+    url: "maintenance.html#torque",
+    category: "Maintenance",
+    keywords: ["torque", "wheel nuts", "drain bolt", "lb-ft", "oil drain", "service torque"]
+  },
+  {
+    title: "Bulbs",
+    url: "maintenance.html#bulbs",
+    category: "Maintenance",
+    keywords: ["bulb", "headlight", "back-up light", "license plate", "tail light"]
+  },
+  {
+    title: "Wipers",
+    url: "maintenance.html#wipers",
+    category: "Maintenance",
+    keywords: ["wiper", "blade", "washer", "maintenance position"]
   },
   {
     title: "Diagnostics",
     url: "diagnostics.html",
     category: "Diagnostics",
-    keywords: ["symptom", "no crank", "socket dead", "trailer lights", "tailgate", "power window"]
+    keywords: ["symptom", "routing", "troubleshooting", "quick checks"]
+  },
+  {
+    title: "Diagnostic Quick Checks",
+    url: "diagnostics.html#quick-checks",
+    category: "Diagnostics",
+    keywords: ["no crank", "accessory socket", "tailgate", "trailer lights", "first check"]
+  },
+  {
+    title: "No Crank / No Start",
+    url: "diagnostics.html",
+    category: "Diagnostics",
+    keywords: ["no crank", "no start", "weak battery", "jump", "starter"]
+  },
+  {
+    title: "Battery Drain / Weak Battery",
+    url: "diagnostics.html",
+    category: "Diagnostics",
+    keywords: ["battery drain", "parasitic draw", "weak battery", "charging issue"]
+  },
+  {
+    title: "Trailer Lights Not Working",
+    url: "diagnostics.html",
+    category: "Diagnostics",
+    keywords: ["trailer lights", "connector", "adapter", "hitch wiring"]
   },
   {
     title: "Cargo / Bed",
@@ -42,10 +138,76 @@ export const searchIndex = [
     keywords: ["bed", "trunk", "cargo", "dimensions", "in-bed trunk", "spare tire"]
   },
   {
+    title: "Bed Diagram",
+    url: "cargo.html#bed-diagram",
+    category: "Cargo",
+    keywords: ["bed length", "tailgate up", "tailgate down", "wheel arches", "bed walls"]
+  },
+  {
+    title: "In-Bed Trunk Diagram",
+    url: "cargo.html#trunk-diagram",
+    category: "Cargo",
+    keywords: ["trunk dimensions", "drain plug", "cooler", "trunk width", "trunk depth"]
+  },
+  {
+    title: "Cargo Area Journal",
+    url: "cargo.html#area-journal",
+    category: "Personal",
+    keywords: ["cargo notes", "bed photos", "loadout", "cargo journal"]
+  },
+  {
     title: "Trailer Wiring",
     url: "rear-hitch.html",
     category: "Towing",
     keywords: ["trailer", "wiring", "hitch", "connector", "7 pin", "4 flat", "adapter"]
+  },
+  {
+    title: "Trailer Connector Diagram",
+    url: "rear-hitch.html#connector",
+    category: "Towing",
+    keywords: ["7-way blade", "7 pin rv", "connector picture", "socket"]
+  },
+  {
+    title: "Adapter Types",
+    url: "rear-hitch.html#adapter-types",
+    category: "Towing",
+    keywords: ["4-flat", "5-flat", "6-pole", "7-way", "adapter types"]
+  },
+  {
+    title: "Rear Hitch Journal",
+    url: "rear-hitch.html#area-journal",
+    category: "Personal",
+    keywords: ["tow notes", "hitch notes", "connector photos", "trailer setup"]
+  },
+  {
+    title: "Garage Log",
+    url: "garage.html",
+    category: "Personal",
+    keywords: ["notes", "parts", "tracker", "favorites", "photos", "maintenance log"]
+  },
+  {
+    title: "Area Journals",
+    url: "garage.html#areas",
+    category: "Personal",
+    keywords: ["area journal", "hood notes", "cabin notes", "cargo notes", "hitch notes"]
+  },
+  {
+    title: "Reference Photos",
+    url: "garage.html#photos",
+    category: "Personal",
+    keywords: ["photos", "reference photos", "upload", "actual truck"]
+  },
+  {
+    title: "Hood Area Journal",
+    url: "hood.html#area-journal",
+    category: "Personal",
+    keywords: ["hood notes", "engine bay notes", "battery photos", "front bay journal"]
+  },
+  {
+    title: "Cabin Area Journal",
+    url: "cabin.html#area-journal",
+    category: "Personal",
+    keywords: ["cabin notes", "driver-left fuse notes", "interior photos", "cabin journal"]
   },
   {
     title: "Acronym: ABS",
