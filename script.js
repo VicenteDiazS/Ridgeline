@@ -1,5 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const systems = [
   {
@@ -49,10 +52,10 @@ const systems = [
       }
     ],
     labelOffset: { x: 138, y: -72 },
-    highlightMeshes: ["hood", "fuseBoxAZone", "grilleFrame", "grille", "bumperFront"],
-    point: new THREE.Vector3(2.34, 1.5, 0.82),
-    camera: new THREE.Vector3(4.8, 2.4, 4.0),
-    target: new THREE.Vector3(2.16, 1.38, 0.62)
+    highlightMeshes: ["fuseBoxAZone", "frontBayZone"],
+    point: new THREE.Vector3(-2.34, 1.5, -0.82),
+    camera: new THREE.Vector3(-4.8, 2.4, -4.0),
+    target: new THREE.Vector3(-2.16, 1.38, -0.62)
   },
   {
     id: "fuse-engine-b",
@@ -96,10 +99,10 @@ const systems = [
       }
     ],
     labelOffset: { x: 116, y: -16 },
-    highlightMeshes: ["hood", "fuseBoxBZone", "brakeReservoirZone"],
-    point: new THREE.Vector3(1.56, 1.56, -0.78),
-    camera: new THREE.Vector3(4.6, 2.3, -4.5),
-    target: new THREE.Vector3(1.42, 1.42, -0.62)
+    highlightMeshes: ["fuseBoxBZone", "brakeReservoirZone", "frontBayZone"],
+    point: new THREE.Vector3(-1.56, 1.56, 0.78),
+    camera: new THREE.Vector3(-4.6, 2.3, 4.5),
+    target: new THREE.Vector3(-1.42, 1.42, 0.62)
   },
   {
     id: "battery-jump",
@@ -147,10 +150,10 @@ const systems = [
       }
     ],
     labelOffset: { x: 128, y: 32 },
-    highlightMeshes: ["hood", "batteryZone", "jumpGroundZone"],
-    point: new THREE.Vector3(2.04, 1.45, -0.9),
-    camera: new THREE.Vector3(4.8, 2.25, -4.7),
-    target: new THREE.Vector3(1.9, 1.38, -0.72)
+    highlightMeshes: ["batteryZone", "jumpGroundZone", "frontBayZone"],
+    point: new THREE.Vector3(-2.04, 1.45, 0.9),
+    camera: new THREE.Vector3(-4.8, 2.25, 4.7),
+    target: new THREE.Vector3(-1.9, 1.38, 0.72)
   },
   {
     id: "fuse-cabin",
@@ -194,10 +197,10 @@ const systems = [
       }
     ],
     labelOffset: { x: 126, y: -8 },
-    highlightMeshes: ["cabShell", "cabinFuseZone"],
-    point: new THREE.Vector3(0.82, 0.82, -1.14),
-    camera: new THREE.Vector3(2.4, 1.85, -5.2),
-    target: new THREE.Vector3(0.72, 0.84, -1.04)
+    highlightMeshes: ["cabinFuseZone"],
+    point: new THREE.Vector3(-0.82, 0.82, 1.14),
+    camera: new THREE.Vector3(-2.4, 1.85, 5.2),
+    target: new THREE.Vector3(-0.72, 0.84, 1.04)
   },
   {
     id: "center-console",
@@ -244,10 +247,10 @@ const systems = [
       }
     ],
     labelOffset: { x: 120, y: -64 },
-    highlightMeshes: ["cabShell", "frontSideWindowLeft", "rearSideWindowLeft"],
-    point: new THREE.Vector3(0.42, 1.28, 0),
-    camera: new THREE.Vector3(2.8, 2.1, 4.2),
-    target: new THREE.Vector3(0.35, 1.18, 0)
+    highlightMeshes: ["consoleZone"],
+    point: new THREE.Vector3(-0.42, 1.28, 0),
+    camera: new THREE.Vector3(-2.8, 2.1, 4.2),
+    target: new THREE.Vector3(-0.35, 1.18, 0)
   },
   {
     id: "bed-trunk",
@@ -294,10 +297,10 @@ const systems = [
       }
     ],
     labelOffset: { x: -150, y: -46 },
-    highlightMeshes: ["bedSide", "bedInset", "tailgate", "bedRailLeft", "bedRailRight"],
-    point: new THREE.Vector3(-2.04, 1.56, 0),
-    camera: new THREE.Vector3(-5.3, 2.5, 3.6),
-    target: new THREE.Vector3(-2.0, 1.42, 0)
+    highlightMeshes: ["bedZone"],
+    point: new THREE.Vector3(2.04, 1.56, 0),
+    camera: new THREE.Vector3(5.3, 2.5, 3.6),
+    target: new THREE.Vector3(2.0, 1.42, 0)
   },
   {
     id: "hitch-wiring",
@@ -344,10 +347,10 @@ const systems = [
       }
     ],
     labelOffset: { x: -156, y: 18 },
-    highlightMeshes: ["tailgate", "bumperRear"],
-    point: new THREE.Vector3(-3.08, 0.78, 0),
-    camera: new THREE.Vector3(-5.8, 1.8, 3.9),
-    target: new THREE.Vector3(-3.02, 0.78, 0)
+    highlightMeshes: ["hitchZone"],
+    point: new THREE.Vector3(3.08, 0.78, 0),
+    camera: new THREE.Vector3(5.8, 1.8, 3.9),
+    target: new THREE.Vector3(3.02, 0.78, 0)
   }
 ];
 
@@ -372,6 +375,15 @@ const areaModalTitle = document.getElementById("area-modal-title");
 const areaModalCopy = document.getElementById("area-modal-copy");
 const areaModalMeta = document.getElementById("area-modal-meta");
 const areaModalActions = document.getElementById("area-modal-actions");
+const mainElement = document.getElementById("top");
+const heroPanel = document.querySelector(".hero-panel");
+
+if (mainElement && viewerElement && heroPanel) {
+  const viewerSection = viewerElement.closest(".viewer-section");
+  if (viewerSection && mainElement.firstElementChild !== viewerSection) {
+    mainElement.insertBefore(viewerSection, heroPanel);
+  }
+}
 
 let renderer;
 
@@ -402,8 +414,15 @@ if (!renderer) {
   controls.minDistance = 4;
   controls.maxDistance = 13;
   controls.target.set(0, 1.2, 0);
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.8;
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.05).texture;
 
   scene.add(new THREE.HemisphereLight(0xdff4ff, 0x122030, 1.55));
 
@@ -418,6 +437,10 @@ if (!renderer) {
   const fillLight = new THREE.PointLight(0x8fdcff, 18, 20, 2);
   fillLight.position.set(0, 3, 0);
   scene.add(fillLight);
+
+  const warmLight = new THREE.DirectionalLight(0xffd6b8, 1.2);
+  warmLight.position.set(2.5, 3.5, -6);
+  scene.add(warmLight);
 
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(7.5, 80),
@@ -468,6 +491,7 @@ if (!renderer) {
     outline.position.copy(mesh.position);
     outline.rotation.copy(mesh.rotation);
     outline.scale.copy(mesh.scale).multiplyScalar(1.025);
+    outline.userData.outlineFor = name;
     outline.visible = false;
     truck.add(outline);
     highlightOutlines.set(name, outline);
@@ -613,11 +637,19 @@ if (!renderer) {
   addOutlineForMesh("hood", hood);
 
   createServiceZone(
+    "frontBayZone",
+    1.86,
+    0.24,
+    1.92,
+    new THREE.Vector3(-2.0, 1.54, 0),
+    { z: -0.04 }
+  );
+  createServiceZone(
     "fuseBoxAZone",
     0.34,
     0.14,
     0.24,
-    new THREE.Vector3(2.3, 1.6, 0.82),
+    new THREE.Vector3(-2.3, 1.6, -0.82),
     { z: -0.04 }
   );
   createServiceZone(
@@ -625,7 +657,7 @@ if (!renderer) {
     0.44,
     0.18,
     0.3,
-    new THREE.Vector3(2.08, 1.58, -0.88),
+    new THREE.Vector3(-2.08, 1.58, 0.88),
     { z: -0.04 }
   );
   createServiceZone(
@@ -633,7 +665,7 @@ if (!renderer) {
     0.34,
     0.14,
     0.24,
-    new THREE.Vector3(1.58, 1.62, -0.78),
+    new THREE.Vector3(-1.58, 1.62, 0.78),
     { z: -0.04 }
   );
   createServiceZone(
@@ -641,14 +673,14 @@ if (!renderer) {
     0.18,
     0.14,
     0.18,
-    new THREE.Vector3(1.28, 1.68, -0.64)
+    new THREE.Vector3(-1.28, 1.68, 0.64)
   );
   createServiceZone(
     "jumpGroundZone",
     0.28,
     0.14,
     0.18,
-    new THREE.Vector3(1.48, 1.68, -0.18)
+    new THREE.Vector3(-1.48, 1.68, 0.18)
   );
 
   const bedSide = registerMesh("bedSide", new THREE.Mesh(makeRoundedBox(2.32, 0.68, 2.0, 0.12, 6), paint));
@@ -921,8 +953,15 @@ if (!renderer) {
     0.26,
     0.2,
     0.12,
-    new THREE.Vector3(0.9, 0.84, -1.12),
+    new THREE.Vector3(-0.9, 0.84, 1.12),
     { y: 0.08 }
+  );
+  createServiceZone(
+    "consoleZone",
+    0.72,
+    0.34,
+    0.54,
+    new THREE.Vector3(-0.42, 1.18, 0)
   );
 
   const hoodCrease = new THREE.Mesh(makeRoundedBox(1.08, 0.03, 0.05, 0.01, 3), chrome);
@@ -938,7 +977,225 @@ if (!renderer) {
   truck.add(bedRailRight);
   addOutlineForMesh("bedRailRight", bedRailRight);
 
+  createServiceZone(
+    "bedZone",
+    2.02,
+    0.34,
+    1.7,
+    new THREE.Vector3(1.98, 1.58, 0)
+  );
+  createServiceZone(
+    "hitchZone",
+    0.5,
+    0.24,
+    0.46,
+    new THREE.Vector3(3.02, 0.8, 0)
+  );
+
+  truck.children.forEach((child) => {
+    const partName = child.userData.partName;
+    const outlineFor = child.userData.outlineFor;
+    const isServiceZone = partName && serviceZoneNames.has(partName);
+    const isServiceOutline = outlineFor && serviceZoneNames.has(outlineFor);
+    child.userData.isFallbackVisual = !isServiceZone && !isServiceOutline;
+  });
+
   truck.rotation.y = -0.45;
+
+  const modelLoader = new GLTFLoader();
+  const fallbackLoader = new FBXLoader();
+  viewerStatus.hidden = false;
+  viewerStatus.textContent = "Loading real Ridgeline model...";
+
+  function nameIncludes(text, keywords) {
+    return keywords.some((keyword) => text.includes(keyword));
+  }
+
+  function stylizeLoadedMaterial(material, tokenText) {
+    const nextMaterial = material.clone();
+    const hasMap = Boolean(nextMaterial.map);
+
+    if (nameIncludes(tokenText, ["glass", "window", "windshield", "mirror"])) {
+      nextMaterial.color = new THREE.Color(0xa9c4d6);
+      nextMaterial.metalness = 0;
+      nextMaterial.roughness = 0.05;
+      nextMaterial.transmission = 0.6;
+      nextMaterial.transparent = true;
+      nextMaterial.opacity = 0.58;
+      nextMaterial.ior = 1.45;
+      nextMaterial.thickness = 0.02;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["tire", "tyre", "rubber"])) {
+      nextMaterial.color = new THREE.Color(0x14171b);
+      nextMaterial.metalness = 0.02;
+      nextMaterial.roughness = 0.96;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["wheel", "rim", "alloy", "hpd"])) {
+      if (!hasMap) {
+        nextMaterial.color = new THREE.Color(0xc88358);
+      }
+      nextMaterial.metalness = 0.96;
+      nextMaterial.roughness = 0.26;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["brake", "disc", "rotor", "caliper"])) {
+      nextMaterial.color = new THREE.Color(0x868b90);
+      nextMaterial.metalness = 0.88;
+      nextMaterial.roughness = 0.42;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["chrome", "badge", "logo", "emblem", "handle"])) {
+      if (nameIncludes(tokenText, ["logo", "badge", "emblem"])) {
+        nextMaterial.color = new THREE.Color(0x111111);
+        nextMaterial.metalness = 0.62;
+        nextMaterial.roughness = 0.24;
+        return nextMaterial;
+      }
+      if (!hasMap) {
+        nextMaterial.color = new THREE.Color(0xe4e8ec);
+      }
+      nextMaterial.metalness = 1;
+      nextMaterial.roughness = 0.14;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["lamp", "head", "tail", "light", "fog"])) {
+      if (!hasMap) {
+        nextMaterial.color = new THREE.Color(0xe9f5ff);
+      }
+      nextMaterial.emissive = new THREE.Color(0x402018);
+      nextMaterial.emissiveIntensity = 0.24;
+      nextMaterial.metalness = 0.06;
+      nextMaterial.roughness = 0.12;
+      return nextMaterial;
+    }
+
+    if (nameIncludes(tokenText, ["grille", "grill", "trim", "bumper", "plastic", "cladding"])) {
+      nextMaterial.color = new THREE.Color(0x181b20);
+      nextMaterial.metalness = 0.1;
+      nextMaterial.roughness = 0.88;
+      return nextMaterial;
+    }
+
+    if (
+      nameIncludes(tokenText, [
+        "body",
+        "paint",
+        "door",
+        "hood",
+        "fender",
+        "cab",
+        "bed",
+        "tailgate",
+        "truck"
+      ])
+    ) {
+      if (!hasMap) {
+        nextMaterial.color = new THREE.Color(0xc1cad2);
+      }
+      nextMaterial.metalness = 0.8;
+      nextMaterial.roughness = 0.18;
+      nextMaterial.clearcoat = 1;
+      nextMaterial.clearcoatRoughness = 0.08;
+      return nextMaterial;
+    }
+
+    nextMaterial.metalness = "metalness" in nextMaterial ? Math.max(nextMaterial.metalness ?? 0, 0.24) : 0.24;
+    nextMaterial.roughness = "roughness" in nextMaterial ? Math.min(nextMaterial.roughness ?? 0.8, 0.68) : 0.68;
+    return nextMaterial;
+  }
+
+  function applyLoadedModel(modelRoot) {
+      const targetLength = 6.1;
+      const bounds = new THREE.Box3();
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+
+      modelRoot.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = false;
+          child.receiveShadow = false;
+          const meshName = `${child.name || ""} ${child.parent?.name || ""}`.toLowerCase();
+          if (child.material) {
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            const tunedMaterials = materials.map((material) => {
+              const materialName = `${material.name || ""} ${meshName}`.toLowerCase();
+              const tuned = stylizeLoadedMaterial(material, materialName);
+              if ("side" in material) {
+                tuned.side = THREE.FrontSide;
+              }
+              if ("transparent" in material) {
+                tuned.transparent = tuned.transparent ?? Boolean(tuned.opacity < 1 || tuned.transmission);
+              }
+              if ("needsUpdate" in material) {
+                tuned.needsUpdate = true;
+              }
+              return tuned;
+            });
+            child.material = Array.isArray(child.material) ? tunedMaterials : tunedMaterials[0];
+          }
+
+        }
+      });
+
+      bounds.setFromObject(modelRoot);
+      bounds.getSize(size);
+      if (size.z > size.x) {
+        modelRoot.rotation.y = Math.PI / 2;
+        bounds.setFromObject(modelRoot);
+        bounds.getSize(size);
+      }
+
+      const scale = targetLength / Math.max(size.x, 0.001);
+      modelRoot.scale.setScalar(scale);
+
+      bounds.setFromObject(modelRoot);
+      bounds.getCenter(center);
+      modelRoot.position.sub(center);
+      bounds.setFromObject(modelRoot);
+      modelRoot.position.y -= bounds.min.y;
+      modelRoot.position.y += 0.03;
+
+      modelRoot.rotation.y += Math.PI;
+      truck.add(modelRoot);
+
+      truck.children.forEach((child) => {
+        if (child !== modelRoot && child.userData.isFallbackVisual) {
+          child.visible = false;
+        }
+      });
+
+      viewerStatus.hidden = true;
+  }
+
+  modelLoader.load(
+    "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+    (gltf) => {
+      applyLoadedModel(gltf.scene);
+    },
+    undefined,
+    () => {
+      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
+      fallbackLoader.load(
+        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
+        (fbx) => {
+          applyLoadedModel(fbx);
+        },
+        undefined,
+        () => {
+          viewerStatus.hidden = false;
+          viewerStatus.textContent =
+            "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
+        }
+      );
+    }
+  );
 
   const hotspotMaterial = new THREE.MeshBasicMaterial({
     color: 0x61dfff,
@@ -962,7 +1219,7 @@ if (!renderer) {
   const calloutElements = new Map();
   const systemCards = new Map();
   const chipButtons = new Map();
-  const orientationPoint = new THREE.Vector3(0.28, 1.34, -1.24);
+  const orientationPoint = new THREE.Vector3(0.28, 1.34, 1.24);
 
   const orientationCallout = document.createElement("div");
   orientationCallout.className = "hotspot-callout";
@@ -973,7 +1230,7 @@ if (!renderer) {
 
   const orientationPill = document.createElement("div");
   orientationPill.className = "callout-pill orientation-pill";
-  orientationPill.textContent = "Driver Side";
+  orientationPill.innerHTML = '<span class="orientation-badge">D</span><span>Driver</span>';
   orientationCallout.appendChild(orientationPill);
   hotspotLayer.appendChild(orientationCallout);
 
@@ -983,6 +1240,7 @@ if (!renderer) {
     button.type = "button";
     button.setAttribute("aria-label", system.label);
     button.addEventListener("click", () => {
+      stopShowcaseRotation();
       selectSystem(system.id, false);
       openAreaModal(system);
     });
@@ -1016,6 +1274,7 @@ if (!renderer) {
       </ul>
     `;
     card.addEventListener("click", () => {
+      stopShowcaseRotation();
       selectSystem(system.id, false);
       document.getElementById("viewer").scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -1026,7 +1285,10 @@ if (!renderer) {
     chip.className = "chip-button";
     chip.type = "button";
     chip.textContent = system.label;
-    chip.addEventListener("click", () => selectSystem(system.id, false));
+    chip.addEventListener("click", () => {
+      stopShowcaseRotation();
+      selectSystem(system.id, false);
+    });
     chipRow.appendChild(chip);
     chipButtons.set(system.id, chip);
   });
@@ -1101,6 +1363,10 @@ if (!renderer) {
       start: performance.now(),
       duration: 900
     };
+  }
+
+  function stopShowcaseRotation() {
+    controls.autoRotate = false;
   }
 
   function selectSystem(id, moveCamera = false) {
@@ -1293,6 +1559,7 @@ if (!renderer) {
   }
 
   resetButton.addEventListener("click", () => {
+    stopShowcaseRotation();
     cameraTween = {
       from: camera.position.clone(),
       to: new THREE.Vector3(5.4, 2.8, 5.6),
@@ -1304,11 +1571,16 @@ if (!renderer) {
   });
 
   openAreaWindowButton.addEventListener("click", () => {
+    stopShowcaseRotation();
     openAreaModal(selectedSystem);
   });
 
   closeAreaModalButton.addEventListener("click", closeAreaModal);
   areaModalBackdrop.addEventListener("click", closeAreaModal);
+
+  renderer.domElement.addEventListener("pointerdown", stopShowcaseRotation);
+  renderer.domElement.addEventListener("wheel", stopShowcaseRotation, { passive: true });
+  renderer.domElement.addEventListener("touchstart", stopShowcaseRotation, { passive: true });
 
   window.addEventListener("resize", resizeRenderer);
 

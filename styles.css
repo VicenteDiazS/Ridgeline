@@ -153,6 +153,23 @@ main {
   padding: 22px 24px;
 }
 
+main > .viewer-section:first-child {
+  padding-top: 28px;
+}
+
+main > .viewer-section:first-child .viewer-stage {
+  min-height: 700px;
+}
+
+main > .viewer-section:first-child .viewer-header h2 {
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+}
+
+main > .viewer-section:first-child .viewer-tips span {
+  background: rgba(97, 223, 255, 0.06);
+  border-color: rgba(121, 212, 255, 0.18);
+}
+
 .eyebrow {
   margin: 0 0 10px;
   text-transform: uppercase;
@@ -364,6 +381,44 @@ h1 {
   align-items: stretch;
 }
 
+.viewer-section {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(88, 195, 255, 0.12), transparent 22%),
+    radial-gradient(circle at 86% 16%, rgba(255, 145, 94, 0.1), transparent 20%),
+    linear-gradient(180deg, rgba(10, 18, 29, 0.98), rgba(5, 10, 18, 0.98));
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.viewer-ambient {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(18px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.viewer-ambient-a {
+  top: -34px;
+  left: -30px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(97, 223, 255, 0.26), transparent 68%);
+}
+
+.viewer-ambient-b {
+  right: -40px;
+  bottom: -40px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 145, 94, 0.18), transparent 70%);
+}
+
 .viewer-stage,
 .inspector-panel,
 .system-card,
@@ -375,17 +430,47 @@ h1 {
 
 .viewer-stage {
   position: relative;
-  min-height: 540px;
+  min-height: 620px;
   overflow: hidden;
+  border-color: rgba(121, 212, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 14, 23, 0.96), rgba(9, 16, 24, 0.98)),
+    rgba(8, 14, 23, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(97, 223, 255, 0.05);
+}
+
+.viewer-stage-frame {
+  position: absolute;
+  inset: 14px;
+  border-radius: 24px;
+  border: 1px solid rgba(97, 223, 255, 0.1);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.015),
+    0 0 0 1px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
+.viewer-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(97, 223, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(97, 223, 255, 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.9) 24%, rgba(0, 0, 0, 0.7));
+  pointer-events: none;
 }
 
 .viewer-backdrop {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 72%, rgba(97, 223, 255, 0.2), transparent 23%),
-    radial-gradient(circle at 50% 108%, rgba(143, 124, 255, 0.15), transparent 36%),
-    linear-gradient(180deg, rgba(97, 223, 255, 0.04), transparent 32%);
+    radial-gradient(circle at 50% 66%, rgba(97, 223, 255, 0.22), transparent 20%),
+    radial-gradient(circle at 50% 86%, rgba(255, 145, 94, 0.1), transparent 18%),
+    radial-gradient(circle at 50% 108%, rgba(143, 124, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(97, 223, 255, 0.06), rgba(8, 14, 22, 0) 34%);
 }
 
 #truck-view,
@@ -443,12 +528,26 @@ h1 {
 }
 
 .callout-pill.orientation-pill {
+  gap: 8px;
   border-color: rgba(255, 145, 94, 0.4);
   background: rgba(13, 18, 28, 0.94);
   color: #ffe1d4;
   box-shadow:
     0 14px 28px rgba(0, 0, 0, 0.3),
     0 0 18px rgba(255, 145, 94, 0.15);
+}
+
+.orientation-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffb28a, #ff8f58);
+  color: #08111c;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 .viewer-status {
@@ -461,6 +560,34 @@ h1 {
   background: rgba(22, 10, 8, 0.88);
   color: #ffd9c9;
   line-height: 1.5;
+}
+
+.viewer-stage-label {
+  position: absolute;
+  left: 20px;
+  bottom: 18px;
+  z-index: 3;
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(97, 223, 255, 0.14);
+  background: rgba(6, 11, 19, 0.72);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.viewer-stage-label span {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+}
+
+.viewer-stage-label strong {
+  color: var(--text);
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
 }
 
 .hotspot-button {
@@ -527,6 +654,9 @@ h1 {
 .inspector-panel {
   padding: 20px;
   box-shadow: var(--shadow-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+    rgba(9, 15, 24, 0.95);
 }
 
 .inspector-panel h3 {
@@ -1355,6 +1485,10 @@ kbd {
   .viewer-stage {
     min-height: 460px;
   }
+
+  main > .viewer-section:first-child .viewer-stage {
+    min-height: 560px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1405,6 +1539,10 @@ kbd {
 
   .viewer-stage {
     min-height: 380px;
+  }
+
+  main > .viewer-section:first-child .viewer-stage {
+    min-height: 460px;
   }
 
   .hero-readout,

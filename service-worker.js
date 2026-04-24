@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v1";
+const CACHE_NAME = "ridgeline-console-v15";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,7 +15,11 @@ const ASSETS = [
   "./shared-ui.js",
   "./search-data.js",
   "./garage.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+  "./assets/ridgeline-2021/textures/logo.jpg",
+  "./assets/ridgeline-2021/textures/logo_hpd.jpg",
+  "./assets/ridgeline-2021/textures/lamp_stripe.jpg"
 ];
 
 self.addEventListener("install", (event) => {

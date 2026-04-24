@@ -198,6 +198,8 @@
         </section>
 
         <section class="viewer-section" id="viewer">
+          <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
+          <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
           <div class="viewer-header">
             <div>
               <p class="eyebrow">Live Vehicle Map</p>
@@ -215,10 +217,16 @@
 
           <div class="viewer-layout">
             <div class="viewer-stage">
+              <div class="viewer-stage-frame" aria-hidden="true"></div>
+              <div class="viewer-grid" aria-hidden="true"></div>
               <div class="viewer-backdrop"></div>
               <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
               <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
               <div id="viewer-status" class="viewer-status" hidden></div>
+              <div class="viewer-stage-label" aria-hidden="true">
+                <span>Vehicle Interface</span>
+                <strong>Rotate And Tap A Zone</strong>
+              </div>
             </div>
 
             <aside class="inspector-panel">
