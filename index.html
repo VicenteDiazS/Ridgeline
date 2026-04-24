@@ -35,6 +35,15 @@
         </div>
       </header>
 
+      <nav class="route-strip" aria-label="Fast sections">
+        <a href="#viewer">Vehicle Map</a>
+        <a href="hood.html#fuses">Fuses</a>
+        <a href="maintenance.html">Maintenance</a>
+        <a href="quick-sheet.html">Quick Sheet</a>
+        <a href="diagnostics.html">Diagnostics</a>
+        <a href="garage.html">Garage</a>
+      </nav>
+
       <main id="top">
         <section class="hero-panel">
           <div class="hero-copy">
@@ -45,6 +54,11 @@
               Keep the vehicle map front and center, then open the garage menu only when you need a shortcut
               into fuses, battery, maintenance, diagnostics, or your saved notes.
             </p>
+            <div class="hero-actions" aria-label="Common actions">
+              <a class="utility-link utility-link-strong" href="hood.html#fuses">Fuse Lookup</a>
+              <a class="utility-link" href="maintenance.html">Maintenance</a>
+              <a class="utility-link" href="garage.html#dashboard">Garage Dashboard</a>
+            </div>
           </div>
 
           <div class="hero-readout">
@@ -154,15 +168,26 @@
             </div>
           </div>
 
-          <div class="viewer-console" aria-label="Viewer modes">
-            <button class="viewer-toggle" id="exploded-toggle" type="button" aria-pressed="false">
-              Exploded View
+          <div class="viewer-console" aria-label="Viewer tools">
+            <button
+              class="viewer-tools-button"
+              id="viewer-tools-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="viewer-tools-menu"
+            >
+              Tools
             </button>
-            <button class="viewer-toggle" id="cinematic-toggle" type="button" aria-pressed="false">
-              Cinematic Focus
-            </button>
-            <a class="viewer-link" href="ar-lab.html">AR Lab</a>
-            <a class="viewer-link" href="photo-atlas.html">Photo Atlas</a>
+            <div class="viewer-tools-menu" id="viewer-tools-menu" hidden>
+              <button class="viewer-toggle" id="exploded-toggle" type="button" aria-pressed="false">
+                Exploded View
+              </button>
+              <button class="viewer-toggle" id="cinematic-toggle" type="button" aria-pressed="false">
+                Cinematic Focus
+              </button>
+              <a class="viewer-link" href="ar-lab.html">AR Lab</a>
+              <a class="viewer-link" href="photo-atlas.html">Photo Atlas</a>
+            </div>
           </div>
 
           <div class="viewer-layout">

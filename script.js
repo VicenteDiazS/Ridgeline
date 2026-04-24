@@ -375,6 +375,8 @@ const areaModalTitle = document.getElementById("area-modal-title");
 const areaModalCopy = document.getElementById("area-modal-copy");
 const areaModalMeta = document.getElementById("area-modal-meta");
 const areaModalActions = document.getElementById("area-modal-actions");
+const viewerToolsToggle = document.getElementById("viewer-tools-toggle");
+const viewerToolsMenu = document.getElementById("viewer-tools-menu");
 const explodedToggle = document.getElementById("exploded-toggle");
 const cinematicToggle = document.getElementById("cinematic-toggle");
 const mainElement = document.getElementById("top");
@@ -590,23 +592,23 @@ if (!renderer) {
   }
 
   const paint = new THREE.MeshPhysicalMaterial({
-    color: 0x747474,
+    color: 0x4d5256,
     metalness: 0.48,
     roughness: 0.38,
     clearcoat: 0.48,
     clearcoatRoughness: 0.32,
     sheen: 0.2,
-    sheenColor: new THREE.Color(0xb6c0c9),
-    specularIntensity: 0.54
+    sheenColor: new THREE.Color(0x8c969f),
+    specularIntensity: 0.42
   });
 
   const paintDark = new THREE.MeshPhysicalMaterial({
-    color: 0x626262,
+    color: 0x373c40,
     metalness: 0.4,
     roughness: 0.44,
     clearcoat: 0.42,
     clearcoatRoughness: 0.34,
-    specularIntensity: 0.46
+    specularIntensity: 0.36
   });
 
   const darkTrim = new THREE.MeshStandardMaterial({
@@ -1177,7 +1179,7 @@ if (!renderer) {
 
     if (nameIncludes(tokenText, ["glass", "window", "windshield", "mirror"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x62686c);
+      nextMaterial.color = new THREE.Color(0x30363b);
       nextMaterial.metalness = 0;
       nextMaterial.roughness = 0.42;
       nextMaterial.transmission = 0.08;
@@ -1199,7 +1201,7 @@ if (!renderer) {
 
     if (nameIncludes(tokenText, ["wheel", "rim", "alloy", "hpd"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0xc88358);
+      nextMaterial.color = new THREE.Color(0x8d573a);
       nextMaterial.metalness = 0.96;
       nextMaterial.roughness = 0.26;
       return nextMaterial;
@@ -1207,7 +1209,7 @@ if (!renderer) {
 
     if (nameIncludes(tokenText, ["brake", "disc", "rotor", "caliper"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x868b90);
+      nextMaterial.color = new THREE.Color(0x555d63);
       nextMaterial.metalness = 0.88;
       nextMaterial.roughness = 0.42;
       return nextMaterial;
@@ -1222,7 +1224,7 @@ if (!renderer) {
         return nextMaterial;
       }
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x6d747b);
+      nextMaterial.color = new THREE.Color(0x3f464c);
       nextMaterial.metalness = 0.48;
       nextMaterial.roughness = 0.62;
       return nextMaterial;
@@ -1230,7 +1232,7 @@ if (!renderer) {
 
     if (nameIncludes(tokenText, ["lamp", "head", "tail", "light", "fog"])) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0xc7d2da);
+      nextMaterial.color = new THREE.Color(0x88949d);
       nextMaterial.emissive = new THREE.Color(0x402018);
       nextMaterial.emissiveIntensity = 0.12;
       nextMaterial.metalness = 0.06;
@@ -1285,12 +1287,12 @@ if (!renderer) {
       ])
     ) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x767676);
+      nextMaterial.color = new THREE.Color(0x454b50);
       nextMaterial.metalness = 0.38;
-      nextMaterial.roughness = 0.46;
-      nextMaterial.clearcoat = 0.34;
-      nextMaterial.clearcoatRoughness = 0.4;
-      nextMaterial.specularIntensity = 0.42;
+      nextMaterial.roughness = 0.58;
+      nextMaterial.clearcoat = 0.22;
+      nextMaterial.clearcoatRoughness = 0.52;
+      nextMaterial.specularIntensity = 0.28;
       return nextMaterial;
     }
 
@@ -1304,12 +1306,12 @@ if (!renderer) {
 
     if (sourceHsl.l >= 0.32) {
       clearDiffuseMap();
-      nextMaterial.color = new THREE.Color(0x767676);
+      nextMaterial.color = new THREE.Color(0x454b50);
       nextMaterial.metalness = 0.38;
-      nextMaterial.roughness = 0.46;
-      nextMaterial.clearcoat = 0.34;
-      nextMaterial.clearcoatRoughness = 0.4;
-      nextMaterial.specularIntensity = 0.42;
+      nextMaterial.roughness = 0.58;
+      nextMaterial.clearcoat = 0.22;
+      nextMaterial.clearcoatRoughness = 0.52;
+      nextMaterial.specularIntensity = 0.28;
       return nextMaterial;
     }
 
@@ -1898,6 +1900,14 @@ if (!renderer) {
       return;
     }
     openAreaModal(selectedSystem);
+  });
+
+  viewerToolsToggle?.addEventListener("click", () => {
+    const isOpen = viewerToolsToggle.getAttribute("aria-expanded") === "true";
+    viewerToolsToggle.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    if (viewerToolsMenu) {
+      viewerToolsMenu.hidden = isOpen;
+    }
   });
 
   explodedToggle?.addEventListener("click", () => {

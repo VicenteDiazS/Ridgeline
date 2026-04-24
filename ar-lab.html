@@ -30,13 +30,13 @@
           <p class="eyebrow">AR Lab</p>
           <h1>Place The Truck In Your Space</h1>
           <p class="section-copy">
-            This is the showcase view for placing the Ridgeline in a room, garage, or driveway to preview
-            zones and impress people with a more product-like presentation.
+            Open the Ridgeline model in AR when your phone or browser supports it, or use the same
+            model as a focused 3D viewer inside the site.
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#ar-model">Open AR Viewer</a>
-            <a class="utility-link" href="#capabilities">Capabilities</a>
-            <a class="utility-link" href="#notes">Readiness Notes</a>
+            <a class="utility-link" href="#device-support">Device Support</a>
+            <a class="utility-link" href="#model-notes">Model Notes</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
           </div>
         </section>
@@ -49,42 +49,61 @@
 
         <section class="section-page-grid">
           <article class="tech-card span-2" id="ar-model">
-            <h3>AR / Spatial Preview</h3>
+            <h3>AR Viewer</h3>
             <div class="ar-model-shell">
               <model-viewer
+                id="ar-ridgeline-viewer"
+                data-ridgeline-ar-viewer
                 src="./assets/ridgeline-2021/honda-ridgeline-2021.glb"
                 ar
                 ar-modes="webxr scene-viewer quick-look"
                 camera-controls
+                enable-pan
                 touch-action="pan-y"
-                shadow-intensity="0.8"
-                exposure="0.95"
+                camera-orbit="-34deg 68deg 115%"
+                camera-target="0m 0.75m 0m"
+                field-of-view="30deg"
+                min-camera-orbit="auto auto 8%"
+                max-camera-orbit="auto auto 280%"
+                min-field-of-view="7deg"
+                max-field-of-view="54deg"
+                interpolation-decay="110"
+                shadow-intensity="0.95"
+                exposure="0.72"
                 auto-rotate
                 interaction-prompt="none"
                 alt="Honda Ridgeline AR preview"
               ></model-viewer>
             </div>
+            <div class="ar-camera-bar" aria-label="Camera views">
+              <button class="viewer-toggle" type="button" data-ar-camera="exterior" aria-pressed="true">
+                Exterior
+              </button>
+              <button class="viewer-toggle" type="button" data-ar-camera="cabin">Cabin</button>
+              <button class="viewer-toggle" type="button" data-ar-camera="front">Front</button>
+              <button class="viewer-toggle" type="button" data-ar-camera="bed">Bed</button>
+            </div>
             <p class="field-hint">
-              On supported devices this can hand off to an AR-capable viewer. On unsupported devices it
-              still works as a clean 3D showcase inside the page.
+              Supported mobile browsers can open the model in AR. Other browsers keep it as an
+              in-page 3D viewer.
             </p>
           </article>
 
-          <article class="tech-card" id="capabilities">
-            <h3>Why This Is Impressive</h3>
+          <article class="tech-card" id="device-support">
+            <h3>Device Support</h3>
             <ul class="highlight-list">
-              <li>Lets the truck live inside the same site instead of feeling like a separate demo.</li>
-              <li>Gives you a high-end “product reveal” mode for showing off the model itself.</li>
-              <li>Works as a bridge toward future zone overlays and real AR service annotations.</li>
+              <li>iPhone uses Quick Look when AR is available.</li>
+              <li>Android uses Scene Viewer or WebXR when supported.</li>
+              <li>Desktop browsers stay in the embedded 3D viewer.</li>
             </ul>
           </article>
 
-          <article class="tech-card" id="notes">
-            <h3>Readiness Notes</h3>
+          <article class="tech-card" id="model-notes">
+            <h3>Model Notes</h3>
             <ul class="highlight-list">
               <li>The page uses your local truck model from this project, not a third-party hosted asset.</li>
-              <li>AR behavior depends on device/browser support, so fallback 3D remains the baseline.</li>
-              <li>This is meant as a showcase lab for now, while the service reference remains on the main map.</li>
+              <li>AR behavior depends on device and browser support.</li>
+              <li>The service reference remains on the main vehicle map.</li>
             </ul>
           </article>
         </section>
@@ -97,5 +116,6 @@
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="ar-viewer.js"></script>
   </body>
 </html>

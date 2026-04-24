@@ -20,13 +20,13 @@ export const searchIndex = [
   {
     title: "AR Lab",
     url: "ar-lab.html",
-    category: "Showcase",
-    keywords: ["ar", "augmented reality", "model viewer", "spatial", "showcase"]
+    category: "Tools",
+    keywords: ["ar", "augmented reality", "model viewer", "3d viewer", "quick look"]
   },
   {
     title: "Photo Atlas",
     url: "photo-atlas.html",
-    category: "Showcase",
+    category: "Tools",
     keywords: ["photo atlas", "real truck photos", "area photos", "hood photo", "cabin photo", "hitch photo"]
   },
   {
