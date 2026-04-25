@@ -389,19 +389,6 @@ if (mainElement && viewerElement && heroPanel) {
   }
 }
 
-if (!location.hash) {
-  if ("scrollRestoration" in history) {
-    history.scrollRestoration = "manual";
-  }
-
-  const resetOpeningScroll = () => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  };
-
-  window.addEventListener("load", resetOpeningScroll);
-  window.addEventListener("pageshow", resetOpeningScroll);
-}
-
 let renderer;
 const isPhoneViewer =
   window.matchMedia("(max-width: 900px)").matches ||

@@ -4,6 +4,38 @@ const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
 const topbarActions = document.querySelector(".topbar-actions");
 
+function keepPlainPageLoadsAtTop() {
+  if (location.hash) {
+    return;
+  }
+
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
+  const resetOpeningScroll = () => {
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    root.scrollTop = 0;
+    document.body.scrollTop = 0;
+    root.style.scrollBehavior = previousScrollBehavior;
+  };
+
+  resetOpeningScroll();
+  requestAnimationFrame(resetOpeningScroll);
+  window.addEventListener("load", () => {
+    resetOpeningScroll();
+    setTimeout(resetOpeningScroll, 100);
+    setTimeout(resetOpeningScroll, 400);
+  });
+  window.addEventListener("pageshow", resetOpeningScroll);
+}
+
+keepPlainPageLoadsAtTop();
+
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
