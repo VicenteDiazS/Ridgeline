@@ -379,15 +379,6 @@ const viewerToolsToggle = document.getElementById("viewer-tools-toggle");
 const viewerToolsMenu = document.getElementById("viewer-tools-menu");
 const explodedToggle = document.getElementById("exploded-toggle");
 const cinematicToggle = document.getElementById("cinematic-toggle");
-const mainElement = document.getElementById("top");
-const heroPanel = document.querySelector(".hero-panel");
-
-if (mainElement && viewerElement && heroPanel) {
-  const viewerSection = viewerElement.closest(".viewer-section");
-  if (viewerSection && mainElement.firstElementChild !== viewerSection) {
-    mainElement.insertBefore(viewerSection, heroPanel);
-  }
-}
 
 let renderer;
 const isPhoneViewer =
@@ -1314,8 +1305,14 @@ if (!renderer) {
       const bounds = new THREE.Box3();
       const size = new THREE.Vector3();
       const center = new THREE.Vector3();
+      const arMeasureNodes = [];
 
       modelRoot.traverse((child) => {
+        const objectName = `${child.name || ""}`.toLowerCase();
+        if (objectName.includes("measure_arrow")) {
+          arMeasureNodes.push(child);
+        }
+
         if (child.isMesh) {
           child.castShadow = !isPhoneViewer;
           child.receiveShadow = !isPhoneViewer;
@@ -1340,6 +1337,10 @@ if (!renderer) {
           }
 
         }
+      });
+
+      arMeasureNodes.forEach((node) => {
+        node.parent?.remove(node);
       });
 
       bounds.setFromObject(modelRoot);

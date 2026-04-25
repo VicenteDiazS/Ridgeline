@@ -45,6 +45,84 @@
       </nav>
 
       <main id="top">
+        <section class="viewer-section" id="viewer">
+          <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
+          <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
+          <div class="viewer-header">
+            <div>
+              <p class="eyebrow">Live Vehicle Map</p>
+            </div>
+          </div>
+
+          <div class="viewer-console" aria-label="Viewer tools">
+            <button
+              class="viewer-tools-button"
+              id="viewer-tools-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="viewer-tools-menu"
+            >
+              Tools
+            </button>
+            <div class="viewer-tools-menu" id="viewer-tools-menu" hidden>
+              <button class="viewer-toggle" id="exploded-toggle" type="button" aria-pressed="false">
+                Exploded View
+              </button>
+              <button class="viewer-toggle" id="cinematic-toggle" type="button" aria-pressed="false">
+                Cinematic Focus
+              </button>
+              <a class="viewer-link" href="ar-lab.html">AR Lab</a>
+              <a class="viewer-link" href="photo-atlas.html">Photo Atlas</a>
+            </div>
+          </div>
+
+          <div class="viewer-layout">
+            <div class="viewer-stage">
+              <div class="viewer-stage-frame" aria-hidden="true"></div>
+              <div class="viewer-grid" aria-hidden="true"></div>
+              <div class="viewer-backdrop"></div>
+              <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
+              <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
+              <div id="viewer-status" class="viewer-status" hidden></div>
+            </div>
+
+            <aside class="inspector-panel">
+              <p class="eyebrow">Current Selection</p>
+              <h3 id="inspector-title">Under-Hood Fuse Box A</h3>
+              <p id="inspector-description" class="inspector-description">
+                Primary under-hood fuse box for major electrical protection and
+                troubleshooting.
+              </p>
+
+              <div class="inspector-meta">
+                <div class="meta-block">
+                  <span>Area</span>
+                  <strong id="inspector-area">Front engine bay</strong>
+                </div>
+                <div class="meta-block">
+                  <span>Use Case</span>
+                  <strong id="inspector-use">Electrical diagnosis</strong>
+                </div>
+              </div>
+
+              <ul id="inspector-points" class="inspector-points"></ul>
+
+              <div id="inspector-links" class="inspector-links"></div>
+
+              <div class="inspector-actions">
+                <button class="ghost-button" id="open-area-window" type="button">
+                  Open Area Window
+                </button>
+                <button class="ghost-button" id="reset-camera" type="button">
+                  Reset Camera
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div id="system-chips" class="system-chips" aria-label="System shortcuts"></div>
+        </section>
+
         <section class="hero-panel">
           <div class="hero-copy">
             <p class="eyebrow">Personal Garage Reference</p>
@@ -157,84 +235,6 @@
               </dl>
             </article>
           </div>
-        </section>
-
-        <section class="viewer-section" id="viewer">
-          <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
-          <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
-          <div class="viewer-header">
-            <div>
-              <p class="eyebrow">Live Vehicle Map</p>
-            </div>
-          </div>
-
-          <div class="viewer-console" aria-label="Viewer tools">
-            <button
-              class="viewer-tools-button"
-              id="viewer-tools-toggle"
-              type="button"
-              aria-expanded="false"
-              aria-controls="viewer-tools-menu"
-            >
-              Tools
-            </button>
-            <div class="viewer-tools-menu" id="viewer-tools-menu" hidden>
-              <button class="viewer-toggle" id="exploded-toggle" type="button" aria-pressed="false">
-                Exploded View
-              </button>
-              <button class="viewer-toggle" id="cinematic-toggle" type="button" aria-pressed="false">
-                Cinematic Focus
-              </button>
-              <a class="viewer-link" href="ar-lab.html">AR Lab</a>
-              <a class="viewer-link" href="photo-atlas.html">Photo Atlas</a>
-            </div>
-          </div>
-
-          <div class="viewer-layout">
-            <div class="viewer-stage">
-              <div class="viewer-stage-frame" aria-hidden="true"></div>
-              <div class="viewer-grid" aria-hidden="true"></div>
-              <div class="viewer-backdrop"></div>
-              <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
-              <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
-              <div id="viewer-status" class="viewer-status" hidden></div>
-            </div>
-
-            <aside class="inspector-panel">
-              <p class="eyebrow">Current Selection</p>
-              <h3 id="inspector-title">Under-Hood Fuse Box A</h3>
-              <p id="inspector-description" class="inspector-description">
-                Primary under-hood fuse box for major electrical protection and
-                troubleshooting.
-              </p>
-
-              <div class="inspector-meta">
-                <div class="meta-block">
-                  <span>Area</span>
-                  <strong id="inspector-area">Front engine bay</strong>
-                </div>
-                <div class="meta-block">
-                  <span>Use Case</span>
-                  <strong id="inspector-use">Electrical diagnosis</strong>
-                </div>
-              </div>
-
-              <ul id="inspector-points" class="inspector-points"></ul>
-
-              <div id="inspector-links" class="inspector-links"></div>
-
-              <div class="inspector-actions">
-                <button class="ghost-button" id="open-area-window" type="button">
-                  Open Area Window
-                </button>
-                <button class="ghost-button" id="reset-camera" type="button">
-                  Reset Camera
-                </button>
-              </div>
-            </aside>
-          </div>
-
-          <div id="system-chips" class="system-chips" aria-label="System shortcuts"></div>
         </section>
 
         <section class="systems-section" id="systems">

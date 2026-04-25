@@ -50,30 +50,35 @@
         <section class="section-page-grid">
           <article class="tech-card span-2" id="ar-model">
             <h3>AR Viewer</h3>
-            <div class="ar-model-shell">
-              <model-viewer
-                id="ar-ridgeline-viewer"
-                data-ridgeline-ar-viewer
-                src="./assets/ridgeline-2021/honda-ridgeline-2021.glb"
-                ar
-                ar-modes="webxr scene-viewer quick-look"
-                camera-controls
-                enable-pan
-                touch-action="pan-y"
-                camera-orbit="-34deg 68deg 115%"
-                camera-target="0m 0.75m 0m"
-                field-of-view="30deg"
-                min-camera-orbit="auto auto 8%"
-                max-camera-orbit="auto auto 280%"
-                min-field-of-view="7deg"
-                max-field-of-view="54deg"
-                interpolation-decay="110"
-                shadow-intensity="0.95"
-                exposure="0.72"
-                auto-rotate
-                interaction-prompt="none"
-                alt="Honda Ridgeline AR preview"
-              ></model-viewer>
+            <div class="ar-viewer-layout">
+              <div class="ar-model-shell">
+                <model-viewer
+                  id="ar-ridgeline-viewer"
+                  data-ridgeline-ar-viewer
+                  src="./assets/ridgeline-2021/honda-ridgeline-2021.glb"
+                  ar
+                  ar-modes="webxr scene-viewer quick-look"
+                  camera-controls
+                  enable-pan
+                  touch-action="pan-y"
+                  camera-orbit="-34deg 68deg 115%"
+                  camera-target="0m 0.75m 0m"
+                  field-of-view="30deg"
+                  min-camera-orbit="auto auto 8%"
+                  max-camera-orbit="auto auto 280%"
+                  min-field-of-view="7deg"
+                  max-field-of-view="54deg"
+                  interpolation-decay="110"
+                  shadow-intensity="0.95"
+                  exposure="0.72"
+                  auto-rotate
+                  interaction-prompt="none"
+                  alt="Honda Ridgeline AR preview"
+                ></model-viewer>
+                <button class="viewer-tools-button ar-clear-button" type="button" data-ar-clear-arrows>
+                  Clear Arrows
+                </button>
+              </div>
             </div>
             <div class="ar-camera-bar" aria-label="Camera views">
               <button class="viewer-toggle" type="button" data-ar-camera="exterior" aria-pressed="true">
@@ -83,6 +88,34 @@
               <button class="viewer-toggle" type="button" data-ar-camera="front">Front</button>
               <button class="viewer-toggle" type="button" data-ar-camera="bed">Bed</button>
             </div>
+            <div class="ar-measure-bar" aria-label="Measurement tools">
+              <button class="viewer-toggle" type="button" data-ar-measure-toggle aria-pressed="false">
+                Measure Mode
+              </button>
+              <span class="measure-hint">Use the loaded truck model to read overall exterior dimensions.</span>
+            </div>
+            <section class="ar-measure-panel" data-ar-measure-panel hidden aria-live="polite">
+              <div class="dashboard-grid ar-measure-grid">
+                <button class="dashboard-card ar-measure-card" type="button" data-ar-measure-focus="length">
+                  <span>Overall Length</span>
+                  <strong data-ar-measure-length>Loading...</strong>
+                  <p>Side profile view with the truck stretched bumper to bumper.</p>
+                </button>
+                <button class="dashboard-card ar-measure-card" type="button" data-ar-measure-focus="width">
+                  <span>Overall Width</span>
+                  <strong data-ar-measure-width>Loading...</strong>
+                  <p>Front profile view across the truck body.</p>
+                </button>
+                <button class="dashboard-card ar-measure-card" type="button" data-ar-measure-focus="height">
+                  <span>Overall Height</span>
+                  <strong data-ar-measure-height>Loading...</strong>
+                  <p>Exterior view with the roofline and ground clearance in frame.</p>
+                </button>
+              </div>
+              <p class="field-hint ar-measure-note" data-ar-measure-note>
+                Measurements are calculated from the 3D model once it finishes loading.
+              </p>
+            </section>
             <p class="field-hint">
               Supported mobile browsers can open the model in AR. Other browsers keep it as an
               in-page 3D viewer.

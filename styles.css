@@ -1900,7 +1900,12 @@ kbd {
   line-height: 1.6;
 }
 
+.ar-viewer-layout {
+  display: block;
+}
+
 .ar-model-shell {
+  position: relative;
   min-height: 500px;
   border-radius: 22px;
   overflow: hidden;
@@ -1918,11 +1923,64 @@ kbd {
   background: transparent;
 }
 
+.ar-clear-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+.ar-clear-button[hidden] {
+  display: none;
+}
+
 .ar-camera-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 12px;
+}
+
+.ar-measure-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 14px;
+}
+
+.measure-hint {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.ar-measure-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(97, 223, 255, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(97, 223, 255, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.ar-measure-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ar-measure-card {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ar-measure-card strong {
+  min-height: 2.6em;
+}
+
+.ar-measure-note {
+  margin-top: 14px;
 }
 
 .photo-atlas-grid {
@@ -2447,6 +2505,11 @@ kbd {
 
   .ar-model-shell model-viewer {
     height: 430px;
+  }
+
+  .ar-clear-button {
+    top: 10px;
+    right: 10px;
   }
 
   .ar-camera-bar {

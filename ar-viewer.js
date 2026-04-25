@@ -1,5 +1,31 @@
 const viewer = document.querySelector("[data-ridgeline-ar-viewer]");
 const cameraButtons = [...document.querySelectorAll("[data-ar-camera]")];
+const measureToggle = document.querySelector("[data-ar-measure-toggle]");
+const measurePanel = document.querySelector("[data-ar-measure-panel]");
+const measureLength = document.querySelector("[data-ar-measure-length]");
+const measureWidth = document.querySelector("[data-ar-measure-width]");
+const measureHeight = document.querySelector("[data-ar-measure-height]");
+const measureNote = document.querySelector("[data-ar-measure-note]");
+const measureFocusButtons = [...document.querySelectorAll("[data-ar-measure-focus]")];
+const clearArrowsButton = document.querySelector("[data-ar-clear-arrows]");
+let measureModeEnabled = false;
+const visibleArrowKeys = new Set();
+const arrowMaterialNames = {
+  length: "measure_arrow_height_material",
+  width: "measure_arrow_width_material",
+  height: "measure_arrow_length_material"
+};
+const arrowColors = {
+  length: [0.4745, 0.8314, 1.0],
+  width: [1.0, 0.5686, 0.3686],
+  height: [0.7451, 0.8275, 0.9098]
+};
+const truckDimensionsInches = {
+  length: 210.0,
+  width: 78.6,
+  height: 70.2
+};
+const arrowMaterials = {};
 
 const cameraViews = {
   exterior: {
@@ -21,6 +47,21 @@ const cameraViews = {
     orbit: "148deg 62deg 38%",
     target: "-0.9m 0.88m 0m",
     fov: "18deg"
+  },
+  length: {
+    orbit: "90deg 88deg 140%",
+    target: "0m 0.85m 0m",
+    fov: "14deg"
+  },
+  width: {
+    orbit: "0deg 88deg 120%",
+    target: "0m 0.85m 0m",
+    fov: "15deg"
+  },
+  height: {
+    orbit: "-34deg 56deg 118%",
+    target: "0m 0.95m 0m",
+    fov: "18deg"
   }
 };
 
@@ -41,6 +82,15 @@ function setPbr(material, color, metallic, roughness) {
 
 function tuneMaterial(material) {
   const token = `${material?.name || ""}`.toLowerCase();
+
+  if (token.includes("measure_arrow")) {
+    const key = token.includes("length") ? "length" : token.includes("width") ? "width" : "height";
+    const color = arrowColors[key];
+    material.setAlphaMode?.("BLEND");
+    material.setDoubleSided?.(true);
+    setPbr(material, [...color, 0], 0.08, 0.34);
+    return;
+  }
 
   if (tokenIncludes(token, ["glass", "window", "windshield"])) {
     material.setAlphaMode?.("BLEND");
@@ -94,12 +144,122 @@ function applyCameraView(key) {
   });
 }
 
+function formatUsDistance(inchesTotal) {
+  const feet = Math.floor(inchesTotal / 12);
+  const inches = Math.round((inchesTotal - feet * 12) * 10) / 10;
+  return `${feet} ft ${inches.toFixed(1)} in`;
+}
+
+function cacheArrowMaterials() {
+  Object.keys(arrowMaterialNames).forEach((key) => {
+    arrowMaterials[key] = viewer?.model?.materials?.find((material) => material.name === arrowMaterialNames[key]) || null;
+  });
+}
+
+function setArrowMaterialAlpha(key, alpha) {
+  const material = arrowMaterials[key];
+  const color = arrowColors[key];
+  if (!material || !color) {
+    return;
+  }
+
+  material.setAlphaMode?.("BLEND");
+  material.setDoubleSided?.(true);
+  setPbr(material, [...color, alpha], 0.08, 0.34);
+}
+
+function hideDimensionArrows() {
+  visibleArrowKeys.clear();
+  Object.keys(arrowMaterialNames).forEach((key) => {
+    setArrowMaterialAlpha(key, 0);
+  });
+  updateClearButton();
+}
+
+function showDimensionArrow(key) {
+  visibleArrowKeys.add(key);
+  setArrowMaterialAlpha(key, 1);
+  updateClearButton();
+}
+
+function updateMeasureCards() {
+  if (measureLength) {
+    measureLength.textContent = formatUsDistance(truckDimensionsInches.length);
+  }
+
+  if (measureWidth) {
+    measureWidth.textContent = formatUsDistance(truckDimensionsInches.width);
+  }
+
+  if (measureHeight) {
+    measureHeight.textContent = formatUsDistance(truckDimensionsInches.height);
+  }
+
+  if (measureNote) {
+    measureNote.textContent = "Tap dimension cards to add multiple 3D arrows, then use Clear Arrows inside the viewer when you want to reset them.";
+  }
+}
+
+function updateClearButton() {
+  if (!clearArrowsButton) {
+    return;
+  }
+
+  const hasVisibleArrows = visibleArrowKeys.size > 0;
+  clearArrowsButton.hidden = !hasVisibleArrows;
+  clearArrowsButton.disabled = !hasVisibleArrows;
+}
+
+function setMeasureMode(enabled, nextCameraKey = "exterior") {
+  measureModeEnabled = enabled;
+
+  if (measureToggle) {
+    measureToggle.setAttribute("aria-pressed", enabled ? "true" : "false");
+  }
+
+  if (measurePanel) {
+    measurePanel.hidden = !enabled;
+  }
+
+  if (!enabled) {
+    hideDimensionArrows();
+    applyCameraView(nextCameraKey);
+    return;
+  }
+
+  viewer.autoRotate = false;
+  updateMeasureCards();
+}
+
 viewer?.addEventListener("load", () => {
   const materials = viewer.model?.materials || [];
   materials.forEach(tuneMaterial);
+  cacheArrowMaterials();
   applyCameraView("exterior");
+  updateMeasureCards();
+  hideDimensionArrows();
 });
 
 cameraButtons.forEach((button) => {
-  button.addEventListener("click", () => applyCameraView(button.dataset.arCamera));
+  button.addEventListener("click", () => {
+    setMeasureMode(false, button.dataset.arCamera);
+  });
 });
+
+measureToggle?.addEventListener("click", () => {
+  setMeasureMode(!measureModeEnabled);
+});
+
+measureFocusButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!measureModeEnabled) {
+      setMeasureMode(true);
+    }
+
+    const key = button.dataset.arMeasureFocus;
+    applyCameraView(key);
+    showDimensionArrow(key);
+  });
+});
+
+clearArrowsButton?.addEventListener("click", hideDimensionArrows);
