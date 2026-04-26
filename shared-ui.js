@@ -44,20 +44,25 @@ function prioritizeMobileViewerStageOnHome() {
   const isMobileViewport =
     window.matchMedia("(max-width: 900px)").matches ||
     window.matchMedia("(pointer: coarse)").matches;
+  const hash = location.hash;
 
-  if (!isHomePage || !isMobileViewport || location.hash) {
+  if (!isHomePage || !isMobileViewport || (hash && hash !== "#viewer")) {
     return;
   }
 
-<<<<<<< HEAD
   const viewerSection = document.getElementById("viewer");
   if (!viewerSection) {
     return;
   }
 
+  if (!hash) {
+    history.replaceState(history.state, "", `${location.pathname}${location.search}#viewer`);
+  }
+
   let userInteracted = false;
   let enforcementTimer = null;
   let enforcementInterval = null;
+  let isRepositioning = false;
 
   const stopEnforcement = () => {
     if (enforcementTimer) {
@@ -76,7 +81,7 @@ function prioritizeMobileViewerStageOnHome() {
   };
 
   const placeViewerFirst = () => {
-    if (userInteracted) {
+    if (userInteracted || isRepositioning) {
       return;
     }
 
@@ -85,11 +90,15 @@ function prioritizeMobileViewerStageOnHome() {
     const viewerTop = viewerSection.getBoundingClientRect().top + window.scrollY;
     const targetTop = Math.max(0, viewerTop);
 
+    isRepositioning = true;
     root.style.scrollBehavior = "auto";
     window.scrollTo(0, targetTop);
     root.scrollTop = targetTop;
     document.body.scrollTop = targetTop;
     root.style.scrollBehavior = previousScrollBehavior;
+    requestAnimationFrame(() => {
+      isRepositioning = false;
+    });
   };
 
   requestAnimationFrame(placeViewerFirst);
@@ -98,40 +107,18 @@ function prioritizeMobileViewerStageOnHome() {
     setTimeout(placeViewerFirst, 80);
     setTimeout(placeViewerFirst, 220);
     setTimeout(placeViewerFirst, 520);
+    setTimeout(placeViewerFirst, 1200);
+    setTimeout(placeViewerFirst, 2400);
   });
   window.addEventListener("pageshow", placeViewerFirst);
+  window.addEventListener("scroll", placeViewerFirst, { passive: true });
 
   enforcementInterval = window.setInterval(placeViewerFirst, 180);
-  enforcementTimer = window.setTimeout(stopEnforcement, 2600);
+  enforcementTimer = window.setTimeout(stopEnforcement, 7000);
 
   ["touchstart", "pointerdown", "wheel", "keydown"].forEach((eventName) => {
     window.addEventListener(eventName, markUserInteraction, { passive: true, once: true });
   });
-=======
-  const stage = document.querySelector(".viewer-stage");
-  if (!stage) {
-    return;
-  }
-
-  const placeViewerStageFirst = () => {
-    const root = document.documentElement;
-    const previousScrollBehavior = root.style.scrollBehavior;
-    const stageTop = stage.getBoundingClientRect().top + window.scrollY;
-    const targetTop = Math.max(0, stageTop - 10);
-
-    root.style.scrollBehavior = "auto";
-    window.scrollTo(0, targetTop);
-    root.style.scrollBehavior = previousScrollBehavior;
-  };
-
-  requestAnimationFrame(placeViewerStageFirst);
-  window.addEventListener("load", () => {
-    placeViewerStageFirst();
-    setTimeout(placeViewerStageFirst, 120);
-    setTimeout(placeViewerStageFirst, 420);
-  });
-  window.addEventListener("pageshow", placeViewerStageFirst);
->>>>>>> fcb728233ec80c3a89dda297cdb034f6a3bdc602
 }
 
 prioritizeMobileViewerStageOnHome();
