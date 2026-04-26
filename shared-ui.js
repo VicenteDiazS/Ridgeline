@@ -36,6 +36,46 @@ function keepPlainPageLoadsAtTop() {
 
 keepPlainPageLoadsAtTop();
 
+function prioritizeMobileViewerStageOnHome() {
+  const isHomePage =
+    location.pathname.endsWith("/") ||
+    location.pathname.endsWith("/index.html") ||
+    location.pathname.split("/").pop() === "";
+  const isMobileViewport =
+    window.matchMedia("(max-width: 900px)").matches ||
+    window.matchMedia("(pointer: coarse)").matches;
+
+  if (!isHomePage || !isMobileViewport || location.hash) {
+    return;
+  }
+
+  const stage = document.querySelector(".viewer-stage");
+  if (!stage) {
+    return;
+  }
+
+  const placeViewerStageFirst = () => {
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const stageTop = stage.getBoundingClientRect().top + window.scrollY;
+    const targetTop = Math.max(0, stageTop - 10);
+
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, targetTop);
+    root.style.scrollBehavior = previousScrollBehavior;
+  };
+
+  requestAnimationFrame(placeViewerStageFirst);
+  window.addEventListener("load", () => {
+    placeViewerStageFirst();
+    setTimeout(placeViewerStageFirst, 120);
+    setTimeout(placeViewerStageFirst, 420);
+  });
+  window.addEventListener("pageshow", placeViewerStageFirst);
+}
+
+prioritizeMobileViewerStageOnHome();
+
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },

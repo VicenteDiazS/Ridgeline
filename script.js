@@ -379,6 +379,10 @@ const viewerToolsToggle = document.getElementById("viewer-tools-toggle");
 const viewerToolsMenu = document.getElementById("viewer-tools-menu");
 const explodedToggle = document.getElementById("exploded-toggle");
 const cinematicToggle = document.getElementById("cinematic-toggle");
+const viewerStage = document.querySelector(".viewer-stage");
+const viewerStartup = document.getElementById("viewer-startup");
+const startupBarFill = document.getElementById("startup-bar-fill");
+const startupCopy = document.getElementById("startup-copy");
 
 let renderer;
 const isPhoneViewer =
@@ -404,6 +408,13 @@ if (!renderer) {
   const sceneFrameOffset = new THREE.Vector3(0, 0, 0);
   const defaultCameraPosition = new THREE.Vector3(-7.35, 2.9, 0.16);
   const defaultCameraTarget = new THREE.Vector3(0, 1.2, 0);
+  const startupStart = performance.now();
+  const startupDuration = isPhoneViewer ? 1600 : 2200;
+  const startupMessages = [
+    "Initializing truck model, overlays, and service zones.",
+    "Bringing lighting, callouts, and diagnostic HUD online.",
+    "Vehicle map synchronized. Ready for interaction."
+  ];
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = !isPhoneViewer;
@@ -475,6 +486,14 @@ if (!renderer) {
     scene.add(frontLiftLight);
   }
 
+  const stageGlow = new THREE.PointLight(0x61dfff, 6.4, 18, 2);
+  stageGlow.position.set(0.15, 0.88, 0.1);
+  scene.add(stageGlow);
+
+  const warmUnderglow = new THREE.PointLight(0xff915e, 4.2, 14, 2);
+  warmUnderglow.position.set(-1.2, 0.5, -1.8);
+  scene.add(warmUnderglow);
+
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(7.5, 80),
     new THREE.MeshBasicMaterial({
@@ -486,6 +505,32 @@ if (!renderer) {
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = 0.03;
   scene.add(floor);
+
+  const floorHalo = new THREE.Mesh(
+    new THREE.RingGeometry(3.25, 5.85, 100),
+    new THREE.MeshBasicMaterial({
+      color: 0x67dfff,
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.DoubleSide
+    })
+  );
+  floorHalo.rotation.x = -Math.PI / 2;
+  floorHalo.position.y = 0.032;
+  scene.add(floorHalo);
+
+  const floorInnerHalo = new THREE.Mesh(
+    new THREE.RingGeometry(2.05, 3.15, 80),
+    new THREE.MeshBasicMaterial({
+      color: 0xff915e,
+      transparent: true,
+      opacity: 0.09,
+      side: THREE.DoubleSide
+    })
+  );
+  floorInnerHalo.rotation.x = -Math.PI / 2;
+  floorInnerHalo.position.y = 0.034;
+  scene.add(floorInnerHalo);
 
   const shadowCatcher = new THREE.Mesh(
     new THREE.CircleGeometry(5.7, 72),
@@ -501,6 +546,7 @@ if (!renderer) {
 
   const truck = new THREE.Group();
   truck.position.copy(sceneFrameOffset);
+  truck.scale.setScalar(0.985);
   scene.add(truck);
   const meshRegistry = new Map();
   const highlightOutlines = new Map();
@@ -1846,6 +1892,37 @@ if (!renderer) {
   }
 
   function tick(now) {
+    const startupElapsed = now - startupStart;
+    const startupT = Math.min(startupElapsed / startupDuration, 1);
+    const startupEase = 1 - Math.pow(1 - startupT, 3);
+    const startupGlow = 0.72 + startupEase * 0.28;
+
+    truck.scale.setScalar(0.96 + startupEase * 0.04);
+    truck.position.y = sceneFrameOffset.y + (1 - startupEase) * 0.18;
+
+    keyLight.intensity = 1.28 + startupEase * 1.17;
+    rimLight.intensity = 0.82 + startupEase * 0.58;
+    warmLight.intensity = 0.48 + startupEase * 0.57;
+    stageGlow.intensity = (4.2 + Math.sin(now * 0.0024) * 0.72) * startupGlow;
+    warmUnderglow.intensity = (2.9 + Math.cos(now * 0.0021) * 0.45) * startupGlow;
+    floor.material.opacity = 0.16 + startupEase * 0.2;
+    floorHalo.material.opacity = 0.06 + startupEase * 0.12 + Math.sin(now * 0.002) * 0.01;
+    floorInnerHalo.material.opacity = 0.035 + startupEase * 0.08 + Math.cos(now * 0.0026) * 0.008;
+
+    if (startupBarFill) {
+      startupBarFill.style.width = `${startupT * 100}%`;
+    }
+
+    if (startupCopy) {
+      const messageIndex =
+        startupT < 0.34 ? 0 : startupT < 0.72 ? 1 : 2;
+      startupCopy.textContent = startupMessages[messageIndex];
+    }
+
+    if (viewerStage) {
+      viewerStage.classList.toggle("is-booted", startupT >= 0.995);
+    }
+
     if (cameraTween) {
       const t = Math.min((now - cameraTween.start) / cameraTween.duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
@@ -1857,6 +1934,13 @@ if (!renderer) {
     }
 
     controls.update();
+
+    hotspotMeshes.forEach((mesh, index) => {
+      const isActive = systems[index].id === selectedSystem?.id;
+      const pulse = isActive ? 1.28 + Math.sin(now * 0.008) * 0.16 : 1 + Math.sin(now * 0.004 + index) * 0.03;
+      mesh.scale.setScalar(pulse);
+    });
+
     if (
       camera.position.distanceToSquared(lastCameraPosition) > 0.0004 ||
       1 - Math.abs(camera.quaternion.dot(lastCameraQuaternion)) > 0.00002

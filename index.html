@@ -81,6 +81,51 @@
               <div class="viewer-stage-frame" aria-hidden="true"></div>
               <div class="viewer-grid" aria-hidden="true"></div>
               <div class="viewer-backdrop"></div>
+              <div class="viewer-hud" aria-hidden="true">
+                <div class="hud-corners">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="hud-topbar">
+                  <div class="hud-chip">Vehicle Link</div>
+                  <div class="hud-chip">Live Diagnostics</div>
+                  <div class="hud-chip">Zone Tracking</div>
+                </div>
+                <div class="hud-side hud-side-left">
+                  <span>Front Bay</span>
+                  <span>Cabin</span>
+                  <span>Cargo</span>
+                </div>
+                <div class="hud-side hud-side-right">
+                  <span>Fuse</span>
+                  <span>Power</span>
+                  <span>Towing</span>
+                </div>
+                <div class="hud-bottombar">
+                  <div class="hud-readout">
+                    <span>Drive</span>
+                    <strong>2WD</strong>
+                  </div>
+                  <div class="hud-readout">
+                    <span>Power</span>
+                    <strong>280 HP</strong>
+                  </div>
+                  <div class="hud-readout">
+                    <span>Map Mode</span>
+                    <strong>Service</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="viewer-startup" id="viewer-startup" aria-hidden="true">
+                <div class="startup-panel">
+                  <span class="startup-eyebrow">Ridgeline Interface</span>
+                  <strong>Vehicle Map Booting</strong>
+                  <div class="startup-bar"><span id="startup-bar-fill"></span></div>
+                  <p id="startup-copy">Initializing truck model, overlays, and service zones.</p>
+                </div>
+              </div>
               <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
               <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
               <div id="viewer-status" class="viewer-status" hidden></div>
