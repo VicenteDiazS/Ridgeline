@@ -49,6 +49,7 @@ function prioritizeMobileViewerStageOnHome() {
     return;
   }
 
+<<<<<<< HEAD
   const viewerSection = document.getElementById("viewer");
   if (!viewerSection) {
     return;
@@ -106,6 +107,31 @@ function prioritizeMobileViewerStageOnHome() {
   ["touchstart", "pointerdown", "wheel", "keydown"].forEach((eventName) => {
     window.addEventListener(eventName, markUserInteraction, { passive: true, once: true });
   });
+=======
+  const stage = document.querySelector(".viewer-stage");
+  if (!stage) {
+    return;
+  }
+
+  const placeViewerStageFirst = () => {
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const stageTop = stage.getBoundingClientRect().top + window.scrollY;
+    const targetTop = Math.max(0, stageTop - 10);
+
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, targetTop);
+    root.style.scrollBehavior = previousScrollBehavior;
+  };
+
+  requestAnimationFrame(placeViewerStageFirst);
+  window.addEventListener("load", () => {
+    placeViewerStageFirst();
+    setTimeout(placeViewerStageFirst, 120);
+    setTimeout(placeViewerStageFirst, 420);
+  });
+  window.addEventListener("pageshow", placeViewerStageFirst);
+>>>>>>> fcb728233ec80c3a89dda297cdb034f6a3bdc602
 }
 
 prioritizeMobileViewerStageOnHome();

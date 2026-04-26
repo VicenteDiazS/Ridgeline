@@ -383,7 +383,10 @@ const viewerStage = document.querySelector(".viewer-stage");
 const viewerStartup = document.getElementById("viewer-startup");
 const startupBarFill = document.getElementById("startup-bar-fill");
 const startupCopy = document.getElementById("startup-copy");
+<<<<<<< HEAD
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
+=======
+>>>>>>> fcb728233ec80c3a89dda297cdb034f6a3bdc602
 
 let renderer;
 const isPhoneViewer =
