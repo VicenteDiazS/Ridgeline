@@ -36,6 +36,80 @@ function keepPlainPageLoadsAtTop() {
 
 keepPlainPageLoadsAtTop();
 
+function prioritizeMobileViewerStageOnHome() {
+  const isHomePage =
+    location.pathname.endsWith("/") ||
+    location.pathname.endsWith("/index.html") ||
+    location.pathname.split("/").pop() === "";
+  const isMobileViewport =
+    window.matchMedia("(max-width: 900px)").matches ||
+    window.matchMedia("(pointer: coarse)").matches;
+
+  if (!isHomePage || !isMobileViewport || location.hash) {
+    return;
+  }
+
+  const viewerSection = document.getElementById("viewer");
+  if (!viewerSection) {
+    return;
+  }
+
+  let userInteracted = false;
+  let enforcementTimer = null;
+  let enforcementInterval = null;
+
+  const stopEnforcement = () => {
+    if (enforcementTimer) {
+      clearTimeout(enforcementTimer);
+      enforcementTimer = null;
+    }
+    if (enforcementInterval) {
+      clearInterval(enforcementInterval);
+      enforcementInterval = null;
+    }
+  };
+
+  const markUserInteraction = () => {
+    userInteracted = true;
+    stopEnforcement();
+  };
+
+  const placeViewerFirst = () => {
+    if (userInteracted) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    const viewerTop = viewerSection.getBoundingClientRect().top + window.scrollY;
+    const targetTop = Math.max(0, viewerTop);
+
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(0, targetTop);
+    root.scrollTop = targetTop;
+    document.body.scrollTop = targetTop;
+    root.style.scrollBehavior = previousScrollBehavior;
+  };
+
+  requestAnimationFrame(placeViewerFirst);
+  window.addEventListener("load", () => {
+    placeViewerFirst();
+    setTimeout(placeViewerFirst, 80);
+    setTimeout(placeViewerFirst, 220);
+    setTimeout(placeViewerFirst, 520);
+  });
+  window.addEventListener("pageshow", placeViewerFirst);
+
+  enforcementInterval = window.setInterval(placeViewerFirst, 180);
+  enforcementTimer = window.setTimeout(stopEnforcement, 2600);
+
+  ["touchstart", "pointerdown", "wheel", "keydown"].forEach((eventName) => {
+    window.addEventListener(eventName, markUserInteraction, { passive: true, once: true });
+  });
+}
+
+prioritizeMobileViewerStageOnHome();
+
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
