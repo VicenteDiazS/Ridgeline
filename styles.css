@@ -86,6 +86,51 @@ body.modal-open {
   backdrop-filter: blur(18px);
 }
 
+.hero-panel {
+  background:
+    radial-gradient(circle at top left, rgba(255, 145, 94, 0.16), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(121, 212, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(15, 17, 24, 0.9);
+  border-color: rgba(255, 145, 94, 0.16);
+}
+
+.truck-profile-section {
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.14), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(155, 216, 255, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(8, 18, 30, 0.92);
+  border-color: rgba(121, 212, 255, 0.18);
+}
+
+.systems-section {
+  background:
+    radial-gradient(circle at top left, rgba(111, 255, 180, 0.12), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(121, 212, 255, 0.06), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(9, 22, 23, 0.9);
+  border-color: rgba(111, 255, 180, 0.16);
+}
+
+.technical-section {
+  background:
+    radial-gradient(circle at top right, rgba(196, 169, 255, 0.12), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(121, 212, 255, 0.05), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(18, 16, 31, 0.9);
+  border-color: rgba(196, 169, 255, 0.16);
+}
+
+.references-section {
+  background:
+    radial-gradient(circle at top left, rgba(255, 210, 122, 0.13), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(255, 145, 94, 0.06), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(24, 18, 14, 0.9);
+  border-color: rgba(255, 210, 122, 0.16);
+}
+
 .topbar {
   position: sticky;
   top: max(10px, env(safe-area-inset-top, 0px));
@@ -580,6 +625,34 @@ h1 {
   border: 1px solid var(--line);
 }
 
+.hero-readout .readout-card:nth-child(1) {
+  background:
+    radial-gradient(circle at top right, rgba(255, 145, 94, 0.14), transparent 34%),
+    rgba(26, 18, 20, 0.92);
+  border-color: rgba(255, 145, 94, 0.16);
+}
+
+.hero-readout .readout-card:nth-child(2) {
+  background:
+    radial-gradient(circle at top right, rgba(111, 255, 180, 0.14), transparent 34%),
+    rgba(14, 24, 21, 0.92);
+  border-color: rgba(111, 255, 180, 0.16);
+}
+
+.hero-readout .readout-card:nth-child(3) {
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.14), transparent 34%),
+    rgba(10, 20, 31, 0.92);
+  border-color: rgba(121, 212, 255, 0.16);
+}
+
+.hero-readout .readout-card:nth-child(4) {
+  background:
+    radial-gradient(circle at top right, rgba(255, 210, 122, 0.14), transparent 34%),
+    rgba(24, 20, 14, 0.92);
+  border-color: rgba(255, 210, 122, 0.16);
+}
+
 .readout-card span,
 .meta-block span {
   display: block;
@@ -1016,6 +1089,156 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   white-space: nowrap;
+}
+
+.quick-action-bar,
+.page-section-rail {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(8, 15, 24, 0.9);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
+}
+
+.quick-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.quick-action-link,
+.page-section-link,
+.back-to-map-fab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease,
+    color 140ms ease;
+}
+
+.quick-action-link::before,
+.page-section-link::before,
+.back-to-map-fab::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 4px;
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.96), rgba(255, 145, 94, 0.82));
+  box-shadow: 0 0 14px rgba(121, 212, 255, 0.18);
+}
+
+.quick-action-link[data-nav-icon="map"]::before,
+.page-section-link[data-nav-icon="map"]::before,
+.back-to-map-fab[data-nav-icon="map"]::before {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(8, 15, 24, 0.9) 0 3px, transparent 3px),
+    linear-gradient(135deg, rgba(121, 212, 255, 0.96), rgba(155, 216, 255, 0.76));
+}
+
+.quick-action-link[data-nav-icon="wrench"]::before,
+.page-section-link[data-nav-icon="wrench"]::before {
+  background:
+    linear-gradient(90deg, transparent 0 4px, rgba(255, 210, 122, 0.96) 4px 10px, transparent 10px),
+    linear-gradient(180deg, rgba(255, 145, 94, 0.95), rgba(255, 210, 122, 0.82));
+}
+
+.quick-action-link[data-nav-icon="diag"]::before,
+.page-section-link[data-nav-icon="diag"]::before {
+  background:
+    linear-gradient(180deg, rgba(111, 255, 180, 0.98), rgba(121, 212, 255, 0.82));
+  clip-path: polygon(0 100%, 0 45%, 25% 45%, 42% 20%, 60% 70%, 78% 36%, 100% 36%, 100% 100%);
+}
+
+.quick-action-link[data-nav-icon="bolt"]::before,
+.page-section-link[data-nav-icon="bolt"]::before {
+  background: linear-gradient(180deg, rgba(255, 210, 122, 0.98), rgba(255, 145, 94, 0.88));
+  clip-path: polygon(54% 0, 16% 56%, 42% 56%, 28% 100%, 84% 38%, 56% 38%);
+}
+
+.quick-action-link[data-nav-icon="photo"]::before,
+.page-section-link[data-nav-icon="photo"]::before {
+  background:
+    radial-gradient(circle at 76% 28%, rgba(255, 210, 122, 0.95) 0 2px, transparent 2px),
+    linear-gradient(135deg, rgba(111, 255, 180, 0.84), rgba(121, 212, 255, 0.86));
+}
+
+.quick-action-link[data-nav-icon="cube"]::before,
+.page-section-link[data-nav-icon="cube"]::before {
+  background: linear-gradient(135deg, rgba(196, 169, 255, 0.94), rgba(121, 212, 255, 0.84));
+  clip-path: polygon(50% 0, 100% 28%, 100% 74%, 50% 100%, 0 74%, 0 28%);
+}
+
+.quick-action-link[data-nav-icon="flash"]::before,
+.page-section-link[data-nav-icon="flash"]::before {
+  background: linear-gradient(180deg, rgba(255, 210, 122, 0.98), rgba(111, 255, 180, 0.86));
+  clip-path: polygon(42% 0, 100% 0, 58% 45%, 86% 45%, 10% 100%, 38% 56%, 10% 56%);
+}
+
+.quick-action-link:hover,
+.quick-action-link:focus-visible,
+.quick-action-link.is-active,
+.page-section-link:hover,
+.page-section-link:focus-visible,
+.page-section-link.is-active,
+.back-to-map-fab:hover,
+.back-to-map-fab:focus-visible {
+  border-color: rgba(121, 212, 255, 0.26);
+  background:
+    linear-gradient(180deg, rgba(121, 212, 255, 0.12), rgba(121, 212, 255, 0.04)),
+    rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.page-section-rail {
+  position: sticky;
+  top: 84px;
+  z-index: 18;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+}
+
+.page-section-rail-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.page-section-rail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.back-to-map-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 26;
+  box-shadow: var(--shadow-soft);
 }
 
 .hud-chip-button {
@@ -1564,6 +1787,61 @@ h1 {
   line-height: 1.55;
 }
 
+.hero-action-grid,
+.related-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-action-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.action-card,
+.related-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+    rgba(8, 15, 24, 0.88);
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    background 140ms ease;
+}
+
+.action-card::before,
+.related-card::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(121, 212, 255, 0.96), rgba(255, 145, 94, 0.82));
+  box-shadow: 0 0 14px rgba(121, 212, 255, 0.14);
+}
+
+.action-card-strong {
+  border-color: rgba(121, 212, 255, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.12), transparent 34%),
+    rgba(8, 16, 28, 0.92);
+}
+
+.action-card:hover,
+.action-card:focus-visible,
+.related-card:hover,
+.related-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(121, 212, 255, 0.24);
+}
+
 .section-page-hero {
   padding: 24px;
   width: 100%;
@@ -1704,6 +1982,22 @@ kbd {
   color: #04111a;
   background: linear-gradient(135deg, #8ad8ff, #b7eeff);
   border-color: transparent;
+}
+
+.topnav a.is-current-link,
+.route-strip a.is-current-link,
+.section-dock a.is-current-link,
+.section-utility-nav a.is-current-link {
+  border-color: rgba(121, 212, 255, 0.28);
+  background:
+    linear-gradient(180deg, rgba(121, 212, 255, 0.14), rgba(121, 212, 255, 0.05)),
+    rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.topnav a.is-current-link::before {
+  background: rgba(255, 145, 94, 0.88);
+  box-shadow: 0 0 12px rgba(255, 145, 94, 0.4);
 }
 
 .form-stack {
@@ -1854,9 +2148,81 @@ kbd {
   font-weight: 600;
 }
 
+.related-strip {
+  position: relative;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(8, 15, 24, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
+.related-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.related-card strong {
+  font-size: 1rem;
+}
+
+.related-card span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .section-page-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 18px;
+}
+
+.collapsible-card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.collapsible-card-head h3 {
+  margin: 0;
+}
+
+.collapsible-card-toggle {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.collapsible-card-toggle span {
+  display: none;
+}
+
+.collapsible-card-toggle strong {
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.collapsible-card-content[hidden] {
+  display: none;
+}
+
+.tech-card.is-collapsed,
+.diagram-card.is-collapsed {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    rgba(8, 15, 24, 0.88);
 }
 
 .inspector-actions {
@@ -1918,6 +2284,43 @@ kbd {
 .tech-card {
   padding: 18px;
   box-shadow: var(--shadow-soft);
+}
+
+.systems-section .system-card {
+  background:
+    radial-gradient(circle at top right, rgba(111, 255, 180, 0.08), transparent 34%),
+    rgba(10, 24, 25, 0.9);
+}
+
+.truck-profile-section .tech-card {
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.08), transparent 34%),
+    rgba(10, 20, 31, 0.9);
+}
+
+.technical-section .tech-card {
+  background:
+    radial-gradient(circle at top right, rgba(196, 169, 255, 0.08), transparent 34%),
+    rgba(20, 17, 34, 0.9);
+}
+
+.references-section .reference-list a {
+  background:
+    linear-gradient(180deg, rgba(255, 210, 122, 0.12), rgba(255, 210, 122, 0.03)),
+    rgba(28, 20, 14, 0.88);
+  border-color: rgba(255, 210, 122, 0.16);
+}
+
+.systems-section .eyebrow {
+  color: #7ef5c2;
+}
+
+.technical-section .eyebrow {
+  color: #ceb4ff;
+}
+
+.references-section .eyebrow {
+  color: #ffd588;
 }
 
 .system-card {
@@ -2149,6 +2552,11 @@ kbd {
   gap: 14px;
 }
 
+.truck-dashboard-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
 .dashboard-card {
   padding: 16px;
   border-radius: 18px;
@@ -2180,6 +2588,49 @@ kbd {
   line-height: 1.6;
 }
 
+.truck-dashboard-card {
+  min-height: 160px;
+  justify-content: start;
+}
+
+.truck-dashboard-card-strong {
+  grid-column: span 2;
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(12, 26, 40, 0.96), rgba(8, 16, 28, 0.9));
+  border-color: rgba(121, 212, 255, 0.24);
+}
+
+.truck-dashboard-card-strong strong {
+  font-size: 1.4rem;
+}
+
+.truck-profile-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.truck-profile-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.truck-service-card {
+  background:
+    radial-gradient(circle at top right, rgba(255, 145, 94, 0.12), transparent 34%),
+    radial-gradient(circle at top left, rgba(121, 212, 255, 0.08), transparent 28%),
+    rgba(8, 16, 28, 0.92);
+}
+
+.truck-service-list {
+  margin-top: 16px;
+}
+
+.truck-service-list li::marker {
+  color: var(--accent);
+}
+
 .ar-viewer-layout {
   display: block;
 }
@@ -2203,6 +2654,10 @@ kbd {
   background: transparent;
 }
 
+.ar-model-shell model-viewer::part(default-ar-button) {
+  display: none;
+}
+
 .ar-clear-button {
   position: absolute;
   top: 14px;
@@ -2210,8 +2665,19 @@ kbd {
   z-index: 2;
 }
 
+.ar-launch-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+}
+
 .ar-clear-button[hidden] {
   display: none;
+}
+
+.ar-gesture-hint {
+  margin-top: 8px;
 }
 
 .ar-camera-bar {
@@ -2540,6 +3006,7 @@ kbd {
   .front-menu-grid,
   .viewer-layout,
   .hero-panel,
+  .truck-profile-layout,
   .system-grid,
   .technical-grid,
   .connector-grid {
@@ -2552,6 +3019,15 @@ kbd {
 
   main > .viewer-section:first-child .viewer-stage {
     min-height: 560px;
+  }
+
+  .truck-dashboard-grid,
+  .truck-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .truck-dashboard-card-strong {
+    grid-column: span 2;
   }
 }
 
@@ -2572,10 +3048,48 @@ kbd {
     gap: 6px;
   }
 
+  .quick-action-bar {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .quick-action-link,
+  .page-section-link,
+  .back-to-map-fab {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .page-section-rail {
+    top: 72px;
+    padding: 10px;
+  }
+
+  .page-section-rail-links {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .route-strip a {
     min-height: 32px;
     padding: 0 10px;
     font-size: 0.72rem;
+  }
+
+  .hero-action-grid,
+  .related-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-card,
+  .related-card {
+    padding: 14px;
+    border-radius: 16px;
   }
 
   .topbar,
@@ -2616,6 +3130,15 @@ kbd {
   .section-head {
     align-items: start;
     flex-direction: column;
+  }
+
+  .collapsible-card-head {
+    align-items: start;
+  }
+
+  .collapsible-card-toggle {
+    min-height: 32px;
+    padding: 0 10px;
   }
 
   .viewer-stage {
@@ -2705,12 +3228,23 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .related-strip {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
   .section-dock {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     bottom: 10px;
     width: calc(100% - 10px);
     margin-top: 16px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .back-to-map-fab {
+    right: 10px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   }
 
   .photo-grid,
@@ -2778,6 +3312,17 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .truck-dashboard-grid,
+  .truck-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .truck-dashboard-card,
+  .truck-dashboard-card-strong {
+    min-height: auto;
+    grid-column: auto;
+  }
+
   .ar-model-shell {
     min-height: 430px;
     border-radius: 18px;
@@ -2790,6 +3335,11 @@ kbd {
   .ar-clear-button {
     top: 10px;
     right: 10px;
+  }
+
+  .ar-launch-button {
+    top: 10px;
+    left: 10px;
   }
 
   .ar-camera-bar {

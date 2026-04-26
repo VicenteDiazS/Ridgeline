@@ -7,9 +7,13 @@ const measureWidth = document.querySelector("[data-ar-measure-width]");
 const measureHeight = document.querySelector("[data-ar-measure-height]");
 const measureNote = document.querySelector("[data-ar-measure-note]");
 const measureFocusButtons = [...document.querySelectorAll("[data-ar-measure-focus]")];
+const arLaunchButton = document.querySelector("[data-ar-launch]");
 const clearArrowsButton = document.querySelector("[data-ar-clear-arrows]");
 let measureModeEnabled = false;
+let restoringAfterAr = false;
 const visibleArrowKeys = new Set();
+const embeddedModelSrc = viewer?.getAttribute("src") || "";
+const arModelSrc = viewer?.dataset.arSource || embeddedModelSrc;
 const arrowMaterialNames = {
   length: "measure_arrow_height_material",
   width: "measure_arrow_width_material",
@@ -182,6 +186,15 @@ function showDimensionArrow(key) {
   updateClearButton();
 }
 
+function getVisibleArrowKeys() {
+  return [...visibleArrowKeys];
+}
+
+function restoreVisibleArrowKeys(keys) {
+  hideDimensionArrows();
+  keys.forEach((key) => showDimensionArrow(key));
+}
+
 function updateMeasureCards() {
   if (measureLength) {
     measureLength.textContent = formatUsDistance(truckDimensionsInches.length);
@@ -208,6 +221,84 @@ function updateClearButton() {
   const hasVisibleArrows = visibleArrowKeys.size > 0;
   clearArrowsButton.hidden = !hasVisibleArrows;
   clearArrowsButton.disabled = !hasVisibleArrows;
+}
+
+function updateArLaunchButton() {
+  if (!arLaunchButton || !viewer) {
+    return;
+  }
+
+  const canLaunchAr = viewer.canActivateAR !== false;
+  arLaunchButton.hidden = !canLaunchAr;
+  arLaunchButton.disabled = !canLaunchAr;
+}
+
+function swapViewerSource(nextSrc) {
+  if (!viewer || !nextSrc || viewer.getAttribute("src") === nextSrc) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    const handleLoad = () => {
+      viewer.removeEventListener("load", handleLoad);
+      resolve();
+    };
+
+    viewer.addEventListener("load", handleLoad, { once: true });
+    viewer.setAttribute("src", nextSrc);
+  });
+}
+
+async function restoreEmbeddedViewer(restoreArrowKeys = []) {
+  if (!viewer || restoringAfterAr || viewer.getAttribute("src") === embeddedModelSrc) {
+    if (viewer && viewer.getAttribute("src") === embeddedModelSrc && restoreArrowKeys.length) {
+      restoreVisibleArrowKeys(restoreArrowKeys);
+    }
+    return;
+  }
+
+  restoringAfterAr = true;
+
+  try {
+    await swapViewerSource(embeddedModelSrc);
+    restoreVisibleArrowKeys(restoreArrowKeys);
+    updateMeasureCards();
+    if (!measureModeEnabled) {
+      hideDimensionArrows();
+    }
+  } finally {
+    restoringAfterAr = false;
+  }
+}
+
+async function launchArViewer() {
+  if (!viewer) {
+    return;
+  }
+
+  const restoreArrowKeys = getVisibleArrowKeys();
+  hideDimensionArrows();
+
+  try {
+    await swapViewerSource(arModelSrc);
+    await viewer.activateAR?.();
+  } catch (error) {
+    console.error("Unable to launch AR viewer", error);
+    await restoreEmbeddedViewer(restoreArrowKeys);
+  }
+
+  const handleReturn = () => {
+    if (document.visibilityState !== "visible") {
+      return;
+    }
+
+    document.removeEventListener("visibilitychange", handleReturn);
+    window.removeEventListener("pageshow", handleReturn);
+    restoreEmbeddedViewer(restoreArrowKeys);
+  };
+
+  document.addEventListener("visibilitychange", handleReturn);
+  window.addEventListener("pageshow", handleReturn, { once: true });
 }
 
 function setMeasureMode(enabled, nextCameraKey = "exterior") {
@@ -238,6 +329,7 @@ viewer?.addEventListener("load", () => {
   applyCameraView("exterior");
   updateMeasureCards();
   hideDimensionArrows();
+  updateArLaunchButton();
 });
 
 cameraButtons.forEach((button) => {
@@ -263,3 +355,5 @@ measureFocusButtons.forEach((button) => {
 });
 
 clearArrowsButton?.addEventListener("click", hideDimensionArrows);
+arLaunchButton?.addEventListener("click", launchArViewer);
+updateArLaunchButton();

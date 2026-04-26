@@ -411,6 +411,7 @@ if (!renderer) {
   const defaultCameraTarget = new THREE.Vector3(0, 1.2, 0);
   const startupStart = performance.now();
   const startupDuration = isPhoneViewer ? 1600 : 2200;
+  const autoRotateResumeDelay = 3200;
   const startupMessages = [
     "Initializing truck model, overlays, and service zones.",
     "Bringing lighting, callouts, and diagnostic HUD online.",
@@ -555,6 +556,7 @@ if (!renderer) {
   let importedModelRoot = null;
   let explodedMode = false;
   let cinematicMode = false;
+  let autoRotateResumeTimer = null;
 
   function registerMesh(name, mesh) {
     mesh.userData.partName = name;
@@ -1719,7 +1721,27 @@ if (!renderer) {
   }
 
   function stopShowcaseRotation() {
+    if (autoRotateResumeTimer) {
+      clearTimeout(autoRotateResumeTimer);
+      autoRotateResumeTimer = null;
+    }
     controls.autoRotate = false;
+  }
+
+  function scheduleShowcaseRotationResume() {
+    if (autoRotateResumeTimer) {
+      clearTimeout(autoRotateResumeTimer);
+    }
+
+    autoRotateResumeTimer = window.setTimeout(() => {
+      if (isViewerInteracting || cameraTween) {
+        scheduleShowcaseRotationResume();
+        return;
+      }
+
+      controls.autoRotate = true;
+      autoRotateResumeTimer = null;
+    }, autoRotateResumeDelay);
   }
 
   function selectSystem(id, moveCamera = false) {
@@ -2027,6 +2049,7 @@ if (!renderer) {
   areaModalBackdrop.addEventListener("click", closeAreaModal);
 
   controls.addEventListener("start", () => {
+    stopShowcaseRotation();
     if (!isPhoneViewer) {
       return;
     }
@@ -2040,6 +2063,7 @@ if (!renderer) {
     isViewerInteracting = false;
     visibilityDirty = true;
     projectHotspots(performance.now());
+    scheduleShowcaseRotationResume();
   });
 
   renderer.domElement.addEventListener("pointerdown", () => {
@@ -2048,6 +2072,10 @@ if (!renderer) {
   });
   renderer.domElement.addEventListener("wheel", stopShowcaseRotation, { passive: true });
   renderer.domElement.addEventListener("touchstart", stopShowcaseRotation, { passive: true });
+  renderer.domElement.addEventListener("pointerup", scheduleShowcaseRotationResume);
+  renderer.domElement.addEventListener("touchend", scheduleShowcaseRotationResume, {
+    passive: true
+  });
 
   window.addEventListener("resize", resizeRenderer);
 

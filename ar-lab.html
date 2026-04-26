@@ -56,8 +56,10 @@
                   id="ar-ridgeline-viewer"
                   data-ridgeline-ar-viewer
                   src="./assets/ridgeline-2021/honda-ridgeline-2021.glb"
+                  data-ar-source="./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
                   ar
                   ar-modes="webxr scene-viewer quick-look"
+                  ar-placement="floor"
                   camera-controls
                   enable-pan
                   touch-action="pan-y"
@@ -75,6 +77,9 @@
                   interaction-prompt="none"
                   alt="Honda Ridgeline AR preview"
                 ></model-viewer>
+                <button class="viewer-tools-button ar-launch-button" type="button" data-ar-launch>
+                  Open In AR
+                </button>
                 <button class="viewer-tools-button ar-clear-button" type="button" data-ar-clear-arrows>
                   Clear Arrows
                 </button>
@@ -119,6 +124,10 @@
             <p class="field-hint">
               Supported mobile browsers can open the model in AR. Other browsers keep it as an
               in-page 3D viewer.
+            </p>
+            <p class="field-hint ar-gesture-hint">
+              In AR, drag to place the truck, move your phone to re-anchor it, pinch to resize,
+              and rotate with two fingers.
             </p>
           </article>
 

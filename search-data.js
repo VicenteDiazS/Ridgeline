@@ -72,6 +72,26 @@ export const searchIndex = [
     keywords: ["quick jobs", "service quick", "oil", "atf", "coolant", "towing", "tire size"]
   },
   {
+    title: "Recorded Timing Belt Service",
+    url: "maintenance.html#major-service-log",
+    category: "Maintenance",
+    keywords: [
+      "timing belt",
+      "water pump",
+      "crankshaft sprocket",
+      "tensioner",
+      "timing pulleys",
+      "timing cover seal",
+      "aisin",
+      "tkh-002",
+      "rockauto",
+      "rock auto",
+      "165980",
+      "4/25/2026",
+      "major service"
+    ]
+  },
+  {
     title: "Oil Service",
     url: "maintenance.html#oil-service",
     category: "Maintenance",

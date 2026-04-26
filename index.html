@@ -213,78 +213,125 @@
         <section class="truck-profile-section" id="truck-profile">
           <div class="section-head">
             <p class="eyebrow">Truck Snapshot</p>
-            <h2>This Truck</h2>
+            <h2>Truck Profile Dashboard</h2>
             <p class="section-copy">
-              Key details decoded from your VIN so the rest of the site stays grounded in your actual truck.
+              The truck's core identity, major recorded service, and ownership-critical details in one polished view.
             </p>
           </div>
 
-          <div class="technical-grid">
-            <article class="tech-card">
-              <h3>Decoded From VIN</h3>
-              <dl class="spec-list">
-                <div>
-                  <dt>VIN</dt>
-                  <dd>5FPYK2F64KB002267</dd>
-                </div>
-                <div>
-                  <dt>Year</dt>
-                  <dd>2019</dd>
-                </div>
-                <div>
-                  <dt>Make / Model</dt>
-                  <dd>Honda Ridgeline</dd>
-                </div>
-                <div>
-                  <dt>Body</dt>
-                  <dd>Crew cab pickup</dd>
-                </div>
-              </dl>
+          <div class="dashboard-grid truck-dashboard-grid">
+            <article class="dashboard-card truck-dashboard-card truck-dashboard-card-strong">
+              <span>Current Truck</span>
+              <strong>2019 Honda Ridgeline</strong>
+              <p>VIN 5FPYK2F64KB002267 · 2WD · 3.5L SOHC i-VTEC V6 · 6-speed automatic</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Major Service</span>
+              <strong>165,980 miles</strong>
+              <p>Timing belt service completed April 25, 2026.</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Installed Kit</span>
+              <strong>AISIN TKH-002</strong>
+              <p>RockAuto.com timing belt replacement kit recorded for the truck.</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Build Origin</span>
+              <strong>Lincoln, Alabama</strong>
+              <p>Honda Manufacturing of Alabama, second-generation Ridgeline platform.</p>
+            </article>
+          </div>
+
+          <div class="truck-profile-layout">
+            <article class="tech-card truck-service-card">
+              <h3>Recorded Major Service</h3>
+              <div class="status-list">
+                <div class="status-row"><strong>Date</strong><span>April 25, 2026</span></div>
+                <div class="status-row"><strong>Mileage</strong><span>165,980 miles</span></div>
+                <div class="status-row"><strong>Source</strong><span>RockAuto.com</span></div>
+                <div class="status-row"><strong>Kit</strong><span>AISIN TKH-002 Timing Belt Replacement Kit</span></div>
+              </div>
+              <ul class="highlight-list truck-service-list">
+                <li>Timing belt replaced</li>
+                <li>Crankshaft sprocket replaced</li>
+                <li>Timing belt tensioner replaced</li>
+                <li>Timing belt pulleys replaced</li>
+                <li>Timing belt cover seal replaced</li>
+                <li>Water pump replaced</li>
+              </ul>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="maintenance.html#major-service-log">Open Maintenance Record</a>
+                <a class="utility-link" href="garage.html#dashboard">Open Garage Log</a>
+              </div>
             </article>
 
-            <article class="tech-card">
-              <h3>Powertrain</h3>
-              <dl class="spec-list">
-                <div>
-                  <dt>Engine</dt>
-                  <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
-                </div>
-                <div>
-                  <dt>Output</dt>
-                  <dd>280 hp / 262 lb-ft</dd>
-                </div>
-                <div>
-                  <dt>Transmission</dt>
-                  <dd>6-speed automatic</dd>
-                </div>
-                <div>
-                  <dt>Drive</dt>
-                  <dd>2WD</dd>
-                </div>
-              </dl>
-            </article>
+            <div class="technical-grid truck-profile-grid">
+              <article class="tech-card">
+                <h3>Decoded From VIN</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>VIN</dt>
+                    <dd>5FPYK2F64KB002267</dd>
+                  </div>
+                  <div>
+                    <dt>Year</dt>
+                    <dd>2019</dd>
+                  </div>
+                  <div>
+                    <dt>Make / Model</dt>
+                    <dd>Honda Ridgeline</dd>
+                  </div>
+                  <div>
+                    <dt>Body</dt>
+                    <dd>Crew cab pickup</dd>
+                  </div>
+                </dl>
+              </article>
 
-            <article class="tech-card">
-              <h3>Build Info</h3>
-              <dl class="spec-list">
-                <div>
-                  <dt>Plant</dt>
-                  <dd>Honda Manufacturing of Alabama, Lincoln</dd>
-                </div>
-                <div>
-                  <dt>WMI</dt>
-                  <dd>5FP</dd>
-                </div>
-                <div>
-                  <dt>Platform</dt>
-                  <dd>Second-generation Ridgeline</dd>
-                </div>
-                <div>
-                  <dt>Note</dt>
-                  <dd>Exact paint color and every option are not encoded in the VIN.</dd>
-                </div>
-              </dl>
-            </article>
+              <article class="tech-card">
+                <h3>Powertrain</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Engine</dt>
+                    <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
+                  </div>
+                  <div>
+                    <dt>Output</dt>
+                    <dd>280 hp / 262 lb-ft</dd>
+                  </div>
+                  <div>
+                    <dt>Transmission</dt>
+                    <dd>6-speed automatic</dd>
+                  </div>
+                  <div>
+                    <dt>Drive</dt>
+                    <dd>2WD</dd>
+                  </div>
+                </dl>
+              </article>
+
+              <article class="tech-card">
+                <h3>Build Info</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Plant</dt>
+                    <dd>Honda Manufacturing of Alabama, Lincoln</dd>
+                  </div>
+                  <div>
+                    <dt>WMI</dt>
+                    <dd>5FP</dd>
+                  </div>
+                  <div>
+                    <dt>Platform</dt>
+                    <dd>Second-generation Ridgeline</dd>
+                  </div>
+                  <div>
+                    <dt>Note</dt>
+                    <dd>Exact paint color and every option are not encoded in the VIN.</dd>
+                  </div>
+                </dl>
+              </article>
+            </div>
           </div>
         </section>
 

@@ -3,6 +3,7 @@ import { searchIndex } from "./search-data.js";
 const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
 const topbarActions = document.querySelector(".topbar-actions");
+const main = document.querySelector("main");
 
 function keepPlainPageLoadsAtTop() {
   if (location.hash) {
@@ -36,93 +37,6 @@ function keepPlainPageLoadsAtTop() {
 
 keepPlainPageLoadsAtTop();
 
-function prioritizeMobileViewerStageOnHome() {
-  const isHomePage =
-    location.pathname.endsWith("/") ||
-    location.pathname.endsWith("/index.html") ||
-    location.pathname.split("/").pop() === "";
-  const isMobileViewport =
-    window.matchMedia("(max-width: 900px)").matches ||
-    window.matchMedia("(pointer: coarse)").matches;
-  const hash = location.hash;
-
-  if (!isHomePage || !isMobileViewport || (hash && hash !== "#viewer")) {
-    return;
-  }
-
-  const viewerSection = document.getElementById("viewer");
-  if (!viewerSection) {
-    return;
-  }
-
-  if (!hash) {
-    history.replaceState(history.state, "", `${location.pathname}${location.search}#viewer`);
-  }
-
-  let userInteracted = false;
-  let enforcementTimer = null;
-  let enforcementInterval = null;
-  let isRepositioning = false;
-
-  const stopEnforcement = () => {
-    if (enforcementTimer) {
-      clearTimeout(enforcementTimer);
-      enforcementTimer = null;
-    }
-    if (enforcementInterval) {
-      clearInterval(enforcementInterval);
-      enforcementInterval = null;
-    }
-  };
-
-  const markUserInteraction = () => {
-    userInteracted = true;
-    stopEnforcement();
-  };
-
-  const placeViewerFirst = () => {
-    if (userInteracted || isRepositioning) {
-      return;
-    }
-
-    const root = document.documentElement;
-    const previousScrollBehavior = root.style.scrollBehavior;
-    const viewerTop = viewerSection.getBoundingClientRect().top + window.scrollY;
-    const targetTop = Math.max(0, viewerTop);
-
-    isRepositioning = true;
-    root.style.scrollBehavior = "auto";
-    window.scrollTo(0, targetTop);
-    root.scrollTop = targetTop;
-    document.body.scrollTop = targetTop;
-    root.style.scrollBehavior = previousScrollBehavior;
-    requestAnimationFrame(() => {
-      isRepositioning = false;
-    });
-  };
-
-  requestAnimationFrame(placeViewerFirst);
-  window.addEventListener("load", () => {
-    placeViewerFirst();
-    setTimeout(placeViewerFirst, 80);
-    setTimeout(placeViewerFirst, 220);
-    setTimeout(placeViewerFirst, 520);
-    setTimeout(placeViewerFirst, 1200);
-    setTimeout(placeViewerFirst, 2400);
-  });
-  window.addEventListener("pageshow", placeViewerFirst);
-  window.addEventListener("scroll", placeViewerFirst, { passive: true });
-
-  enforcementInterval = window.setInterval(placeViewerFirst, 180);
-  enforcementTimer = window.setTimeout(stopEnforcement, 7000);
-
-  ["touchstart", "pointerdown", "wheel", "keydown"].forEach((eventName) => {
-    window.addEventListener(eventName, markUserInteraction, { passive: true, once: true });
-  });
-}
-
-prioritizeMobileViewerStageOnHome();
-
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
@@ -140,6 +54,413 @@ const menuLinks = [
 function currentPageName() {
   const page = location.pathname.split("/").pop();
   return page || "index.html";
+}
+
+function slugFromLabel(value) {
+  return `${value || ""}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getSectionTitle(section) {
+  return (
+    section.querySelector("h2, h3")?.textContent?.trim() ||
+    section.getAttribute("aria-label") ||
+    section.id ||
+    "Section"
+  );
+}
+
+function getNavIcon(label, href) {
+  const value = `${label} ${href}`.toLowerCase();
+  if (value.includes("viewer") || value.includes("map")) return "map";
+  if (value.includes("garage")) return "garage";
+  if (value.includes("diagnostic")) return "diag";
+  if (value.includes("maintenance") || value.includes("service")) return "wrench";
+  if (value.includes("fuse") || value.includes("electrical")) return "bolt";
+  if (value.includes("photo")) return "photo";
+  if (value.includes("ar")) return "cube";
+  if (value.includes("quick")) return "flash";
+  if (value.includes("reference") || value.includes("source")) return "book";
+  return "dot";
+}
+
+function normalizeLocalHref(href) {
+  if (!href) {
+    return "";
+  }
+
+  try {
+    const url = new URL(href, location.href);
+    if (url.origin === location.origin && url.pathname === location.pathname && url.hash) {
+      return url.hash;
+    }
+  } catch {}
+
+  return href.startsWith("#") ? href : "";
+}
+
+function collectPageSections() {
+  if (!main) {
+    return [];
+  }
+
+  const page = currentPageName();
+  const seen = new Set();
+
+  if (page === "index.html") {
+    return [...main.querySelectorAll("section[id]")]
+      .filter((section) => section.id)
+      .map((section) => ({
+        id: section.id,
+        label: getSectionTitle(section),
+        target: section
+      }));
+  }
+
+  const navLinks = [
+    ...document.querySelectorAll(".section-utility-nav a[href^='#']"),
+    ...document.querySelectorAll(".section-dock a[href^='#']")
+  ];
+
+  const sections = navLinks
+    .map((link) => {
+      const hash = normalizeLocalHref(link.getAttribute("href"));
+      if (!hash || hash === "#top" || seen.has(hash)) {
+        return null;
+      }
+
+      const target = document.querySelector(hash);
+      if (!target) {
+        return null;
+      }
+
+      seen.add(hash);
+      return {
+        id: hash.slice(1),
+        label: link.textContent.trim(),
+        target
+      };
+    })
+    .filter(Boolean);
+
+  if (sections.length) {
+    return sections;
+  }
+
+  return [...main.querySelectorAll("section[id], article[id]")]
+    .filter((section) => section.id)
+    .map((section) => ({
+      id: section.id,
+      label: getSectionTitle(section),
+      target: section
+    }));
+}
+
+function buildQuickActionBar() {
+  if (!topbar || document.querySelector(".quick-action-bar")) {
+    return;
+  }
+
+  const actions = [
+    { label: "Vehicle Map", href: "index.html#viewer" },
+    { label: "Fuses", href: "hood.html#fuses" },
+    { label: "Maintenance", href: "maintenance.html" },
+    { label: "Diagnostics", href: "diagnostics.html" },
+    { label: "Garage", href: "garage.html#dashboard" },
+    { label: "AR Lab", href: "ar-lab.html" }
+  ];
+
+  const bar = document.createElement("nav");
+  bar.className = "quick-action-bar";
+  bar.setAttribute("aria-label", "Quick actions");
+  bar.innerHTML = actions
+    .map((action) => {
+      const local = action.href.replace("./", "");
+      const isActive = currentPageName() === local.split("#")[0];
+      return `<a class="quick-action-link${isActive ? " is-active" : ""}" href="${action.href}" data-nav-icon="${getNavIcon(action.label, action.href)}">${action.label}</a>`;
+    })
+    .join("");
+
+  const routeStrip = document.querySelector(".route-strip");
+  if (routeStrip) {
+    routeStrip.insertAdjacentElement("afterend", bar);
+  } else {
+    topbar.insertAdjacentElement("afterend", bar);
+  }
+}
+
+function actionHint(label) {
+  const value = `${label}`.toLowerCase();
+  if (value.includes("fuse")) return "Fastest route into the electrical reference.";
+  if (value.includes("maintenance")) return "Open the recurring service and spec page.";
+  if (value.includes("diagnostic")) return "Start from symptoms and quick checks.";
+  if (value.includes("garage")) return "See truck-specific notes and service memory.";
+  if (value.includes("map") || value.includes("viewer")) return "Jump back into the live truck view.";
+  if (value.includes("ar")) return "Open the truck in AR or 3D preview.";
+  if (value.includes("photo")) return "Switch to real area photos.";
+  if (value.includes("quick")) return "Use the condensed fast-reference sheet.";
+  return "Open this section directly.";
+}
+
+function buildHeroActionCards() {
+  const hero = document.querySelector(".section-page-hero");
+  const utilityNav = hero?.querySelector(".section-utility-nav");
+  if (!hero || !utilityNav || hero.querySelector(".hero-action-grid")) {
+    return;
+  }
+
+  const cards = [...utilityNav.querySelectorAll("a")]
+    .filter((link) => !link.getAttribute("href")?.startsWith("#top"))
+    .slice(0, 3);
+
+  if (!cards.length) {
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "hero-action-grid";
+  grid.setAttribute("aria-label", "Most used actions");
+  grid.innerHTML = cards
+    .map((link, index) => {
+      const label = link.textContent.trim();
+      const href = link.getAttribute("href") || "#";
+      const tone = index === 0 ? " action-card-strong" : "";
+      return `
+        <a class="action-card${tone}" href="${href}" data-nav-icon="${getNavIcon(label, href)}">
+          <span>${label}</span>
+          <p>${actionHint(label)}</p>
+        </a>
+      `;
+    })
+    .join("");
+
+  utilityNav.insertAdjacentElement("afterend", grid);
+}
+
+function buildSectionRail(sections) {
+  if (!main || sections.length < 2 || document.querySelector(".page-section-rail")) {
+    return null;
+  }
+
+  const rail = document.createElement("nav");
+  rail.className = "page-section-rail";
+  rail.setAttribute("aria-label", "Page sections");
+  rail.innerHTML = `
+    <div class="page-section-rail-label">On This Page</div>
+    <div class="page-section-rail-links">
+      ${sections
+        .map(
+          (section, index) =>
+            `<a class="page-section-link${index === 0 ? " is-active" : ""}" href="#${section.id}" data-section-link="${section.id}" data-nav-icon="${getNavIcon(section.label, section.id)}">${section.label}</a>`
+        )
+        .join("")}
+    </div>
+  `;
+
+  const hero = main.querySelector(".section-page-hero, .viewer-section");
+  if (hero) {
+    hero.insertAdjacentElement("afterend", rail);
+  } else {
+    main.insertAdjacentElement("afterbegin", rail);
+  }
+
+  return rail;
+}
+
+function syncActiveSectionUi(sections, rail) {
+  if (!sections.length || !rail) {
+    return;
+  }
+
+  const linkMap = new Map(
+    [...rail.querySelectorAll("[data-section-link]")].map((link) => [link.dataset.sectionLink, link])
+  );
+
+  const setActive = (id) => {
+    linkMap.forEach((link, key) => {
+      const active = key === id;
+      link.classList.toggle("is-active", active);
+      link.setAttribute("aria-current", active ? "true" : "false");
+    });
+  };
+
+  setActive(sections[0].id);
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visible?.target?.id) {
+        setActive(visible.target.id);
+      }
+    },
+    {
+      rootMargin: "-22% 0px -55% 0px",
+      threshold: [0.2, 0.45, 0.7]
+    }
+  );
+
+  sections.forEach((section) => observer.observe(section.target));
+}
+
+function buildBackToMapButton() {
+  if (document.querySelector(".back-to-map-fab")) {
+    return;
+  }
+
+  const button = document.createElement("a");
+  button.className = "back-to-map-fab";
+  button.href = "index.html#viewer";
+  button.dataset.navIcon = "map";
+  button.textContent = "Back To Map";
+  document.body.appendChild(button);
+}
+
+function relatedLinksForPage(page) {
+  const map = {
+    "index.html": [
+      { label: "Maintenance", href: "maintenance.html", note: "Service intervals, fluids, and specs." },
+      { label: "Garage Log", href: "garage.html#dashboard", note: "Your truck-specific history and notes." },
+      { label: "AR Lab", href: "ar-lab.html", note: "Open the truck in AR or the 3D lab." }
+    ],
+    "maintenance.html": [
+      { label: "Garage Log", href: "garage.html#dashboard", note: "Save what was actually installed and serviced." },
+      { label: "Quick Sheet", href: "quick-sheet.html", note: "Condensed numbers and emergency references." },
+      { label: "Diagnostics", href: "diagnostics.html", note: "Troubleshooting routes tied to common symptoms." }
+    ],
+    "garage.html": [
+      { label: "Maintenance", href: "maintenance.html#major-service-log", note: "Cross-check the service record and specs." },
+      { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the live vehicle map." },
+      { label: "Photo Atlas", href: "photo-atlas.html", note: "Compare notes against real truck photos." }
+    ],
+    "diagnostics.html": [
+      { label: "Vehicle Map", href: "index.html#viewer", note: "Jump to the area you need on the truck." },
+      { label: "Fuse Boxes", href: "hood.html#fuses", note: "Go straight to front-bay fuse references." },
+      { label: "Maintenance", href: "maintenance.html", note: "Open service specs and fluid references." }
+    ]
+  };
+
+  return map[page] || [
+    { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the live truck view." },
+    { label: "Maintenance", href: "maintenance.html", note: "Open specs, fluids, and service details." },
+    { label: "Garage Log", href: "garage.html#dashboard", note: "Check truck-specific notes and service memory." }
+  ];
+}
+
+function buildRelatedStrip() {
+  const mainElement = document.querySelector("main");
+  if (!mainElement || document.querySelector(".related-strip")) {
+    return;
+  }
+
+  const section = document.createElement("section");
+  section.className = "related-strip";
+  section.innerHTML = `
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Related Stops</p>
+        <h2>Next Likely Pages</h2>
+      </div>
+    </div>
+    <div class="related-grid">
+      ${relatedLinksForPage(currentPageName())
+        .map(
+          (link) => `
+            <a class="related-card" href="${link.href}" data-nav-icon="${getNavIcon(link.label, link.href)}">
+              <strong>${link.label}</strong>
+              <span>${link.note}</span>
+            </a>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+
+  const dock = document.querySelector(".section-dock");
+  if (dock) {
+    dock.insertAdjacentElement("beforebegin", section);
+  } else {
+    mainElement.appendChild(section);
+  }
+}
+
+function enhanceActiveLinks() {
+  const page = currentPageName();
+  const hash = location.hash;
+  const links = [
+    ...document.querySelectorAll(".topnav a, .route-strip a, .section-dock a, .section-utility-nav a")
+  ];
+
+  links.forEach((link) => {
+    const href = link.getAttribute("href") || "";
+    const localHash = normalizeLocalHref(href);
+    let active = false;
+
+    if (href.startsWith("#")) {
+      active = !!hash && href === hash;
+    } else if (href.includes(".html")) {
+      active = href.split("#")[0] === page && (!localHash || localHash === hash);
+    }
+
+    link.classList.toggle("is-current-link", active);
+  });
+}
+
+function buildCollapsibleCards() {
+  const pageMain = document.querySelector(".section-page-main");
+  if (!pageMain) {
+    return;
+  }
+
+  const cards = [
+    ...document.querySelectorAll(".section-page-grid > article.tech-card, .section-page-grid > article.diagram-card")
+  ];
+
+  cards.forEach((card) => {
+    if (card.dataset.collapsibleReady === "true") {
+      return;
+    }
+
+    const title = card.querySelector(":scope > h3");
+    if (!title) {
+      return;
+    }
+
+    const children = [...card.children].filter((child) => child !== title);
+    if (!children.length) {
+      return;
+    }
+
+    const content = document.createElement("div");
+    content.className = "collapsible-card-content";
+    children.forEach((child) => content.appendChild(child));
+
+    const button = document.createElement("button");
+    button.className = "collapsible-card-toggle";
+    button.type = "button";
+    button.setAttribute("aria-expanded", "true");
+    button.innerHTML = `<span>${title.textContent.trim()}</span><strong>Collapse</strong>`;
+
+    const heading = document.createElement("div");
+    heading.className = "collapsible-card-head";
+    heading.append(title, button);
+
+    card.append(heading, content);
+
+    button.addEventListener("click", () => {
+      const expanded = button.getAttribute("aria-expanded") === "true";
+      button.setAttribute("aria-expanded", expanded ? "false" : "true");
+      button.querySelector("strong").textContent = expanded ? "Expand" : "Collapse";
+      content.hidden = expanded;
+      card.classList.toggle("is-collapsed", expanded);
+    });
+
+    card.dataset.collapsibleReady = "true";
+  });
 }
 
 function buildSiteMenu() {
@@ -250,6 +571,15 @@ const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
+const pageSections = collectPageSections();
+buildQuickActionBar();
+buildHeroActionCards();
+const sectionRail = buildSectionRail(pageSections);
+syncActiveSectionUi(pageSections, sectionRail);
+buildBackToMapButton();
+buildCollapsibleCards();
+buildRelatedStrip();
+enhanceActiveLinks();
 
 function applyGarageMode(enabled) {
   document.body.classList.toggle("garage-mode", enabled);

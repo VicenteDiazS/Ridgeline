@@ -15,9 +15,16 @@ const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
+const defaultNotes = {
+  timing_service:
+    "Timing belt service completed 4/25/2026 at 165,980 miles using the AISIN TKH-002 Timing Belt Replacement Kit from RockAuto.com: timing belt, crankshaft sprocket, timing belt tensioner, timing belt pulleys, timing cover seal, and water pump replaced."
+};
+const defaultTracker = {
+  timing_belt_service: "4/25/2026 / 165,980 miles"
+};
 
 if (notesForm) {
-  hydrateForm(notesForm, loadJson(STORAGE.notes, {}));
+  hydrateForm(notesForm, loadJson(STORAGE.notes, defaultNotes));
 
   notesForm.addEventListener("input", () => {
     saveJson(STORAGE.notes, formPayload(notesForm));
@@ -25,7 +32,7 @@ if (notesForm) {
 }
 
 if (trackerForm) {
-  hydrateForm(trackerForm, loadJson(STORAGE.tracker, {}));
+  hydrateForm(trackerForm, loadJson(STORAGE.tracker, defaultTracker));
 
   trackerForm.addEventListener("input", () => {
     saveJson(STORAGE.tracker, formPayload(trackerForm));

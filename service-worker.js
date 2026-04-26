@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v98";
+const CACHE_NAME = "ridgeline-console-v107";
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,6 +25,7 @@ const ASSETS = [
   "./section-tools.js",
   "./manifest.json",
   "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+  "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb",
   "./assets/ridgeline-2021/textures/logo.jpg",
   "./assets/ridgeline-2021/textures/logo_hpd.jpg",
   "./assets/ridgeline-2021/textures/lamp_stripe.jpg"
