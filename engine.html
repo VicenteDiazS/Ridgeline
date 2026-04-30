@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Ridgeline J35Y6 Engine Explorer</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body data-no-hero-actions data-no-section-rail>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="maintenance.html">Maintenance</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+
+      <main id="top" class="section-page-main engine-page-main">
+        <section class="engine-model-hero" id="engine-model">
+          <div class="engine-hero-copy">
+            <p class="eyebrow">Engine Explorer</p>
+            <h1>J35Y6 Engine Technical Model</h1>
+            <p class="section-copy">
+              A polished 3D service-reference model for the Ridgeline's 3.5L V6, focused on the
+              timing-side components and the major service already recorded for your truck.
+            </p>
+            <p class="engine-model-note">
+              Technical visualization built for this site. It is not an OEM scan or dimensionally
+              exact Honda CAD file.
+            </p>
+            <div class="section-utility-nav engine-utility-nav" aria-label="Section shortcuts">
+              <a class="utility-link utility-link-strong" href="#timing-service">Timing Service</a>
+              <a class="utility-link" href="maintenance.html#major-service-log">Service Record</a>
+              <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+            </div>
+          </div>
+
+          <div class="engine-stage">
+            <div id="engine-viewer" class="engine-viewer" aria-label="Interactive J35Y6 engine model"></div>
+            <div id="engine-hotspot-layer" class="engine-hotspot-layer" aria-hidden="false"></div>
+            <div id="engine-viewer-status" class="viewer-status" hidden></div>
+          </div>
+
+          <aside class="engine-inspector" aria-live="polite">
+            <p class="eyebrow">Selected Component</p>
+            <h3 id="engine-inspector-title">Timing Belt Service Area</h3>
+            <p id="engine-inspector-description" class="inspector-description">
+              Timing-side visual reference for the belt, crankshaft sprocket, pulleys,
+              tensioner, water pump, and cover seal recorded in the truck service history.
+            </p>
+            <div class="engine-inspector-meta" id="engine-inspector-meta"></div>
+          </aside>
+
+          <div class="engine-control-bar" aria-label="Engine model camera views">
+            <button class="viewer-toggle" type="button" data-engine-view="overview" aria-pressed="true">
+              Overview
+            </button>
+            <button class="viewer-toggle" type="button" data-engine-view="timing">Timing Side</button>
+            <button class="viewer-toggle" type="button" data-engine-view="intake">Intake</button>
+            <button class="viewer-toggle" type="button" data-engine-view="accessories">Accessories</button>
+            <button class="viewer-toggle" type="button" data-engine-view="service">Service Highlight</button>
+            <button class="viewer-toggle" type="button" data-engine-labels aria-pressed="true">Labels</button>
+          </div>
+        </section>
+
+        <section class="section-page-grid">
+
+          <article class="tech-card" id="timing-service">
+            <h3>Timing Service Overlay</h3>
+            <div class="status-list">
+              <div class="status-row"><strong>Date</strong><span>April 25, 2026</span></div>
+              <div class="status-row"><strong>Mileage</strong><span>165,980 miles</span></div>
+              <div class="status-row"><strong>Kit</strong><span>AISIN TKH-002 from RockAuto.com</span></div>
+            </div>
+            <ul class="highlight-list">
+              <li>Timing belt replaced</li>
+              <li>Crankshaft sprocket replaced</li>
+              <li>Timing belt tensioner replaced</li>
+              <li>Timing belt pulleys replaced</li>
+              <li>Timing belt cover seal replaced</li>
+              <li>Water pump replaced</li>
+            </ul>
+          </article>
+
+          <article class="tech-card" id="component-map">
+            <h3>Modeled Component Groups</h3>
+            <ul class="highlight-list">
+              <li>Textured V6 block, cylinder heads, valve covers, intake plenum, fuel rails, coil wiring, and component labels</li>
+              <li>Timing-side cam pulleys, crank sprocket, tensioner, idlers, water pump, belt teeth, cover bolts, and service label</li>
+              <li>Front/timing-side alternator, A/C compressor, serpentine belt, oil filter, coolant hoses, and a bellhousing-side starter motor</li>
+              <li>Hotspots and camera presets built for quick service orientation</li>
+            </ul>
+          </article>
+
+          <article class="tech-card span-2" id="model-notes">
+            <h3>Model Notes</h3>
+            <p>
+              The model is intentionally service-oriented: it emphasizes part relationships, visual
+              orientation, and the recorded timing belt work instead of exact casting geometry. Component labels are anchored to the modeled part centers and timing-side locations follow the supplied service-belt reference. If you
+              later get a licensed J35Y6 or J-series scan, this page can be upgraded to use that asset
+              while keeping the same hotspots and service data.
+            </p>
+          </article>
+        </section>
+      </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="maintenance.html#major-service-log">Service Record</a>
+        <a href="garage.html#dashboard">Garage</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="engine-viewer.js"></script>
+  </body>
+</html>

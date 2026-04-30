@@ -24,6 +24,25 @@ export const searchIndex = [
     keywords: ["ar", "augmented reality", "model viewer", "3d viewer", "quick look"]
   },
   {
+    title: "J35Y6 Engine Explorer",
+    url: "engine.html",
+    category: "Tools",
+    keywords: [
+      "engine",
+      "j35y6",
+      "j35",
+      "v6",
+      "timing belt",
+      "water pump",
+      "crankshaft sprocket",
+      "tensioner",
+      "pulleys",
+      "aisin",
+      "tkh-002",
+      "3d engine"
+    ]
+  },
+  {
     title: "Photo Atlas",
     url: "photo-atlas.html",
     category: "Tools",
