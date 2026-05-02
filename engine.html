@@ -36,7 +36,7 @@
             <p class="eyebrow">Engine Explorer</p>
             <h1>J35Y6 Engine Technical Model</h1>
             <p class="section-copy">
-              A polished 3D service-reference model for the Ridgeline's 3.5L V6, focused on the
+              A polished 3D service-reference model for the Ridgeline's direct-injection 3.5L V6, focused on the
               timing-side components and the major service already recorded for your truck.
             </p>
             <p class="engine-model-note">
@@ -67,6 +67,12 @@
           </aside>
 
           <div class="engine-control-bar" aria-label="Engine model camera views">
+            <button class="viewer-toggle" type="button" data-engine-model="installed" aria-pressed="true">
+              Installed Model
+            </button>
+            <button class="viewer-toggle" type="button" data-engine-model="front-accessories">
+              Front Accessories
+            </button>
             <button class="viewer-toggle" type="button" data-engine-view="overview" aria-pressed="true">
               Overview
             </button>
@@ -100,20 +106,33 @@
           <article class="tech-card" id="component-map">
             <h3>Modeled Component Groups</h3>
             <ul class="highlight-list">
-              <li>Textured V6 block, cylinder heads, valve covers, intake plenum, fuel rails, coil wiring, and component labels</li>
+              <li>Textured V6 block, cylinder heads, valve covers, intake plenum, fuel rails, fuel injectors, coil wiring, and component labels</li>
               <li>Timing-side cam pulleys, crank sprocket, tensioner, idlers, water pump, belt teeth, cover bolts, and service label</li>
-              <li>Front/timing-side alternator, A/C compressor, serpentine belt, oil filter, coolant hoses, and a bellhousing-side starter motor</li>
+              <li>Front/timing-side alternator, A/C compressor, serpentine belt, oil filter, coolant hoses, engine mount references, high-pressure fuel pump, primary catalyst, O2 sensor, and a bellhousing-side starter motor</li>
               <li>Hotspots and camera presets built for quick service orientation</li>
             </ul>
+          </article>
+
+          <article class="tech-card span-2" id="reference-audit">
+            <h3>Reference Audit</h3>
+            <div class="mini-specs">
+              <div class="mini-spec"><span>Architecture</span><span>Honda 3.5L SOHC direct-injection V6</span></div>
+              <div class="mini-spec"><span>Timing Side</span><span>Cam pulleys, timing belt, adjuster, idler, water pump, covers, seals</span></div>
+              <div class="mini-spec"><span>Top End</span><span>Front/rear head covers, plug-hole coils, intake manifold, throttle body, MAP sensor, EGR pipe</span></div>
+              <div class="mini-spec"><span>Fuel System</span><span>Front/rear fuel rails, direct injectors, high-pressure fuel pump</span></div>
+              <div class="mini-spec"><span>Accessory End</span><span>Alternator, drive-belt tensioner, A/C compressor and clutch, oil filter area</span></div>
+              <div class="mini-spec"><span>Exhaust</span><span>Integrated head outlets with front/rear primary converter and O2 sensor references</span></div>
+              <div class="mini-spec"><span>Mounts</span><span>Front/rear engine mount references with simplified bracket geometry</span></div>
+              <div class="mini-spec"><span>Transmission End</span><span>Bellhousing-side starter motor and solenoid reference</span></div>
+              <div class="mini-spec"><span>Confidence</span><span>Part relationships checked; casting shapes and hose runs are stylized</span></div>
+            </div>
           </article>
 
           <article class="tech-card span-2" id="model-notes">
             <h3>Model Notes</h3>
             <p>
               The model is intentionally service-oriented: it emphasizes part relationships, visual
-              orientation, and the recorded timing belt work instead of exact casting geometry. Component labels are anchored to the modeled part centers and timing-side locations follow the supplied service-belt reference. If you
-              later get a licensed J35Y6 or J-series scan, this page can be upgraded to use that asset
-              while keeping the same hotspots and service data.
+              orientation, and the recorded timing belt work instead of exact casting geometry. Component labels are anchored to the modeled part centers, timing-side locations follow the supplied service-belt reference, and major groups were cross-checked against Honda engine category diagrams. Exact casting texture, bracket shape, harness clipping, and hose routing remain stylized until a licensed J35Y6 or J-series scan is added.
             </p>
           </article>
         </section>

@@ -10,6 +10,7 @@ const inspectorTitle = document.getElementById("engine-inspector-title");
 const inspectorDescription = document.getElementById("engine-inspector-description");
 const inspectorMeta = document.getElementById("engine-inspector-meta");
 const viewButtons = [...document.querySelectorAll("[data-engine-view]")];
+const modelButtons = [...document.querySelectorAll("[data-engine-model]")];
 const labelToggle = document.querySelector("[data-engine-labels]");
 
 const isMobile =
@@ -189,6 +190,7 @@ if (!renderer || !viewerElement) {
     hose: new THREE.MeshStandardMaterial({ color: 0x0b0c0f, map: blackRubberTexture, bumpMap: blackRubberTexture, bumpScale: 0.02, metalness: 0.02, roughness: 0.86 }),
     rubber: new THREE.MeshStandardMaterial({ color: 0x0b0c0f, map: blackRubberTexture, bumpMap: blackRubberTexture, bumpScale: 0.02, metalness: 0.03, roughness: 0.92 }),
     exhaust: new THREE.MeshStandardMaterial({ color: 0xc29a78, map: copperHeatTexture, bumpMap: copperHeatTexture, bumpScale: 0.018, metalness: 0.72, roughness: 0.5 }),
+    heatShield: new THREE.MeshStandardMaterial({ color: 0xd4d7d8, metalness: 0.78, roughness: 0.42 }),
     plastic: new THREE.MeshStandardMaterial({ color: 0x121820, map: darkCastTexture, bumpMap: darkCastTexture, bumpScale: 0.012, metalness: 0.12, roughness: 0.68 }),
     wiring: new THREE.MeshStandardMaterial({ color: 0x030405, metalness: 0.02, roughness: 0.78 }),
     label: new THREE.MeshStandardMaterial({ color: 0xdce9f2, metalness: 0.1, roughness: 0.38 }),
@@ -205,13 +207,17 @@ if (!renderer || !viewerElement) {
   const markerMeshes = new Map();
   const hotspotButtons = new Map();
   const componentLabelObjects = [];
+  const componentLabelRecords = new Map();
+  const modelModeObjects = new Map();
   const projected = new THREE.Vector3();
   const cameraLocal = new THREE.Vector3();
   let selectedKey = "timing";
+  let modelMode = "installed";
   let cameraTween = null;
   let isInteracting = false;
   let autoRotateTimer = null;
   let labelsVisible = true;
+  let timingKitFaceLabel = null;
 
   const timingFace = {
     x: -2.47,
@@ -226,13 +232,32 @@ if (!renderer || !viewerElement) {
 
   const accessoryFace = {
     beltX: -2.96,
-    alternator: new THREE.Vector3(-2.9, 1.28, -0.86),
+    alternator: new THREE.Vector3(-2.9, 1.26, 0.76),
     starter: new THREE.Vector3(2.22, 0.46, -0.66),
-    compressor: new THREE.Vector3(-2.92, 0.58, 0.86),
-    idler: new THREE.Vector3(-2.96, 0.82, 0.08),
-    beltMid: new THREE.Vector3(-2.98, 0.94, 0.18),
+    compressor: new THREE.Vector3(-2.92, 0.55, 0.9),
+    idler: new THREE.Vector3(-2.96, 0.88, 0.52),
+    beltMid: new THREE.Vector3(-2.98, 0.92, 0.64),
     oilFilter: new THREE.Vector3(-1.9, 0.24, 1.02),
     throttle: new THREE.Vector3(2.35, 2.06, 0)
+  };
+
+  const fuelSystemFace = {
+    highPressurePump: new THREE.Vector3(-1.28, 1.74, -0.28),
+    frontFuelRail: new THREE.Vector3(0.2, 1.52, 0.56),
+    rearFuelRail: new THREE.Vector3(0.2, 1.52, -0.56),
+    mapSensor: new THREE.Vector3(1.08, 2.36, 0.2)
+  };
+
+  const serviceReferenceFace = {
+    frontEngineMount: new THREE.Vector3(-1.98, 0.2, 0.98),
+    rearEngineMount: new THREE.Vector3(-1.98, 0.2, -0.98),
+    ignitionCoils: new THREE.Vector3(0, 1.86, 0.93),
+    oilFillerCap: new THREE.Vector3(1.45, 1.88, 0.92),
+    egrPipe: new THREE.Vector3(-0.56, 1.12, -1.18),
+    primaryCatalysts: new THREE.Vector3(-0.2, 0.55, 1.58),
+    frontFuelInjectors: new THREE.Vector3(0.18, 1.45, 0.58),
+    airIntakeTube: new THREE.Vector3(2.72, 2.06, 0),
+    frontOxygenSensor: new THREE.Vector3(0.76, 0.76, 1.47)
   };
 
   function roundedBox(width, height, depth, radius, material) {
@@ -294,6 +319,44 @@ if (!renderer || !viewerElement) {
     cap.rotation.z = Math.PI / 2;
     cap.position.x = -0.015;
     pulleyGroup.add(cap);
+
+    if (options.toothed) {
+      const toothCount = options.toothCount || (isMobile ? 22 : 30);
+      for (let i = 0; i < toothCount; i += 1) {
+        const angle = (i / toothCount) * Math.PI * 2;
+        const tooth = roundedBox(
+          (options.width || 0.18) + 0.03,
+          0.026,
+          Math.max(0.042, radius * 0.12),
+          0.005,
+          materials.darkMetal
+        );
+        tooth.position.set(
+          -0.006,
+          Math.cos(angle) * (radius + 0.026),
+          Math.sin(angle) * (radius + 0.026)
+        );
+        tooth.rotation.x = -angle;
+        pulleyGroup.add(tooth);
+      }
+    }
+
+    if (options.markAngle !== undefined) {
+      const mark = roundedBox(
+        (options.width || 0.18) + 0.05,
+        0.034,
+        Math.max(0.08, radius * 0.22),
+        0.006,
+        materials.coolant
+      );
+      mark.position.set(
+        -0.11,
+        Math.cos(options.markAngle) * (radius + 0.055),
+        Math.sin(options.markAngle) * (radius + 0.055)
+      );
+      mark.rotation.x = -options.markAngle;
+      pulleyGroup.add(mark);
+    }
 
     for (let i = 0; i < 6; i += 1) {
       const spoke = roundedBox(0.026, radius * 1.18, 0.035, 0.01, materials.pulley);
@@ -422,13 +485,24 @@ if (!renderer || !viewerElement) {
     context.closePath();
   }
 
-  function addComponentLabel(group, text, anchor, offset, tone = "blue", width = 1.18) {
+  function updateComponentLabel(record, anchor = record.anchor, offset = record.offset) {
+    record.anchor.copy(anchor);
+    record.offset.copy(offset);
+    const labelPosition = record.anchor.clone().add(record.offset);
+    record.sprite.position.copy(labelPosition);
+    record.dot.position.copy(record.anchor);
+    record.line.geometry.setFromPoints([record.anchor, labelPosition]);
+    record.line.geometry.attributes.position.needsUpdate = true;
+    record.line.geometry.computeBoundingSphere();
+  }
+
+  function addComponentLabel(group, text, anchor, offset, tone = "blue", width = 1.18, key = null) {
     const anchorPoint = anchor.clone();
     const labelPosition = anchor.clone().add(offset);
     const material = makeComponentLabelMaterial(text, tone);
     const sprite = new THREE.Sprite(material);
     sprite.position.copy(labelPosition);
-    const scaleBoost = isMobile ? 1.18 : 1;
+    const scaleBoost = isMobile ? 0.92 : 1;
     sprite.scale.set(width * scaleBoost, 0.3 * scaleBoost, 1);
     sprite.renderOrder = 20;
     group.add(sprite);
@@ -455,16 +529,112 @@ if (!renderer || !viewerElement) {
     dot.renderOrder = 20;
     group.add(dot);
 
+    const record = {
+      key: key || "general",
+      anchor: anchorPoint.clone(),
+      offset: offset.clone(),
+      sprite,
+      line,
+      dot
+    };
+    [sprite, line, dot].forEach((object) => {
+      object.userData.componentLabelKey = record.key;
+    });
     componentLabelObjects.push(sprite, line, dot);
-    return { sprite, line, dot };
+    if (key) {
+      componentLabelRecords.set(key, record);
+    }
+    return record;
   }
 
   function setComponentLabelsVisible(visible) {
     labelsVisible = visible;
     componentLabelObjects.forEach((object) => {
-      object.visible = visible;
+      const accessoryKeys = new Set(["alternator", "compressor", "serpentine", "driveTensioner", "oilFilter"]);
+      const shouldShowInMode =
+        modelMode !== "front-accessories" || accessoryKeys.has(object.userData.componentLabelKey);
+      object.visible = visible && shouldShowInMode;
     });
     labelToggle?.setAttribute("aria-pressed", visible ? "true" : "false");
+  }
+
+  function trackModelModeObject(key, object, frontAccessoriesPosition) {
+    modelModeObjects.set(key, {
+      object,
+      installed: object.position.clone(),
+      frontAccessories: frontAccessoriesPosition.clone()
+    });
+  }
+
+  function transformedPoint(point, key, mode = modelMode) {
+    const record = modelModeObjects.get(key);
+    if (!record) {
+      return point.clone();
+    }
+    const delta = (mode === "front-accessories" ? record.frontAccessories : record.installed)
+      .clone()
+      .sub(record.installed);
+    return point.clone().add(delta);
+  }
+
+  function setEngineModelMode(mode, moveCamera = true) {
+    modelMode = mode === "front-accessories" ? "front-accessories" : "installed";
+
+    modelModeObjects.forEach((record) => {
+      const target = modelMode === "front-accessories" ? record.frontAccessories : record.installed;
+      record.object.position.copy(target);
+    });
+
+    const frontMode = modelMode === "front-accessories";
+    [
+      [
+        "alternator",
+        accessoryFace.alternator,
+        frontMode ? new THREE.Vector3(0.28, 0.5, 0.28) : new THREE.Vector3(-0.38, 0.28, 0.2),
+        "frontAccessories"
+      ],
+      [
+        "compressor",
+        accessoryFace.compressor,
+        frontMode ? new THREE.Vector3(0.46, 0.3, 0.18) : new THREE.Vector3(0.52, 0.24, 0.34),
+        "frontAccessories"
+      ],
+      [
+        "serpentine",
+        accessoryFace.beltMid,
+        frontMode ? new THREE.Vector3(0.2, 0.54, -0.2) : new THREE.Vector3(0.48, 0.48, -0.26),
+        "frontAccessories"
+      ],
+      [
+        "driveTensioner",
+        accessoryFace.idler,
+        frontMode ? new THREE.Vector3(-0.34, 0.28, -0.28) : new THREE.Vector3(-0.36, 0.28, -0.3),
+        "frontAccessories"
+      ],
+      [
+        "oilFilter",
+        accessoryFace.oilFilter,
+        frontMode ? new THREE.Vector3(0.06, -0.32, 0.22) : new THREE.Vector3(0.42, 0.38, 0.26),
+        "oilFilter"
+      ]
+    ].forEach(([key, anchor, offset, objectKey]) => {
+      const record = componentLabelRecords.get(key);
+      if (record) {
+        updateComponentLabel(record, transformedPoint(anchor, objectKey), offset);
+      }
+    });
+
+    modelButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", button.dataset.engineModel === modelMode ? "true" : "false");
+    });
+    if (timingKitFaceLabel) {
+      timingKitFaceLabel.visible = modelMode === "installed";
+    }
+    setComponentLabelsVisible(labelsVisible);
+
+    if (moveCamera) {
+      setCameraView(modelMode === "front-accessories" ? "frontAccessories" : "overview");
+    }
   }
 
   function addToPart(key, mesh) {
@@ -682,6 +852,23 @@ if (!renderer || !viewerElement) {
       addBolt(intakeGroup, new THREE.Vector3(x + 0.22, 2.31, -0.39), "y", 0.032, 0.025);
     });
 
+    const mapSensor = roundedBox(0.26, 0.08, 0.18, 0.025, materials.black);
+    mapSensor.position.copy(fuelSystemFace.mapSensor);
+    intakeGroup.add(mapSensor);
+
+    addTube(
+      intakeGroup,
+      [
+        fuelSystemFace.mapSensor.clone().add(new THREE.Vector3(0.06, 0.04, 0)),
+        new THREE.Vector3(1.28, 2.4, 0.38),
+        new THREE.Vector3(1.62, 2.26, 0.52)
+      ],
+      0.012,
+      materials.wiring,
+      14,
+      6
+    );
+
     const throttle = cylinder(0.32, 0.32, 0.5, 42, materials.pulley);
     throttle.rotation.z = Math.PI / 2;
     throttle.position.set(2.15, 2.06, 0);
@@ -767,16 +954,16 @@ if (!renderer || !viewerElement) {
     });
 
     const pulleyData = [
-      ["ca1CamPulley", 0.38, timingFace.ca1.y, timingFace.ca1.z, materials.service],
-      ["ca2CamPulley", 0.38, timingFace.ca2.y, timingFace.ca2.z, materials.service],
-      ["crankSprocket", 0.31, timingFace.crank.y, timingFace.crank.z, materials.service],
-      ["waterPump", 0.28, timingFace.waterPump.y, timingFace.waterPump.z, materials.coolant],
-      ["tensioner", 0.2, timingFace.tensioner.y, timingFace.tensioner.z, materials.service],
-      ["guidePulley", 0.19, timingFace.guide.y, timingFace.guide.z, materials.service]
+      ["ca1CamPulley", 0.38, timingFace.ca1.y, timingFace.ca1.z, materials.service, { toothed: true, markAngle: -Math.PI / 2 }],
+      ["ca2CamPulley", 0.38, timingFace.ca2.y, timingFace.ca2.z, materials.service, { toothed: true, markAngle: -Math.PI / 2 }],
+      ["crankSprocket", 0.31, timingFace.crank.y, timingFace.crank.z, materials.service, { toothed: true, toothCount: isMobile ? 18 : 26, markAngle: Math.PI / 2 }],
+      ["waterPump", 0.28, timingFace.waterPump.y, timingFace.waterPump.z, materials.coolant, { markAngle: 0 }],
+      ["tensioner", 0.2, timingFace.tensioner.y, timingFace.tensioner.z, materials.service, {}],
+      ["guidePulley", 0.19, timingFace.guide.y, timingFace.guide.z, materials.service, {}]
     ];
 
-    pulleyData.forEach(([name, radius, y, z, material]) => {
-      const pulley = addPulley(timingGroup, radius, y, z, material, { name });
+    pulleyData.forEach(([name, radius, y, z, material, pulleyOptions]) => {
+      const pulley = addPulley(timingGroup, radius, y, z, material, { name, ...pulleyOptions });
       if (name === "waterPump") {
         for (let i = 0; i < 7; i += 1) {
           const fin = roundedBox(0.026, radius * 1.22, 0.032, 0.006, materials.coolant);
@@ -819,7 +1006,7 @@ if (!renderer || !viewerElement) {
       timingGroup.add(seal);
     });
 
-    addFaceLabel(
+    timingKitFaceLabel = addFaceLabel(
       timingGroup,
       "AISIN TKH-002",
       new THREE.Vector3(-2.66, 2.23, 0),
@@ -831,46 +1018,152 @@ if (!renderer || !viewerElement) {
 
     const accessoryGroup = new THREE.Group();
     accessoryGroup.name = "Accessory drive components";
+    const frontAccessoryGroup = new THREE.Group();
+    frontAccessoryGroup.name = "Front accessory layer";
+
     const alternator = cylinder(0.38, 0.38, 0.74, 48, materials.pulley);
     alternator.rotation.z = Math.PI / 2;
     alternator.position.copy(accessoryFace.alternator);
-    accessoryGroup.add(alternator);
+    frontAccessoryGroup.add(alternator);
 
     [-0.24, 0, 0.24].forEach((xOffset) => {
       const vent = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.012, 8, 36), materials.darkMetal);
       vent.rotation.y = Math.PI / 2;
       vent.position.copy(accessoryFace.alternator).add(new THREE.Vector3(xOffset, 0, 0));
-      accessoryGroup.add(vent);
+      frontAccessoryGroup.add(vent);
     });
 
     for (let i = 0; i < 10; i += 1) {
       const slot = roundedBox(0.026, 0.18, 0.032, 0.005, materials.darkMetal);
       slot.position.copy(accessoryFace.alternator).add(new THREE.Vector3(-0.3, 0, 0));
       slot.rotation.x = (i * Math.PI) / 10;
-      accessoryGroup.add(slot);
+      frontAccessoryGroup.add(slot);
     }
+
+    const alternatorFrontCap = cylinder(0.31, 0.31, 0.055, 44, materials.darkMetal);
+    alternatorFrontCap.rotation.z = Math.PI / 2;
+    alternatorFrontCap.position.copy(accessoryFace.alternator).add(new THREE.Vector3(-0.39, 0, 0));
+    frontAccessoryGroup.add(alternatorFrontCap);
+
+    const alternatorPulley = cylinder(0.18, 0.18, 0.13, 36, materials.pulley);
+    alternatorPulley.rotation.z = Math.PI / 2;
+    alternatorPulley.position.copy(accessoryFace.alternator).add(new THREE.Vector3(-0.48, 0, 0));
+    frontAccessoryGroup.add(alternatorPulley);
+
+    [-0.08, 0.08].forEach((xOffset) => {
+      const groove = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.006, 6, 30), materials.black);
+      groove.rotation.y = Math.PI / 2;
+      groove.position.copy(alternatorPulley.position).add(new THREE.Vector3(xOffset, 0, 0));
+      frontAccessoryGroup.add(groove);
+    });
+
+    [
+      new THREE.Vector3(0.05, 0.38, -0.08),
+      new THREE.Vector3(0.08, -0.34, 0.08)
+    ].forEach((offset) => {
+      const ear = roundedBox(0.28, 0.14, 0.16, 0.035, materials.block);
+      ear.position.copy(accessoryFace.alternator).add(offset);
+      frontAccessoryGroup.add(ear);
+      addBolt(frontAccessoryGroup, ear.position.clone().add(new THREE.Vector3(-0.15, 0, 0)), "x", 0.035, 0.026);
+    });
+
+    const alternatorPost = cylinder(0.045, 0.045, 0.16, 16, materials.bolt);
+    alternatorPost.rotation.x = Math.PI / 2;
+    alternatorPost.position.copy(accessoryFace.alternator).add(new THREE.Vector3(0.34, 0.2, -0.26));
+    frontAccessoryGroup.add(alternatorPost);
+
+    addTube(
+      frontAccessoryGroup,
+      [
+        accessoryFace.alternator.clone().add(new THREE.Vector3(0.36, 0.22, 0.26)),
+        new THREE.Vector3(-2.18, 1.58, 1.0),
+        new THREE.Vector3(-1.18, 1.72, 1.1)
+      ],
+      0.018,
+      materials.wiring,
+      24,
+      7
+    );
 
     const compressor = roundedBox(0.7, 0.46, 0.54, 0.12, materials.darkMetal);
     compressor.position.copy(accessoryFace.compressor);
-    accessoryGroup.add(compressor);
+    frontAccessoryGroup.add(compressor);
 
     const compressorClutch = cylinder(0.25, 0.25, 0.08, 36, materials.pulley);
     compressorClutch.rotation.z = Math.PI / 2;
     compressorClutch.position.copy(accessoryFace.compressor).add(new THREE.Vector3(-0.4, 0, 0));
-    accessoryGroup.add(compressorClutch);
+    frontAccessoryGroup.add(compressorClutch);
+
+    const compressorClutchFace = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.012, 8, 36), materials.darkMetal);
+    compressorClutchFace.rotation.y = Math.PI / 2;
+    compressorClutchFace.position.copy(compressorClutch.position).add(new THREE.Vector3(-0.048, 0, 0));
+    frontAccessoryGroup.add(compressorClutchFace);
+
+    [
+      new THREE.Vector3(-0.22, 0.26, 0.18),
+      new THREE.Vector3(0.16, 0.26, -0.18),
+      new THREE.Vector3(0.18, -0.25, 0.18),
+      new THREE.Vector3(-0.2, -0.25, -0.18)
+    ].forEach((offset) => {
+      addBolt(frontAccessoryGroup, accessoryFace.compressor.clone().add(offset), "x", 0.032, 0.026);
+    });
+
+    [
+      new THREE.Vector3(-0.06, 0.29, 0.22),
+      new THREE.Vector3(0.16, 0.28, 0.06)
+    ].forEach((offset, index) => {
+      const port = cylinder(index === 0 ? 0.055 : 0.045, index === 0 ? 0.055 : 0.045, 0.2, 18, materials.bolt);
+      port.rotation.x = Math.PI / 2;
+      port.position.copy(accessoryFace.compressor).add(offset);
+      frontAccessoryGroup.add(port);
+    });
+
+    addTube(
+      frontAccessoryGroup,
+      [
+        accessoryFace.compressor.clone().add(new THREE.Vector3(-0.06, 0.38, 0.3)),
+        new THREE.Vector3(-2.54, 1.06, 1.18),
+        new THREE.Vector3(-1.34, 1.28, 1.36),
+        new THREE.Vector3(-0.22, 1.22, 1.28)
+      ],
+      0.026,
+      materials.bolt,
+      30,
+      8
+    );
+
+    addTube(
+      frontAccessoryGroup,
+      [
+        accessoryFace.compressor.clone().add(new THREE.Vector3(0.16, 0.36, 0.14)),
+        new THREE.Vector3(-2.36, 0.92, 0.82),
+        new THREE.Vector3(-1.48, 0.76, 1.08)
+      ],
+      0.02,
+      materials.hose,
+      22,
+      7
+    );
 
     const accessoryPulley = cylinder(0.28, 0.28, 0.16, 42, materials.pulley);
     accessoryPulley.rotation.z = Math.PI / 2;
     accessoryPulley.position.copy(accessoryFace.idler);
-    accessoryGroup.add(accessoryPulley);
+    frontAccessoryGroup.add(accessoryPulley);
+
+    [-0.07, 0, 0.07].forEach((xOffset) => {
+      const groove = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.008, 7, 34), materials.darkMetal);
+      groove.rotation.y = Math.PI / 2;
+      groove.position.copy(accessoryFace.idler).add(new THREE.Vector3(xOffset, 0, 0));
+      frontAccessoryGroup.add(groove);
+    });
 
     const accessoryBeltPoints = [
       new THREE.Vector3(accessoryFace.beltX, accessoryFace.alternator.y + 0.02, accessoryFace.alternator.z),
-      new THREE.Vector3(accessoryFace.beltX, 1.12, -0.34),
+      new THREE.Vector3(accessoryFace.beltX, 1.08, 0.58),
       new THREE.Vector3(accessoryFace.beltX, accessoryFace.idler.y, accessoryFace.idler.z),
       new THREE.Vector3(accessoryFace.beltX, accessoryFace.compressor.y, accessoryFace.compressor.z),
-      new THREE.Vector3(accessoryFace.beltX, timingFace.crank.y + 0.16, 0.18),
-      new THREE.Vector3(accessoryFace.beltX, 0.92, -0.42)
+      new THREE.Vector3(accessoryFace.beltX, timingFace.crank.y + 0.16, 0.28),
+      new THREE.Vector3(accessoryFace.beltX, 0.88, 0.34)
     ];
     const accessoryBeltCurve = new THREE.CatmullRomCurve3(accessoryBeltPoints, true);
     const serpentine = new THREE.Mesh(
@@ -883,31 +1176,34 @@ if (!renderer || !viewerElement) {
       ),
       materials.rubber
     );
-    accessoryGroup.add(serpentine);
+    frontAccessoryGroup.add(serpentine);
 
     addBeltTeeth(
-      accessoryGroup,
+      frontAccessoryGroup,
       accessoryBeltCurve,
       34,
       accessoryFace.beltX - 0.04
     );
 
     const accessoryBracket = roundedBox(0.18, 1.15, 0.18, 0.04, materials.block);
-    accessoryBracket.position.set(-2.64, 0.96, -0.12);
+    accessoryBracket.position.set(-2.64, 0.92, 0.72);
     accessoryBracket.rotation.z = 0.18;
-    accessoryGroup.add(accessoryBracket);
+    frontAccessoryGroup.add(accessoryBracket);
 
     addRibbedHose(
-      accessoryGroup,
+      frontAccessoryGroup,
       [
-        new THREE.Vector3(-2.58, 1.02, -0.62),
-        new THREE.Vector3(-2.86, 1.42, -0.28),
-        new THREE.Vector3(-2.82, 1.72, 0.38),
-        new THREE.Vector3(-2.42, 1.58, 0.92)
+        new THREE.Vector3(-2.58, 1.02, 0.36),
+        new THREE.Vector3(-2.84, 1.36, 0.74),
+        new THREE.Vector3(-2.58, 1.62, 1.08),
+        new THREE.Vector3(-1.82, 1.52, 1.16)
       ],
       0.035,
       5
     );
+
+    accessoryGroup.add(frontAccessoryGroup);
+    trackModelModeObject("frontAccessories", frontAccessoryGroup, new THREE.Vector3(-0.68, 0.08, -0.06));
 
     const starterGroup = new THREE.Group();
     starterGroup.name = "Starter motor";
@@ -942,58 +1238,113 @@ if (!renderer || !viewerElement) {
     addGroupToEngine("accessories", accessoryGroup);
 
     const exhaustGroup = new THREE.Group();
-    exhaustGroup.name = "Exhaust manifolds";
+    exhaustGroup.name = "Integrated exhaust outlets and close-coupled catalysts";
     [-1, 1].forEach((side) => {
+      const castOutlet = roundedBox(3.18, 0.28, 0.24, 0.08, materials.block);
+      castOutlet.position.set(0.02, 1.02, side * 1.1);
+      castOutlet.rotation.x = side * 0.1;
+      exhaustGroup.add(castOutlet);
+
       [-1.1, 0, 1.1].forEach((x) => {
-        const curve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(x, 1.16, side * 1.08),
-          new THREE.Vector3(x, 0.86, side * 1.32),
-          new THREE.Vector3(x + 0.18, 0.62, side * 1.42)
-        ]);
-        exhaustGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.06, 10), materials.exhaust));
+        addTube(
+          exhaustGroup,
+          [
+            new THREE.Vector3(x, 1.18, side * 0.98),
+            new THREE.Vector3(x * 0.92, 1.02, side * 1.1),
+            new THREE.Vector3(x * 0.76, 0.82, side * 1.25)
+          ],
+          0.07,
+          materials.block,
+          18,
+          10
+        );
+
+        const portFace = roundedBox(0.38, 0.16, 0.08, 0.025, materials.exhaust);
+        portFace.position.set(x * 0.76, 0.8, side * 1.29);
+        portFace.rotation.x = side * 0.12;
+        exhaustGroup.add(portFace);
+        addBolt(exhaustGroup, new THREE.Vector3(x * 0.76 - 0.16, 0.91, side * 1.21), "z", 0.03, 0.022);
+        addBolt(exhaustGroup, new THREE.Vector3(x * 0.76 + 0.16, 0.91, side * 1.21), "z", 0.03, 0.022);
       });
-      const collector = new THREE.Mesh(
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-1.35, 0.58, side * 1.42),
-            new THREE.Vector3(0, 0.5, side * 1.5),
-            new THREE.Vector3(1.35, 0.58, side * 1.42)
-          ]),
-          36,
-          0.075,
-          12
-        ),
-        materials.exhaust
+
+      const heatShield = roundedBox(2.72, 0.045, 0.42, 0.055, materials.heatShield);
+      heatShield.position.set(0.02, 0.9, side * 1.34);
+      heatShield.rotation.x = side * 0.18;
+      exhaustGroup.add(heatShield);
+
+      [-0.95, -0.32, 0.32, 0.95].forEach((x) => {
+        const crease = roundedBox(0.032, 0.035, 0.4, 0.008, materials.bolt);
+        crease.position.set(x, 0.925, side * 1.34);
+        crease.rotation.x = side * 0.18;
+        exhaustGroup.add(crease);
+      });
+
+      const catalyst = cylinder(0.24, 0.28, 0.72, 36, materials.heatShield);
+      catalyst.rotation.x = Math.PI / 2;
+      catalyst.position.set(-0.2, 0.55, side * 1.58);
+      exhaustGroup.add(catalyst);
+
+      [-0.25, 0.25].forEach((zOffset) => {
+        const band = new THREE.Mesh(new THREE.TorusGeometry(0.255, 0.012, 8, 32), materials.heatShield);
+        band.position.set(-0.2, 0.55, side * (1.58 + zOffset));
+        exhaustGroup.add(band);
+      });
+
+      [-0.34, 0.34].forEach((zOffset) => {
+        const endCap = cylinder(0.19, 0.19, 0.08, 28, materials.exhaust);
+        endCap.rotation.x = Math.PI / 2;
+        endCap.position.set(-0.2, 0.55, side * (1.58 + zOffset));
+        exhaustGroup.add(endCap);
+      });
+
+      addTube(
+        exhaustGroup,
+        [
+          new THREE.Vector3(-0.05, 0.72, side * 1.33),
+          new THREE.Vector3(-0.16, 0.62, side * 1.46),
+          new THREE.Vector3(-0.2, 0.55, side * 1.58)
+        ],
+        0.09,
+        materials.exhaust,
+        18,
+        12
       );
-      exhaustGroup.add(collector);
-
-      const shield = roundedBox(2.8, 0.035, 0.34, 0.04, materials.pulley);
-      shield.position.set(0.02, 0.86, side * 1.33);
-      shield.rotation.x = side * 0.18;
-      exhaustGroup.add(shield);
-
-      [-1.05, 0, 1.05].forEach((x) => {
-        addBolt(exhaustGroup, new THREE.Vector3(x, 0.89, side * 1.16), "z", 0.03, 0.022);
-      });
 
       const sensor = cylinder(0.045, 0.045, 0.28, 16, materials.bolt);
       sensor.rotation.x = Math.PI / 2;
-      sensor.position.set(1.08, 0.78, side * 1.52);
+      sensor.position.set(0.76, 0.76, side * 1.47);
       exhaustGroup.add(sensor);
     });
     addGroupToEngine("exhaust", exhaustGroup);
 
     const serviceExtras = new THREE.Group();
     serviceExtras.name = "Service extras";
+    const oilFilterGroup = new THREE.Group();
+    oilFilterGroup.name = "Front oil filter";
     const oilFilter = cylinder(0.18, 0.18, 0.48, 36, materials.label);
     oilFilter.rotation.z = Math.PI / 2;
     oilFilter.position.copy(accessoryFace.oilFilter);
-    serviceExtras.add(oilFilter);
+    oilFilterGroup.add(oilFilter);
 
     const filterBand = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.012, 8, 28), materials.service);
     filterBand.rotation.y = Math.PI / 2;
     filterBand.position.copy(accessoryFace.oilFilter);
-    serviceExtras.add(filterBand);
+    oilFilterGroup.add(filterBand);
+
+    [-0.16, -0.08, 0.08, 0.16].forEach((xOffset) => {
+      const grip = new THREE.Mesh(new THREE.TorusGeometry(0.181, 0.006, 6, 28), materials.darkMetal);
+      grip.rotation.y = Math.PI / 2;
+      grip.position.copy(accessoryFace.oilFilter).add(new THREE.Vector3(xOffset, 0, 0));
+      oilFilterGroup.add(grip);
+    });
+
+    const filterBase = cylinder(0.2, 0.2, 0.06, 32, materials.darkMetal);
+    filterBase.rotation.z = Math.PI / 2;
+    filterBase.position.copy(accessoryFace.oilFilter).add(new THREE.Vector3(0.27, 0, 0));
+    oilFilterGroup.add(filterBase);
+
+    serviceExtras.add(oilFilterGroup);
+    trackModelModeObject("oilFilter", oilFilterGroup, new THREE.Vector3(-0.38, 0.08, 0.18));
 
     const dipstick = new THREE.Mesh(
       new THREE.TubeGeometry(
@@ -1014,6 +1365,71 @@ if (!renderer || !viewerElement) {
     dipstickHandle.rotation.x = Math.PI / 2;
     dipstickHandle.position.set(1.42, 1.34, 1.08);
     serviceExtras.add(dipstickHandle);
+
+    const highPressurePumpGroup = new THREE.Group();
+    highPressurePumpGroup.name = "Direct-injection high-pressure fuel pump";
+
+    const pumpMount = roundedBox(0.38, 0.12, 0.3, 0.04, materials.block);
+    pumpMount.position.copy(fuelSystemFace.highPressurePump).add(new THREE.Vector3(0.02, -0.08, 0));
+    highPressurePumpGroup.add(pumpMount);
+
+    const pumpBody = cylinder(0.14, 0.14, 0.24, 28, materials.darkMetal);
+    pumpBody.rotation.z = Math.PI / 2;
+    pumpBody.position.copy(fuelSystemFace.highPressurePump);
+    highPressurePumpGroup.add(pumpBody);
+
+    const pumpCap = cylinder(0.09, 0.09, 0.12, 24, materials.service);
+    pumpCap.rotation.z = Math.PI / 2;
+    pumpCap.position.copy(fuelSystemFace.highPressurePump).add(new THREE.Vector3(-0.16, 0.02, 0));
+    highPressurePumpGroup.add(pumpCap);
+
+    [
+      new THREE.Vector3(-0.16, -0.08, -0.12),
+      new THREE.Vector3(0.18, -0.08, 0.12)
+    ].forEach((offset) => {
+      addBolt(highPressurePumpGroup, fuelSystemFace.highPressurePump.clone().add(offset), "y", 0.028, 0.024);
+    });
+
+    addTube(
+      highPressurePumpGroup,
+      [
+        fuelSystemFace.highPressurePump.clone().add(new THREE.Vector3(0.12, 0.03, 0.08)),
+        new THREE.Vector3(-0.78, 1.66, 0.08),
+        fuelSystemFace.frontFuelRail
+      ],
+      0.018,
+      materials.bolt,
+      24,
+      7
+    );
+
+    addTube(
+      highPressurePumpGroup,
+      [
+        fuelSystemFace.highPressurePump.clone().add(new THREE.Vector3(0.12, 0.03, -0.08)),
+        new THREE.Vector3(-0.72, 1.66, -0.24),
+        fuelSystemFace.rearFuelRail
+      ],
+      0.018,
+      materials.bolt,
+      24,
+      7
+    );
+
+    addTube(
+      highPressurePumpGroup,
+      [
+        fuelSystemFace.highPressurePump.clone().add(new THREE.Vector3(-0.16, 0.02, 0)),
+        new THREE.Vector3(-1.72, 1.96, -0.16),
+        new THREE.Vector3(-2.04, 1.78, 0.18)
+      ],
+      0.016,
+      materials.wiring,
+      18,
+      6
+    );
+
+    serviceExtras.add(highPressurePumpGroup);
 
     addRibbedHose(
       serviceExtras,
@@ -1053,6 +1469,20 @@ if (!renderer || !viewerElement) {
       7
     );
 
+    addTube(
+      serviceExtras,
+      [
+        new THREE.Vector3(-0.28, 0.72, -1.32),
+        new THREE.Vector3(-0.56, 1.12, -1.18),
+        new THREE.Vector3(-0.62, 1.58, -0.76),
+        new THREE.Vector3(-0.18, 1.96, -0.34)
+      ],
+      0.026,
+      materials.exhaust,
+      28,
+      8
+    );
+
     [-1, 1].forEach((side) => {
       const mount = roundedBox(0.55, 0.24, 0.35, 0.08, materials.darkMetal);
       mount.position.set(-1.98, 0.2, side * 0.98);
@@ -1082,10 +1512,11 @@ if (!renderer || !viewerElement) {
       {
         text: "Alternator",
         anchor: accessoryFace.alternator.clone(),
-        offset: new THREE.Vector3(0.5, 0.5, -0.34),
+        offset: new THREE.Vector3(-0.38, 0.28, 0.2),
         tone: "blue",
         width: 1.12,
-        priority: 1
+        priority: 1,
+        key: "alternator"
       },
       {
         text: "Starter Motor",
@@ -1098,18 +1529,29 @@ if (!renderer || !viewerElement) {
       {
         text: "A/C Compressor",
         anchor: accessoryFace.compressor.clone(),
-        offset: new THREE.Vector3(0.52, 0.24, 0.42),
+        offset: new THREE.Vector3(0.52, 0.24, 0.34),
         tone: "blue",
         width: 1.34,
-        priority: 1
+        priority: 1,
+        key: "compressor"
       },
       {
         text: "Serpentine Belt",
         anchor: accessoryFace.beltMid.clone(),
-        offset: new THREE.Vector3(0.56, 0.48, 0.26),
+        offset: new THREE.Vector3(0.48, 0.48, -0.26),
         tone: "green",
         width: 1.34,
-        priority: 2
+        priority: 2,
+        key: "serpentine"
+      },
+      {
+        text: "Drive Belt Tensioner",
+        anchor: accessoryFace.idler.clone(),
+        offset: new THREE.Vector3(-0.36, 0.28, -0.3),
+        tone: "orange",
+        width: 1.62,
+        priority: 2,
+        key: "driveTensioner"
       },
       {
         text: "Throttle Body",
@@ -1117,7 +1559,47 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.34, 0.36, 0.22),
         tone: "blue",
         width: 1.22,
+        priority: 1
+      },
+      {
+        text: "Air Intake Tube",
+        anchor: serviceReferenceFace.airIntakeTube.clone(),
+        offset: new THREE.Vector3(-0.06, -0.46, -0.34),
+        tone: "green",
+        width: 1.26,
+        priority: 4
+      },
+      {
+        text: "DI Fuel Pump",
+        anchor: fuelSystemFace.highPressurePump.clone(),
+        offset: new THREE.Vector3(-0.28, 0.4, -0.38),
+        tone: "orange",
+        width: 1.28,
         priority: 2
+      },
+      {
+        text: "Fuel Rails",
+        anchor: new THREE.Vector3(0.2, 1.55, 0),
+        offset: new THREE.Vector3(-0.18, 0.46, -0.52),
+        tone: "green",
+        width: 1.08,
+        priority: 2
+      },
+      {
+        text: "Fuel Injectors",
+        anchor: serviceReferenceFace.frontFuelInjectors.clone(),
+        offset: new THREE.Vector3(0.28, -0.2, 0.48),
+        tone: "green",
+        width: 1.24,
+        priority: 3
+      },
+      {
+        text: "MAP Sensor",
+        anchor: fuelSystemFace.mapSensor.clone(),
+        offset: new THREE.Vector3(0.46, 0.42, 0.28),
+        tone: "blue",
+        width: 1.0,
+        priority: 3
       },
       {
         text: "Intake Manifold",
@@ -1126,6 +1608,14 @@ if (!renderer || !viewerElement) {
         tone: "blue",
         width: 1.34,
         priority: 1
+      },
+      {
+        text: "Ignition Coils",
+        anchor: serviceReferenceFace.ignitionCoils.clone(),
+        offset: new THREE.Vector3(-0.18, 0.42, 0.5),
+        tone: "blue",
+        width: 1.26,
+        priority: 2
       },
       {
         text: "Front Head Cover",
@@ -1192,12 +1682,21 @@ if (!renderer || !viewerElement) {
         priority: 2
       },
       {
+        text: "Oil Filler Cap",
+        anchor: serviceReferenceFace.oilFillerCap.clone(),
+        offset: new THREE.Vector3(0.36, 0.44, 0.48),
+        tone: "orange",
+        width: 1.18,
+        priority: 3
+      },
+      {
         text: "Oil Filter",
         anchor: accessoryFace.oilFilter.clone(),
         offset: new THREE.Vector3(0.42, 0.38, 0.26),
         tone: "blue",
         width: 0.96,
-        priority: 1
+        priority: 1,
+        key: "oilFilter"
       },
       {
         text: "Dipstick",
@@ -1206,13 +1705,45 @@ if (!renderer || !viewerElement) {
         tone: "orange",
         width: 0.88,
         priority: 2
+      },
+      {
+        text: "Engine Mounts",
+        anchor: serviceReferenceFace.frontEngineMount.clone(),
+        offset: new THREE.Vector3(-0.48, -0.28, 0.24),
+        tone: "blue",
+        width: 1.28,
+        priority: 2
+      },
+      {
+        text: "EGR Pipe",
+        anchor: serviceReferenceFace.egrPipe.clone(),
+        offset: new THREE.Vector3(-0.24, 0.36, -0.38),
+        tone: "orange",
+        width: 0.9,
+        priority: 3
+      },
+      {
+        text: "Primary Catalyst",
+        anchor: serviceReferenceFace.primaryCatalysts.clone(),
+        offset: new THREE.Vector3(0.38, -0.36, 0.24),
+        tone: "orange",
+        width: 1.34,
+        priority: 3
+      },
+      {
+        text: "O2 Sensors",
+        anchor: serviceReferenceFace.frontOxygenSensor.clone(),
+        offset: new THREE.Vector3(0.46, 0.22, 0.32),
+        tone: "blue",
+        width: 1.0,
+        priority: 4
       }
     ];
 
     labels
       .filter((label) => !isMobile || label.priority <= 1)
       .forEach((label) => {
-        addComponentLabel(labelGroup, label.text, label.anchor, label.offset, label.tone, label.width);
+        addComponentLabel(labelGroup, label.text, label.anchor, label.offset, label.tone, label.width, label.key);
       });
 
     engine.add(labelGroup);
@@ -1238,8 +1769,8 @@ if (!renderer || !viewerElement) {
       label: "Intake Manifold",
       point: new THREE.Vector3(0.42, 2.28, 0),
       description:
-        "Upper intake plenum and six runners feeding the two J-series cylinder banks.",
-      facts: [["System", "Air intake"], ["Layout", "V6 runners"], ["Use", "Orientation"]]
+        "Upper intake plenum, throttle body, MAP sensor, EGR pipe reference, and six runners feeding the two J-series cylinder banks.",
+      facts: [["System", "Air intake"], ["Fuel", "Direct injection"], ["Use", "Orientation"]]
     },
     {
       key: "waterPump",
@@ -1291,6 +1822,10 @@ if (!renderer || !viewerElement) {
     accessories: {
       camera: new THREE.Vector3(-5.8, 2.0, 1.95),
       target: new THREE.Vector3(-2.35, 0.92, 0.12)
+    },
+    frontAccessories: {
+      camera: isMobile ? new THREE.Vector3(-10.2, 2.22, 7.4) : new THREE.Vector3(-8.8, 2.15, 5.7),
+      target: isMobile ? new THREE.Vector3(-2.45, 0.96, 0.74) : new THREE.Vector3(-2.82, 0.94, 0.72)
     },
     service: {
       camera: new THREE.Vector3(-5.7, 2.36, 1.65),
@@ -1504,9 +2039,16 @@ if (!renderer || !viewerElement) {
   buildEngineModel();
   buildHotspots();
   selectHotspot("timing", false);
+  if (new URLSearchParams(window.location.search).get("engineModel") === "front-accessories") {
+    setEngineModelMode("front-accessories", true);
+  }
 
   viewButtons.forEach((button) => {
     button.addEventListener("click", () => setCameraView(button.dataset.engineView));
+  });
+
+  modelButtons.forEach((button) => {
+    button.addEventListener("click", () => setEngineModelMode(button.dataset.engineModel));
   });
 
   labelToggle?.addEventListener("click", () => {
