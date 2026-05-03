@@ -2920,6 +2920,184 @@ kbd {
   margin-top: 0;
 }
 
+.engine-label-filters {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  border: 1px solid rgba(121, 212, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(5, 12, 20, 0.42);
+}
+
+.engine-label-filters .viewer-toggle {
+  min-height: 28px;
+}
+
+.engine-stage-label-filters {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 5;
+  display: none;
+  width: auto;
+  backdrop-filter: blur(16px);
+}
+
+.engine-part-reference {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(121, 212, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(255, 145, 94, 0.1), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(7, 14, 24, 0.94);
+  box-shadow: var(--shadow);
+  scroll-margin-top: 92px;
+}
+
+.engine-part-reference:focus {
+  outline: none;
+}
+
+.part-reference-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 16px;
+  align-items: end;
+}
+
+.part-reference-header h2 {
+  margin: 0 0 8px;
+}
+
+.part-reference-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.part-reference-picker label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.part-reference-picker select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(121, 212, 255, 0.2);
+  background: rgba(4, 10, 18, 0.88);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.part-reference-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.part-reference-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.part-reference-meta span:first-child {
+  border-color: rgba(255, 145, 94, 0.28);
+  background: rgba(255, 145, 94, 0.1);
+  color: #ffd9c7;
+}
+
+.part-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.part-reference-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.part-reference-card h3 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.part-reference-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.part-reference-numbers {
+  grid-column: span 1;
+}
+
+.part-number-list {
+  display: grid;
+  gap: 8px;
+}
+
+.part-number-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.55fr) minmax(150px, 0.8fr) minmax(0, 1.25fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(121, 212, 255, 0.1);
+  background: rgba(4, 10, 18, 0.46);
+}
+
+.part-number-row strong {
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.part-number-row code {
+  overflow-wrap: anywhere;
+  color: #9ee8ff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.part-number-row span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.part-reference-disclaimer {
+  padding-top: 4px;
+  font-size: 0.84rem;
+}
+
 .photo-atlas-grid {
   align-items: start;
 }
@@ -3585,6 +3763,62 @@ kbd {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+
+  .engine-label-filters {
+    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 6px;
+    scrollbar-width: none;
+  }
+
+  .engine-label-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .engine-label-filters .viewer-toggle {
+    flex: 0 0 auto;
+    min-width: 74px;
+  }
+
+  .engine-control-bar > .engine-label-filters {
+    display: none;
+  }
+
+  .engine-stage-label-filters {
+    display: flex;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+  }
+
+  .engine-part-reference {
+    gap: 14px;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    scroll-margin-top: 72px;
+  }
+
+  .part-reference-header,
+  .part-reference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .part-reference-picker select {
+    min-height: 46px;
+    font-size: 0.92rem;
+  }
+
+  .part-reference-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .part-number-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
   }
 
   .hud-topbar,

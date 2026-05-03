@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v127";
+const CACHE_NAME = "ridgeline-console-v132";
 const ASSETS = [
   "./",
   "./index.html",
@@ -16,6 +16,7 @@ const ASSETS = [
   "./styles.css",
   "./script.js",
   "./engine-viewer.js",
+  "./engine-part-data.js",
   "./fuse-interactive.js",
   "./ar-viewer.js",
   "./pinout-interactive.js",

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { defaultEnginePartKey, enginePartDetails } from "./engine-part-data.js";
 
 const viewerElement = document.getElementById("engine-viewer");
 const hotspotLayer = document.getElementById("engine-hotspot-layer");
@@ -12,6 +13,17 @@ const inspectorMeta = document.getElementById("engine-inspector-meta");
 const viewButtons = [...document.querySelectorAll("[data-engine-view]")];
 const modelButtons = [...document.querySelectorAll("[data-engine-model]")];
 const labelToggle = document.querySelector("[data-engine-labels]");
+const labelFilterButtons = [...document.querySelectorAll("[data-engine-label-filter]")];
+const partReference = document.getElementById("engine-part-reference");
+const partSelect = document.getElementById("engine-part-select");
+const partTitle = document.getElementById("engine-part-title");
+const partCategory = document.getElementById("engine-part-category");
+const partSummary = document.getElementById("engine-part-summary");
+const partLocation = document.getElementById("engine-part-location");
+const partRole = document.getElementById("engine-part-role");
+const partService = document.getElementById("engine-part-service");
+const partNotes = document.getElementById("engine-part-notes");
+const partNumbers = document.getElementById("engine-part-numbers");
 
 const isMobile =
   window.matchMedia("(max-width: 900px)").matches ||
@@ -209,15 +221,22 @@ if (!renderer || !viewerElement) {
   const componentLabelObjects = [];
   const componentLabelRecords = new Map();
   const modelModeObjects = new Map();
+  const labelRaycaster = new THREE.Raycaster();
+  const labelPointer = new THREE.Vector2();
   const projected = new THREE.Vector3();
   const cameraLocal = new THREE.Vector3();
   let selectedKey = "timing";
+  let selectedPartKey = defaultEnginePartKey;
   let modelMode = "installed";
   let cameraTween = null;
   let isInteracting = false;
   let autoRotateTimer = null;
   let labelsVisible = true;
+  let activeLabelFilter = "all";
   let timingKitFaceLabel = null;
+  let labelPointerDown = null;
+
+  labelRaycaster.params.Line.threshold = 0.08;
 
   const timingFace = {
     x: -2.47,
@@ -233,7 +252,7 @@ if (!renderer || !viewerElement) {
   const accessoryFace = {
     beltX: -2.96,
     alternator: new THREE.Vector3(-2.9, 1.26, 0.76),
-    starter: new THREE.Vector3(2.22, 0.46, -0.66),
+    starter: new THREE.Vector3(2.34, 0.76, 0.72),
     compressor: new THREE.Vector3(-2.92, 0.55, 0.9),
     idler: new THREE.Vector3(-2.96, 0.88, 0.52),
     beltMid: new THREE.Vector3(-2.98, 0.92, 0.64),
@@ -496,22 +515,24 @@ if (!renderer || !viewerElement) {
     record.line.geometry.computeBoundingSphere();
   }
 
-  function addComponentLabel(group, text, anchor, offset, tone = "blue", width = 1.18, key = null) {
+  function addComponentLabel(group, text, anchor, offset, tone = "blue", width = 1.18, key = null, groups = ["service"]) {
     const anchorPoint = anchor.clone();
     const labelPosition = anchor.clone().add(offset);
     const material = makeComponentLabelMaterial(text, tone);
     const sprite = new THREE.Sprite(material);
     sprite.position.copy(labelPosition);
-    const scaleBoost = isMobile ? 0.92 : 1;
+    const scaleBoost = isMobile ? 0.82 : 1;
     sprite.scale.set(width * scaleBoost, 0.3 * scaleBoost, 1);
+    const baseScale = sprite.scale.clone();
     sprite.renderOrder = 20;
     group.add(sprite);
 
+    const toneColor = new THREE.Color(tone === "orange" ? 0xffb48f : tone === "green" ? 0x88f7c2 : 0x8ad8ff);
     const lineGeometry = new THREE.BufferGeometry().setFromPoints([anchorPoint, labelPosition]);
     const line = new THREE.Line(
       lineGeometry,
       new THREE.LineBasicMaterial({
-        color: tone === "orange" ? 0xffb48f : tone === "green" ? 0x88f7c2 : 0x8ad8ff,
+        color: toneColor,
         transparent: true,
         opacity: 0.72,
         depthTest: false,
@@ -523,7 +544,7 @@ if (!renderer || !viewerElement) {
 
     const dot = new THREE.Mesh(
       new THREE.SphereGeometry(0.045, 16, 10),
-      new THREE.MeshBasicMaterial({ color: tone === "orange" ? 0xffb48f : tone === "green" ? 0x88f7c2 : 0x8ad8ff, depthTest: false })
+      new THREE.MeshBasicMaterial({ color: toneColor, depthTest: false })
     );
     dot.position.copy(anchorPoint);
     dot.renderOrder = 20;
@@ -535,10 +556,15 @@ if (!renderer || !viewerElement) {
       offset: offset.clone(),
       sprite,
       line,
-      dot
+      dot,
+      baseScale,
+      toneColor,
+      groups
     };
     [sprite, line, dot].forEach((object) => {
       object.userData.componentLabelKey = record.key;
+      object.userData.componentLabelGroups = record.groups;
+      object.userData.isComponentLabelTarget = object === sprite || object === dot;
     });
     componentLabelObjects.push(sprite, line, dot);
     if (key) {
@@ -549,13 +575,197 @@ if (!renderer || !viewerElement) {
 
   function setComponentLabelsVisible(visible) {
     labelsVisible = visible;
+    const accessoryKeys = new Set(["alternator", "compressor", "serpentine", "driveTensioner", "oilFilter"]);
     componentLabelObjects.forEach((object) => {
-      const accessoryKeys = new Set(["alternator", "compressor", "serpentine", "driveTensioner", "oilFilter"]);
       const shouldShowInMode =
         modelMode !== "front-accessories" || accessoryKeys.has(object.userData.componentLabelKey);
-      object.visible = visible && shouldShowInMode;
+      const groups = object.userData.componentLabelGroups || [];
+      const shouldShowForFilter = activeLabelFilter === "all" || groups.includes(activeLabelFilter);
+      object.visible = visible && shouldShowInMode && shouldShowForFilter;
     });
     labelToggle?.setAttribute("aria-pressed", visible ? "true" : "false");
+  }
+
+  function setLabelFilter(filter = "all") {
+    const knownFilter = labelFilterButtons.some((button) => button.dataset.engineLabelFilter === filter);
+    activeLabelFilter = knownFilter ? filter : "all";
+    labelFilterButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", button.dataset.engineLabelFilter === activeLabelFilter ? "true" : "false");
+    });
+    setComponentLabelsVisible(labelsVisible);
+  }
+
+  function populatePartSelector() {
+    if (!partSelect) {
+      return;
+    }
+
+    partSelect.replaceChildren();
+    Object.entries(enginePartDetails).forEach(([key, detail]) => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = detail.title;
+      partSelect.appendChild(option);
+    });
+  }
+
+  function setSelectedComponentLabel(partKey) {
+    const selectedColor = new THREE.Color(0xfff0c7);
+
+    componentLabelRecords.forEach((record, key) => {
+      const selected = key === partKey;
+      record.sprite.scale.copy(record.baseScale).multiplyScalar(selected ? 1.12 : 1);
+      record.sprite.material.opacity = selected ? 1 : 0.94;
+      record.line.material.opacity = selected ? 0.95 : 0.72;
+      record.line.material.color.copy(selected ? selectedColor : record.toneColor);
+      record.dot.scale.setScalar(selected ? 1.55 : 1);
+      record.dot.material.color.copy(selected ? selectedColor : record.toneColor);
+    });
+  }
+
+  function renderPartNumbers(numbers = []) {
+    if (!partNumbers) {
+      return;
+    }
+
+    partNumbers.replaceChildren();
+    numbers.forEach(([maker, number, note]) => {
+      const row = document.createElement("div");
+      row.className = "part-number-row";
+
+      const makerElement = document.createElement("strong");
+      makerElement.textContent = maker;
+
+      const numberElement = document.createElement("code");
+      numberElement.textContent = number;
+
+      const noteElement = document.createElement("span");
+      noteElement.textContent = note;
+
+      row.append(makerElement, numberElement, noteElement);
+      partNumbers.appendChild(row);
+    });
+  }
+
+  function renderPartNotes(notes = []) {
+    if (!partNotes) {
+      return;
+    }
+
+    partNotes.replaceChildren();
+    notes.forEach((note) => {
+      const item = document.createElement("li");
+      item.textContent = note;
+      partNotes.appendChild(item);
+    });
+  }
+
+  function setPartReference(key = defaultEnginePartKey, options = {}) {
+    const partKey = enginePartDetails[key] ? key : defaultEnginePartKey;
+    const detail = enginePartDetails[partKey];
+    selectedPartKey = partKey;
+
+    if (partTitle) {
+      partTitle.textContent = detail.title;
+    }
+    if (partCategory) {
+      partCategory.textContent = detail.category;
+    }
+    if (partSummary) {
+      partSummary.textContent = detail.service;
+    }
+    if (partLocation) {
+      partLocation.textContent = detail.location;
+    }
+    if (partRole) {
+      partRole.textContent = detail.role;
+    }
+    if (partService) {
+      partService.textContent = detail.service;
+    }
+
+    renderPartNotes(detail.notes);
+    renderPartNumbers(detail.numbers);
+
+    if (partSelect && partSelect.value !== partKey) {
+      partSelect.value = partKey;
+    }
+
+    setSelectedComponentLabel(partKey);
+
+    if (options.scrollIntoView && partReference) {
+      window.setTimeout(() => {
+        partReference.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start"
+        });
+        partReference.focus?.({ preventScroll: true });
+      }, 80);
+    }
+  }
+
+  function labelPointerFromEvent(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    if (
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    ) {
+      return false;
+    }
+
+    labelPointer.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    return true;
+  }
+
+  function partKeyFromPointer(event) {
+    if (!labelPointerFromEvent(event)) {
+      return null;
+    }
+
+    labelRaycaster.setFromCamera(labelPointer, camera);
+    const targets = componentLabelObjects.filter(
+      (object) => object.visible && object.userData.isComponentLabelTarget
+    );
+    const hit = labelRaycaster.intersectObjects(targets, false).find((entry) => {
+      const partKey = entry.object.userData.componentLabelKey;
+      return partKey && enginePartDetails[partKey];
+    });
+
+    return hit?.object.userData.componentLabelKey || null;
+  }
+
+  function rememberLabelPointer(event) {
+    labelPointerDown = {
+      x: event.clientX,
+      y: event.clientY,
+      time: performance.now()
+    };
+    stopAutoRotate();
+  }
+
+  function handleLabelPointerUp(event) {
+    const wasTap =
+      labelPointerDown &&
+      performance.now() - labelPointerDown.time < 850 &&
+      Math.hypot(event.clientX - labelPointerDown.x, event.clientY - labelPointerDown.y) < (isMobile ? 18 : 10);
+    labelPointerDown = null;
+
+    if (wasTap) {
+      const partKey = partKeyFromPointer(event);
+      if (partKey) {
+        event.preventDefault();
+        setPartReference(partKey, { scrollIntoView: true });
+        scheduleAutoRotate();
+        return;
+      }
+    }
+
+    scheduleAutoRotate();
   }
 
   function trackModelModeObject(key, object, frontAccessoriesPosition) {
@@ -1207,6 +1417,17 @@ if (!renderer || !viewerElement) {
 
     const starterGroup = new THREE.Group();
     starterGroup.name = "Starter motor";
+    const starterFlange = roundedBox(0.09, 0.44, 0.42, 0.04, materials.block);
+    starterFlange.position.copy(accessoryFace.starter).add(new THREE.Vector3(-0.38, 0, 0));
+    starterGroup.add(starterFlange);
+
+    [
+      new THREE.Vector3(-0.43, 0.16, 0.15),
+      new THREE.Vector3(-0.43, -0.16, -0.15)
+    ].forEach((offset) => {
+      addBolt(starterGroup, accessoryFace.starter.clone().add(offset), "x", 0.035, 0.028);
+    });
+
     const starterMotor = cylinder(0.2, 0.2, 0.64, 36, materials.darkMetal);
     starterMotor.rotation.z = Math.PI / 2;
     starterMotor.position.copy(accessoryFace.starter);
@@ -1214,19 +1435,19 @@ if (!renderer || !viewerElement) {
 
     const starterNose = cylinder(0.14, 0.14, 0.26, 32, materials.pulley);
     starterNose.rotation.z = Math.PI / 2;
-    starterNose.position.copy(accessoryFace.starter).add(new THREE.Vector3(0.38, 0, 0.02));
+    starterNose.position.copy(accessoryFace.starter).add(new THREE.Vector3(-0.43, 0, -0.02));
     starterGroup.add(starterNose);
 
     const starterSolenoid = roundedBox(0.48, 0.16, 0.18, 0.05, materials.black);
-    starterSolenoid.position.copy(accessoryFace.starter).add(new THREE.Vector3(-0.02, 0.22, -0.12));
+    starterSolenoid.position.copy(accessoryFace.starter).add(new THREE.Vector3(-0.04, 0.24, 0.12));
     starterGroup.add(starterSolenoid);
 
     addTube(
       starterGroup,
       [
-        new THREE.Vector3(1.98, 0.67, -0.7),
-        new THREE.Vector3(1.64, 0.9, -0.92),
-        new THREE.Vector3(1.2, 1.22, -1.08)
+        accessoryFace.starter.clone().add(new THREE.Vector3(0.04, 0.34, 0.16)),
+        new THREE.Vector3(1.82, 1.18, 1.02),
+        new THREE.Vector3(0.92, 1.82, 1.14)
       ],
       0.024,
       materials.wiring,
@@ -1516,15 +1737,20 @@ if (!renderer || !viewerElement) {
         tone: "blue",
         width: 1.12,
         priority: 1,
-        key: "alternator"
+        key: "alternator",
+        groups: ["drive", "service"]
       },
       {
         text: "Starter Motor",
         anchor: accessoryFace.starter.clone(),
-        offset: new THREE.Vector3(-0.62, 0.26, -0.44),
+        offset: new THREE.Vector3(-0.82, 0.28, 0.28),
+        mobileOffset: new THREE.Vector3(-0.92, 0.32, 0.18),
         tone: "orange",
         width: 1.28,
-        priority: 1
+        mobileWidth: 1.12,
+        priority: 1,
+        key: "starter",
+        groups: ["drive", "service"]
       },
       {
         text: "A/C Compressor",
@@ -1533,7 +1759,8 @@ if (!renderer || !viewerElement) {
         tone: "blue",
         width: 1.34,
         priority: 1,
-        key: "compressor"
+        key: "compressor",
+        groups: ["drive", "service"]
       },
       {
         text: "Serpentine Belt",
@@ -1542,7 +1769,8 @@ if (!renderer || !viewerElement) {
         tone: "green",
         width: 1.34,
         priority: 2,
-        key: "serpentine"
+        key: "serpentine",
+        groups: ["drive"]
       },
       {
         text: "Drive Belt Tensioner",
@@ -1551,23 +1779,32 @@ if (!renderer || !viewerElement) {
         tone: "orange",
         width: 1.62,
         priority: 2,
-        key: "driveTensioner"
+        key: "driveTensioner",
+        groups: ["drive"]
       },
       {
         text: "Throttle Body",
         anchor: accessoryFace.throttle.clone(),
         offset: new THREE.Vector3(0.34, 0.36, 0.22),
+        mobileOffset: new THREE.Vector3(-0.78, 0.42, 0.18),
         tone: "blue",
         width: 1.22,
-        priority: 1
+        mobileWidth: 1.12,
+        priority: 1,
+        key: "throttleBody",
+        groups: ["intake"]
       },
       {
         text: "Air Intake Tube",
         anchor: serviceReferenceFace.airIntakeTube.clone(),
         offset: new THREE.Vector3(-0.06, -0.46, -0.34),
+        mobileOffset: new THREE.Vector3(-1.04, -0.28, -0.2),
         tone: "green",
         width: 1.26,
-        priority: 4
+        mobileWidth: 1.14,
+        priority: 4,
+        key: "airIntakeTube",
+        groups: ["intake"]
       },
       {
         text: "DI Fuel Pump",
@@ -1575,7 +1812,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.28, 0.4, -0.38),
         tone: "orange",
         width: 1.28,
-        priority: 2
+        priority: 2,
+        key: "diFuelPump",
+        groups: ["intake", "service"]
       },
       {
         text: "Fuel Rails",
@@ -1583,7 +1822,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.18, 0.46, -0.52),
         tone: "green",
         width: 1.08,
-        priority: 2
+        priority: 2,
+        key: "fuelRails",
+        groups: ["intake"]
       },
       {
         text: "Fuel Injectors",
@@ -1591,7 +1832,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.28, -0.2, 0.48),
         tone: "green",
         width: 1.24,
-        priority: 3
+        priority: 3,
+        key: "fuelInjectors",
+        groups: ["intake"]
       },
       {
         text: "MAP Sensor",
@@ -1599,7 +1842,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.46, 0.42, 0.28),
         tone: "blue",
         width: 1.0,
-        priority: 3
+        priority: 3,
+        key: "mapSensor",
+        groups: ["intake"]
       },
       {
         text: "Intake Manifold",
@@ -1607,7 +1852,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.12, 0.46, 0.32),
         tone: "blue",
         width: 1.34,
-        priority: 1
+        priority: 1,
+        key: "intakeManifold",
+        groups: ["intake"]
       },
       {
         text: "Ignition Coils",
@@ -1615,7 +1862,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.18, 0.42, 0.5),
         tone: "blue",
         width: 1.26,
-        priority: 2
+        priority: 2,
+        key: "ignitionCoils",
+        groups: ["intake", "service"]
       },
       {
         text: "Front Head Cover",
@@ -1623,7 +1872,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.62, 0.44, 0.42),
         tone: "blue",
         width: 1.45,
-        priority: 2
+        priority: 2,
+        key: "frontHeadCover",
+        groups: ["service"]
       },
       {
         text: "Rear Head Cover",
@@ -1631,7 +1882,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.58, 0.46, -0.42),
         tone: "blue",
         width: 1.4,
-        priority: 2
+        priority: 2,
+        key: "rearHeadCover",
+        groups: ["service"]
       },
       {
         text: "Timing Belt",
@@ -1639,7 +1892,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.38, 0.52, 0.42),
         tone: "green",
         width: 1.16,
-        priority: 1
+        priority: 1,
+        key: "timingBelt",
+        groups: ["timing"]
       },
       {
         text: "Cam Pulleys CA1/CA2",
@@ -1647,7 +1902,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.5, 0.74, 0),
         tone: "orange",
         width: 1.62,
-        priority: 3
+        priority: 3,
+        key: "camPulleys",
+        groups: ["timing"]
       },
       {
         text: "Water Pump",
@@ -1655,7 +1912,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.52, 0.18, -0.36),
         tone: "blue",
         width: 1.1,
-        priority: 1
+        priority: 1,
+        key: "waterPump",
+        groups: ["timing", "service"]
       },
       {
         text: "Tensioner",
@@ -1663,7 +1922,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.46, -0.08, 0.48),
         tone: "orange",
         width: 1.0,
-        priority: 3
+        priority: 3,
+        key: "timingBeltTensioner",
+        groups: ["timing"]
       },
       {
         text: "Idler",
@@ -1671,7 +1932,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.46, -0.02, -0.44),
         tone: "orange",
         width: 0.76,
-        priority: 3
+        priority: 3,
+        key: "timingIdler",
+        groups: ["timing"]
       },
       {
         text: "Crank Sprocket",
@@ -1679,7 +1942,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.52, -0.1, 0.18),
         tone: "orange",
         width: 1.34,
-        priority: 2
+        priority: 2,
+        key: "crankSprocket",
+        groups: ["timing"]
       },
       {
         text: "Oil Filler Cap",
@@ -1687,7 +1952,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.36, 0.44, 0.48),
         tone: "orange",
         width: 1.18,
-        priority: 3
+        priority: 3,
+        key: "oilFillerCap",
+        groups: ["service"]
       },
       {
         text: "Oil Filter",
@@ -1696,7 +1963,8 @@ if (!renderer || !viewerElement) {
         tone: "blue",
         width: 0.96,
         priority: 1,
-        key: "oilFilter"
+        key: "oilFilter",
+        groups: ["drive", "service"]
       },
       {
         text: "Dipstick",
@@ -1704,7 +1972,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.18, 0.46, 0.44),
         tone: "orange",
         width: 0.88,
-        priority: 2
+        priority: 2,
+        key: "dipstick",
+        groups: ["service"]
       },
       {
         text: "Engine Mounts",
@@ -1712,7 +1982,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.48, -0.28, 0.24),
         tone: "blue",
         width: 1.28,
-        priority: 2
+        priority: 2,
+        key: "engineMounts",
+        groups: ["service"]
       },
       {
         text: "EGR Pipe",
@@ -1720,7 +1992,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(-0.24, 0.36, -0.38),
         tone: "orange",
         width: 0.9,
-        priority: 3
+        priority: 3,
+        key: "egrPipe",
+        groups: ["intake", "service"]
       },
       {
         text: "Primary Catalyst",
@@ -1728,7 +2002,9 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.38, -0.36, 0.24),
         tone: "orange",
         width: 1.34,
-        priority: 3
+        priority: 3,
+        key: "primaryCatalyst",
+        groups: ["service"]
       },
       {
         text: "O2 Sensors",
@@ -1736,14 +2012,17 @@ if (!renderer || !viewerElement) {
         offset: new THREE.Vector3(0.46, 0.22, 0.32),
         tone: "blue",
         width: 1.0,
-        priority: 4
+        priority: 4,
+        key: "o2Sensors",
+        groups: ["service"]
       }
     ];
 
     labels
-      .filter((label) => !isMobile || label.priority <= 1)
       .forEach((label) => {
-        addComponentLabel(labelGroup, label.text, label.anchor, label.offset, label.tone, label.width, label.key);
+        const offset = isMobile && label.mobileOffset ? label.mobileOffset : label.offset;
+        const width = isMobile && label.mobileWidth ? label.mobileWidth : label.width;
+        addComponentLabel(labelGroup, label.text, label.anchor, offset, label.tone, width, label.key, label.groups);
       });
 
     engine.add(labelGroup);
@@ -1938,6 +2217,17 @@ if (!renderer || !viewerElement) {
     setInspector(hotspot);
     const partKey = hotspot.key === "waterPump" || hotspot.key === "crankSprocket" ? "timing" : hotspot.key;
     highlightPart(partKey, hotspot.key);
+    const referenceKey =
+      {
+        timing: "timingBelt",
+        intake: "intakeManifold",
+        waterPump: "waterPump",
+        crankSprocket: "crankSprocket",
+        accessory: "alternator"
+      }[hotspot.key] || hotspot.key;
+    if (enginePartDetails[referenceKey]) {
+      setPartReference(referenceKey);
+    }
     if (moveCamera) {
       setCameraView(hotspot.view || "service");
     }
@@ -2036,12 +2326,16 @@ if (!renderer || !viewerElement) {
     requestAnimationFrame(tick);
   }
 
+  const startupParams = new URLSearchParams(window.location.search);
+  populatePartSelector();
   buildEngineModel();
   buildHotspots();
   selectHotspot("timing", false);
-  if (new URLSearchParams(window.location.search).get("engineModel") === "front-accessories") {
+  if (startupParams.get("engineModel") === "front-accessories") {
     setEngineModelMode("front-accessories", true);
   }
+  setLabelFilter(startupParams.get("labelFilter") || "all");
+  setPartReference(startupParams.get("part") || selectedPartKey);
 
   viewButtons.forEach((button) => {
     button.addEventListener("click", () => setCameraView(button.dataset.engineView));
@@ -2055,6 +2349,14 @@ if (!renderer || !viewerElement) {
     setComponentLabelsVisible(!labelsVisible);
   });
 
+  labelFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => setLabelFilter(button.dataset.engineLabelFilter || "all"));
+  });
+
+  partSelect?.addEventListener("change", () => {
+    setPartReference(partSelect.value || defaultEnginePartKey);
+  });
+
   controls.addEventListener("start", () => {
     isInteracting = true;
     stopAutoRotate();
@@ -2065,10 +2367,10 @@ if (!renderer || !viewerElement) {
     scheduleAutoRotate();
   });
 
-  renderer.domElement.addEventListener("pointerdown", stopAutoRotate);
+  renderer.domElement.addEventListener("pointerdown", rememberLabelPointer);
   renderer.domElement.addEventListener("wheel", stopAutoRotate, { passive: true });
   renderer.domElement.addEventListener("touchstart", stopAutoRotate, { passive: true });
-  renderer.domElement.addEventListener("pointerup", scheduleAutoRotate);
+  renderer.domElement.addEventListener("pointerup", handleLabelPointerUp);
   renderer.domElement.addEventListener("touchend", scheduleAutoRotate, { passive: true });
 
   window.addEventListener("resize", resizeRenderer);

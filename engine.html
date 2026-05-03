@@ -54,6 +54,15 @@
             <div id="engine-viewer" class="engine-viewer" aria-label="Interactive J35Y6 engine model"></div>
             <div id="engine-hotspot-layer" class="engine-hotspot-layer" aria-hidden="false"></div>
             <div id="engine-viewer-status" class="viewer-status" hidden></div>
+            <div class="engine-label-filters engine-stage-label-filters" aria-label="Quick label filters">
+              <button class="viewer-toggle" type="button" data-engine-label-filter="all" aria-pressed="true">
+                All
+              </button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="timing">Timing</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="intake">Intake</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="drive">Drive</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="service">Service</button>
+            </div>
           </div>
 
           <aside class="engine-inspector" aria-live="polite">
@@ -81,6 +90,65 @@
             <button class="viewer-toggle" type="button" data-engine-view="accessories">Accessories</button>
             <button class="viewer-toggle" type="button" data-engine-view="service">Service Highlight</button>
             <button class="viewer-toggle" type="button" data-engine-labels aria-pressed="true">Labels</button>
+            <div class="engine-label-filters" aria-label="Engine label filters">
+              <button class="viewer-toggle" type="button" data-engine-label-filter="all" aria-pressed="true">
+                All Labels
+              </button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="timing">Timing</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="intake">Intake</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="drive">Drive</button>
+              <button class="viewer-toggle" type="button" data-engine-label-filter="service">Service</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="engine-part-reference" id="engine-part-reference" tabindex="-1" aria-live="polite">
+          <div class="part-reference-header">
+            <div>
+              <p class="eyebrow">Part Reference</p>
+              <h2 id="engine-part-title">Timing Belt</h2>
+              <p id="engine-part-summary" class="section-copy">
+                Tap any 3D label to open the in-site reference for that component.
+              </p>
+            </div>
+            <div class="part-reference-picker">
+              <label for="engine-part-select">Jump to part</label>
+              <select id="engine-part-select" aria-label="Choose an engine part"></select>
+            </div>
+          </div>
+
+          <div class="part-reference-meta">
+            <span id="engine-part-category">Timing service</span>
+            <span>In-site reference, no external redirect</span>
+          </div>
+
+          <div class="part-reference-grid">
+            <article class="part-reference-card">
+              <h3>Location</h3>
+              <p id="engine-part-location">
+                Inside the timing cover on the front/timing-belt end of the J35Y6.
+              </p>
+            </article>
+            <article class="part-reference-card">
+              <h3>Function</h3>
+              <p id="engine-part-role">
+                Synchronizes crankshaft and camshaft rotation on the SOHC J-series V6.
+              </p>
+            </article>
+            <article class="part-reference-card">
+              <h3>Service Notes</h3>
+              <p id="engine-part-service">
+                Timing belt service was recorded on April 25, 2026 at 165,980 miles.
+              </p>
+              <ul id="engine-part-notes" class="highlight-list"></ul>
+            </article>
+            <article class="part-reference-card part-reference-numbers">
+              <h3>Part Number References</h3>
+              <div id="engine-part-numbers" class="part-number-list"></div>
+              <p class="part-reference-disclaimer">
+                Use these as reference numbers and confirm final fitment with VIN, emissions label, and build date before buying.
+              </p>
+            </article>
           </div>
         </section>
 
@@ -108,7 +176,7 @@
             <ul class="highlight-list">
               <li>Textured V6 block, cylinder heads, valve covers, intake plenum, fuel rails, fuel injectors, coil wiring, and component labels</li>
               <li>Timing-side cam pulleys, crank sprocket, tensioner, idlers, water pump, belt teeth, cover bolts, and service label</li>
-              <li>Front/timing-side alternator, A/C compressor, serpentine belt, oil filter, coolant hoses, engine mount references, high-pressure fuel pump, primary catalyst, O2 sensor, and a bellhousing-side starter motor</li>
+              <li>Front/timing-side alternator, A/C compressor, serpentine belt, oil filter, coolant hoses, engine mount references, high-pressure fuel pump, primary catalyst, O2 sensor, and a front bellhousing-side starter motor</li>
               <li>Hotspots and camera presets built for quick service orientation</li>
             </ul>
           </article>
@@ -123,7 +191,7 @@
               <div class="mini-spec"><span>Accessory End</span><span>Alternator, drive-belt tensioner, A/C compressor and clutch, oil filter area</span></div>
               <div class="mini-spec"><span>Exhaust</span><span>Integrated head outlets with front/rear primary converter and O2 sensor references</span></div>
               <div class="mini-spec"><span>Mounts</span><span>Front/rear engine mount references with simplified bracket geometry</span></div>
-              <div class="mini-spec"><span>Transmission End</span><span>Bellhousing-side starter motor and solenoid reference</span></div>
+              <div class="mini-spec"><span>Transmission End</span><span>Starter on the front/radiator side of the transmission bellhousing, with solenoid and mounting flange reference</span></div>
               <div class="mini-spec"><span>Confidence</span><span>Part relationships checked; casting shapes and hose runs are stylized</span></div>
             </div>
           </article>
