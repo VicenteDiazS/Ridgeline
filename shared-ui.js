@@ -4,9 +4,14 @@ const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
 const topbarActions = document.querySelector(".topbar-actions");
 const main = document.querySelector("main");
+const nfcTargetId = new URLSearchParams(location.search).get("nfc");
+
+if (nfcTargetId) {
+  document.body?.classList.add("nfc-deep-link");
+}
 
 function keepPlainPageLoadsAtTop() {
-  if (location.hash) {
+  if (location.hash || new URLSearchParams(location.search).has("nfc")) {
     return;
   }
 
@@ -40,6 +45,7 @@ keepPlainPageLoadsAtTop();
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
+  { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
   { label: "Photo Atlas", href: "photo-atlas.html", match: "photo-atlas.html", note: "Real truck area photos grouped by zone" },
   { label: "Fuse Boxes", href: "hood.html#fuses", match: "hood.html", note: "Under-hood and driver-left fuse references" },
@@ -82,6 +88,7 @@ function getNavIcon(label, href) {
   if (value.includes("maintenance") || value.includes("service")) return "wrench";
   if (value.includes("fuse") || value.includes("electrical")) return "bolt";
   if (value.includes("photo")) return "photo";
+  if (value.includes("nfc") || value.includes("tag")) return "nfc";
   if (value.includes("ar")) return "cube";
   if (value.includes("quick")) return "flash";
   if (value.includes("reference") || value.includes("source")) return "book";
@@ -101,6 +108,47 @@ function normalizeLocalHref(href) {
   } catch {}
 
   return href.startsWith("#") ? href : "";
+}
+
+function getHashTarget() {
+  const nfcTarget = new URLSearchParams(location.search).get("nfc");
+  const targetId = nfcTarget || (location.hash && location.hash !== "#top" ? location.hash.slice(1) : "");
+  if (!targetId) {
+    return null;
+  }
+
+  try {
+    return document.getElementById(decodeURIComponent(targetId));
+  } catch {
+    return document.getElementById(targetId);
+  }
+}
+
+function scrollToHashTarget() {
+  const target = getHashTarget();
+  if (!target) {
+    return;
+  }
+
+  const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
+  const offset = Math.max(72, topbarHeight + 18);
+  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+  window.scrollTo({ top, left: 0, behavior: "auto" });
+}
+
+function promoteNfcTarget() {
+  if (!nfcTargetId || !main) {
+    return;
+  }
+
+  const target = getHashTarget();
+  const targetBlock = target?.closest("article, section");
+  if (!targetBlock || targetBlock === main.firstElementChild || !main.contains(targetBlock)) {
+    return;
+  }
+
+  targetBlock.classList.add("nfc-promoted-target");
+  main.insertBefore(targetBlock, main.firstElementChild);
 }
 
 function collectPageSections() {
@@ -172,7 +220,8 @@ function buildQuickActionBar() {
     { label: "Maintenance", href: "maintenance.html" },
     { label: "Diagnostics", href: "diagnostics.html" },
     { label: "Garage", href: "garage.html#dashboard" },
-    { label: "AR Lab", href: "ar-lab.html" }
+    { label: "AR Lab", href: "ar-lab.html" },
+    { label: "NFC", href: "nfc.html" }
   ];
 
   const bar = document.createElement("nav");
@@ -341,9 +390,14 @@ function relatedLinksForPage(page) {
       { label: "Garage Log", href: "garage.html#dashboard", note: "Your truck-specific history and notes." }
     ],
     "engine.html": [
+      { label: "NFC Tags", href: "nfc.html", note: "Make physical tags open this engine model or a part reference." },
       { label: "Timing Service Record", href: "maintenance.html#major-service-log", note: "Open the recorded AISIN timing kit service." },
-      { label: "Garage Log", href: "garage.html#dashboard", note: "See truck-specific parts and service memory." },
       { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the full truck map." }
+    ],
+    "nfc.html": [
+      { label: "Fuse Box A", href: "hood.html#hood-fuse-box-a", note: "Test the exact under-hood fuse-box deep link." },
+      { label: "Cabin Fuses", href: "cabin.html#cabin-fuse-box-a", note: "Test the exact driver-left fuse-box deep link." },
+      { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the main truck map." }
     ],
     "maintenance.html": [
       { label: "Engine Explorer", href: "engine.html", note: "View the timing-side engine model." },
@@ -590,6 +644,7 @@ const searchResults = searchModal.querySelector("#site-search-results");
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
 const pageSections = collectPageSections();
+promoteNfcTarget();
 buildQuickActionBar();
 buildHeroActionCards();
 const sectionRail = buildSectionRail(pageSections);
@@ -598,6 +653,16 @@ buildBackToMapButton();
 buildCollapsibleCards();
 buildRelatedStrip();
 enhanceActiveLinks();
+
+if (location.hash || new URLSearchParams(location.search).has("nfc")) {
+  requestAnimationFrame(scrollToHashTarget);
+  window.addEventListener("load", () => {
+    requestAnimationFrame(scrollToHashTarget);
+    setTimeout(scrollToHashTarget, 160);
+    setTimeout(scrollToHashTarget, 520);
+  });
+  window.addEventListener("hashchange", () => requestAnimationFrame(scrollToHashTarget));
+}
 
 function applyGarageMode(enabled) {
   document.body.classList.toggle("garage-mode", enabled);

@@ -43,6 +43,30 @@ export const searchIndex = [
     ]
   },
   {
+    title: "NFC Tag Console",
+    url: "nfc.html",
+    category: "Tools",
+    keywords: ["nfc", "tag", "tags", "write", "read", "iphone", "url", "fuse box tag", "truck tags"]
+  },
+  {
+    title: "Under-Hood Fuse Box A NFC Target",
+    url: "hood.html#hood-fuse-box-a",
+    category: "Electrical",
+    keywords: ["nfc", "tag", "fuse box a", "under hood", "passenger side", "diagram"]
+  },
+  {
+    title: "Under-Hood Fuse Box B NFC Target",
+    url: "hood.html#hood-fuse-box-b",
+    category: "Electrical",
+    keywords: ["nfc", "tag", "fuse box b", "under hood", "brake fluid side", "diagram"]
+  },
+  {
+    title: "Cabin Fuse Box NFC Target",
+    url: "cabin.html#cabin-fuse-box-a",
+    category: "Electrical",
+    keywords: ["nfc", "tag", "cabin fuse", "driver left", "under dash", "diagram"]
+  },
+  {
     title: "Photo Atlas",
     url: "photo-atlas.html",
     category: "Tools",

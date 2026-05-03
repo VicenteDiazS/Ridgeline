@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v132";
+const CACHE_NAME = "ridgeline-console-v135";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./diagnostics.html",
   "./garage.html",
   "./engine.html",
+  "./nfc.html",
   "./ar-lab.html",
   "./photo-atlas.html",
   "./quick-sheet.html",
@@ -17,6 +18,8 @@ const ASSETS = [
   "./script.js",
   "./engine-viewer.js",
   "./engine-part-data.js",
+  "./nfc.js",
+  "./nfc-data.js",
   "./fuse-interactive.js",
   "./ar-viewer.js",
   "./pinout-interactive.js",
@@ -50,6 +53,6 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(event.request, { ignoreSearch: true }).then((cached) => cached || fetch(event.request))
   );
 });
