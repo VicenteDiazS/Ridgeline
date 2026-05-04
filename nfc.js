@@ -8,6 +8,9 @@ const targetDescription = document.getElementById("nfc-selected-description");
 const targetGrid = document.getElementById("nfc-target-grid");
 const supportText = document.getElementById("nfc-support-text");
 const statusText = document.getElementById("nfc-status-text");
+const platformNote = document.getElementById("nfc-platform-note");
+const scanHelp = document.getElementById("nfc-scan-help");
+const iphoneWorkflow = document.getElementById("iphone-nfc-workflow");
 const scannedResult = document.getElementById("nfc-scanned-result");
 const scannedLink = document.getElementById("nfc-scanned-link");
 const writeButton = document.querySelector("[data-nfc-write]");
@@ -34,27 +37,101 @@ function webNfcSupported() {
   return "NDEFReader" in window && window.isSecureContext;
 }
 
-function updateSupportState() {
+function isProbablyIos() {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+function isLocalTagUrl(url) {
+  try {
+    const value = new URL(url);
+    return ["localhost", "127.0.0.1", "0.0.0.0"].includes(value.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function browserNfcState() {
   const hasNfc = "NDEFReader" in window;
   const secure = window.isSecureContext;
+  const ios = isProbablyIos();
+
+  return {
+    direct: hasNfc && secure,
+    hasNfc,
+    secure,
+    ios
+  };
+}
+
+function updateSupportState() {
+  const state = browserNfcState();
+  document.body?.classList.toggle("nfc-direct-ready", state.direct);
+  document.body?.classList.toggle("nfc-limited-browser", !state.direct);
+  document.body?.classList.toggle("nfc-ios-browser", state.ios);
 
   if (supportText) {
-    if (hasNfc && secure) {
-      supportText.textContent = "Direct NFC read/write is available in this browser.";
-    } else if (hasNfc && !secure) {
+    if (state.direct) {
+      supportText.textContent = "Direct NFC read/write is available here.";
+    } else if (state.hasNfc && !state.secure) {
       supportText.textContent = "Direct NFC needs HTTPS. URL tags will still open normally after they are written.";
+    } else if (state.ios) {
+      supportText.textContent = "iPhone Safari cannot read or write NFC tags from a web page.";
     } else {
       supportText.textContent =
-        "iPhone path: write each tag as a URL record, then scanning the tag opens the matching page or section.";
+        "This browser does not expose direct NFC read/write. Use the URL tag workflow.";
     }
   }
 
   if (writeButton) {
-    writeButton.disabled = !webNfcSupported();
+    writeButton.disabled = false;
+    writeButton.textContent = state.direct ? "Write NFC" : state.ios ? "Show iPhone Write Steps" : "Show Write Steps";
   }
   if (readButton) {
-    readButton.disabled = !webNfcSupported();
+    readButton.disabled = false;
+    readButton.textContent = state.direct ? "Read NFC Tag" : state.ios ? "Show iPhone Scan Steps" : "Show Scan Steps";
   }
+  if (scanHelp) {
+    scanHelp.textContent = state.direct
+      ? "Use this to verify a written URL tag without leaving the page."
+      : "On iPhone, scan the finished tag from the home screen or lock screen. Safari opens the URL tag itself.";
+  }
+}
+
+function updatePlatformNote() {
+  if (!platformNote) {
+    return;
+  }
+
+  const url = absoluteUrl();
+  const state = browserNfcState();
+  if (isLocalTagUrl(url)) {
+    platformNote.textContent =
+      "This selected URL is local to the current device. For final truck tags, open the deployed site address on your iPhone before copying and writing tags.";
+  } else if (state.direct) {
+    platformNote.textContent =
+      "This browser supports direct Web NFC. You can use the Write NFC and Read NFC Tag buttons directly.";
+  } else if (state.ios) {
+    platformNote.textContent =
+      "This iPhone can still use your tags: write each one as a website URL record, then scan it normally so Safari opens the matching section.";
+  } else {
+    platformNote.textContent =
+      "This browser cannot access NFC directly. The generated URLs are still valid for NFC tags written by another app or device.";
+  }
+}
+
+function showFallbackWorkflow(action) {
+  const state = browserNfcState();
+  const message =
+    action === "read"
+      ? "iPhone Safari cannot read NFC tags inside the page. Scan the finished URL tag from the iPhone home screen or lock screen instead."
+      : "iPhone Safari cannot write NFC tags inside the page. Copy this URL and write it as a URL / URI record with an iPhone NFC writer app.";
+
+  setStatus(state.ios ? message : "This browser does not expose direct NFC access. Use Copy URL or Share, then write the URL with an NFC writer app.", "warning");
+  iphoneWorkflow?.scrollIntoView({ behavior: "smooth", block: "start" });
+  iphoneWorkflow?.focus({ preventScroll: true });
 }
 
 function updateSelectedTarget(id = selectedTarget.id) {
@@ -76,6 +153,7 @@ function updateSelectedTarget(id = selectedTarget.id) {
   if (targetDescription) {
     targetDescription.textContent = selectedTarget.description;
   }
+  updatePlatformNote();
 
   targetGrid?.querySelectorAll("[data-nfc-target]").forEach((card) => {
     const active = card.dataset.nfcTarget === selectedTarget.id;
@@ -136,7 +214,12 @@ async function copySelectedUrl() {
   const url = absoluteUrl();
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(url);
-    setStatus("Copied the NFC URL.", "success");
+    setStatus(
+      isProbablyIos()
+        ? "Copied. Paste this into an NFC writer app as a URL / URI record."
+        : "Copied the NFC URL.",
+      "success"
+    );
     return;
   }
 
@@ -161,7 +244,7 @@ async function shareSelectedUrl() {
 
 async function writeSelectedTag() {
   if (!webNfcSupported()) {
-    setStatus("This browser cannot write NFC tags directly. Use Copy or Share URL on iPhone.", "warning");
+    showFallbackWorkflow("write");
     return;
   }
 
@@ -222,7 +305,7 @@ function renderScannedUrl(value) {
 
 async function readTag() {
   if (!webNfcSupported()) {
-    setStatus("This browser cannot read NFC tags directly. iPhone will open URL tags from the lock screen or home screen.", "warning");
+    showFallbackWorkflow("read");
     return;
   }
 
@@ -253,7 +336,12 @@ renderTargetSelect();
 renderTargetCards();
 updateSupportState();
 updateSelectedTarget(new URLSearchParams(window.location.search).get("target") || nfcTargets[0].id);
-setStatus("Choose a truck location, then copy/share the URL or write it on a supported NFC browser.", "neutral");
+setStatus(
+  webNfcSupported()
+    ? "Choose a truck location, then write or read a tag directly from this browser."
+    : "Choose a truck location, then Copy URL or Share. On iPhone, paste it into an NFC writer app as a URL / URI record.",
+  "neutral"
+);
 
 targetSelect?.addEventListener("change", () => updateSelectedTarget(targetSelect.value));
 copyButton?.addEventListener("click", () => copySelectedUrl().catch((error) => setStatus(error.message, "warning")));

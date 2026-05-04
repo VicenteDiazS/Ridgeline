@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#071019" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
     <title>Ridgeline NFC Tag Console</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -34,7 +37,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#tag-writer">Write A Tag</a>
             <a class="utility-link" href="#tag-map">Tag Map</a>
-            <a class="utility-link" href="#iphone-ready">iPhone Setup</a>
+            <a class="utility-link" href="#iphone-nfc-workflow">iPhone Setup</a>
             <a class="utility-link" href="hood.html#hood-fuse-box-a">Fuse Box A</a>
           </div>
         </section>
@@ -46,15 +49,53 @@
             <p>Use the generated page URL as the NFC payload so Safari opens the exact section.</p>
           </article>
           <article class="nfc-readiness-card">
-            <span>Direct browser write</span>
+            <span>Browser NFC access</span>
             <strong id="nfc-support-text">Checking browser support...</strong>
-            <p>When Web NFC is unavailable, Copy and Share still give you the exact tag URL.</p>
+            <p>Direct website NFC is browser-controlled. Copy and Share still give you the exact tag URL.</p>
           </article>
           <article class="nfc-readiness-card">
             <span>Good tag type</span>
             <strong>NTAG215 or NTAG216</strong>
             <p>Short URL records fit easily and leave room for future section names.</p>
           </article>
+        </section>
+
+        <section class="nfc-iphone-workflow" id="iphone-nfc-workflow" tabindex="-1">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">iPhone Workflow</p>
+              <h2>Use URL Tags For Safari</h2>
+            </div>
+          </div>
+          <p class="section-copy">
+            iPhone Safari can open an NFC tag that contains a website URL, but it cannot directly read or
+            write tags from inside this web page.
+          </p>
+          <div class="nfc-iphone-steps">
+            <article>
+              <span>1</span>
+              <strong>Select the truck location</strong>
+              <p>Pick the fuse box, engine view, service record, or section that the tag should open.</p>
+            </article>
+            <article>
+              <span>2</span>
+              <strong>Copy the URL</strong>
+              <p>Use the URL field from this page. For permanent tags, use the real site address, not localhost.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <strong>Write it as URL / URI</strong>
+              <p>Paste that URL into an iPhone NFC writer app as a website URL record, then write the tag.</p>
+            </article>
+            <article>
+              <span>4</span>
+              <strong>Scan from iPhone</strong>
+              <p>After the tag is written, scan it with the iPhone unlocked and tap the Safari banner.</p>
+            </article>
+          </div>
+          <p class="nfc-platform-note" id="nfc-platform-note">
+            On this device, the page is checking whether direct NFC access is available.
+          </p>
         </section>
 
         <section class="nfc-workbench" id="tag-writer">
@@ -90,6 +131,9 @@
               <p class="eyebrow">Reader</p>
               <h3>Check A Tag</h3>
               <p id="nfc-status-text" class="nfc-status-text">Ready.</p>
+              <p id="nfc-scan-help" class="nfc-scan-help">
+                Direct tag reading works only in browsers that expose Web NFC.
+              </p>
               <button class="secondary-button" type="button" data-nfc-read>Read NFC Tag</button>
               <div id="nfc-scanned-result" class="nfc-scanned-result" hidden>
                 <span>Scanned target</span>

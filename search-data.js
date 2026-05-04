@@ -43,6 +43,30 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tire And Wheel Lab",
+    url: "tires.html",
+    category: "Tools",
+    keywords: [
+      "tire",
+      "tires",
+      "wheel",
+      "wheels",
+      "rim",
+      "rims",
+      "245/60r18",
+      "255/60r18",
+      "265/60r18",
+      "fitment",
+      "wheel well",
+      "clearance",
+      "bolt pattern",
+      "5x120",
+      "et55",
+      "35 psi",
+      "3d tire"
+    ]
+  },
+  {
     title: "NFC Tag Console",
     url: "nfc.html",
     category: "Tools",

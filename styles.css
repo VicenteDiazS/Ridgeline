@@ -1213,6 +1213,18 @@ h1 {
     linear-gradient(135deg, rgba(255, 145, 94, 0.96), rgba(121, 212, 255, 0.82));
 }
 
+.quick-action-link[data-nav-icon="wheel"]::before,
+.page-section-link[data-nav-icon="wheel"]::before,
+.action-card[data-nav-icon="wheel"]::before,
+.related-card[data-nav-icon="wheel"]::before {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(8, 15, 24, 0.94) 0 3px, transparent 3.4px),
+    radial-gradient(circle at 50% 50%, transparent 0 6px, rgba(255, 180, 95, 0.95) 6.4px 8px, transparent 8.4px),
+    radial-gradient(circle at 50% 50%, transparent 0 10px, rgba(121, 212, 255, 0.88) 10.4px 12px, transparent 12.4px),
+    linear-gradient(135deg, rgba(121, 212, 255, 0.84), rgba(255, 180, 95, 0.9));
+}
+
 .quick-action-link[data-nav-icon="flash"]::before,
 .page-section-link[data-nav-icon="flash"]::before {
   background: linear-gradient(180deg, rgba(255, 210, 122, 0.98), rgba(111, 255, 180, 0.86));
@@ -3123,6 +3135,271 @@ kbd {
   font-size: 0.84rem;
 }
 
+.wheel-page-main {
+  max-width: min(1240px, calc(100vw - 32px));
+}
+
+.wheel-model-hero {
+  display: grid;
+  grid-template-areas:
+    "copy stage"
+    "inspector stage"
+    "controls controls";
+  grid-template-columns: minmax(270px, 0.42fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(circle at 18% 14%, rgba(247, 196, 106, 0.14), transparent 28%),
+    radial-gradient(circle at 80% 18%, rgba(111, 255, 180, 0.1), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(8, 15, 24, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.wheel-hero-copy {
+  grid-area: copy;
+  display: grid;
+  gap: 12px;
+}
+
+.wheel-hero-copy h1 {
+  margin: 0;
+}
+
+.wheel-model-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(247, 196, 106, 0.18);
+  background: rgba(247, 196, 106, 0.07);
+  color: #f8dfaa;
+  line-height: 1.55;
+}
+
+.wheel-utility-nav {
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.wheel-stage {
+  position: relative;
+  grid-area: stage;
+  min-height: 620px;
+  height: min(68vh, 720px);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(111, 255, 180, 0.16);
+  background:
+    radial-gradient(circle at 50% 88%, rgba(111, 255, 180, 0.12), transparent 36%),
+    radial-gradient(circle at 20% 18%, rgba(247, 196, 106, 0.12), transparent 28%),
+    radial-gradient(circle at 82% 22%, rgba(121, 212, 255, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(7, 13, 21, 0.97), rgba(12, 18, 28, 0.94));
+}
+
+.wheel-viewer {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.wheel-viewer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.wheel-label-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.wheel-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 118px;
+  max-width: 168px;
+  padding: 8px 10px;
+  border: 1px solid rgba(121, 212, 255, 0.24);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(8, 15, 24, 0.88), rgba(8, 15, 24, 0.68)),
+    rgba(8, 15, 24, 0.8);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.wheel-label span {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wheel-label strong {
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.wheel-label.is-active,
+.wheel-label:hover,
+.wheel-label:focus-visible {
+  border-color: rgba(255, 180, 95, 0.58);
+  background:
+    linear-gradient(180deg, rgba(255, 180, 95, 0.18), rgba(8, 15, 24, 0.72)),
+    rgba(8, 15, 24, 0.86);
+}
+
+.wheel-stage-toolbar {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(121, 212, 255, 0.12);
+  background: rgba(5, 12, 20, 0.64);
+  backdrop-filter: blur(16px);
+}
+
+.wheel-inspector {
+  grid-area: inspector;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.08), transparent 34%),
+    rgba(8, 16, 28, 0.9);
+}
+
+.wheel-inspector h3 {
+  margin-bottom: 10px;
+}
+
+.wheel-inspector-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.wheel-inspector-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(111, 255, 180, 0.16);
+  background: rgba(111, 255, 180, 0.06);
+  color: #cbffe3;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.wheel-control-bar {
+  grid-area: controls;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wheel-spec-dashboard {
+  margin-top: 18px;
+}
+
+.wheel-dashboard-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wheel-dashboard-card-strong {
+  border-color: rgba(247, 196, 106, 0.32);
+  background:
+    radial-gradient(circle at top right, rgba(247, 196, 106, 0.13), transparent 32%),
+    rgba(9, 16, 25, 0.94);
+}
+
+.fitment-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fitment-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.fitment-table th,
+.fitment-table td {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+  line-height: 1.45;
+  text-align: left;
+  vertical-align: top;
+}
+
+.fitment-table th {
+  color: #f8dfaa;
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fitment-table td:first-child {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.wheel-well-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(111, 255, 180, 0.15);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(111, 255, 180, 0.09), transparent 26%),
+    radial-gradient(circle at 88% 8%, rgba(247, 196, 106, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(7, 14, 24, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.wheel-well-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.wheel-well-grid .tech-card {
+  display: grid;
+  gap: 10px;
+}
+
+.wheel-well-grid .tech-card strong {
+  color: #f8dfaa;
+  font-size: 0.88rem;
+}
+
 .nfc-page-main {
   max-width: min(1120px, calc(100vw - 32px));
   overflow-x: hidden;
@@ -3139,7 +3416,8 @@ kbd {
 
 .nfc-readiness,
 .nfc-writer-grid,
-.nfc-target-grid {
+.nfc-target-grid,
+.nfc-iphone-steps {
   display: grid;
   gap: 14px;
 }
@@ -3151,9 +3429,11 @@ kbd {
 .nfc-readiness-card,
 .nfc-workbench,
 .nfc-targets-section,
+.nfc-iphone-workflow,
 .nfc-writer-panel,
 .nfc-scan-panel,
-.nfc-target-card {
+.nfc-target-card,
+.nfc-iphone-steps article {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.018)),
@@ -3170,6 +3450,7 @@ kbd {
 }
 
 .nfc-readiness-card span,
+.nfc-iphone-steps span,
 .nfc-target-card dt,
 .nfc-scanned-result span,
 .nfc-writer-panel label {
@@ -3186,11 +3467,19 @@ kbd {
   overflow-wrap: anywhere;
 }
 
+.nfc-iphone-steps strong {
+  color: var(--text);
+  line-height: 1.35;
+}
+
 .nfc-readiness-card p,
+.nfc-iphone-steps p,
 .nfc-target-card p,
 .nfc-target-card dd,
 .nfc-selected-card p,
-.nfc-page-main .section-copy {
+.nfc-page-main .section-copy,
+.nfc-platform-note,
+.nfc-scan-help {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
@@ -3198,11 +3487,60 @@ kbd {
 }
 
 .nfc-workbench,
-.nfc-targets-section {
+.nfc-targets-section,
+.nfc-iphone-workflow {
   display: grid;
   gap: 16px;
   padding: 20px;
   border-radius: 24px;
+}
+
+.nfc-iphone-workflow:focus {
+  outline: 2px solid rgba(121, 212, 255, 0.46);
+  outline-offset: 4px;
+}
+
+.nfc-iphone-steps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nfc-iphone-steps article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 15px;
+  border-radius: 16px;
+}
+
+.nfc-iphone-steps span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: #071019;
+  background: #f7c46a;
+}
+
+.nfc-platform-note,
+.nfc-scan-help {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(247, 196, 106, 0.2);
+  background: rgba(247, 196, 106, 0.07);
+  color: #f8dfaa;
+}
+
+.nfc-scan-help {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nfc-ios-browser [data-nfc-copy] {
+  border-color: rgba(247, 196, 106, 0.44);
+  box-shadow: 0 0 0 1px rgba(247, 196, 106, 0.12) inset;
 }
 
 .nfc-writer-grid {
@@ -3666,11 +4004,14 @@ kbd {
   }
 
   .truck-dashboard-grid,
-  .truck-profile-grid {
+  .truck-profile-grid,
+  .wheel-dashboard-grid,
+  .wheel-well-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .truck-dashboard-card-strong {
+  .truck-dashboard-card-strong,
+  .wheel-dashboard-card-strong {
     grid-column: span 2;
   }
 }
@@ -4049,6 +4390,90 @@ kbd {
     max-width: calc(100vw - 16px);
   }
 
+  .wheel-page-main {
+    max-width: calc(100vw - 16px);
+  }
+
+  .wheel-model-hero {
+    grid-template-areas:
+      "stage"
+      "copy"
+      "inspector"
+      "controls";
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .wheel-stage {
+    min-height: 430px;
+    height: 55svh;
+    border-radius: 18px;
+  }
+
+  .wheel-label {
+    min-width: 104px;
+    max-width: 136px;
+    padding: 7px 8px;
+    border-radius: 12px;
+  }
+
+  .wheel-label span {
+    font-size: 0.58rem;
+  }
+
+  .wheel-label strong {
+    font-size: 0.82rem;
+  }
+
+  .wheel-stage-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    scrollbar-width: none;
+  }
+
+  .wheel-stage-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wheel-stage-toolbar .viewer-toggle {
+    flex: 0 0 auto;
+  }
+
+  .wheel-control-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .wheel-control-bar .viewer-toggle:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .wheel-dashboard-grid,
+  .wheel-well-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wheel-dashboard-card-strong {
+    grid-column: auto;
+  }
+
+  .wheel-well-section {
+    gap: 14px;
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .fitment-table {
+    min-width: 650px;
+  }
+
   .engine-model-hero {
     grid-template-areas:
       "stage"
@@ -4161,7 +4586,9 @@ kbd {
   .nfc-page-main dd,
   .nfc-page-main label,
   .nfc-page-main input,
-  .nfc-page-main select {
+  .nfc-page-main select,
+  .nfc-platform-note,
+  .nfc-scan-help {
     max-width: calc(100vw - 44px);
     overflow-wrap: anywhere;
   }
@@ -4172,21 +4599,26 @@ kbd {
 
   .nfc-readiness-card p,
   .nfc-readiness-card strong,
+  .nfc-iphone-steps p,
   .nfc-target-card p,
   .nfc-target-card dd,
   .nfc-selected-card p,
-  .nfc-status-text {
+  .nfc-status-text,
+  .nfc-platform-note,
+  .nfc-scan-help {
     max-width: 19rem;
   }
 
   .nfc-readiness,
   .nfc-writer-grid,
-  .nfc-target-grid {
+  .nfc-target-grid,
+  .nfc-iphone-steps {
     grid-template-columns: 1fr;
   }
 
   .nfc-workbench,
-  .nfc-targets-section {
+  .nfc-targets-section,
+  .nfc-iphone-workflow {
     gap: 14px;
     padding: 14px;
     border-radius: 20px;
@@ -4195,7 +4627,8 @@ kbd {
   .nfc-readiness-card,
   .nfc-writer-panel,
   .nfc-scan-panel,
-  .nfc-target-card {
+  .nfc-target-card,
+  .nfc-iphone-steps article {
     padding: 14px;
     border-radius: 16px;
   }

@@ -156,6 +156,53 @@ const systems = [
     target: new THREE.Vector3(-1.9, 1.38, 0.72)
   },
   {
+    id: "tires-wheels",
+    label: "Tires / Wheels",
+    area: "Wheel wells and tire fitment",
+    use: "Tire size, rim specs, and clearance planning",
+    description:
+      "Interactive tire and wheel reference for stock Ridgeline sizing, wheel-well measurement planning, and common forum-reported fitment notes.",
+    bullets: [
+      "Stock tire size is 245/60R18 105H.",
+      "Use this page before buying larger tires for stock rims.",
+      "Wheel-well clearances are marked as field measurements until your truck is measured.",
+      "Forum fitment reports vary by tire brand, tread shape, alignment, and offset."
+    ],
+    links: [
+      {
+        label: "Open tire and wheel lab",
+        url: "tires.html"
+      }
+    ],
+    quickFacts: [
+      ["OEM Tire", "245/60R18 105H"],
+      ["Wheel", "18 x 8J ET55"],
+      ["Pressure", "35 psi cold"]
+    ],
+    actions: [
+      {
+        label: "Tire Lab",
+        href: "tires.html",
+        description: "3D tire model, measurement arrows, and fitment guidance."
+      },
+      {
+        label: "Maintenance",
+        href: "maintenance.html#brake-tire",
+        description: "Wheel torque, tire pressure, and brake/tire service notes."
+      },
+      {
+        label: "Garage Log",
+        href: "garage.html#dashboard",
+        description: "Save tire purchases, rotations, and fitment notes."
+      }
+    ],
+    labelOffset: { x: 132, y: 58 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-2.05, 0.62, 1.04),
+    camera: new THREE.Vector3(-4.2, 1.55, 4.55),
+    target: new THREE.Vector3(-1.76, 0.7, 0.92)
+  },
+  {
     id: "fuse-cabin",
     label: "Driver-Left Fuse Box",
     area: "Driver left lower dash",

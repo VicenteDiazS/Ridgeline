@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v135";
+const CACHE_NAME = "ridgeline-console-v138";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./diagnostics.html",
   "./garage.html",
   "./engine.html",
+  "./tires.html",
   "./nfc.html",
   "./ar-lab.html",
   "./photo-atlas.html",
@@ -18,6 +19,7 @@ const ASSETS = [
   "./script.js",
   "./engine-viewer.js",
   "./engine-part-data.js",
+  "./wheel-viewer.js",
   "./nfc.js",
   "./nfc-data.js",
   "./fuse-interactive.js",
@@ -30,6 +32,12 @@ const ASSETS = [
   "./garage-data.js",
   "./section-tools.js",
   "./manifest.json",
+  "./favicon.svg",
+  "./favicon-32x32.png",
+  "./assets/icons/ridgeline-icon-180.png",
+  "./assets/icons/ridgeline-icon-192.png",
+  "./assets/icons/ridgeline-icon-512.png",
+  "./assets/wheel-tire/ridgeline-tire-wheel.glb",
   "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
   "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb",
   "./assets/ridgeline-2021/textures/logo.jpg",

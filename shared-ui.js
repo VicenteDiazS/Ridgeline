@@ -45,6 +45,7 @@ keepPlainPageLoadsAtTop();
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
+  { label: "Tire And Wheel Lab", href: "tires.html", match: "tires.html", note: "3D tire model, wheel specs, and fitment guidance" },
   { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
   { label: "Photo Atlas", href: "photo-atlas.html", match: "photo-atlas.html", note: "Real truck area photos grouped by zone" },
@@ -83,6 +84,7 @@ function getNavIcon(label, href) {
   const value = `${label} ${href}`.toLowerCase();
   if (value.includes("viewer") || value.includes("map")) return "map";
   if (value.includes("engine") || value.includes("j35")) return "engine";
+  if (value.includes("tire") || value.includes("wheel")) return "wheel";
   if (value.includes("garage")) return "garage";
   if (value.includes("diagnostic")) return "diag";
   if (value.includes("maintenance") || value.includes("service")) return "wrench";
@@ -216,6 +218,7 @@ function buildQuickActionBar() {
   const actions = [
     { label: "Vehicle Map", href: "index.html#viewer" },
     { label: "Engine", href: "engine.html" },
+    { label: "Tires", href: "tires.html" },
     { label: "Fuses", href: "hood.html#fuses" },
     { label: "Maintenance", href: "maintenance.html" },
     { label: "Diagnostics", href: "diagnostics.html" },
@@ -386,13 +389,18 @@ function relatedLinksForPage(page) {
   const map = {
     "index.html": [
       { label: "Engine Explorer", href: "engine.html", note: "Inspect the J35Y6 technical engine model." },
-      { label: "Maintenance", href: "maintenance.html", note: "Service intervals, fluids, and specs." },
-      { label: "Garage Log", href: "garage.html#dashboard", note: "Your truck-specific history and notes." }
+      { label: "Tire And Wheel Lab", href: "tires.html", note: "Open the 3D tire model and fitment guide." },
+      { label: "Maintenance", href: "maintenance.html", note: "Service intervals, fluids, and specs." }
     ],
     "engine.html": [
       { label: "NFC Tags", href: "nfc.html", note: "Make physical tags open this engine model or a part reference." },
       { label: "Timing Service Record", href: "maintenance.html#major-service-log", note: "Open the recorded AISIN timing kit service." },
       { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the full truck map." }
+    ],
+    "tires.html": [
+      { label: "Maintenance", href: "maintenance.html#brake-tire", note: "Cross-check tire pressure and wheel torque." },
+      { label: "Vehicle Map", href: "index.html#viewer", note: "Return to the live truck view." },
+      { label: "Garage Log", href: "garage.html#dashboard", note: "Save tire changes and fitment notes." }
     ],
     "nfc.html": [
       { label: "Fuse Box A", href: "hood.html#hood-fuse-box-a", note: "Test the exact under-hood fuse-box deep link." },
@@ -401,8 +409,8 @@ function relatedLinksForPage(page) {
     ],
     "maintenance.html": [
       { label: "Engine Explorer", href: "engine.html", note: "View the timing-side engine model." },
+      { label: "Tire And Wheel Lab", href: "tires.html", note: "Open the 3D tire model and fitment guide." },
       { label: "Garage Log", href: "garage.html#dashboard", note: "Save what was actually installed and serviced." },
-      { label: "Quick Sheet", href: "quick-sheet.html", note: "Condensed numbers and emergency references." }
     ],
     "garage.html": [
       { label: "Maintenance", href: "maintenance.html#major-service-log", note: "Cross-check the service record and specs." },

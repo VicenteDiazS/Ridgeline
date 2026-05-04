@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <title>Ridgeline Service Console</title>
+  <rect width="128" height="128" rx="28" fill="#071019"/>
+  <path d="M18 80h92v18H18z" fill="#02070c" opacity=".55"/>
+  <path d="M20 76c0-14 7-23 19-25h44c18 0 28 16 28 25v16H17V76h3z" fill="#b7cadc"/>
+  <path d="M33 52c3-10 10-14 22-14h23l14 15H33z" fill="#edf7fb"/>
+  <path d="M92 53l12 10c3 3 4 7 4 12H92V53z" fill="#79d4ff"/>
+  <path d="M62 40v13M23 76h83M21 91h87" fill="none" stroke="#071019" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="40" cy="93" r="12" fill="#ff915e"/>
+  <circle cx="88" cy="93" r="12" fill="#ff915e"/>
+  <circle cx="40" cy="93" r="5" fill="#071019"/>
+  <circle cx="88" cy="93" r="5" fill="#071019"/>
+  <circle cx="40" cy="93" r="12" fill="none" stroke="#f7c46a" stroke-width="2"/>
+  <circle cx="88" cy="93" r="12" fill="none" stroke="#f7c46a" stroke-width="2"/>
+</svg>
