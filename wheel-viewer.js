@@ -12,6 +12,9 @@ const inspectorMeta = document.getElementById("wheel-inspector-meta");
 const viewButtons = document.querySelectorAll("[data-wheel-view]");
 const layerButtons = document.querySelectorAll("[data-wheel-layer]");
 const labelsButton = document.querySelector("[data-wheel-labels]");
+const isMobile =
+  window.matchMedia("(max-width: 900px)").matches ||
+  window.matchMedia("(pointer: coarse)").matches;
 
 const tireSpecs = {
   size: "245/60R18 105H",
@@ -138,6 +141,7 @@ let annotationRoot;
 let labelsVisible = true;
 let activeLayer = "tire";
 let activeView = "front";
+let rotateResumeTimer = null;
 const labelElements = new Map();
 
 function setStatus(message, hidden = false) {
@@ -214,19 +218,27 @@ function setView(view) {
 
   const views = {
     front: {
-      position: new THREE.Vector3(0.2, 0.2, 6.2),
+      position: new THREE.Vector3(0.12, 0.12, isMobile ? 9.2 : 6.8),
       target: new THREE.Vector3(0, 0, 0)
     },
     side: {
-      position: new THREE.Vector3(4.8, 0.55, 2.2),
+      position: new THREE.Vector3(isMobile ? 7.8 : 5.2, 0.58, isMobile ? 3.8 : 2.4),
       target: new THREE.Vector3(0, 0, 0)
     },
     clearance: {
-      position: new THREE.Vector3(4.4, 2.55, 5.0),
+      position: new THREE.Vector3(
+        isMobile ? 7.1 : 4.8,
+        isMobile ? 3.15 : 2.65,
+        isMobile ? 7.3 : 5.4
+      ),
       target: new THREE.Vector3(0, 0.18, 0)
     },
     angle: {
-      position: new THREE.Vector3(-4.7, 2.0, 4.4),
+      position: new THREE.Vector3(
+        isMobile ? -7.2 : -5.0,
+        isMobile ? 2.65 : 2.05,
+        isMobile ? 7.0 : 4.7
+      ),
       target: new THREE.Vector3(0, 0.05, 0)
     }
   };
@@ -529,12 +541,22 @@ function init() {
   }
 
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-  camera.position.set(0.2, 0.2, 6.2);
+  camera = new THREE.PerspectiveCamera(isMobile ? 50 : 40, 1, 0.1, 100);
+  camera.position.set(0.12, 0.12, isMobile ? 9.2 : 6.8);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.shadowMap.enabled = true;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      antialias: !isMobile,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+  } catch (error) {
+    setStatus("The tire viewer could not start on this browser.");
+    return;
+  }
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.25 : 1.7));
+  renderer.shadowMap.enabled = !isMobile;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   viewerElement.appendChild(renderer.domElement);
@@ -546,13 +568,16 @@ function init() {
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.target.set(0, 0, 0);
-  controls.minDistance = 3.2;
-  controls.maxDistance = 8;
+  controls.minDistance = isMobile ? 5.8 : 3.4;
+  controls.maxDistance = isMobile ? 13.5 : 9;
   controls.enablePan = true;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.55;
+  renderer.domElement.style.touchAction = isMobile ? "pan-y" : "none";
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
   keyLight.position.set(3.5, 5, 4);
-  keyLight.castShadow = true;
+  keyLight.castShadow = !isMobile;
   scene.add(keyLight);
   scene.add(new THREE.HemisphereLight(0xddeeff, 0x111827, 1.4));
 
@@ -603,6 +628,39 @@ labelsButton?.addEventListener("click", () => {
   labelsButton.setAttribute("aria-pressed", labelsVisible ? "true" : "false");
   updateLabels();
 });
+
+function stopAutoRotate() {
+  if (!controls) {
+    return;
+  }
+
+  if (rotateResumeTimer) {
+    clearTimeout(rotateResumeTimer);
+    rotateResumeTimer = null;
+  }
+  controls.autoRotate = false;
+}
+
+function scheduleAutoRotate() {
+  if (!controls) {
+    return;
+  }
+
+  if (rotateResumeTimer) {
+    clearTimeout(rotateResumeTimer);
+  }
+
+  rotateResumeTimer = window.setTimeout(() => {
+    controls.autoRotate = true;
+    rotateResumeTimer = null;
+  }, 3000);
+}
+
+viewerElement?.addEventListener("pointerdown", stopAutoRotate);
+viewerElement?.addEventListener("wheel", stopAutoRotate, { passive: true });
+viewerElement?.addEventListener("touchstart", stopAutoRotate, { passive: true });
+viewerElement?.addEventListener("pointerup", scheduleAutoRotate);
+viewerElement?.addEventListener("touchend", scheduleAutoRotate, { passive: true });
 
 window.addEventListener("resize", resize);
 init();

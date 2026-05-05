@@ -207,6 +207,12 @@ export const searchIndex = [
     keywords: ["brakes", "tire size", "wheel torque", "bolt pattern", "center bore", "offset", "jack points"]
   },
   {
+    title: "Maintenance Tire And Wheel Lab",
+    url: "maintenance.html#tire-wheel-lab",
+    category: "Maintenance",
+    keywords: ["tires", "wheels", "245/60r18", "tire lab", "fitment", "3d tire", "wheel well", "35 psi", "94 lb-ft"]
+  },
+  {
     title: "Jack Points",
     url: "maintenance.html#jack-points",
     category: "Maintenance",

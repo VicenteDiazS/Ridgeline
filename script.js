@@ -454,8 +454,10 @@ if (!renderer) {
   viewerStatus.hidden = false;
 } else {
   const sceneFrameOffset = new THREE.Vector3(0, 0, 0);
-  const defaultCameraPosition = new THREE.Vector3(-7.35, 2.9, 0.16);
-  const defaultCameraTarget = new THREE.Vector3(0, 1.2, 0);
+  const defaultCameraPosition = isPhoneViewer
+    ? new THREE.Vector3(-14.2, 4.6, 13.1)
+    : new THREE.Vector3(-8.8, 3.55, 5.2);
+  const defaultCameraTarget = new THREE.Vector3(0, isPhoneViewer ? 1.16 : 1.2, 0);
   const startupStart = performance.now();
   const startupDuration = isPhoneViewer ? 1600 : 2200;
   const autoRotateResumeDelay = 3200;
@@ -473,17 +475,18 @@ if (!renderer) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x08111c, 24, 46);
 
-  const camera = new THREE.PerspectiveCamera(37, 1, 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(isPhoneViewer ? 50 : 39, 1, 0.1, 100);
   camera.position.copy(defaultCameraPosition);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !isPhoneViewer;
   controls.enablePan = true;
-  controls.minDistance = 4;
-  controls.maxDistance = 13;
+  controls.minDistance = isPhoneViewer ? 7 : 4.4;
+  controls.maxDistance = isPhoneViewer ? 26 : 16;
   controls.target.copy(defaultCameraTarget);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.8;
+  renderer.domElement.style.touchAction = isPhoneViewer ? "pan-y" : "none";
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1230,7 +1233,9 @@ if (!renderer) {
   const modelLoader = new GLTFLoader();
   const fallbackLoader = new FBXLoader();
   viewerStatus.hidden = false;
-  viewerStatus.textContent = "Loading real Ridgeline model...";
+  viewerStatus.textContent = isPhoneViewer
+    ? "Using mobile-optimized truck model."
+    : "Loading real Ridgeline model...";
 
   function nameIncludes(text, keywords) {
     return keywords.some((keyword) => text.includes(keyword));
@@ -1476,28 +1481,34 @@ if (!renderer) {
       viewerStatus.hidden = true;
   }
 
-  modelLoader.load(
-    "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
-    (gltf) => {
-      applyLoadedModel(gltf.scene);
-    },
-    undefined,
-    () => {
-      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
-      fallbackLoader.load(
-        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
-        (fbx) => {
-          applyLoadedModel(fbx);
-        },
-        undefined,
-        () => {
-          viewerStatus.hidden = false;
-          viewerStatus.textContent =
-            "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
-        }
-      );
-    }
-  );
+  if (isPhoneViewer) {
+    window.addEventListener("load", () => {
+      viewerStatus.hidden = true;
+    });
+  } else {
+    modelLoader.load(
+      "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+      (gltf) => {
+        applyLoadedModel(gltf.scene);
+      },
+      undefined,
+      () => {
+        fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
+        fallbackLoader.load(
+          "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
+          (fbx) => {
+            applyLoadedModel(fbx);
+          },
+          undefined,
+          () => {
+            viewerStatus.hidden = false;
+            viewerStatus.textContent =
+              "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
+          }
+        );
+      }
+    );
+  }
 
   const hotspotMaterial = new THREE.MeshBasicMaterial({
     color: 0x61dfff,

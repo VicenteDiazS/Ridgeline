@@ -458,7 +458,7 @@ main > .viewer-section:first-child {
 }
 
 main > .viewer-section:first-child .viewer-stage {
-  min-height: min(86svh, 860px);
+  min-height: min(62svh, 680px);
 }
 
 main > .viewer-section:first-child .viewer-header h2 {
@@ -3400,6 +3400,24 @@ kbd {
   font-size: 0.88rem;
 }
 
+.maintenance-tire-lab {
+  display: grid;
+  gap: 16px;
+  border-color: rgba(247, 196, 106, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(247, 196, 106, 0.12), transparent 30%),
+    radial-gradient(circle at 8% 8%, rgba(111, 255, 180, 0.08), transparent 28%),
+    rgba(11, 19, 29, 0.94);
+}
+
+.maintenance-tire-grid {
+  grid-template-columns: 1.25fr repeat(3, minmax(0, 0.75fr));
+}
+
+.maintenance-tire-lab .section-head {
+  align-items: start;
+}
+
 .nfc-page-main {
   max-width: min(1120px, calc(100vw - 32px));
   overflow-x: hidden;
@@ -4005,6 +4023,7 @@ kbd {
 
   .truck-dashboard-grid,
   .truck-profile-grid,
+  .maintenance-tire-grid,
   .wheel-dashboard-grid,
   .wheel-well-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4026,7 +4045,7 @@ kbd {
   .app-shell {
     width: min(100% - 10px, 1200px);
     padding-top: 8px;
-    padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 
   main {
@@ -4036,9 +4055,11 @@ kbd {
   }
 
   .route-strip {
+    display: none;
     margin-top: 8px;
     padding: 6px;
     gap: 6px;
+    scroll-snap-type: x proximity;
   }
 
   .quick-action-bar {
@@ -4047,6 +4068,7 @@ kbd {
     overscroll-behavior-inline: contain;
     padding: 8px;
     gap: 6px;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -4057,14 +4079,19 @@ kbd {
 
   .quick-action-link {
     flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 
   .quick-action-link,
   .page-section-link,
   .back-to-map-fab {
-    min-height: 38px;
-    padding: 0 10px;
-    font-size: 0.78rem;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 0.8rem;
+  }
+
+  .page-section-link {
+    scroll-snap-align: start;
   }
 
   .page-section-rail {
@@ -4078,13 +4105,15 @@ kbd {
     grid-auto-columns: max-content;
     overflow-x: auto;
     padding-bottom: 2px;
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
   }
 
   .route-strip a {
-    min-height: 32px;
-    padding: 0 10px;
-    font-size: 0.72rem;
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 0.76rem;
+    scroll-snap-align: start;
   }
 
   .hero-action-grid,
@@ -4166,9 +4195,9 @@ kbd {
   .viewer-toggle,
   .viewer-link {
     width: auto;
-    min-height: 30px;
-    padding: 0 8px;
-    font-size: 0.7rem;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 0.76rem;
   }
 
   .viewer-ambient {
@@ -4191,7 +4220,7 @@ kbd {
   }
 
   main > .viewer-section:first-child .viewer-stage {
-    min-height: 72svh;
+    min-height: 66svh;
   }
 
   .hero-readout,
@@ -4274,11 +4303,30 @@ kbd {
   }
 
   .section-dock {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     width: calc(100% - 10px);
     margin-top: 16px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 8px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .section-dock::-webkit-scrollbar {
+    display: none;
+  }
+
+  .section-dock a {
+    flex: 0 0 auto;
+    min-width: 104px;
+    min-height: 44px;
+    scroll-snap-align: start;
+    font-size: 0.78rem;
   }
 
   .back-to-map-fab {
@@ -4408,7 +4456,7 @@ kbd {
 
   .wheel-stage {
     min-height: 430px;
-    height: 55svh;
+    height: 58svh;
     border-radius: 18px;
   }
 
@@ -4433,6 +4481,7 @@ kbd {
     left: 8px;
     right: 8px;
     bottom: 8px;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
   }
 
@@ -4442,6 +4491,7 @@ kbd {
 
   .wheel-stage-toolbar .viewer-toggle {
     flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 
   .wheel-control-bar {
@@ -4455,6 +4505,7 @@ kbd {
   }
 
   .wheel-dashboard-grid,
+  .maintenance-tire-grid,
   .wheel-well-grid {
     grid-template-columns: 1fr;
   }
@@ -4650,10 +4701,25 @@ kbd {
     gap: 8px;
   }
 
+  .hud-topbar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hud-topbar::-webkit-scrollbar {
+    display: none;
+  }
+
   .hud-chip {
+    flex: 0 0 auto;
     padding: 7px 9px;
     font-size: 0.6rem;
     letter-spacing: 0.1em;
+    scroll-snap-align: start;
   }
 
   .hud-side {
@@ -4735,11 +4801,20 @@ kbd {
     overflow-x: auto;
     gap: 8px;
     padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
+  .system-chips::-webkit-scrollbar {
+    display: none;
+  }
+
   .chip-button {
+    min-height: 44px;
+    padding: 0 13px;
     white-space: nowrap;
+    scroll-snap-align: start;
   }
 
   .system-grid {
