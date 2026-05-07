@@ -39,17 +39,66 @@
       </header>
 
       <nav class="route-strip" aria-label="Fast sections">
+        <a href="#model-launchpad">3D Models</a>
         <a href="#viewer">Vehicle Map</a>
         <a href="engine.html">Engine</a>
         <a href="tires.html">Tires</a>
         <a href="hood.html#fuses">Fuses</a>
         <a href="maintenance.html">Maintenance</a>
-        <a href="quick-sheet.html">Quick Sheet</a>
+        <a href="quick-sheet.html#emergency-card">Emergency Card</a>
         <a href="diagnostics.html">Diagnostics</a>
         <a href="garage.html">Garage</a>
       </nav>
 
       <main id="top">
+        <section class="model-launchpad" id="model-launchpad">
+          <div class="section-head">
+            <p class="eyebrow">3D Models</p>
+            <h2>Open A Model Fast</h2>
+            <p class="section-copy">
+              Tap any live preview to jump straight into that model page. The truck preview also opens
+              the jack-point map directly on the Ridgeline model.
+            </p>
+          </div>
+          <div class="model-launchpad-grid" aria-label="3D model quick launch">
+            <article class="model-preview-card" data-model-card="truck">
+              <a class="model-preview-stage" href="index.html?system=jack-points#viewer" data-model-preview aria-label="Open Ridgeline jack-point map"></a>
+              <div class="model-preview-meta">
+                <strong>Ridgeline Jack-Point Map</strong>
+                <p>Live truck model with all four roadside jack points highlighted.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer">Open Jack Points</a>
+                <a class="utility-link" href="#viewer">Open Vehicle Map</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="engine">
+              <a class="model-preview-stage" href="engine.html#engine-model" data-model-preview aria-label="Open engine model"></a>
+              <div class="model-preview-meta">
+                <strong>J35Y6 Engine Model</strong>
+                <p>Detailed component labels and per-part service information.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="engine.html#engine-model">Open Engine Model</a>
+                <a class="utility-link" href="engine.html#engine-part-reference">Open Part Reference</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="tire">
+              <a class="model-preview-stage" href="tires.html" data-model-preview aria-label="Open tire and wheel model"></a>
+              <div class="model-preview-meta">
+                <strong>Tire And Wheel Lab</strong>
+                <p>3D wheel fitment reference with measurements and clearance notes.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="tires.html">Open Tire Lab</a>
+                <a class="utility-link" href="maintenance.html#tire-wheel-lab">Open Tire Specs</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <section class="viewer-section" id="viewer">
           <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
           <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
@@ -488,6 +537,7 @@
     </div>
 
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="model-gallery.js"></script>
     <script type="module" src="script.js"></script>
   </body>
 </html>

@@ -1,8 +1,8 @@
-import { loadAreaJournal } from "./garage-data.js";
+import { initGarageCloudSync, loadAreaJournal, resolvePhotoSrc } from "./garage-data.js";
 
 const atlasCards = [...document.querySelectorAll("[data-atlas-area]")];
 
-atlasCards.forEach((card) => {
+atlasCards.forEach(async (card) => {
   const area = card.dataset.atlasArea;
   const grid = card.querySelector("[data-atlas-grid]");
   if (!grid) {
@@ -20,15 +20,18 @@ atlasCards.forEach((card) => {
     return;
   }
 
-  journal.photos.forEach((photo) => {
+  for (const photo of journal.photos) {
+    const resolvedSrc = await resolvePhotoSrc(photo);
     const cardEl = document.createElement("figure");
     cardEl.className = "photo-card";
     cardEl.innerHTML = `
-      <img src="${photo.src}" alt="${photo.label}" />
+      <img src="${resolvedSrc || photo.src || ""}" alt="${photo.label}" />
       <figcaption>
         <strong>${photo.label}</strong>
       </figcaption>
     `;
     grid.appendChild(cardEl);
-  });
+  }
 });
+
+initGarageCloudSync();

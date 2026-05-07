@@ -42,6 +42,12 @@
           <div class="section-callout">
             This page is the personal memory layer of the site. It keeps your actual installed parts,
             maintenance dates, saved fuse positions, and your own photos next to the reference content.
+            <p class="small-note" data-cloud-sync-status aria-live="polite">
+              Cloud sync status: checking...
+            </p>
+            <div class="inspector-actions">
+              <button class="ghost-button" type="button" data-cloud-sync-retry>Retry Cloud Sync</button>
+            </div>
           </div>
         </section>
         <section class="section-page-grid">
@@ -92,6 +98,30 @@
 
           <article class="tech-card">
             <h3>Maintenance Tracker</h3>
+            <p class="small-note">
+              Fast log: enter current mileage once, choose a service, and this page fills in today's date automatically.
+            </p>
+            <div class="form-grid quick-service-row" data-quick-service-row>
+              <label><span>Current mileage</span><input name="quick_mileage" data-quick-mileage type="number" min="0" step="1" inputmode="numeric" placeholder="166240" /></label>
+              <label><span>Service</span>
+                <select data-quick-service>
+                  <option value="oil_change">Oil change</option>
+                  <option value="tire_rotation">Tire rotation</option>
+                  <option value="brake_service">Brake service</option>
+                  <option value="trans_service">Transmission service</option>
+                  <option value="battery_install">Battery install</option>
+                  <option value="filters">Air filters</option>
+                  <option value="timing_belt_service">Timing belt service</option>
+                  <option value="trailer_wiring">Trailer wiring check</option>
+                </select>
+              </label>
+              <div class="quick-service-action">
+                <button class="utility-link utility-link-strong quick-service-button" type="button" data-quick-log-button>
+                  Log Service
+                </button>
+              </div>
+            </div>
+            <p class="small-note" data-quick-log-status aria-live="polite"></p>
             <form class="form-stack" data-tracker-form>
               <label><span>Oil change</span><input name="oil_change" type="text" placeholder="Date / mileage" /></label>
               <label><span>Tire rotation</span><input name="tire_rotation" type="text" placeholder="Date / mileage" /></label>
@@ -117,7 +147,7 @@
 
           <article class="tech-card" id="photos">
             <h3>Reference Photos</h3>
-            <p class="small-note">Upload photos of your actual truck's fuse-box covers, battery label, hitch connector, bed, or any other area you want handy. They stay local to this browser.</p>
+            <p class="small-note">Upload photos of your actual truck's fuse-box covers, battery label, hitch connector, bed, or any other area you want handy. Photos are stored in Supabase as the main source with local base64 backup in this browser.</p>
             <input class="utility-link" data-photo-input type="file" accept="image/*" multiple />
             <div class="photo-grid" data-photo-grid></div>
           </article>

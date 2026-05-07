@@ -2,13 +2,15 @@ import {
   filesToPhotoEntries,
   formPayload,
   hydrateForm,
+  initGarageCloudSync,
   loadAreaJournal,
+  resolvePhotoSrc,
   saveAreaJournal
 } from "./garage-data.js";
 
 const areaSections = [...document.querySelectorAll("[data-area-journal]")];
 
-function renderAreaPhotos(area, grid) {
+async function renderAreaPhotos(area, grid) {
   const journal = loadAreaJournal(area);
   grid.innerHTML = "";
 
@@ -20,18 +22,19 @@ function renderAreaPhotos(area, grid) {
     return;
   }
 
-  journal.photos.forEach((photo, index) => {
+  for (const [index, photo] of journal.photos.entries()) {
+    const resolvedSrc = await resolvePhotoSrc(photo);
     const card = document.createElement("figure");
     card.className = "photo-card";
     card.innerHTML = `
-      <img src="${photo.src}" alt="${photo.label}" />
+      <img src="${resolvedSrc || photo.src || ""}" alt="${photo.label}" />
       <figcaption>
         <strong>${photo.label}</strong>
         <button type="button" data-remove-area-photo="${index}">Remove</button>
       </figcaption>
     `;
     grid.appendChild(card);
-  });
+  }
 
   grid.querySelectorAll("[data-remove-area-photo]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -63,7 +66,7 @@ areaSections.forEach((section) => {
     input.addEventListener("change", async () => {
       const files = [...input.files].slice(0, 4);
       const journal = loadAreaJournal(area);
-      const additions = await filesToPhotoEntries(files);
+      const additions = await filesToPhotoEntries(files, { scope: `area-${area}` });
       journal.photos = [...journal.photos, ...additions].slice(0, 8);
       saveAreaJournal(area, journal);
       renderAreaPhotos(area, grid);
@@ -71,3 +74,5 @@ areaSections.forEach((section) => {
     });
   }
 });
+
+initGarageCloudSync();

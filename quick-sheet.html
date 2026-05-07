@@ -11,7 +11,7 @@
     <title>Ridgeline Emergency Quick Sheet</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-no-hero-actions data-no-related-strip data-no-section-rail>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html">Ridgeline Service Console</a>
@@ -26,18 +26,54 @@
       </header>
       <main id="top" class="section-page-main">
         <section class="section-page-hero">
-          <p class="eyebrow">Quick Sheet</p>
-          <h1>Emergency And Garage Fast Reference</h1>
+          <p class="eyebrow">Emergency Card</p>
+          <h1>2019 Ridgeline Emergency Card</h1>
           <p class="section-copy">
             One-page quick access for the specs and locations you are most likely to need in the middle of a job.
           </p>
           <div class="section-utility-nav">
+            <a class="utility-link utility-link-strong" href="#emergency-card">Emergency Card</a>
             <a class="utility-link utility-link-strong" href="#oil">Oil</a>
             <a class="utility-link" href="#battery">Battery</a>
             <a class="utility-link" href="#tires">Tires / Jack</a>
             <a class="utility-link" href="#fuses">Fuses</a>
             <a class="utility-link" href="#towing">Towing</a>
             <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+          </div>
+        </section>
+
+        <section class="section-page-stack" id="emergency-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Critical At A Glance</p>
+              <h2>Emergency Card</h2>
+            </div>
+          </div>
+          <div class="dashboard-grid truck-dashboard-grid">
+            <article class="dashboard-card">
+              <span>OEM Tire</span>
+              <strong>245/60R18 105H</strong>
+              <p>Honda feature and accessory documentation list this as the stock size.</p>
+            </article>
+            <article class="dashboard-card">
+              <span>Cold Tire Pressure</span>
+              <strong>35 psi front / 35 psi rear</strong>
+              <p>Use the driver door placard as final authority for your exact truck.</p>
+            </article>
+            <article class="dashboard-card">
+              <span>Wheel Nut Torque</span>
+              <strong>94 lb-ft</strong>
+              <p>127 N-m. Tighten in a star pattern and re-check after a short drive.</p>
+            </article>
+            <article class="dashboard-card">
+              <span>Towing Capacity</span>
+              <strong>2WD 3,500 lb / AWD 5,000 lb</strong>
+              <p>Honda states these are maximum values when properly equipped.</p>
+            </article>
+          </div>
+          <div class="section-callout">
+            Towing fuel note from Honda: premium unleaded is recommended when towing more than 3,500 lb.
+            Always confirm final limits in your owner's manual and door placard before loading or towing.
           </div>
         </section>
 
@@ -89,7 +125,7 @@
             </dl>
             <div class="inspector-actions">
               <a class="utility-link" href="maintenance.html#brake-tire">Open Brake / Tire Section</a>
-              <a class="utility-link" href="maintenance.html#jack-points">Open Jack Map</a>
+              <a class="utility-link" href="index.html?system=jack-points#viewer">Open Jack Map</a>
             </div>
           </article>
 
@@ -140,6 +176,7 @@
       </main>
 
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#emergency-card">Emergency</a>
         <a href="#oil">Oil</a>
         <a href="#battery">Battery</a>
         <a href="#tires">Tires</a>

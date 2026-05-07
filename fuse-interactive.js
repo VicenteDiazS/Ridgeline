@@ -1,3 +1,5 @@
+import { STORAGE, initGarageCloudSync, loadJson, saveJson } from "./garage-data.js";
+
 const diagramEls = [...document.querySelectorAll("[data-fuse-diagram]")];
 const acronymDefinitions = {
   ABS: "Anti-lock Brake System",
@@ -208,7 +210,7 @@ function bindDiagram(diagramEl) {
       return;
     }
 
-    const favorites = JSON.parse(localStorage.getItem("ridgeline-favorites") || "[]");
+    const favorites = loadJson(STORAGE.favorites, []);
     const exists = favorites.some((entry) => entry.position === activeEntry.position && entry.panel === key);
     if (exists) {
       return;
@@ -224,7 +226,7 @@ function bindDiagram(diagramEl) {
       url: `${location.pathname.split("/").pop()}#fuses`
     });
 
-    localStorage.setItem("ridgeline-favorites", JSON.stringify(favorites.slice(-20)));
+    saveJson(STORAGE.favorites, favorites.slice(-20));
     saveButton.textContent = "Saved";
     setTimeout(() => {
       saveButton.textContent = "Save Fuse";
@@ -255,3 +257,4 @@ function bindDiagram(diagramEl) {
 }
 
 diagramEls.forEach(bindDiagram);
+initGarageCloudSync();

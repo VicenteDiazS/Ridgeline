@@ -5,9 +5,113 @@ const topbar = document.querySelector(".topbar");
 const topbarActions = document.querySelector(".topbar-actions");
 const main = document.querySelector("main");
 const nfcTargetId = new URLSearchParams(location.search).get("nfc");
+const hasDeepTargetOnLoad = Boolean(location.hash) || Boolean(nfcTargetId);
+const CONTENT_MODE_STORAGE_KEY = "ridgeline-content-mode";
+const RECENT_NAV_STORAGE_KEY = "ridgeline-recent-nav";
+const LAST_SECTION_STORAGE_PREFIX = "ridgeline-last-section:";
+const prefersCompactDefault =
+  window.matchMedia("(max-width: 900px)").matches || window.matchMedia("(pointer: coarse)").matches;
+const isMobileNavMode = prefersCompactDefault;
+
+let currentContentMode = prefersCompactDefault ? "essential" : "full";
+let optionalSections = [];
+let viewModeButtons = [];
+
+function normalizeRecentHref(value = "") {
+  try {
+    const url = new URL(value, location.href);
+    if (url.origin !== location.origin) {
+      return value;
+    }
+    return `${url.pathname.split("/").pop() || "index.html"}${url.hash || ""}`;
+  } catch {
+    return value;
+  }
+}
+
+function loadRecentNav() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RECENT_NAV_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentNav(items) {
+  localStorage.setItem(RECENT_NAV_STORAGE_KEY, JSON.stringify(items));
+}
+
+function recordRecentNavEntry({ href, label }) {
+  if (!href || !label) {
+    return;
+  }
+
+  const normalizedHref = normalizeRecentHref(href);
+  const current = loadRecentNav();
+  const next = [
+    { href: normalizedHref, label: `${label}`.trim(), at: new Date().toISOString() },
+    ...current.filter((item) => item.href !== normalizedHref)
+  ].slice(0, 8);
+  saveRecentNav(next);
+}
+
+function currentPageDisplayLabel() {
+  const page = currentPageName();
+  const known = menuLinks.find((link) => link.match === page);
+  if (known) {
+    return known.label;
+  }
+  return document.querySelector("h1")?.textContent?.trim() || "Page";
+}
+
+function buildRecentNavMarkup() {
+  const items = loadRecentNav().slice(0, 5);
+  if (!items.length) {
+    return `<p class="site-menu-tool-status">No recent pages yet.</p>`;
+  }
+
+  return items
+    .map((item) => `<a class="site-menu-tool-link" href="${item.href}">${item.label}</a>`)
+    .join("");
+}
+
+function refreshRecentPanel(panel) {
+  if (!panel) {
+    return;
+  }
+
+  panel.innerHTML = buildRecentNavMarkup();
+}
+
+function lastSectionStorageKey() {
+  return `${LAST_SECTION_STORAGE_PREFIX}${currentPageName()}`;
+}
+
+function saveLastSection(sectionId) {
+  if (!sectionId) {
+    return;
+  }
+  localStorage.setItem(lastSectionStorageKey(), sectionId);
+}
+
+function getLastSection() {
+  return localStorage.getItem(lastSectionStorageKey()) || "";
+}
 
 if (nfcTargetId) {
   document.body?.classList.add("nfc-deep-link");
+}
+
+function stripLiveRefreshParam() {
+  const url = new URL(location.href);
+  if (!url.searchParams.has("__live")) {
+    return;
+  }
+
+  url.searchParams.delete("__live");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  history.replaceState({}, "", next);
 }
 
 function keepPlainPageLoadsAtTop() {
@@ -30,6 +134,34 @@ function keepPlainPageLoadsAtTop() {
     root.style.scrollBehavior = previousScrollBehavior;
   };
 
+  let openingScrollLockReleased = false;
+  let openingScrollLockTimer = null;
+  let openingScrollLockInterval = null;
+
+  const releaseOpeningScrollLock = () => {
+    if (openingScrollLockReleased) {
+      return;
+    }
+
+    openingScrollLockReleased = true;
+    clearTimeout(openingScrollLockTimer);
+    clearInterval(openingScrollLockInterval);
+    window.removeEventListener("pointerdown", releaseOpeningScrollLock, true);
+    window.removeEventListener("touchstart", releaseOpeningScrollLock, true);
+    window.removeEventListener("wheel", releaseOpeningScrollLock, true);
+    window.removeEventListener("keydown", releaseOpeningScrollLock, true);
+  };
+
+  const enforceTopUntilInteraction = () => {
+    if (openingScrollLockReleased) {
+      return;
+    }
+
+    if (window.scrollY > 2 || document.documentElement.scrollTop > 2 || document.body.scrollTop > 2) {
+      resetOpeningScroll();
+    }
+  };
+
   resetOpeningScroll();
   requestAnimationFrame(resetOpeningScroll);
   window.addEventListener("load", () => {
@@ -38,9 +170,16 @@ function keepPlainPageLoadsAtTop() {
     setTimeout(resetOpeningScroll, 400);
   });
   window.addEventListener("pageshow", resetOpeningScroll);
+  window.addEventListener("pointerdown", releaseOpeningScrollLock, true);
+  window.addEventListener("touchstart", releaseOpeningScrollLock, true);
+  window.addEventListener("wheel", releaseOpeningScrollLock, true);
+  window.addEventListener("keydown", releaseOpeningScrollLock, true);
+  openingScrollLockInterval = window.setInterval(enforceTopUntilInteraction, 70);
+  openingScrollLockTimer = window.setTimeout(releaseOpeningScrollLock, 1600);
 }
 
 keepPlainPageLoadsAtTop();
+stripLiveRefreshParam();
 
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
@@ -54,7 +193,7 @@ const menuLinks = [
   { label: "Cargo", href: "cargo.html", match: "cargo.html", note: "Bed, trunk, and dimensions" },
   { label: "Towing", href: "rear-hitch.html", match: "rear-hitch.html", note: "Connector, pinout, and towing checklist" },
   { label: "Maintenance", href: "maintenance.html", match: "maintenance.html", note: "Oil, filters, service codes, brakes, tires, and fluids" },
-  { label: "Quick Sheet", href: "quick-sheet.html", match: "quick-sheet.html", note: "One-page fast reference for common specs" },
+  { label: "Emergency Card", href: "quick-sheet.html#emergency-card", match: "quick-sheet.html", note: "Critical specs and links for roadside or garage work" },
   { label: "Diagnostics", href: "diagnostics.html", match: "diagnostics.html", note: "Symptom-based troubleshooting shortcuts" },
   { label: "Garage Log", href: "garage.html", match: "garage.html", note: "Your notes, service history, and saved references" }
 ];
@@ -62,6 +201,144 @@ const menuLinks = [
 function currentPageName() {
   const page = location.pathname.split("/").pop();
   return page || "index.html";
+}
+
+function inferRepositoryUrl() {
+  if (location.hostname.endsWith(".github.io")) {
+    const owner = location.hostname.replace(".github.io", "");
+    const repo = location.pathname.split("/").filter(Boolean)[0];
+    if (owner && repo) {
+      return `https://github.com/${owner}/${repo}`;
+    }
+  }
+
+  return "https://github.com/VicenteDiazS/Ridgeline";
+}
+
+function buildLiveReloadUrl() {
+  const url = new URL(location.href);
+  url.searchParams.set("__live", `${Date.now()}`);
+  return url.toString();
+}
+
+function getSavedContentMode() {
+  if (hasDeepTargetOnLoad) {
+    return "full";
+  }
+
+  const saved = localStorage.getItem(CONTENT_MODE_STORAGE_KEY);
+  if (saved === "essential" || saved === "full") {
+    return saved;
+  }
+  return prefersCompactDefault ? "essential" : "full";
+}
+
+function collectOptionalSections() {
+  if (!main) {
+    return [];
+  }
+
+  const sections = [...main.querySelectorAll(":scope > section")];
+  if (sections.length < 3) {
+    return [];
+  }
+
+  const page = currentPageName();
+  const keepCount = page === "index.html" ? 2 : 3;
+  return sections.filter((section, index) => index >= keepCount);
+}
+
+function setContentMode(mode = "full", persist = true) {
+  currentContentMode = mode === "essential" ? "essential" : "full";
+  document.body.classList.toggle("essential-mode", currentContentMode === "essential");
+
+  optionalSections.forEach((section) => {
+    section.classList.toggle("is-optional-section", true);
+  });
+
+  viewModeButtons.forEach((button) => {
+    const isActive = button.dataset.contentMode === currentContentMode;
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  if (persist) {
+    localStorage.setItem(CONTENT_MODE_STORAGE_KEY, currentContentMode);
+  }
+}
+
+function buildViewModeRail() {
+  if (!topbar || !main || document.querySelector(".view-mode-rail")) {
+    return;
+  }
+
+  optionalSections = collectOptionalSections();
+  if (!optionalSections.length) {
+    return;
+  }
+
+  const rail = document.createElement("div");
+  rail.className = "view-mode-rail";
+  rail.setAttribute("role", "group");
+  rail.setAttribute("aria-label", "Page view mode");
+  rail.innerHTML = `
+    <span>View</span>
+    <button class="view-mode-button" type="button" data-content-mode="essential" aria-pressed="false">Essentials</button>
+    <button class="view-mode-button" type="button" data-content-mode="full" aria-pressed="false">All Content</button>
+  `;
+
+  const quickActionBar = document.querySelector(".quick-action-bar");
+  if (quickActionBar) {
+    quickActionBar.insertAdjacentElement("afterend", rail);
+  } else {
+    topbar.insertAdjacentElement("afterend", rail);
+  }
+
+  viewModeButtons = [...rail.querySelectorAll(".view-mode-button")];
+  viewModeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setContentMode(button.dataset.contentMode, true);
+    });
+  });
+}
+
+async function refreshServiceWorkerRegistrations() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(
+    registrations.map(async (registration) => {
+      try {
+        await registration.update();
+      } catch {}
+
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: "RIDGELINE_SKIP_WAITING" });
+      }
+    })
+  );
+}
+
+async function clearBrowserCaches() {
+  if (!("caches" in window)) {
+    return;
+  }
+
+  const keys = await caches.keys();
+  await Promise.all(keys.map((key) => caches.delete(key)));
+}
+
+async function triggerLiveRefresh(setStatus) {
+  setStatus("Refreshing with live network code...");
+
+  try {
+    await refreshServiceWorkerRegistrations();
+    await clearBrowserCaches();
+    navigator.serviceWorker?.controller?.postMessage({ type: "RIDGELINE_BYPASS_NEXT_NAV" });
+  } catch {}
+
+  location.replace(buildLiveReloadUrl());
 }
 
 function slugFromLabel(value) {
@@ -85,6 +362,7 @@ function getNavIcon(label, href) {
   if (value.includes("viewer") || value.includes("map")) return "map";
   if (value.includes("engine") || value.includes("j35")) return "engine";
   if (value.includes("tire") || value.includes("wheel")) return "wheel";
+  if (value.includes("emergency")) return "flash";
   if (value.includes("garage")) return "garage";
   if (value.includes("diagnostic")) return "diag";
   if (value.includes("maintenance") || value.includes("service")) return "wrench";
@@ -132,10 +410,26 @@ function scrollToHashTarget() {
     return;
   }
 
+  const targetSection = target.closest("main > section");
+  if (targetSection && document.body.classList.contains("essential-mode") && targetSection.classList.contains("is-optional-section")) {
+    setContentMode("full", true);
+  }
+
   const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
   const offset = Math.max(72, topbarHeight + 18);
   const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
   window.scrollTo({ top, left: 0, behavior: "auto" });
+}
+
+function scrollToSectionElement(target, behavior = "smooth") {
+  if (!target) {
+    return;
+  }
+
+  const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
+  const offset = Math.max(72, topbarHeight + 18);
+  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+  window.scrollTo({ top, left: 0, behavior });
 }
 
 function promoteNfcTarget() {
@@ -217,6 +511,7 @@ function buildQuickActionBar() {
 
   const actions = [
     { label: "Vehicle Map", href: "index.html#viewer" },
+    { label: "Emergency", href: "quick-sheet.html#emergency-card" },
     { label: "Engine", href: "engine.html" },
     { label: "Tires", href: "tires.html" },
     { label: "Fuses", href: "hood.html#fuses" },
@@ -246,15 +541,134 @@ function buildQuickActionBar() {
   }
 }
 
+function uniqueNavEntries(items = []) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item.href || ""}`;
+    if (!key || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildMobileNavAccordion(sections) {
+  if (
+    !isMobileNavMode ||
+    !topbar ||
+    document.querySelector(".mobile-nav-accordion")
+  ) {
+    return;
+  }
+
+  const pageLinks = uniqueNavEntries([
+    { label: "Vehicle Map", href: "index.html#viewer" },
+    { label: "Engine", href: "engine.html" },
+    { label: "Tires", href: "tires.html" },
+    { label: "Maintenance", href: "maintenance.html" },
+    { label: "Emergency Card", href: "quick-sheet.html#emergency-card" },
+    { label: "Diagnostics", href: "diagnostics.html" },
+    { label: "Garage", href: "garage.html#dashboard" },
+    { label: "NFC", href: "nfc.html" },
+    { label: "AR Lab", href: "ar-lab.html" }
+  ]);
+
+  const sectionLinks = uniqueNavEntries(
+    (sections || []).map((section) => ({ label: section.label, href: `#${section.id}` }))
+  );
+  const hasSectionDock = Boolean(document.querySelector(".section-dock"));
+
+  const container = document.createElement("nav");
+  container.className = "mobile-nav-accordion";
+  container.setAttribute("aria-label", "Mobile navigation");
+
+  const sectionsMarkup = sectionLinks.length && !hasSectionDock
+    ? sectionLinks
+        .map(
+          (item) => `<a class="mobile-nav-link" href="${item.href}" data-nav-icon="${getNavIcon(item.label, item.href)}">${item.label}</a>`
+        )
+        .join("")
+    : `<p class="mobile-nav-empty">No section shortcuts on this page.</p>`;
+
+  const pagesMarkup = pageLinks
+    .map(
+      (item) => `<a class="mobile-nav-link" href="${item.href}" data-nav-icon="${getNavIcon(item.label, item.href)}">${item.label}</a>`
+    )
+    .join("");
+
+  container.innerHTML = `
+    ${hasSectionDock ? "" : `
+    <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="sections" aria-expanded="false">
+      <span>Page Sections</span>
+      <strong>Expand</strong>
+    </button>
+    <div class="mobile-nav-panel" data-mobile-nav-panel="sections" hidden>
+      ${sectionsMarkup}
+    </div>
+    `}
+    <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="pages" aria-expanded="false">
+      <span>Site Sections</span>
+      <strong>Expand</strong>
+    </button>
+    <div class="mobile-nav-panel" data-mobile-nav-panel="pages" hidden>
+      ${pagesMarkup}
+    </div>
+  `;
+
+  topbar.insertAdjacentElement("afterend", container);
+
+  const toggles = [...container.querySelectorAll("[data-mobile-nav-toggle]")];
+  const closeAll = () => {
+    toggles.forEach((toggle) => {
+      toggle.setAttribute("aria-expanded", "false");
+      const id = toggle.dataset.mobileNavToggle;
+      const panel = container.querySelector(`[data-mobile-nav-panel='${id}']`);
+      const label = toggle.querySelector("strong");
+      if (panel) {
+        panel.hidden = true;
+      }
+      if (label) {
+        label.textContent = "Expand";
+      }
+    });
+  };
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const id = toggle.dataset.mobileNavToggle;
+      const panel = container.querySelector(`[data-mobile-nav-panel='${id}']`);
+      const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+      closeAll();
+      if (isExpanded || !panel) {
+        return;
+      }
+      toggle.setAttribute("aria-expanded", "true");
+      const label = toggle.querySelector("strong");
+      if (label) {
+        label.textContent = "Collapse";
+      }
+      panel.hidden = false;
+    });
+  });
+
+  container.addEventListener("click", (event) => {
+    if (event.target.closest("a.mobile-nav-link")) {
+      closeAll();
+    }
+  });
+}
+
 function actionHint(label) {
   const value = `${label}`.toLowerCase();
+  if (value.includes("emergency")) return "Open critical specs and links for fast roadside checks.";
   if (value.includes("engine")) return "Open the interactive J35Y6 engine model.";
   if (value.includes("fuse")) return "Fastest route into the electrical reference.";
   if (value.includes("maintenance")) return "Open the recurring service and spec page.";
   if (value.includes("diagnostic")) return "Start from symptoms and quick checks.";
   if (value.includes("garage")) return "See truck-specific notes and service memory.";
   if (value.includes("map") || value.includes("viewer")) return "Jump back into the live truck view.";
-  if (value.includes("ar")) return "Open the truck in AR or 3D preview.";
+  if (/\bar\b/.test(value)) return "Open the truck in AR or 3D preview.";
   if (value.includes("photo")) return "Switch to real area photos.";
   if (value.includes("quick")) return "Use the condensed fast-reference sheet.";
   return "Open this section directly.";
@@ -335,20 +749,26 @@ function buildSectionRail(sections) {
 }
 
 function syncActiveSectionUi(sections, rail) {
-  if (!sections.length || !rail) {
+  if (!sections.length) {
     return;
   }
 
-  const linkMap = new Map(
-    [...rail.querySelectorAll("[data-section-link]")].map((link) => [link.dataset.sectionLink, link])
-  );
+  const linkMap = rail
+    ? new Map(
+        [...rail.querySelectorAll("[data-section-link]")].map((link) => [link.dataset.sectionLink, link])
+      )
+    : new Map();
 
   const setActive = (id) => {
-    linkMap.forEach((link, key) => {
-      const active = key === id;
-      link.classList.toggle("is-active", active);
-      link.setAttribute("aria-current", active ? "true" : "false");
-    });
+    if (linkMap.size) {
+      linkMap.forEach((link, key) => {
+        const active = key === id;
+        link.classList.toggle("is-active", active);
+        link.setAttribute("aria-current", active ? "true" : "false");
+      });
+    }
+    saveLastSection(id);
+    window.dispatchEvent(new CustomEvent("ridgeline:active-section", { detail: { id } }));
   };
 
   setActive(sections[0].id);
@@ -372,6 +792,29 @@ function syncActiveSectionUi(sections, rail) {
   sections.forEach((section) => observer.observe(section.target));
 }
 
+function buildResumeButton() {
+  if (!topbarActions || topbarActions.querySelector("[data-resume-section]")) {
+    return;
+  }
+
+  const sectionId = getLastSection();
+  if (!sectionId || !document.getElementById(sectionId)) {
+    return;
+  }
+
+  const button = document.createElement("button");
+  button.className = "resume-button";
+  button.type = "button";
+  button.dataset.resumeSection = "true";
+  button.textContent = "Resume";
+  button.addEventListener("click", () => {
+    const target = document.getElementById(getLastSection());
+    scrollToSectionElement(target, "smooth");
+  });
+
+  topbarActions.insertBefore(button, topbarActions.firstChild);
+}
+
 function buildBackToMapButton() {
   if (document.querySelector(".back-to-map-fab")) {
     return;
@@ -383,6 +826,151 @@ function buildBackToMapButton() {
   button.dataset.navIcon = "map";
   button.textContent = "Back To Map";
   document.body.appendChild(button);
+}
+
+function buildScrollProgress() {
+  if (!topbar || topbar.querySelector(".scroll-progress")) {
+    return;
+  }
+
+  const track = document.createElement("div");
+  track.className = "scroll-progress";
+  track.setAttribute("aria-hidden", "true");
+  const fill = document.createElement("span");
+  fill.className = "scroll-progress-fill";
+  track.appendChild(fill);
+  topbar.appendChild(track);
+
+  const update = () => {
+    const doc = document.documentElement;
+    const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+    const ratio = Math.min(1, Math.max(0, window.scrollY / max));
+    fill.style.width = `${ratio * 100}%`;
+  };
+
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update, { passive: true });
+}
+
+function buildSectionStepper(sections) {
+  if (
+    !sections.length ||
+    sections.length < 2 ||
+    document.body?.hasAttribute("data-no-section-stepper") ||
+    document.querySelector(".section-stepper") ||
+    document.querySelector(".section-dock")
+  ) {
+    return;
+  }
+
+  const stepper = document.createElement("nav");
+  stepper.className = "section-stepper";
+  stepper.setAttribute("aria-label", "Section navigator");
+  stepper.innerHTML = `
+    <button class="section-stepper-button" type="button" data-stepper-prev aria-label="Previous section">Prev</button>
+    <button class="section-stepper-current" type="button" data-stepper-current aria-label="Open menu"></button>
+    <button class="section-stepper-button" type="button" data-stepper-next aria-label="Next section">Next</button>
+  `;
+  document.body.appendChild(stepper);
+
+  const prevButton = stepper.querySelector("[data-stepper-prev]");
+  const nextButton = stepper.querySelector("[data-stepper-next]");
+  const currentButton = stepper.querySelector("[data-stepper-current]");
+  const sectionIds = sections.map((section) => section.id);
+  let activeIndex = 0;
+
+  const updateStepper = () => {
+    const current = sections[activeIndex];
+    if (currentButton) {
+      currentButton.textContent = current?.label || "Sections";
+      currentButton.title = current?.label || "Sections";
+    }
+
+    if (prevButton) {
+      prevButton.disabled = activeIndex <= 0;
+    }
+    if (nextButton) {
+      nextButton.disabled = activeIndex >= sections.length - 1;
+    }
+  };
+
+  const setActiveFromId = (id) => {
+    const index = sectionIds.indexOf(id);
+    if (index === -1 || index === activeIndex) {
+      return;
+    }
+    activeIndex = index;
+    updateStepper();
+  };
+
+  const saved = getLastSection();
+  const savedIndex = sectionIds.indexOf(saved);
+  if (savedIndex !== -1) {
+    activeIndex = savedIndex;
+  }
+  updateStepper();
+
+  prevButton?.addEventListener("click", () => {
+    const nextIndex = Math.max(0, activeIndex - 1);
+    activeIndex = nextIndex;
+    updateStepper();
+    scrollToSectionElement(sections[nextIndex].target, "smooth");
+  });
+
+  nextButton?.addEventListener("click", () => {
+    const nextIndex = Math.min(sections.length - 1, activeIndex + 1);
+    activeIndex = nextIndex;
+    updateStepper();
+    scrollToSectionElement(sections[nextIndex].target, "smooth");
+  });
+
+  currentButton?.addEventListener("click", () => {
+    document.querySelector(".menu-toggle")?.click();
+  });
+
+  window.addEventListener("ridgeline:active-section", (event) => {
+    setActiveFromId(event.detail?.id);
+  });
+}
+
+function enableSectionTransitions() {
+  if (!main || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
+
+  const revealTargets = [
+    ...main.querySelectorAll(":scope > section"),
+    ...main.querySelectorAll(".section-page-grid > article"),
+    ...main.querySelectorAll(".system-card, .tech-card, .dashboard-card, .related-card, .model-preview-card")
+  ];
+
+  if (!revealTargets.length) {
+    return;
+  }
+
+  revealTargets.forEach((target) => {
+    target.classList.add("section-reveal");
+  });
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      rootMargin: "0px 0px -10% 0px",
+      threshold: 0.08
+    }
+  );
+
+  revealTargets.forEach((target) => observer.observe(target));
 }
 
 function relatedLinksForPage(page) {
@@ -433,7 +1021,11 @@ function relatedLinksForPage(page) {
 
 function buildRelatedStrip() {
   const mainElement = document.querySelector("main");
-  if (!mainElement || document.querySelector(".related-strip")) {
+  if (
+    document.body?.hasAttribute("data-no-related-strip") ||
+    !mainElement ||
+    document.querySelector(".related-strip")
+  ) {
     return;
   }
 
@@ -587,12 +1179,46 @@ function buildSiteMenu() {
       <div class="site-menu-links">
         ${linkMarkup}
       </div>
+      <section class="site-menu-tools" aria-label="Recent pages">
+        <button class="site-menu-tools-toggle" type="button" data-recent-toggle aria-expanded="false">
+          <span>Recent Pages</span>
+          <strong>Expand</strong>
+        </button>
+        <div class="site-menu-tools-panel" data-recent-panel hidden>
+          ${buildRecentNavMarkup()}
+        </div>
+      </section>
+      <section class="site-menu-tools" aria-label="Quick tools">
+        <button class="site-menu-tools-toggle" type="button" data-tools-toggle aria-expanded="false">
+          <span>Quick Tools</span>
+          <strong>Expand</strong>
+        </button>
+        <div class="site-menu-tools-panel" data-tools-panel hidden>
+          <button class="site-menu-tool-button" type="button" data-tool-action="toggle-view">
+            Toggle Essential View
+          </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="live-refresh">
+            Live Refresh (No Cache)
+          </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="refresh-sw">
+            Update Service Worker
+          </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="top">
+            Scroll To Top
+          </button>
+          <a class="site-menu-tool-link" href="${inferRepositoryUrl()}" target="_blank" rel="noreferrer">
+            Open GitHub Repo
+          </a>
+          <p class="site-menu-tool-status" data-tool-status aria-live="polite"></p>
+        </div>
+      </section>
     </aside>
   `;
 
   document.body.appendChild(menu);
 
   const openMenu = () => {
+    refreshRecentPanel(recentPanel);
     menu.hidden = false;
     button.setAttribute("aria-expanded", "true");
     document.body.classList.add("modal-open");
@@ -618,7 +1244,119 @@ function buildSiteMenu() {
     element.addEventListener("click", closeMenu);
   });
 
+  const toolsToggle = menu.querySelector("[data-tools-toggle]");
+  const toolsPanel = menu.querySelector("[data-tools-panel]");
+  const toolsStatus = menu.querySelector("[data-tool-status]");
+  const recentToggle = menu.querySelector("[data-recent-toggle]");
+  const recentPanel = menu.querySelector("[data-recent-panel]");
+
+  const setToolsStatus = (message = "") => {
+    if (!toolsStatus) {
+      return;
+    }
+    toolsStatus.textContent = message;
+  };
+
+  toolsToggle?.addEventListener("click", () => {
+    const expanded = toolsToggle.getAttribute("aria-expanded") === "true";
+    toolsToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+    const label = toolsToggle.querySelector("strong");
+    if (label) {
+      label.textContent = expanded ? "Expand" : "Collapse";
+    }
+    if (toolsPanel) {
+      toolsPanel.hidden = expanded;
+    }
+  });
+
+  recentToggle?.addEventListener("click", () => {
+    const expanded = recentToggle.getAttribute("aria-expanded") === "true";
+    recentToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+    const label = recentToggle.querySelector("strong");
+    if (label) {
+      label.textContent = expanded ? "Expand" : "Collapse";
+    }
+    if (recentPanel) {
+      recentPanel.hidden = expanded;
+    }
+  });
+
+  recentPanel?.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      closeMenu();
+    }
+  });
+
+  menu.querySelector("[data-tool-action='live-refresh']")?.addEventListener("click", async () => {
+    await triggerLiveRefresh(setToolsStatus);
+  });
+
+  menu.querySelector("[data-tool-action='toggle-view']")?.addEventListener("click", () => {
+    const nextMode = currentContentMode === "essential" ? "full" : "essential";
+    setContentMode(nextMode, true);
+    setToolsStatus(
+      nextMode === "essential"
+        ? "Essential view enabled. Lower-priority sections are hidden until you switch back."
+        : "All content restored."
+    );
+  });
+
+  menu.querySelector("[data-tool-action='refresh-sw']")?.addEventListener("click", async () => {
+    setToolsStatus("Updating service worker...");
+    try {
+      await refreshServiceWorkerRegistrations();
+      setToolsStatus("Service worker update check complete.");
+    } catch {
+      setToolsStatus("Could not update the service worker in this browser session.");
+    }
+  });
+
+  menu.querySelector("[data-tool-action='top']")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    setToolsStatus("Scrolled to top.");
+  });
+
   return { menu, closeMenu };
+}
+
+function recordCurrentPageVisit() {
+  const hash = location.hash && location.hash !== "#top" ? location.hash : "";
+  recordRecentNavEntry({
+    href: `${currentPageName()}${hash}`,
+    label: currentPageDisplayLabel()
+  });
+}
+
+function registerRecentNavTracking() {
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a[href]");
+    if (!link || link.target === "_blank" || link.hasAttribute("download")) {
+      return;
+    }
+
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("javascript:")) {
+      return;
+    }
+
+    let url;
+    try {
+      url = new URL(href, location.href);
+    } catch {
+      return;
+    }
+
+    if (url.origin !== location.origin) {
+      return;
+    }
+
+    const page = url.pathname.split("/").pop() || "index.html";
+    const label = link.textContent?.trim() || link.getAttribute("aria-label") || page;
+    recordRecentNavEntry({
+      href: `${page}${url.hash || ""}`,
+      label
+    });
+  });
 }
 
 function buildSearchModal() {
@@ -652,15 +1390,28 @@ const searchResults = searchModal.querySelector("#site-search-results");
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
 const pageSections = collectPageSections();
+recordCurrentPageVisit();
+registerRecentNavTracking();
 promoteNfcTarget();
-buildQuickActionBar();
+if (!isMobileNavMode) {
+  buildQuickActionBar();
+}
+buildViewModeRail();
+setContentMode(getSavedContentMode(), false);
 buildHeroActionCards();
-const sectionRail = buildSectionRail(pageSections);
+buildMobileNavAccordion(pageSections);
+const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
+buildResumeButton();
 buildBackToMapButton();
+buildScrollProgress();
+if (!isMobileNavMode) {
+  buildSectionStepper(pageSections);
+}
 buildCollapsibleCards();
 buildRelatedStrip();
 enhanceActiveLinks();
+enableSectionTransitions();
 
 if (location.hash || new URLSearchParams(location.search).has("nfc")) {
   requestAnimationFrame(scrollToHashTarget);

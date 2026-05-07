@@ -214,7 +214,7 @@ export const searchIndex = [
   },
   {
     title: "Jack Points",
-    url: "maintenance.html#jack-points",
+    url: "index.html?system=jack-points#viewer",
     category: "Maintenance",
     keywords: ["jack", "jacking point", "flat tire", "spare tire", "wheel nut torque", "roadside"]
   },
@@ -315,8 +315,8 @@ export const searchIndex = [
     keywords: ["tow checklist", "hookup", "safety chains", "coupler", "light check", "towing prep"]
   },
   {
-    title: "Emergency Quick Sheet",
-    url: "quick-sheet.html",
+    title: "Emergency Card",
+    url: "quick-sheet.html#emergency-card",
     category: "Navigation",
     keywords: ["quick sheet", "emergency", "battery", "oil", "tires", "jack", "fuses", "towing"]
   },

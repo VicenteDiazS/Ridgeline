@@ -1,4 +1,5 @@
-const CACHE_NAME = "ridgeline-console-v140";
+const CACHE_NAME = "ridgeline-console-v145";
+let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -27,6 +28,7 @@ const CORE_ASSETS = [
   "./pinout-interactive.js",
   "./photo-atlas.js",
   "./shared-ui.js",
+  "./model-gallery.js",
   "./search-data.js",
   "./garage.js",
   "./garage-data.js",
@@ -69,6 +71,27 @@ function shouldRuntimeCache(request) {
   );
 }
 
+function shouldBypassCache(request) {
+  if (request.method !== "GET") {
+    return false;
+  }
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) {
+    return false;
+  }
+
+  if (bypassNextNavigation) {
+    return true;
+  }
+
+  return (
+    request.cache === "reload" ||
+    url.searchParams.has("__live") ||
+    url.searchParams.has("__nocache")
+  );
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)).then(() => self.skipWaiting())
@@ -83,7 +106,33 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "RIDGELINE_BYPASS_NEXT_NAV") {
+    bypassNextNavigation = true;
+    return;
+  }
+
+  if (event.data?.type === "RIDGELINE_SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", (event) => {
+  if (shouldBypassCache(event.request)) {
+    if (bypassNextNavigation && event.request.mode === "navigate") {
+      setTimeout(() => {
+        bypassNextNavigation = false;
+      }, 12000);
+    }
+
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" }).catch(() =>
+        caches.match(event.request, { ignoreSearch: true })
+      )
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cached) => {
       if (cached) {

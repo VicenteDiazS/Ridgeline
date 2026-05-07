@@ -203,6 +203,62 @@ const systems = [
     target: new THREE.Vector3(-1.76, 0.7, 0.92)
   },
   {
+    id: "jack-points",
+    label: "Roadside Jack Points",
+    area: "Side pinch-weld jack points",
+    use: "Flat-tire lifting points",
+    description:
+      "These are the four emergency jacking locations on the side pinch-weld reinforcements. Use the point closest to the flat tire.",
+    bullets: [
+      "Front points are just behind each front wheel along the side sill.",
+      "Rear points are just ahead of each rear wheel along the side sill.",
+      "Use the jacking point closest to the tire you are changing.",
+      "Set the jack on a flat, stable surface on the same level as the truck."
+    ],
+    links: [
+      {
+        label: "Open owner-manual jacking procedure",
+        url: "https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=jacking+points"
+      },
+      {
+        label: "Open maintenance flat-tire checklist",
+        url: "maintenance.html#jack-points"
+      }
+    ],
+    quickFacts: [
+      ["Use case", "Roadside tire change"],
+      ["Pattern", "Closest point to flat tire"],
+      ["Wheel torque", "94 lb-ft"]
+    ],
+    actions: [
+      {
+        label: "Emergency Card",
+        href: "quick-sheet.html#emergency-card",
+        description: "Open critical roadside specs and fast links."
+      },
+      {
+        label: "Maintenance",
+        href: "maintenance.html#jack-points",
+        description: "Open flat-tire and jack-point service notes."
+      },
+      {
+        label: "Tire Lab",
+        href: "tires.html",
+        description: "Check wheel/tire size and fitment guidance."
+      }
+    ],
+    labelOffset: { x: 128, y: 42 },
+    highlightMeshes: [
+      "jackPointFrontLeftZone",
+      "jackPointRearLeftZone",
+      "jackPointFrontRightZone",
+      "jackPointRearRightZone"
+    ],
+    point: new THREE.Vector3(1.28, 0.58, 1.08),
+    camera: new THREE.Vector3(2.05, 1.68, 5.9),
+    target: new THREE.Vector3(0.36, 0.62, 1.0)
+  },
+  {
     id: "fuse-cabin",
     label: "Driver-Left Fuse Box",
     area: "Driver left lower dash",
@@ -431,6 +487,7 @@ const viewerStartup = document.getElementById("viewer-startup");
 const startupBarFill = document.getElementById("startup-bar-fill");
 const startupCopy = document.getElementById("startup-copy");
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
+const requestedSystemId = new URLSearchParams(window.location.search).get("system");
 
 let renderer;
 const isPhoneViewer =
@@ -1188,6 +1245,38 @@ if (!renderer) {
     0.54,
     new THREE.Vector3(-0.42, 1.18, 0)
   );
+  createServiceZone(
+    "jackPointFrontLeftZone",
+    0.22,
+    0.08,
+    0.12,
+    new THREE.Vector3(1.28, 0.54, 1.1),
+    { y: 0.06 }
+  );
+  createServiceZone(
+    "jackPointRearLeftZone",
+    0.22,
+    0.08,
+    0.12,
+    new THREE.Vector3(-1.3, 0.54, 1.1),
+    { y: 0.06 }
+  );
+  createServiceZone(
+    "jackPointFrontRightZone",
+    0.22,
+    0.08,
+    0.12,
+    new THREE.Vector3(1.28, 0.54, -1.1),
+    { y: -0.06 }
+  );
+  createServiceZone(
+    "jackPointRearRightZone",
+    0.22,
+    0.08,
+    0.12,
+    new THREE.Vector3(-1.3, 0.54, -1.1),
+    { y: -0.06 }
+  );
 
   const hoodCrease = new THREE.Mesh(makeRoundedBox(1.08, 0.03, 0.05, 0.01, 3), chrome);
   hoodCrease.position.set(2.28, 1.63, 0);
@@ -1233,9 +1322,7 @@ if (!renderer) {
   const modelLoader = new GLTFLoader();
   const fallbackLoader = new FBXLoader();
   viewerStatus.hidden = false;
-  viewerStatus.textContent = isPhoneViewer
-    ? "Using mobile-optimized truck model."
-    : "Loading real Ridgeline model...";
+  viewerStatus.textContent = "Loading real Ridgeline model...";
 
   function nameIncludes(text, keywords) {
     return keywords.some((keyword) => text.includes(keyword));
@@ -1261,11 +1348,8 @@ if (!renderer) {
       nextMaterial.color = new THREE.Color(0x30363b);
       nextMaterial.metalness = 0;
       nextMaterial.roughness = 0.42;
-      nextMaterial.transmission = 0.08;
       nextMaterial.transparent = true;
       nextMaterial.opacity = 0.96;
-      nextMaterial.ior = 1.45;
-      nextMaterial.thickness = 0.02;
       nextMaterial.depthWrite = true;
       return nextMaterial;
     }
@@ -1481,34 +1565,47 @@ if (!renderer) {
       viewerStatus.hidden = true;
   }
 
-  if (isPhoneViewer) {
-    window.addEventListener("load", () => {
-      viewerStatus.hidden = true;
-    });
-  } else {
+  const primaryModelUrls = isPhoneViewer
+    ? [
+        "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb",
+        "./assets/ridgeline-2021/honda-ridgeline-2021.glb"
+      ]
+    : [
+        "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+        "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
+      ];
+
+  function loadPrimaryModel(index = 0) {
+    if (index >= primaryModelUrls.length) {
+      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
+      fallbackLoader.load(
+        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
+        (fbx) => {
+          applyLoadedModel(fbx);
+        },
+        undefined,
+        () => {
+          viewerStatus.hidden = false;
+          viewerStatus.textContent =
+            "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
+        }
+      );
+      return;
+    }
+
     modelLoader.load(
-      "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+      primaryModelUrls[index],
       (gltf) => {
         applyLoadedModel(gltf.scene);
       },
       undefined,
       () => {
-        fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
-        fallbackLoader.load(
-          "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
-          (fbx) => {
-            applyLoadedModel(fbx);
-          },
-          undefined,
-          () => {
-            viewerStatus.hidden = false;
-            viewerStatus.textContent =
-              "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
-          }
-        );
+        loadPrimaryModel(index + 1);
       }
     );
   }
+
+  loadPrimaryModel();
 
   const hotspotMaterial = new THREE.MeshBasicMaterial({
     color: 0x61dfff,
@@ -1523,7 +1620,7 @@ if (!renderer) {
     return mesh;
   });
 
-  let selectedSystem = systems[0];
+  let selectedSystem = systems.find((entry) => entry.id === requestedSystemId) || systems[0];
   let cameraTween = null;
   const defaultInspectorState = {
     title: titleEl.textContent,
