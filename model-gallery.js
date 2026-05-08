@@ -24,23 +24,27 @@ if (!previewCards.length) {
             "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
             "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
           ],
-      cameraPosition: new THREE.Vector3(3.9, 2.2, 3.8),
-      target: new THREE.Vector3(0, 0.8, 0),
-      fit: 4.4,
+      cameraDirection: new THREE.Vector3(1.02, 0.2, 0.98),
+      targetHeightRatio: 0.3,
+      targetOffset: new THREE.Vector3(0, -0.36, 0),
+      fit: 3.35,
+      distanceMultiplier: isMobile ? 2.24 : 2.12,
       spinSpeed: 0.0055
     },
     engine: {
       urls: [],
-      cameraPosition: new THREE.Vector3(2.9, 1.9, 2.8),
-      target: new THREE.Vector3(0, 0.8, 0),
-      fit: 3.6,
+      cameraDirection: new THREE.Vector3(1.03, 0.44, 0.96),
+      targetOffset: new THREE.Vector3(0.04, -0.06, 0),
+      fit: 3.9,
+      distanceMultiplier: isMobile ? 1.76 : 1.7,
       spinSpeed: 0.006
     },
     tire: {
       urls: ["./assets/wheel-tire/ridgeline-tire-wheel.glb"],
-      cameraPosition: new THREE.Vector3(2.8, 1.2, 2.7),
-      target: new THREE.Vector3(0, 0.7, 0),
+      cameraDirection: new THREE.Vector3(1.06, 0.48, 0.98),
+      targetOffset: new THREE.Vector3(0, 0.04, 0),
       fit: 3.2,
+      distanceMultiplier: isMobile ? 1.68 : 1.58,
       spinSpeed: 0.007
     }
   };
@@ -66,17 +70,46 @@ if (!previewCards.length) {
   function fitModel(modelRoot, fit) {
     const bounds = new THREE.Box3().setFromObject(modelRoot);
     const size = bounds.getSize(new THREE.Vector3());
-    const center = bounds.getCenter(new THREE.Vector3());
     const longest = Math.max(size.x, size.y, size.z, 0.001);
     const scale = fit / longest;
 
     modelRoot.scale.multiplyScalar(scale);
 
     const scaledBounds = new THREE.Box3().setFromObject(modelRoot);
+    const scaledSize = scaledBounds.getSize(new THREE.Vector3());
     const scaledCenter = scaledBounds.getCenter(new THREE.Vector3());
     const minY = scaledBounds.min.y;
     modelRoot.position.sub(scaledCenter);
     modelRoot.position.y -= minY;
+
+    return {
+      bounds: new THREE.Box3().setFromObject(modelRoot),
+      size: scaledSize
+    };
+  }
+
+  function framePreviewCamera(preview, config, modelBounds) {
+    const sphere = modelBounds.getBoundingSphere(new THREE.Sphere());
+    const direction = (config.cameraDirection || new THREE.Vector3(1, 0.46, 1))
+      .clone()
+      .normalize();
+    const target = sphere.center.clone();
+    const size = modelBounds.getSize(new THREE.Vector3());
+    const min = modelBounds.min.clone();
+    if (typeof config.targetHeightRatio === "number") {
+      const ratio = THREE.MathUtils.clamp(config.targetHeightRatio, 0, 1);
+      target.y = min.y + size.y * ratio;
+    }
+    if (config.targetOffset) {
+      target.add(config.targetOffset);
+    }
+
+    const fov = THREE.MathUtils.degToRad(preview.camera.fov);
+    const distanceMultiplier = config.distanceMultiplier || 1.62;
+    const distance = (sphere.radius / Math.sin(fov / 2)) * distanceMultiplier;
+    preview.camera.position.copy(target).add(direction.multiplyScalar(distance));
+    preview.camera.lookAt(target);
+    preview.camera.updateProjectionMatrix();
   }
 
   function createEnginePreviewFallback() {
@@ -108,46 +141,58 @@ if (!previewCards.length) {
       roughness: 0.36
     });
 
-    const block = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.95, 1.3), blockMaterial);
+    const block = new THREE.Mesh(new THREE.BoxGeometry(2.28, 0.96, 1.34), blockMaterial);
     block.position.set(0, 0.75, 0);
     group.add(block);
 
-    const leftHead = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.33, 0.52), darkMaterial);
-    leftHead.position.set(0, 1.36, 0.42);
+    const leftHead = new THREE.Mesh(new THREE.BoxGeometry(2.04, 0.34, 0.56), darkMaterial);
+    leftHead.position.set(0, 1.36, 0.44);
     group.add(leftHead);
 
     const rightHead = leftHead.clone();
-    rightHead.position.z = -0.42;
+    rightHead.position.z = -0.44;
     group.add(rightHead);
 
-    const intake = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.36, 0.9), new THREE.MeshStandardMaterial({
+    const plenumMaterial = new THREE.MeshStandardMaterial({
       color: 0x7f8f9b,
-      metalness: 0.34,
-      roughness: 0.44
-    }));
-    intake.position.set(0, 1.65, 0);
+      metalness: 0.4,
+      roughness: 0.39
+    });
+    const intake = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.38, 0.96), plenumMaterial);
+    intake.position.set(0, 1.68, 0);
     group.add(intake);
 
-    const timingCover = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.2, 1.25), darkMaterial);
-    timingCover.position.set(1.26, 0.76, 0);
+    const throttle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.24, 18),
+      new THREE.MeshStandardMaterial({ color: 0xadb9c4, metalness: 0.72, roughness: 0.24 })
+    );
+    throttle.rotation.z = Math.PI / 2;
+    throttle.position.set(0.78, 1.63, 0.02);
+    group.add(throttle);
+
+    const timingCover = new THREE.Mesh(new THREE.BoxGeometry(0.44, 1.24, 1.28), darkMaterial);
+    timingCover.position.set(1.3, 0.78, 0);
     group.add(timingCover);
 
-    const pulleyYs = [0.34, 0.86, 1.2];
+    const pulleyYs = [0.34, 0.86, 1.22];
     pulleyYs.forEach((y, index) => {
-      const pulley = new THREE.Mesh(new THREE.CylinderGeometry(index === 0 ? 0.4 : 0.28, index === 0 ? 0.4 : 0.28, 0.12, 26), pulleyMaterial);
+      const pulley = new THREE.Mesh(
+        new THREE.CylinderGeometry(index === 0 ? 0.42 : 0.28, index === 0 ? 0.42 : 0.28, 0.12, 26),
+        pulleyMaterial
+      );
       pulley.rotation.z = Math.PI / 2;
-      pulley.position.set(1.56, y, index === 1 ? 0.45 : index === 2 ? -0.45 : 0);
+      pulley.position.set(1.58, y, index === 1 ? 0.48 : index === 2 ? -0.48 : 0);
       group.add(pulley);
     });
 
-    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.04, 14, 72), beltMaterial);
-    belt.position.set(1.54, 0.8, 0);
+    const belt = new THREE.Mesh(new THREE.TorusGeometry(0.57, 0.04, 14, 72), beltMaterial);
+    belt.position.set(1.56, 0.8, 0);
     belt.rotation.y = Math.PI / 2;
-    belt.scale.set(1, 1.52, 1);
+    belt.scale.set(1, 1.56, 1);
     group.add(belt);
 
     const alternator = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.32, 20), accentMaterial);
-    alternator.position.set(1.72, 1.02, -0.42);
+    alternator.position.set(1.78, 1.04, -0.46);
     alternator.rotation.z = Math.PI / 2;
     group.add(alternator);
 
@@ -156,9 +201,31 @@ if (!previewCards.length) {
       metalness: 0.44,
       roughness: 0.4
     }));
-    acCompressor.position.set(1.72, 0.46, 0.42);
+    acCompressor.position.set(1.78, 0.46, 0.46);
     acCompressor.rotation.z = Math.PI / 2;
     group.add(acCompressor);
+
+    const starter = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 0.28, 18),
+      new THREE.MeshStandardMaterial({ color: 0x9099a5, metalness: 0.52, roughness: 0.38 })
+    );
+    starter.rotation.z = Math.PI / 2;
+    starter.position.set(-1.1, 0.44, 0.36);
+    group.add(starter);
+
+    const oilFilter = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.13, 0.24, 18),
+      new THREE.MeshStandardMaterial({ color: 0xf0f4f9, metalness: 0.08, roughness: 0.82 })
+    );
+    oilFilter.position.set(0.98, 0.32, -0.54);
+    group.add(oilFilter);
+
+    const mount = new THREE.Mesh(
+      new THREE.BoxGeometry(0.34, 0.24, 0.56),
+      new THREE.MeshStandardMaterial({ color: 0x636e7b, metalness: 0.26, roughness: 0.62 })
+    );
+    mount.position.set(-1.24, 1.06, 0.02);
+    group.add(mount);
 
     const base = new THREE.Mesh(
       new THREE.CircleGeometry(2.2, 56),
@@ -194,18 +261,57 @@ if (!previewCards.length) {
     }
 
     const group = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(3.9, 0.95, 1.65),
-      new THREE.MeshStandardMaterial({ color: 0x4d565f, metalness: 0.42, roughness: 0.54 })
-    );
-    body.position.set(0, 0.95, 0);
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+      color: 0x4f5964,
+      metalness: 0.52,
+      roughness: 0.46
+    });
+    const glassMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8ea8bf,
+      metalness: 0.26,
+      roughness: 0.18,
+      transparent: true,
+      opacity: 0.72
+    });
+    const trimMaterial = new THREE.MeshStandardMaterial({
+      color: 0x121820,
+      metalness: 0.26,
+      roughness: 0.68
+    });
+
+    const body = new THREE.Mesh(new THREE.BoxGeometry(3.98, 0.84, 1.7), bodyMaterial);
+    body.position.set(0, 1, 0);
     group.add(body);
-    const cab = new THREE.Mesh(
-      new THREE.BoxGeometry(1.7, 0.7, 1.5),
-      new THREE.MeshStandardMaterial({ color: 0x555f69, metalness: 0.4, roughness: 0.52 })
-    );
-    cab.position.set(0.38, 1.72, 0);
+
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.78, 0.72, 1.52), bodyMaterial);
+    cab.position.set(0.48, 1.64, 0);
     group.add(cab);
+
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.36, 1.42), glassMaterial);
+    windshield.position.set(1.05, 1.66, 0);
+    windshield.rotation.z = -0.12;
+    group.add(windshield);
+
+    const grille = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.3, 1.22), trimMaterial);
+    grille.position.set(1.99, 0.95, 0);
+    group.add(grille);
+
+    const wheelOffsets = [
+      [1.18, 0.42, 0.84],
+      [1.18, 0.42, -0.84],
+      [-1.22, 0.42, 0.84],
+      [-1.22, 0.42, -0.84]
+    ];
+    wheelOffsets.forEach(([x, y, z]) => {
+      const tire = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.36, 0.36, 0.24, 26),
+        new THREE.MeshStandardMaterial({ color: 0x0b0d10, metalness: 0.05, roughness: 0.9 })
+      );
+      tire.rotation.z = Math.PI / 2;
+      tire.position.set(x, y, z);
+      group.add(tire);
+    });
+
     return group;
   }
 
@@ -219,9 +325,7 @@ if (!previewCards.length) {
     }
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.copy(config.cameraPosition);
-    camera.lookAt(config.target);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 220);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !isMobile,
@@ -298,8 +402,9 @@ if (!previewCards.length) {
         : Promise.resolve(createFallbackModel(type));
 
     modelPromise.then((model) => {
-      fitModel(model, config.fit);
+      const fitted = fitModel(model, config.fit);
       turntable.add(model);
+      framePreviewCamera(preview, config, fitted.bounds);
       preview.visible = true;
     });
   }

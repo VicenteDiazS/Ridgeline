@@ -15,7 +15,18 @@ const isMobileNavMode = prefersCompactDefault;
 
 let currentContentMode = prefersCompactDefault ? "essential" : "full";
 let optionalSections = [];
+let navOnlySections = [];
 let viewModeButtons = [];
+
+function normalizeContentMode(mode) {
+  if (mode === "navigation") {
+    return "navigation";
+  }
+  if (mode === "essential") {
+    return "essential";
+  }
+  return "full";
+}
 
 function normalizeRecentHref(value = "") {
   try {
@@ -226,11 +237,17 @@ function getSavedContentMode() {
     return "full";
   }
 
-  const saved = localStorage.getItem(CONTENT_MODE_STORAGE_KEY);
-  if (saved === "essential" || saved === "full") {
-    return saved;
+  const page = currentPageName();
+  if (page === "hood.html" || page === "cabin.html") {
+    return "full";
   }
-  return prefersCompactDefault ? "essential" : "full";
+
+  const saved = localStorage.getItem(CONTENT_MODE_STORAGE_KEY);
+  if (saved === "essential" || saved === "full" || saved === "navigation") {
+    return normalizeContentMode(saved);
+  }
+
+  return "full";
 }
 
 function collectOptionalSections() {
@@ -248,12 +265,32 @@ function collectOptionalSections() {
   return sections.filter((section, index) => index >= keepCount);
 }
 
-function setContentMode(mode = "full", persist = true) {
-  currentContentMode = mode === "essential" ? "essential" : "full";
-  document.body.classList.toggle("essential-mode", currentContentMode === "essential");
+function collectNavigationOnlySections() {
+  if (!main) {
+    return [];
+  }
 
-  optionalSections.forEach((section) => {
-    section.classList.toggle("is-optional-section", true);
+  const sections = [...main.querySelectorAll(":scope > section")];
+  if (sections.length < 2) {
+    return [];
+  }
+
+  return sections.filter((section, index) => index >= 1);
+}
+
+function setContentMode(mode = "full", persist = true) {
+  currentContentMode = normalizeContentMode(mode);
+  document.body.classList.toggle("essential-mode", currentContentMode === "essential");
+  document.body.classList.toggle("nav-only-mode", currentContentMode === "navigation");
+
+  optionalSections.forEach((section) => section.classList.add("is-optional-section"));
+  navOnlySections.forEach((section) => section.classList.add("is-nav-only-section"));
+
+  const allManagedSections = new Set([...optionalSections, ...navOnlySections]);
+  allManagedSections.forEach((section) => {
+    const hideForEssential = currentContentMode === "essential" && section.classList.contains("is-optional-section");
+    const hideForNavigation = currentContentMode === "navigation" && section.classList.contains("is-nav-only-section");
+    section.hidden = hideForEssential || hideForNavigation;
   });
 
   viewModeButtons.forEach((button) => {
@@ -272,7 +309,8 @@ function buildViewModeRail() {
   }
 
   optionalSections = collectOptionalSections();
-  if (!optionalSections.length) {
+  navOnlySections = collectNavigationOnlySections();
+  if (!optionalSections.length && !navOnlySections.length) {
     return;
   }
 
@@ -282,6 +320,7 @@ function buildViewModeRail() {
   rail.setAttribute("aria-label", "Page view mode");
   rail.innerHTML = `
     <span>View</span>
+    <button class="view-mode-button" type="button" data-content-mode="navigation" aria-pressed="false">Navigation</button>
     <button class="view-mode-button" type="button" data-content-mode="essential" aria-pressed="false">Essentials</button>
     <button class="view-mode-button" type="button" data-content-mode="full" aria-pressed="false">All Content</button>
   `;
@@ -411,7 +450,7 @@ function scrollToHashTarget() {
   }
 
   const targetSection = target.closest("main > section");
-  if (targetSection && document.body.classList.contains("essential-mode") && targetSection.classList.contains("is-optional-section")) {
+  if (targetSection?.hidden) {
     setContentMode("full", true);
   }
 
@@ -551,6 +590,72 @@ function uniqueNavEntries(items = []) {
     seen.add(key);
     return true;
   });
+}
+
+function dedupeLinksByHref(container) {
+  if (!container) {
+    return;
+  }
+
+  const seen = new Set();
+  [...container.querySelectorAll("a[href]")].forEach((link) => {
+    const href = (link.getAttribute("href") || "").trim();
+    if (!href) {
+      return;
+    }
+
+    const key = normalizeRecentHref(href);
+    if (seen.has(key)) {
+      link.remove();
+      return;
+    }
+
+    seen.add(key);
+  });
+}
+
+function validateInternalAnchors() {
+  const links = [...document.querySelectorAll("a[href^='#']")];
+  links.forEach((link) => {
+    const href = (link.getAttribute("href") || "").trim();
+    if (!href || href === "#") {
+      return;
+    }
+
+    const id = href.slice(1);
+    if (!id || id === "top") {
+      return;
+    }
+
+    const target = document.getElementById(id);
+    if (target) {
+      return;
+    }
+
+    link.setAttribute("href", "#top");
+    link.classList.add("is-disabled-link");
+  });
+}
+
+function simplifyNavigationLayout() {
+  const routeStrip = document.querySelector(".route-strip");
+  const utilityNav = document.querySelector(".section-utility-nav");
+  const sectionDock = document.querySelector(".section-dock");
+  const quickActionBar = document.querySelector(".quick-action-bar");
+
+  dedupeLinksByHref(routeStrip);
+  dedupeLinksByHref(utilityNav);
+
+  // Use one persistent nav pattern to avoid redundant on-screen controls.
+  sectionDock?.remove();
+  quickActionBar?.remove();
+
+  if (isMobileNavMode) {
+    utilityNav?.setAttribute("hidden", "true");
+    document.querySelector(".back-to-map-fab")?.remove();
+  }
+
+  validateInternalAnchors();
 }
 
 function buildMobileNavAccordion(sections) {
@@ -816,7 +921,7 @@ function buildResumeButton() {
 }
 
 function buildBackToMapButton() {
-  if (document.querySelector(".back-to-map-fab")) {
+  if (isMobileNavMode || document.querySelector(".back-to-map-fab")) {
     return;
   }
 
@@ -859,7 +964,8 @@ function buildSectionStepper(sections) {
     sections.length < 2 ||
     document.body?.hasAttribute("data-no-section-stepper") ||
     document.querySelector(".section-stepper") ||
-    document.querySelector(".section-dock")
+    document.querySelector(".section-dock") ||
+    document.querySelector(".page-section-rail")
   ) {
     return;
   }
@@ -1195,7 +1301,7 @@ function buildSiteMenu() {
         </button>
         <div class="site-menu-tools-panel" data-tools-panel hidden>
           <button class="site-menu-tool-button" type="button" data-tool-action="toggle-view">
-            Toggle Essential View
+            Cycle View Mode
           </button>
           <button class="site-menu-tool-button" type="button" data-tool-action="live-refresh">
             Live Refresh (No Cache)
@@ -1292,13 +1398,17 @@ function buildSiteMenu() {
   });
 
   menu.querySelector("[data-tool-action='toggle-view']")?.addEventListener("click", () => {
-    const nextMode = currentContentMode === "essential" ? "full" : "essential";
+    const modeOrder = ["navigation", "essential", "full"];
+    const modeIndex = modeOrder.indexOf(currentContentMode);
+    const nextMode = modeOrder[(modeIndex + 1) % modeOrder.length] || "full";
     setContentMode(nextMode, true);
-    setToolsStatus(
-      nextMode === "essential"
-        ? "Essential view enabled. Lower-priority sections are hidden until you switch back."
-        : "All content restored."
-    );
+    const modeLabel =
+      nextMode === "navigation"
+        ? "Navigation only enabled."
+        : nextMode === "essential"
+          ? "Essential view enabled."
+          : "All content restored.";
+    setToolsStatus(modeLabel);
   });
 
   menu.querySelector("[data-tool-action='refresh-sw']")?.addEventListener("click", async () => {
@@ -1393,13 +1503,10 @@ const pageSections = collectPageSections();
 recordCurrentPageVisit();
 registerRecentNavTracking();
 promoteNfcTarget();
-if (!isMobileNavMode) {
-  buildQuickActionBar();
-}
 buildViewModeRail();
 setContentMode(getSavedContentMode(), false);
-buildHeroActionCards();
 buildMobileNavAccordion(pageSections);
+simplifyNavigationLayout();
 const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
 buildResumeButton();
@@ -1420,8 +1527,22 @@ if (location.hash || new URLSearchParams(location.search).has("nfc")) {
     setTimeout(scrollToHashTarget, 160);
     setTimeout(scrollToHashTarget, 520);
   });
-  window.addEventListener("hashchange", () => requestAnimationFrame(scrollToHashTarget));
 }
+
+window.addEventListener("hashchange", () => requestAnimationFrame(scrollToHashTarget));
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[href^='#']");
+  if (!link) {
+    return;
+  }
+
+  const href = link.getAttribute("href") || "";
+  if (!href || href === "#" || href === "#top") {
+    return;
+  }
+
+  requestAnimationFrame(scrollToHashTarget);
+});
 
 function applyGarageMode(enabled) {
   document.body.classList.toggle("garage-mode", enabled);

@@ -667,6 +667,12 @@ body.essential-mode .page-section-rail {
   display: none !important;
 }
 
+body.nav-only-mode .related-strip,
+body.nav-only-mode .hero-action-grid,
+body.nav-only-mode .page-section-rail {
+  display: none !important;
+}
+
 .route-strip {
   display: flex;
   gap: 8px;
@@ -1049,10 +1055,18 @@ h1 {
   padding: 24px;
 }
 
+main > .model-launchpad:first-child {
+  min-height: min(84svh, 860px);
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
 .model-launchpad-grid {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
 }
 
 .model-preview-card {
@@ -1084,7 +1098,8 @@ h1 {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 11;
+  min-height: 210px;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(121, 212, 255, 0.22);
@@ -4740,7 +4755,7 @@ kbd {
   .view-mode-rail {
     width: 100%;
     display: grid;
-    grid-template-columns: auto 1fr 1fr;
+    grid-template-columns: auto 1fr 1fr 1fr;
     gap: 6px;
     align-items: center;
   }
@@ -4828,6 +4843,15 @@ kbd {
 
   .model-launchpad-grid {
     grid-template-columns: 1fr;
+  }
+
+  main > .model-launchpad:first-child {
+    min-height: auto;
+  }
+
+  .model-preview-stage {
+    min-height: 236px;
+    aspect-ratio: 16 / 12;
   }
 
   .viewer-header,
