@@ -18,6 +18,32 @@ let optionalSections = [];
 let navOnlySections = [];
 let viewModeButtons = [];
 
+function bindPress(target, handler) {
+  if (!target || typeof handler !== "function") {
+    return;
+  }
+
+  let ignoreClickUntil = 0;
+
+  target.addEventListener(
+    "touchend",
+    (event) => {
+      event.preventDefault();
+      ignoreClickUntil = Date.now() + 450;
+      handler(event);
+    },
+    { passive: false }
+  );
+
+  target.addEventListener("click", (event) => {
+    if (Date.now() < ignoreClickUntil) {
+      event.preventDefault();
+      return;
+    }
+    handler(event);
+  });
+}
+
 function normalizeContentMode(mode) {
   if (mode === "navigation") {
     return "navigation";
@@ -334,7 +360,7 @@ function buildViewModeRail() {
 
   viewModeButtons = [...rail.querySelectorAll(".view-mode-button")];
   viewModeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
+    bindPress(button, () => {
       setContentMode(button.dataset.contentMode, true);
     });
   });
@@ -740,7 +766,7 @@ function buildMobileNavAccordion(sections) {
   };
 
   toggles.forEach((toggle) => {
-    toggle.addEventListener("click", () => {
+    bindPress(toggle, () => {
       const id = toggle.dataset.mobileNavToggle;
       const panel = container.querySelector(`[data-mobile-nav-panel='${id}']`);
       const isExpanded = toggle.getAttribute("aria-expanded") === "true";
@@ -1229,7 +1255,7 @@ function buildCollapsibleCards() {
 
     card.append(heading, content);
 
-    button.addEventListener("click", () => {
+    bindPress(button, () => {
       const expanded = button.getAttribute("aria-expanded") === "true";
       button.setAttribute("aria-expanded", expanded ? "false" : "true");
       button.querySelector("strong").textContent = expanded ? "Expand" : "Collapse";
@@ -1338,7 +1364,7 @@ function buildSiteMenu() {
     }
   };
 
-  button.addEventListener("click", () => {
+  bindPress(button, () => {
     if (menu.hidden) {
       openMenu();
     } else {
@@ -1363,53 +1389,58 @@ function buildSiteMenu() {
     toolsStatus.textContent = message;
   };
 
-  toolsToggle?.addEventListener("click", () => {
-    const expanded = toolsToggle.getAttribute("aria-expanded") === "true";
-    toolsToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
-    const label = toolsToggle.querySelector("strong");
-    if (label) {
-      label.textContent = expanded ? "Expand" : "Collapse";
-    }
-    if (toolsPanel) {
-      toolsPanel.hidden = expanded;
-    }
-  });
+  if (toolsToggle) {
+    bindPress(toolsToggle, () => {
+      const expanded = toolsToggle.getAttribute("aria-expanded") === "true";
+      toolsToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+      const label = toolsToggle.querySelector("strong");
+      if (label) {
+        label.textContent = expanded ? "Expand" : "Collapse";
+      }
+      if (toolsPanel) {
+        toolsPanel.hidden = expanded;
+      }
+    });
+  }
 
-  recentToggle?.addEventListener("click", () => {
-    const expanded = recentToggle.getAttribute("aria-expanded") === "true";
-    recentToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
-    const label = recentToggle.querySelector("strong");
-    if (label) {
-      label.textContent = expanded ? "Expand" : "Collapse";
-    }
-    if (recentPanel) {
-      recentPanel.hidden = expanded;
-    }
-  });
+  if (recentToggle) {
+    bindPress(recentToggle, () => {
+      const expanded = recentToggle.getAttribute("aria-expanded") === "true";
+      recentToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+      const label = recentToggle.querySelector("strong");
+      if (label) {
+        label.textContent = expanded ? "Expand" : "Collapse";
+      }
+      if (recentPanel) {
+        recentPanel.hidden = expanded;
+      }
+    });
+  }
 
-  recentPanel?.addEventListener("click", (event) => {
-    if (event.target.closest("a")) {
-      closeMenu();
+  menu.querySelector("[data-tool-action='toggle-view']") && bindPress(
+    menu.querySelector("[data-tool-action='toggle-view']"),
+    () => {
+      const modeOrder = ["navigation", "essential", "full"];
+      const modeIndex = modeOrder.indexOf(currentContentMode);
+      const nextMode = modeOrder[(modeIndex + 1) % modeOrder.length] || "full";
+      setContentMode(nextMode, true);
+      const modeLabel =
+        nextMode === "navigation"
+          ? "Navigation only enabled."
+          : nextMode === "essential"
+            ? "Essential view enabled."
+            : "All content restored.";
+      setToolsStatus(modeLabel);
     }
-  });
+  );
 
-  menu.querySelector("[data-tool-action='live-refresh']")?.addEventListener("click", async () => {
-    await triggerLiveRefresh(setToolsStatus);
-  });
-
-  menu.querySelector("[data-tool-action='toggle-view']")?.addEventListener("click", () => {
-    const modeOrder = ["navigation", "essential", "full"];
-    const modeIndex = modeOrder.indexOf(currentContentMode);
-    const nextMode = modeOrder[(modeIndex + 1) % modeOrder.length] || "full";
-    setContentMode(nextMode, true);
-    const modeLabel =
-      nextMode === "navigation"
-        ? "Navigation only enabled."
-        : nextMode === "essential"
-          ? "Essential view enabled."
-          : "All content restored.";
-    setToolsStatus(modeLabel);
-  });
+  menu.querySelector("[data-tool-action='top']") && bindPress(
+    menu.querySelector("[data-tool-action='top']"),
+    () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      setToolsStatus("Scrolled to top.");
+    }
+  );
 
   menu.querySelector("[data-tool-action='refresh-sw']")?.addEventListener("click", async () => {
     setToolsStatus("Updating service worker...");
@@ -1421,9 +1452,14 @@ function buildSiteMenu() {
     }
   });
 
-  menu.querySelector("[data-tool-action='top']")?.addEventListener("click", () => {
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    setToolsStatus("Scrolled to top.");
+  menu.querySelector("[data-tool-action='live-refresh']")?.addEventListener("click", async () => {
+    await triggerLiveRefresh(setToolsStatus);
+  });
+
+  recentPanel?.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      closeMenu();
+    }
   });
 
   return { menu, closeMenu };
