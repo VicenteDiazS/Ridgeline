@@ -512,9 +512,9 @@ if (!renderer) {
 } else {
   const sceneFrameOffset = new THREE.Vector3(0, 0, 0);
   const defaultCameraPosition = isPhoneViewer
-    ? new THREE.Vector3(-14.2, 4.6, 13.1)
-    : new THREE.Vector3(-8.8, 3.55, 5.2);
-  const defaultCameraTarget = new THREE.Vector3(0, isPhoneViewer ? 1.16 : 1.2, 0);
+    ? new THREE.Vector3(-9.35, 3.58, 8.6)
+    : new THREE.Vector3(-5.85, 2.82, 3.46);
+  const defaultCameraTarget = new THREE.Vector3(0, isPhoneViewer ? 0.9 : 1, 0);
   const startupStart = performance.now();
   const startupDuration = isPhoneViewer ? 1600 : 2200;
   const autoRotateResumeDelay = 3200;
@@ -538,19 +538,19 @@ if (!renderer) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = !isPhoneViewer;
   controls.enablePan = true;
-  controls.minDistance = isPhoneViewer ? 7 : 4.4;
+  controls.minDistance = isPhoneViewer ? 5.1 : 3.55;
   controls.maxDistance = isPhoneViewer ? 26 : 16;
   controls.target.copy(defaultCameraTarget);
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.8;
-  renderer.domElement.style.touchAction = isPhoneViewer ? "pan-y" : "none";
+  renderer.domElement.style.touchAction = "none";
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.96;
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.05).texture;
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.03).texture;
 
   scene.add(new THREE.HemisphereLight(0xdff4ff, 0x122030, 1.34));
 
@@ -1643,6 +1643,87 @@ if (!renderer) {
   const systemCards = new Map();
   const chipButtons = new Map();
   const orientationPoint = new THREE.Vector3(0.28, 1.34, 1.24);
+  const jackPointGuides = [
+    {
+      key: "front-left",
+      label: "Front Left",
+      shortLabel: "FL",
+      note: "Behind front wheel",
+      point: new THREE.Vector3(1.28, 0.56, 1.18)
+    },
+    {
+      key: "rear-left",
+      label: "Rear Left",
+      shortLabel: "RL",
+      note: "Ahead of rear wheel",
+      point: new THREE.Vector3(-1.3, 0.56, 1.18)
+    },
+    {
+      key: "front-right",
+      label: "Front Right",
+      shortLabel: "FR",
+      note: "Behind front wheel",
+      point: new THREE.Vector3(1.28, 0.56, -1.18)
+    },
+    {
+      key: "rear-right",
+      label: "Rear Right",
+      shortLabel: "RR",
+      note: "Ahead of rear wheel",
+      point: new THREE.Vector3(-1.3, 0.56, -1.18)
+    }
+  ];
+  const jackPointMarkerGroup = new THREE.Group();
+  jackPointMarkerGroup.name = "jackPointMarkerGroup";
+  jackPointMarkerGroup.visible = false;
+  truck.add(jackPointMarkerGroup);
+
+  const jackPointMarkerMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff915e,
+    transparent: true,
+    opacity: 0.96,
+    depthTest: false
+  });
+  const jackPointMarkerHaloMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffd0b5,
+    transparent: true,
+    opacity: 0.34,
+    side: THREE.DoubleSide,
+    depthTest: false
+  });
+  const jackPointMarkerRingGeometry = new THREE.TorusGeometry(0.115, 0.011, 12, 40);
+  const jackPointMarkerCoreGeometry = new THREE.SphereGeometry(0.052, 18, 18);
+  const jackPointMarkerStemGeometry = new THREE.CylinderGeometry(0.012, 0.018, 0.18, 12);
+
+  const jackPointMarkers = jackPointGuides.map((guide) => {
+    const marker = new THREE.Group();
+    marker.name = `${guide.key}-jack-point-marker`;
+    marker.position.copy(guide.point);
+    marker.position.z += Math.sign(guide.point.z || 1) * 0.085;
+
+    const ring = new THREE.Mesh(jackPointMarkerRingGeometry, jackPointMarkerHaloMaterial.clone());
+    ring.name = `${guide.key}-jack-point-ring`;
+    ring.renderOrder = 20;
+    if (guide.point.z < 0) {
+      ring.rotation.y = Math.PI;
+    }
+
+    const core = new THREE.Mesh(jackPointMarkerCoreGeometry, jackPointMarkerMaterial.clone());
+    core.name = `${guide.key}-jack-point-core`;
+    core.renderOrder = 21;
+
+    const stem = new THREE.Mesh(jackPointMarkerStemGeometry, jackPointMarkerMaterial.clone());
+    stem.name = `${guide.key}-jack-point-stem`;
+    stem.position.y = -0.11;
+    stem.renderOrder = 20;
+
+    marker.add(ring, core, stem);
+    marker.traverse((child) => {
+      child.userData.ignoreOcclusion = true;
+    });
+    jackPointMarkerGroup.add(marker);
+    return marker;
+  });
   let lastVisibilitySample = 0;
   let visibilityDirty = true;
   let isViewerInteracting = false;
@@ -1660,6 +1741,29 @@ if (!renderer) {
   orientationCallout.appendChild(orientationPill);
   hotspotLayer.appendChild(orientationCallout);
 
+  const jackPointLayer = document.createElement("div");
+  jackPointLayer.className = "jack-point-label-layer";
+  jackPointLayer.hidden = true;
+  hotspotLayer.appendChild(jackPointLayer);
+
+  const jackPointLabels = jackPointGuides.map((guide) => {
+    const label = document.createElement("button");
+    label.className = "jack-point-label";
+    label.type = "button";
+    label.setAttribute("aria-label", `${guide.label} jack point`);
+    label.innerHTML = `
+      <strong>${guide.shortLabel}</strong>
+      <span>${guide.label}</span>
+      <small>${guide.note}</small>
+    `;
+    label.addEventListener("click", () => {
+      stopShowcaseRotation();
+      selectSystem("jack-points", false);
+    });
+    jackPointLayer.appendChild(label);
+    return { ...guide, element: label };
+  });
+
   systems.forEach((system) => {
     const button = document.createElement("button");
     button.className = "hotspot-button";
@@ -1668,7 +1772,6 @@ if (!renderer) {
     button.addEventListener("click", () => {
       stopShowcaseRotation();
       selectSystem(system.id, cinematicMode);
-      openAreaModal(system);
     });
     hotspotLayer.appendChild(button);
     hotspotButtons.set(system.id, button);
@@ -1680,9 +1783,15 @@ if (!renderer) {
     line.className = "callout-line";
     callout.appendChild(line);
 
-    const pill = document.createElement("div");
-    pill.className = "callout-pill";
+    const pill = document.createElement("button");
+    pill.className = "callout-pill callout-pill-button";
+    pill.type = "button";
     pill.textContent = system.label;
+    pill.setAttribute("aria-label", `Show ${system.label} details`);
+    pill.addEventListener("click", () => {
+      stopShowcaseRotation();
+      selectSystem(system.id, cinematicMode);
+    });
     callout.appendChild(pill);
 
     hotspotLayer.appendChild(callout);
@@ -1731,7 +1840,7 @@ if (!renderer) {
       const outlineFor = child.userData.outlineFor;
       const isServiceZone = partName && serviceZoneNames.has(partName);
       const isServiceOutline = outlineFor && serviceZoneNames.has(outlineFor);
-      if (isServiceZone || isServiceOutline) {
+      if (isServiceZone || isServiceOutline || child.userData.ignoreOcclusion) {
         return;
       }
 
@@ -1779,6 +1888,11 @@ if (!renderer) {
     areaEl.textContent = system.area;
     useEl.textContent = system.use;
 
+    const inspectorPanel = titleEl.closest(".inspector-panel");
+    inspectorPanel?.classList.remove("is-model-selection");
+    void inspectorPanel?.offsetWidth;
+    inspectorPanel?.classList.add("is-model-selection");
+
     pointsEl.innerHTML = "";
     system.bullets.forEach((point) => {
       const li = document.createElement("li");
@@ -1787,6 +1901,31 @@ if (!renderer) {
     });
 
     linksEl.innerHTML = "";
+    if (system.id === "jack-points") {
+      const guide = document.createElement("div");
+      guide.className = "jack-point-guide-card";
+      guide.innerHTML = `
+        <strong>Jack Point Map</strong>
+        <svg viewBox="0 0 320 150" role="img" aria-label="Top view jack point diagram">
+          <text class="jack-map-direction" x="38" y="80">Front</text>
+          <path class="jack-map-body" d="M48 46h224c17 0 30 13 30 30v4c0 17-13 30-30 30H48c-17 0-30-13-30-30v-4c0-17 13-30 30-30Z" />
+          <path class="jack-map-cabin" d="M150 38h74c13 0 24 11 24 24v56H122V66c0-15 13-28 28-28Z" />
+          <circle class="jack-map-wheel" cx="76" cy="42" r="16" />
+          <circle class="jack-map-wheel" cx="244" cy="42" r="16" />
+          <circle class="jack-map-wheel" cx="76" cy="108" r="16" />
+          <circle class="jack-map-wheel" cx="244" cy="108" r="16" />
+          <g class="jack-map-point">
+            <circle cx="112" cy="35" r="8" /><text x="112" y="19">FL</text>
+            <circle cx="208" cy="35" r="8" /><text x="208" y="19">RL</text>
+            <circle cx="112" cy="115" r="8" /><text x="112" y="142">FR</text>
+            <circle cx="208" cy="115" r="8" /><text x="208" y="142">RR</text>
+          </g>
+        </svg>
+        <p>Use the reinforced pinch-weld point closest to the flat tire: front points sit behind the front wheels, rear points sit ahead of the rear wheels.</p>
+      `;
+      linksEl.appendChild(guide);
+    }
+
     system.links.forEach((link) => {
       const anchor = document.createElement("a");
       anchor.className = "doc-link";
@@ -1842,6 +1981,11 @@ if (!renderer) {
     useEl.textContent = defaultInspectorState.use;
     pointsEl.innerHTML = "";
     linksEl.innerHTML = "";
+    jackPointLayer.hidden = true;
+    jackPointMarkerGroup.visible = false;
+    jackPointLabels.forEach((guide) => {
+      guide.element.hidden = true;
+    });
 
     systems.forEach((entry, index) => {
       hotspotButtons.get(entry.id)?.classList.remove("active");
@@ -1906,6 +2050,7 @@ if (!renderer) {
     }
 
     selectedSystem = system;
+    jackPointMarkerGroup.visible = id === "jack-points";
     setInspector(system);
 
     systems.forEach((entry, index) => {
@@ -1950,24 +2095,84 @@ if (!renderer) {
     }
   }
 
+  let rendererHasSize = false;
+  let lastRendererWidth = 0;
+  let lastRendererHeight = 0;
+
+  function getViewerSize() {
+    const rect = viewerElement.getBoundingClientRect();
+    const width = Math.round(viewerElement.clientWidth || rect.width);
+    const height = Math.round(viewerElement.clientHeight || rect.height);
+    return { width, height };
+  }
+
   function resizeRenderer() {
-    const { clientWidth, clientHeight } = viewerElement;
-    renderer.setSize(clientWidth, clientHeight, false);
-    camera.aspect = clientWidth / clientHeight;
-    camera.updateProjectionMatrix();
+    const { width, height } = getViewerSize();
+    if (width < 2 || height < 2) {
+      return false;
+    }
+
+    if (width !== lastRendererWidth || height !== lastRendererHeight) {
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      lastRendererWidth = width;
+      lastRendererHeight = height;
+    }
+
+    rendererHasSize = true;
+    return true;
   }
 
   function projectHotspots(now) {
-    const width = viewerElement.clientWidth;
-    const height = viewerElement.clientHeight;
+    const { width, height } = getViewerSize();
+    if (width < 2 || height < 2) {
+      return;
+    }
+
     cameraLocal.copy(camera.position);
     truck.worldToLocal(cameraLocal);
     const visibleSideSign = cameraLocal.z >= 0 ? 1 : -1;
     const visibleFrontSign = cameraLocal.x >= 0 ? 1 : -1;
+    const showJackLabels = selectedSystem?.id === "jack-points";
+    jackPointMarkerGroup.visible = showJackLabels;
+    const clampX = (value, padding = 20) =>
+      THREE.MathUtils.clamp(value, padding, Math.max(padding, width - padding));
+    const clampY = (value, padding = 20) =>
+      THREE.MathUtils.clamp(value, padding, Math.max(padding, height - padding));
+    const clampLabelLeft = (value, labelWidth, padding = 8) =>
+      THREE.MathUtils.clamp(value, padding, Math.max(padding, width - labelWidth - padding));
+
+    jackPointLayer.hidden = !showJackLabels;
+    jackPointLabels.forEach((guide) => {
+      if (!showJackLabels) {
+        guide.element.hidden = true;
+        return;
+      }
+
+      projected.copy(guide.point).applyMatrix4(truck.matrixWorld).project(camera);
+      const isVisible = projected.z < 1 && projected.z > -1;
+      if (!isVisible) {
+        guide.element.hidden = true;
+        return;
+      }
+
+      const x = (projected.x * 0.5 + 0.5) * width;
+      const y = (-projected.y * 0.5 + 0.5) * height;
+
+      guide.element.hidden = false;
+      guide.element.classList.toggle(
+        "is-edge-pinned",
+        x < 52 || x > width - 52 || y < 84 || y > height - 16
+      );
+      guide.element.style.left = `${clampX(x, 52)}px`;
+      guide.element.style.top = `${clampY(y, 84)}px`;
+    });
 
     systems.forEach((system) => {
       const button = hotspotButtons.get(system.id);
       const callout = calloutElements.get(system.id);
+      const isActive = system.id === selectedSystem?.id;
       projected.copy(system.point).applyMatrix4(truck.matrixWorld).project(camera);
       const isVisible = projected.z < 1 && projected.z > -1;
       const isCenterSide = Math.abs(system.point.z) < 0.24;
@@ -1987,7 +2192,7 @@ if (!renderer) {
       const x = (projected.x * 0.5 + 0.5) * width;
       const y = (-projected.y * 0.5 + 0.5) * height;
 
-      if (x < -40 || x > width + 40 || y < -40 || y > height + 40) {
+      if (!isActive && (x < -40 || x > width + 40 || y < -40 || y > height + 40)) {
         button.style.display = "none";
         if (callout) {
           callout.root.style.display = "none";
@@ -1995,7 +2200,7 @@ if (!renderer) {
         return;
       }
 
-      if (!isVisibleSideZone || !isVisibleFrontZone) {
+      if (!isActive && (!isVisibleSideZone || !isVisibleFrontZone)) {
         button.style.display = "none";
         if (callout) {
           callout.root.style.display = "none";
@@ -2003,23 +2208,33 @@ if (!renderer) {
         return;
       }
 
+      const anchorX = isActive ? clampX(x, 24) : x;
+      const anchorY = isActive ? clampY(y, 24) : y;
       button.style.display = "block";
-      button.style.left = `${x}px`;
-      button.style.top = `${y}px`;
+      button.style.left = `${anchorX}px`;
+      button.style.top = `${anchorY}px`;
       if (!callout) {
         return;
       }
 
-      const labelX = x + system.labelOffset.x;
-      const labelY = y + system.labelOffset.y;
-      const dx = labelX - x;
-      const dy = labelY - y;
+      const rawLabelX = anchorX + system.labelOffset.x;
+      const rawLabelY = anchorY + system.labelOffset.y;
+      const pillWidth = Math.min(width - 16, Math.max(72, callout.pill.offsetWidth || 144));
+      const pillHeight = Math.max(28, callout.pill.offsetHeight || 28);
+      const labelX = clampLabelLeft(rawLabelX, pillWidth, 8);
+      const labelY = clampY(rawLabelY, Math.ceil(pillHeight / 2) + 8);
+      const dx = labelX - anchorX;
+      const dy = labelY - anchorY;
       const length = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
 
       callout.root.style.display = "block";
-      callout.line.style.left = `${x}px`;
-      callout.line.style.top = `${y}px`;
+      callout.root.classList.toggle(
+        "is-edge-pinned",
+        rawLabelX !== labelX || rawLabelY !== labelY || x !== anchorX || y !== anchorY
+      );
+      callout.line.style.left = `${anchorX}px`;
+      callout.line.style.top = `${anchorY}px`;
       callout.line.style.width = `${length}px`;
       callout.line.style.transform = `rotate(${angle}rad)`;
       callout.pill.style.left = `${labelX}px`;
@@ -2119,6 +2334,14 @@ if (!renderer) {
       mesh.scale.setScalar(pulse);
     });
 
+    if (jackPointMarkerGroup.visible) {
+      jackPointMarkers.forEach((marker, index) => {
+        const pulse = 1 + Math.sin(now * 0.008 + index * 0.7) * 0.12;
+        marker.scale.setScalar(pulse);
+        marker.rotation.y = Math.sin(now * 0.002 + index) * 0.08;
+      });
+    }
+
     if (
       camera.position.distanceToSquared(lastCameraPosition) > 0.0004 ||
       1 - Math.abs(camera.quaternion.dot(lastCameraQuaternion)) > 0.00002
@@ -2127,6 +2350,11 @@ if (!renderer) {
       lastCameraPosition.copy(camera.position);
       lastCameraQuaternion.copy(camera.quaternion);
     }
+    if (!rendererHasSize && !resizeRenderer()) {
+      requestAnimationFrame(tick);
+      return;
+    }
+
     renderer.render(scene, camera);
     projectHotspots(now);
     requestAnimationFrame(tick);
@@ -2221,12 +2449,26 @@ if (!renderer) {
     scheduleShowcaseRotationResume();
   });
 
+  const preventViewerPageScroll = (event) => {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+  };
+
   renderer.domElement.addEventListener("pointerdown", () => {
     stopShowcaseRotation();
-    clearSelection();
   });
   renderer.domElement.addEventListener("wheel", stopShowcaseRotation, { passive: true });
+  viewerStage?.addEventListener("touchmove", preventViewerPageScroll, {
+    passive: false,
+    capture: true
+  });
+  hotspotLayer?.addEventListener("touchmove", preventViewerPageScroll, {
+    passive: false,
+    capture: true
+  });
   renderer.domElement.addEventListener("touchstart", stopShowcaseRotation, { passive: true });
+  renderer.domElement.addEventListener("touchmove", preventViewerPageScroll, { passive: false });
   renderer.domElement.addEventListener("pointerup", scheduleShowcaseRotationResume);
   renderer.domElement.addEventListener("touchend", scheduleShowcaseRotationResume, {
     passive: true

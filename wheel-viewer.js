@@ -142,6 +142,8 @@ let labelsVisible = true;
 let activeLayer = "tire";
 let activeView = "front";
 let rotateResumeTimer = null;
+let lastRendererWidth = 0;
+let lastRendererHeight = 0;
 const labelElements = new Map();
 
 function setStatus(message, hidden = false) {
@@ -524,15 +526,26 @@ function updateLabels() {
 
 function resize() {
   if (!viewerElement || !camera || !renderer) {
-    return;
+    return false;
   }
 
-  const width = Math.max(1, viewerElement.clientWidth);
-  const height = Math.max(1, viewerElement.clientHeight);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(width, height, false);
+  const rect = viewerElement.getBoundingClientRect();
+  const width = Math.round(viewerElement.clientWidth || rect.width);
+  const height = Math.round(viewerElement.clientHeight || rect.height);
+  if (width < 2 || height < 2) {
+    return false;
+  }
+
+  if (width !== lastRendererWidth || height !== lastRendererHeight) {
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height, false);
+    lastRendererWidth = width;
+    lastRendererHeight = height;
+  }
+
   updateLabels();
+  return true;
 }
 
 function init() {
@@ -562,7 +575,7 @@ function init() {
   viewerElement.appendChild(renderer.domElement);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -609,6 +622,10 @@ function init() {
   setView(activeView);
 
   renderer.setAnimationLoop(() => {
+    if (!resize()) {
+      return;
+    }
+
     controls.update();
     renderer.render(scene, camera);
     updateLabels();

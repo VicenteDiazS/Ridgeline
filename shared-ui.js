@@ -17,31 +17,24 @@ let currentContentMode = prefersCompactDefault ? "essential" : "full";
 let optionalSections = [];
 let navOnlySections = [];
 let viewModeButtons = [];
+let navActionButtons = [];
 
 function bindPress(target, handler) {
   if (!target || typeof handler !== "function") {
     return;
   }
-
-  let ignoreClickUntil = 0;
-
-  target.addEventListener(
-    "touchend",
-    (event) => {
-      event.preventDefault();
-      ignoreClickUntil = Date.now() + 450;
-      handler(event);
-    },
-    { passive: false }
-  );
-
   target.addEventListener("click", (event) => {
-    if (Date.now() < ignoreClickUntil) {
-      event.preventDefault();
-      return;
-    }
     handler(event);
   });
+}
+
+function setPanelVisibility(panel, visible, displayValue = "grid") {
+  if (!panel) {
+    return;
+  }
+  panel.hidden = !visible;
+  panel.style.display = visible ? displayValue : "none";
+  panel.setAttribute("aria-hidden", visible ? "false" : "true");
 }
 
 function normalizeContentMode(mode) {
@@ -240,6 +233,67 @@ function currentPageName() {
   return page || "index.html";
 }
 
+function ensureIndexViewerFirst() {
+  if (currentPageName() !== "index.html" || !main) {
+    return;
+  }
+
+  const viewerSection = main.querySelector("#viewer");
+  if (!viewerSection) {
+    return;
+  }
+
+  if (main.firstElementChild !== viewerSection) {
+    main.insertBefore(viewerSection, main.firstElementChild);
+  }
+}
+
+function isStandaloneLaunch() {
+  const displayStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches;
+  const iosStandalone = window.navigator.standalone === true;
+  return Boolean(displayStandalone || iosStandalone);
+}
+
+function maybeForceIndexHomeOnStandaloneLaunch() {
+  if (!isStandaloneLaunch()) {
+    return;
+  }
+
+  const page = currentPageName();
+  if (page === "index.html") {
+    return;
+  }
+
+  const params = new URLSearchParams(location.search);
+  const hasDeepContext =
+    Boolean(location.hash) ||
+    params.has("nfc") ||
+    params.has("system") ||
+    params.has("part") ||
+    params.has("section");
+  if (hasDeepContext) {
+    return;
+  }
+
+  // If user navigated from another page within this same app, keep their intent.
+  let internalReferrer = false;
+  try {
+    if (document.referrer) {
+      const referrer = new URL(document.referrer);
+      internalReferrer = referrer.origin === location.origin;
+    }
+  } catch {}
+
+  if (internalReferrer) {
+    return;
+  }
+
+  location.replace("index.html");
+}
+
+maybeForceIndexHomeOnStandaloneLaunch();
+ensureIndexViewerFirst();
+
 function inferRepositoryUrl() {
   if (location.hostname.endsWith(".github.io")) {
     const owner = location.hostname.replace(".github.io", "");
@@ -324,6 +378,15 @@ function setContentMode(mode = "full", persist = true) {
     button.setAttribute("aria-pressed", isActive ? "true" : "false");
   });
 
+  navActionButtons.forEach((button) => {
+    const isActive = currentContentMode === "navigation";
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    button.classList.toggle("is-active", isActive);
+    button.textContent = isActive ? "Full" : "Nav";
+    button.title = isActive ? "Return to full page view" : "Switch to navigation view";
+    button.setAttribute("aria-label", button.title);
+  });
+
   if (persist) {
     localStorage.setItem(CONTENT_MODE_STORAGE_KEY, currentContentMode);
   }
@@ -351,8 +414,12 @@ function buildViewModeRail() {
     <button class="view-mode-button" type="button" data-content-mode="full" aria-pressed="false">All Content</button>
   `;
 
+  const isIndexPage = currentPageName() === "index.html";
+  const indexLeadSection = isIndexPage ? document.querySelector("main > section:first-child") : null;
   const quickActionBar = document.querySelector(".quick-action-bar");
-  if (quickActionBar) {
+  if (isIndexPage && indexLeadSection) {
+    indexLeadSection.insertAdjacentElement("afterend", rail);
+  } else if (quickActionBar) {
     quickActionBar.insertAdjacentElement("afterend", rail);
   } else {
     topbar.insertAdjacentElement("afterend", rail);
@@ -404,6 +471,71 @@ async function triggerLiveRefresh(setStatus) {
   } catch {}
 
   location.replace(buildLiveReloadUrl());
+}
+
+function openInlineNavigation() {
+  const mobileNav = document.querySelector(".mobile-nav-accordion");
+  if (mobileNav) {
+    const pagesToggle = mobileNav.querySelector("[data-mobile-nav-toggle='pages']");
+    const pagesPanel = mobileNav.querySelector("[data-mobile-nav-panel='pages']");
+    if (pagesToggle && pagesPanel?.hidden) {
+      pagesToggle.click();
+    }
+    scrollToSectionElement(mobileNav, "smooth");
+    return;
+  }
+
+  const viewRail = document.querySelector(".view-mode-rail");
+  if (viewRail) {
+    scrollToSectionElement(viewRail, "smooth");
+    return;
+  }
+
+  if (main?.firstElementChild) {
+    scrollToSectionElement(main.firstElementChild, "smooth");
+  }
+}
+
+function toggleNavigationMode() {
+  const enteringNavigation = currentContentMode !== "navigation";
+  setContentMode(enteringNavigation ? "navigation" : "full", true);
+
+  if (enteringNavigation) {
+    openInlineNavigation();
+    return;
+  }
+
+  if (main?.firstElementChild) {
+    scrollToSectionElement(main.firstElementChild, "smooth");
+  }
+}
+
+function buildTopbarLiveRefreshButton() {
+  if (!topbarActions || document.querySelector("[data-live-refresh-button]")) {
+    return null;
+  }
+
+  const button = document.createElement("button");
+  button.className = "live-refresh-button";
+  button.type = "button";
+  button.dataset.liveRefreshButton = "true";
+  button.textContent = "Refresh";
+  button.title = "Reload fresh code from GitHub";
+  button.setAttribute("aria-label", "Reload fresh code from GitHub");
+
+  const searchButton = topbarActions.querySelector("[data-open-search]");
+  topbarActions.insertBefore(button, searchButton || null);
+
+  bindPress(button, async () => {
+    button.disabled = true;
+    button.classList.add("is-refreshing");
+    await triggerLiveRefresh((message) => {
+      button.title = message;
+      button.setAttribute("aria-label", message);
+    });
+  });
+
+  return button;
 }
 
 function slugFromLabel(value) {
@@ -747,18 +879,25 @@ function buildMobileNavAccordion(sections) {
     </div>
   `;
 
-  topbar.insertAdjacentElement("afterend", container);
+  const isIndexPage = currentPageName() === "index.html";
+  const indexLeadSection = isIndexPage ? document.querySelector("main > section:first-child") : null;
+  if (isIndexPage && indexLeadSection) {
+    indexLeadSection.insertAdjacentElement("afterend", container);
+  } else {
+    topbar.insertAdjacentElement("afterend", container);
+  }
 
   const toggles = [...container.querySelectorAll("[data-mobile-nav-toggle]")];
+  const panels = [...container.querySelectorAll("[data-mobile-nav-panel]")];
+  panels.forEach((panel) => setPanelVisibility(panel, false, "grid"));
+
   const closeAll = () => {
     toggles.forEach((toggle) => {
       toggle.setAttribute("aria-expanded", "false");
       const id = toggle.dataset.mobileNavToggle;
       const panel = container.querySelector(`[data-mobile-nav-panel='${id}']`);
       const label = toggle.querySelector("strong");
-      if (panel) {
-        panel.hidden = true;
-      }
+      setPanelVisibility(panel, false, "grid");
       if (label) {
         label.textContent = "Expand";
       }
@@ -779,7 +918,7 @@ function buildMobileNavAccordion(sections) {
       if (label) {
         label.textContent = "Collapse";
       }
-      panel.hidden = false;
+      setPanelVisibility(panel, true, "grid");
     });
   });
 
@@ -938,12 +1077,15 @@ function buildResumeButton() {
   button.type = "button";
   button.dataset.resumeSection = "true";
   button.textContent = "Resume";
+  button.title = "Resume last section";
+  button.setAttribute("aria-label", "Resume last section");
   button.addEventListener("click", () => {
     const target = document.getElementById(getLastSection());
     scrollToSectionElement(target, "smooth");
   });
 
-  topbarActions.insertBefore(button, topbarActions.firstChild);
+  const searchButton = topbarActions.querySelector("[data-open-search]");
+  topbarActions.insertBefore(button, searchButton || null);
 }
 
 function buildBackToMapButton() {
@@ -1001,7 +1143,7 @@ function buildSectionStepper(sections) {
   stepper.setAttribute("aria-label", "Section navigator");
   stepper.innerHTML = `
     <button class="section-stepper-button" type="button" data-stepper-prev aria-label="Previous section">Prev</button>
-    <button class="section-stepper-current" type="button" data-stepper-current aria-label="Open menu"></button>
+    <button class="section-stepper-current" type="button" data-stepper-current aria-label="Toggle navigation view"></button>
     <button class="section-stepper-button" type="button" data-stepper-next aria-label="Next section">Next</button>
   `;
   document.body.appendChild(stepper);
@@ -1242,6 +1384,8 @@ function buildCollapsibleCards() {
     const content = document.createElement("div");
     content.className = "collapsible-card-content";
     children.forEach((child) => content.appendChild(child));
+    content.hidden = false;
+    content.style.display = "";
 
     const button = document.createElement("button");
     button.className = "collapsible-card-toggle";
@@ -1260,6 +1404,7 @@ function buildCollapsibleCards() {
       button.setAttribute("aria-expanded", expanded ? "false" : "true");
       button.querySelector("strong").textContent = expanded ? "Expand" : "Collapse";
       content.hidden = expanded;
+      content.style.display = expanded ? "none" : "";
       card.classList.toggle("is-collapsed", expanded);
     });
 
@@ -1275,10 +1420,10 @@ function buildSiteMenu() {
   const button = document.createElement("button");
   button.className = "menu-toggle";
   button.type = "button";
-  button.setAttribute("aria-expanded", "false");
-  button.setAttribute("aria-controls", "site-menu");
-  button.textContent = "Menu";
+  button.setAttribute("aria-pressed", "false");
+  button.textContent = "Nav";
   topbarActions.insertBefore(button, topbarActions.firstChild);
+  navActionButtons = [...navActionButtons, button];
 
   const page = currentPageName();
   const menu = document.createElement("div");
@@ -1329,9 +1474,6 @@ function buildSiteMenu() {
           <button class="site-menu-tool-button" type="button" data-tool-action="toggle-view">
             Cycle View Mode
           </button>
-          <button class="site-menu-tool-button" type="button" data-tool-action="live-refresh">
-            Live Refresh (No Cache)
-          </button>
           <button class="site-menu-tool-button" type="button" data-tool-action="refresh-sw">
             Update Service Worker
           </button>
@@ -1352,25 +1494,17 @@ function buildSiteMenu() {
   const openMenu = () => {
     refreshRecentPanel(recentPanel);
     menu.hidden = false;
-    button.setAttribute("aria-expanded", "true");
     document.body.classList.add("modal-open");
   };
 
   const closeMenu = () => {
     menu.hidden = true;
-    button.setAttribute("aria-expanded", "false");
     if (searchModal.hidden) {
       document.body.classList.remove("modal-open");
     }
   };
 
-  bindPress(button, () => {
-    if (menu.hidden) {
-      openMenu();
-    } else {
-      closeMenu();
-    }
-  });
+  bindPress(button, toggleNavigationMode);
 
   menu.querySelectorAll("[data-close-menu], .site-menu-link").forEach((element) => {
     element.addEventListener("click", closeMenu);
@@ -1390,6 +1524,7 @@ function buildSiteMenu() {
   };
 
   if (toolsToggle) {
+    setPanelVisibility(toolsPanel, false, "grid");
     bindPress(toolsToggle, () => {
       const expanded = toolsToggle.getAttribute("aria-expanded") === "true";
       toolsToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
@@ -1397,13 +1532,12 @@ function buildSiteMenu() {
       if (label) {
         label.textContent = expanded ? "Expand" : "Collapse";
       }
-      if (toolsPanel) {
-        toolsPanel.hidden = expanded;
-      }
+      setPanelVisibility(toolsPanel, !expanded, "grid");
     });
   }
 
   if (recentToggle) {
+    setPanelVisibility(recentPanel, false, "grid");
     bindPress(recentToggle, () => {
       const expanded = recentToggle.getAttribute("aria-expanded") === "true";
       recentToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
@@ -1411,9 +1545,7 @@ function buildSiteMenu() {
       if (label) {
         label.textContent = expanded ? "Expand" : "Collapse";
       }
-      if (recentPanel) {
-        recentPanel.hidden = expanded;
-      }
+      setPanelVisibility(recentPanel, !expanded, "grid");
     });
   }
 
@@ -1450,10 +1582,6 @@ function buildSiteMenu() {
     } catch {
       setToolsStatus("Could not update the service worker in this browser session.");
     }
-  });
-
-  menu.querySelector("[data-tool-action='live-refresh']")?.addEventListener("click", async () => {
-    await triggerLiveRefresh(setToolsStatus);
   });
 
   recentPanel?.addEventListener("click", (event) => {
@@ -1534,6 +1662,7 @@ const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 const siteMenu = buildSiteMenu();
+buildTopbarLiveRefreshButton();
 const brandLink = document.querySelector(".brand");
 const pageSections = collectPageSections();
 recordCurrentPageVisit();

@@ -342,7 +342,7 @@ if (!previewCards.length) {
     stage.appendChild(renderer.domElement);
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.03).texture;
     pmremGenerator.dispose();
 
     scene.add(new THREE.HemisphereLight(0xe6f5ff, 0x111722, 1.22));
@@ -428,21 +428,23 @@ if (!previewCards.length) {
   function resizePreview(preview) {
     const host = preview.renderer.domElement.parentElement;
     if (!host) {
-      return;
+      return false;
     }
-    const width = host.clientWidth;
-    const height = host.clientHeight;
+    const rect = host.getBoundingClientRect();
+    const width = Math.round(host.clientWidth || rect.width);
+    const height = Math.round(host.clientHeight || rect.height);
     if (!width || !height) {
-      return;
+      return false;
     }
     if (preview.width === width && preview.height === height) {
-      return;
+      return true;
     }
     preview.width = width;
     preview.height = height;
     preview.renderer.setSize(width, height, false);
     preview.camera.aspect = width / height;
     preview.camera.updateProjectionMatrix();
+    return true;
   }
 
   function animate() {
@@ -451,7 +453,10 @@ if (!previewCards.length) {
       if (!preview.visible || !canRender) {
         return;
       }
-      resizePreview(preview);
+      if (!resizePreview(preview)) {
+        return;
+      }
+
       preview.turntable.rotation.y += preview.spinSpeed;
       preview.renderer.render(preview.scene, preview.camera);
     });

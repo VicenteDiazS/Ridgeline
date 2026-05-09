@@ -76,7 +76,7 @@ if (!renderer || !viewerElement) {
   controls.autoRotateSpeed = 0.55;
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.03).texture;
 
   scene.add(new THREE.HemisphereLight(0xe6f6ff, 0x121720, 1.35));
 
@@ -2233,9 +2233,23 @@ if (!renderer || !viewerElement) {
     }
   }
 
+  let rendererHasSize = false;
+  let lastRendererWidth = 0;
+  let lastRendererHeight = 0;
+
+  function getViewerSize() {
+    const rect = viewerElement.getBoundingClientRect();
+    const width = Math.round(viewerElement.clientWidth || rect.width);
+    const height = Math.round(viewerElement.clientHeight || rect.height);
+    return { width, height };
+  }
+
   function projectHotspots(now) {
-    const width = viewerElement.clientWidth;
-    const height = viewerElement.clientHeight;
+    const { width, height } = getViewerSize();
+    if (width < 2 || height < 2) {
+      return;
+    }
+
     cameraLocal.copy(camera.position);
 
     hotspots.forEach((hotspot, index) => {
@@ -2297,11 +2311,21 @@ if (!renderer || !viewerElement) {
   }
 
   function resizeRenderer() {
-    const width = viewerElement.clientWidth;
-    const height = viewerElement.clientHeight;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    const { width, height } = getViewerSize();
+    if (width < 2 || height < 2) {
+      return false;
+    }
+
+    if (width !== lastRendererWidth || height !== lastRendererHeight) {
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      lastRendererWidth = width;
+      lastRendererHeight = height;
+    }
+
+    rendererHasSize = true;
+    return true;
   }
 
   function tick(now) {
@@ -2321,6 +2345,11 @@ if (!renderer || !viewerElement) {
     }
 
     controls.update();
+    if (!rendererHasSize && !resizeRenderer()) {
+      requestAnimationFrame(tick);
+      return;
+    }
+
     renderer.render(scene, camera);
     projectHotspots(now);
     requestAnimationFrame(tick);
