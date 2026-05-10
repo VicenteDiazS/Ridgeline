@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <title>Ridgeline Maintenance Specs</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="index.html#systems">Zones</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+      <main id="top" class="section-page-main">
+        <section class="section-page-hero">
+          <p class="eyebrow">Maintenance</p>
+          <h1>Fluids, Tires, Torque, Bulbs, And Wipers</h1>
+          <p class="section-copy">This page collects the service specs and tire fitment tools you are likely to need repeatedly when working on the truck.</p>
+          <div class="section-utility-nav">
+            <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
+            <a class="utility-link utility-link-strong" href="#maintenance-updater">Update Log</a>
+            <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
+            <a class="utility-link" href="#minder">Service Codes</a>
+            <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
+            <a class="utility-link utility-link-strong" href="#tire-wheel-lab">Tire Lab</a>
+            <a class="utility-link" href="#brake-tire">Brakes</a>
+            <a class="utility-link" href="#torque">Torque Specs</a>
+            <a class="utility-link" href="#filter-cross">Filters</a>
+            <a class="utility-link" href="#service-quick">Quick Jobs</a>
+            <a class="utility-link" href="#bulbs">Bulbs</a>
+            <a class="utility-link" href="quick-sheet.html">Quick Sheet</a>
+            <a class="utility-link" href="garage.html">Garage Log</a>
+          </div>
+        </section>
+        <section class="section-page-stack">
+          <div class="section-callout">
+            This page is the maintenance quick-sheet version of the site. It keeps the fluid,
+            torque, bulb, and wiper information in one place so you can check service specs fast
+            without bouncing between multiple sections.
+          </div>
+        </section>
+
+        <section class="section-page-grid">
+          <article class="tech-card span-2 quick-update-card" id="maintenance-updater">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Fast Entry</p>
+                <h3>Quick Maintenance Update</h3>
+                <p class="section-copy">
+                  Enter mileage, pick what changed, and the site fills in today's date automatically.
+                  Optional notes are saved to the maintenance history and Garage notes.
+                </p>
+              </div>
+            </div>
+            <form class="quick-update-form" data-maintenance-update-form>
+              <label>
+                <span>Mileage</span>
+                <input name="mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="166240" autocomplete="off" required />
+              </label>
+              <label>
+                <span>Update type</span>
+                <select name="service">
+                  <option value="oil_change">Oil change</option>
+                  <option value="tire_rotation">Tire rotation</option>
+                  <option value="brake_service">Brake service</option>
+                  <option value="trans_service">Transmission service</option>
+                  <option value="battery_install">Battery install</option>
+                  <option value="filters">Air filters</option>
+                  <option value="timing_belt_service">Timing belt service</option>
+                  <option value="trailer_wiring">Trailer wiring check</option>
+                  <option value="general_note">General note</option>
+                </select>
+              </label>
+              <label class="quick-update-note">
+                <span>Optional note</span>
+                <textarea name="note" rows="3" placeholder="Part number, fluid used, filter brand, issue found, or reminder"></textarea>
+              </label>
+              <div class="quick-update-actions">
+                <button class="utility-link utility-link-strong" type="submit">Save Update</button>
+                <a class="utility-link" href="garage.html#notes">Open Full Garage Log</a>
+              </div>
+            </form>
+            <p class="small-note" data-maintenance-update-status aria-live="polite"></p>
+            <div class="quick-update-recent" data-maintenance-update-list></div>
+          </article>
+
+          <article class="tech-card span-2" id="oil-service">
+            <h3>Oil Service Quick Reference</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <h3>Oil Type And Capacity</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Engine</dt>
+                    <dd>3.5L J35Y6 V6</dd>
+                  </div>
+                  <div>
+                    <dt>Oil Type</dt>
+                    <dd>SAE 0W-20</dd>
+                  </div>
+                  <div>
+                    <dt>Oil Capacity</dt>
+                    <dd>5.7 qt (5.4 L) with filter change</dd>
+                  </div>
+                  <div>
+                    <dt>Oil Capacity</dt>
+                    <dd>5.3 qt (5.0 L) without filter change</dd>
+                  </div>
+                  <div>
+                    <dt>Drain Bolt</dt>
+                    <dd>29 lb-ft</dd>
+                  </div>
+                </dl>
+                <p class="field-hint">
+                  Honda clearly specifies 0W-20. The 5.7 qt / 5.3 qt figures are widely reproduced
+                  for the 2017-2019 3.5L Ridgeline; after filling, finish by dipstick level instead of
+                  relying only on the bottle count.
+                </p>
+              </div>
+
+              <div class="tech-card">
+                <h3>Honda Filter Baseline</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>OEM oil filter</dt>
+                    <dd>Honda 15400-PLM-A02</dd>
+                  </div>
+                  <div>
+                    <dt>OEM engine air</dt>
+                    <dd>Honda 17220-5J6-A10</dd>
+                  </div>
+                  <div>
+                    <dt>OEM cabin air</dt>
+                    <dd>Honda 80292-TZ5-A41</dd>
+                  </div>
+                  <div>
+                    <dt>Cabin filter location</dt>
+                    <dd>Behind the glove box</dd>
+                  </div>
+                </dl>
+                <p class="field-hint">
+                  These OEM numbers are the anchor part numbers the aftermarket cross-references below are built around.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech-card span-2" id="drain-hardware">
+            <h3>Drain Plug Washers, Bolts, And Useful Hardware</h3>
+            <p class="source-note">
+              Keep these small parts stocked before fluid service. Replace crush washers when the plug is removed. Your truck profile is 2WD, so the AWD rear differential and transfer hardware is listed as optional reference only.
+            </p>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Honda Ridgeline drain plug washer and bolt reference">
+                <tr>
+                  <th>Use</th>
+                  <th>OEM part number</th>
+                  <th>Size / tool note</th>
+                  <th>Truck note</th>
+                </tr>
+                <tr>
+                  <td>Engine oil drain plug washer</td>
+                  <td>94109-14000</td>
+                  <td>14 mm crush washer</td>
+                  <td>Use with every engine oil change.</td>
+                </tr>
+                <tr>
+                  <td>Engine oil drain bolt / plug</td>
+                  <td>90009-R70-A00</td>
+                  <td>M14 x 1.5 thread, 17 mm hex, 14 mm plug listing</td>
+                  <td>Replace if rounded, damaged, cross-threaded, or leaking.</td>
+                </tr>
+                <tr>
+                  <td>Automatic transmission drain plug washer</td>
+                  <td>90471-PX4-000</td>
+                  <td>18 mm crush washer</td>
+                  <td>For 6AT drain-and-fill service. The drain plug commonly uses a square-drive style plug.</td>
+                </tr>
+                <tr>
+                  <td>ATF pipe / warmer drain plug washer</td>
+                  <td>90471-RGR-000</td>
+                  <td>12 mm crush washer</td>
+                  <td>Listed in the 2019 Ridgeline 6AT ATF pipe / ATF warmer parts diagram.</td>
+                </tr>
+                <tr>
+                  <td>Rear differential drain washer</td>
+                  <td>90471-PX4-000</td>
+                  <td>18 mm crush washer</td>
+                  <td>AWD-only reference. Not used on your 2WD truck.</td>
+                </tr>
+                <tr>
+                  <td>Rear differential fill washer</td>
+                  <td>94109-20000</td>
+                  <td>20 mm crush washer</td>
+                  <td>AWD-only reference. Also commonly used on Honda transfer case fill/drain plugs.</td>
+                </tr>
+                <tr>
+                  <td>Transfer case drain / fill washer</td>
+                  <td>94109-20000</td>
+                  <td>20 mm crush washer</td>
+                  <td>AWD-only reference for Ridgeline/Pilot-style transfer hardware.</td>
+                </tr>
+              </table>
+            </div>
+            <div class="dashboard-grid maintenance-hardware-grid">
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Stock For Oil Changes</span>
+                <strong>94109-14000</strong>
+                <p>Buy these in quantity. This is the engine oil drain crush washer.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Keep One Spare Bolt</span>
+                <strong>90009-R70-A00</strong>
+                <p>Engine oil drain plug, M14 x 1.5 thread with 17 mm hex.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Stock For 6AT Service</span>
+                <strong>90471-PX4-000</strong>
+                <p>18 mm washer used for the automatic transmission drain plug.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>AWD Only</span>
+                <strong>94109-20000</strong>
+                <p>20 mm washer for rear differential fill and transfer case style plugs.</p>
+              </article>
+            </div>
+          </article>
+
+          <article class="tech-card" id="service-quick">
+            <h3>Service Quick Hits</h3>
+            <div class="status-list">
+              <div class="status-row"><strong>Engine oil</strong><span>Use the specified 0W-20 oil and verify final level on the dipstick after service.</span></div>
+              <div class="status-row"><strong>Brake fluid</strong><span>Honda Heavy Duty Brake Fluid DOT 3 from a sealed container.</span></div>
+              <div class="status-row"><strong>Transmission fluid</strong><span>Honda ATF Type 2.0 for the 6-speed automatic.</span></div>
+              <div class="status-row"><strong>Towing note</strong><span>2WD models are rated to 3,500 lb when properly equipped.</span></div>
+              <div class="status-row"><strong>Truck tire spec</strong><span>Most 2019 trims use 245/60R18; verify the door placard before ordering tires.</span></div>
+            </div>
+          </article>
+
+          <article class="tech-card span-2 maintenance-tire-lab" id="tire-wheel-lab">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Tires And Wheels</p>
+                <h3>Ridgeline Tire Fitment Lab</h3>
+                <p class="section-copy">
+                  Fast access to the stock tire size, rim specs, pressure, lug torque, and the 3D tire model
+                  with measurement arrows for wheel-well planning.
+                </p>
+              </div>
+            </div>
+            <div class="dashboard-grid maintenance-tire-grid">
+              <article class="dashboard-card truck-dashboard-card truck-dashboard-card-strong">
+                <span>3D Fitment Tool</span>
+                <strong>Open Tire And Wheel Lab</strong>
+                <p>Use the 3D tire model, stock-rim fitment table, and wheel-well clearance checklist.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="tires.html">Open 3D Tire Lab</a>
+                </div>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Stock Tire</span>
+                <strong>245/60R18 105H</strong>
+                <p>Honda-listed tire size for the 2019 Ridgeline 18-inch setup.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Wheel / Pattern</span>
+                <strong>18 x 8J ET55</strong>
+                <p>5 x 120 mm bolt pattern with 64.1 mm center-bore fitment reference.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Service Numbers</span>
+                <strong>35 psi / 94 lb-ft</strong>
+                <p>Cold tire pressure reference and wheel-nut torque.</p>
+              </article>
+            </div>
+          </article>
+
+          <article class="tech-card" id="major-service-log">
+            <h3>Recorded Major Service</h3>
+            <div class="status-list">
+              <div class="status-row"><strong>Date</strong><span>April 25, 2026</span></div>
+              <div class="status-row"><strong>Mileage</strong><span>165,980 miles</span></div>
+              <div class="status-row"><strong>Work completed</strong><span>Timing belt, crankshaft sprocket, timing belt tensioner, timing belt pulleys, timing belt cover seal, and water pump replaced.</span></div>
+              <div class="status-row"><strong>Parts source</strong><span>RockAuto.com</span></div>
+              <div class="status-row"><strong>Parts brand / kit</strong><span>AISIN TKH-002 Timing Belt Replacement Kit</span></div>
+            </div>
+            <p class="field-hint">
+              This is the truck-specific recorded timing service event currently stored in the site.
+            </p>
+          </article>
+
+          <article class="tech-card span-2" id="minder">
+            <h3>Maintenance Minder Code Guide</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <h3>Main Items</h3>
+                <table class="fuse-table" aria-label="Maintenance Minder main items">
+                  <tr><th>Code</th><th>Meaning</th></tr>
+                  <tr><td>A</td><td>Replace engine oil.</td></tr>
+                  <tr><td>B</td><td>Replace engine oil and oil filter, inspect front and rear brakes, check parking brake adjustment, inspect tie-rod ends, steering gearbox and boots, suspension components, driveshaft boots, brake hoses and lines including ABS/VSA, all fluid levels and condition, exhaust system, and fuel lines and connections.</td></tr>
+                </table>
+                <p class="field-hint">
+                  Honda's 2019 Ridgeline Maintenance Minder sheet also says to replace brake fluid every 3 years
+                  regardless of the main-item display and to adjust the valves during services A, B, 1, 2, or 3 if they are noisy.
+                </p>
+              </div>
+
+              <div class="tech-card">
+                <h3>Sub Items</h3>
+                <table class="fuse-table" aria-label="Maintenance Minder sub items">
+                  <tr><th>Code</th><th>Meaning</th></tr>
+                  <tr><td>1</td><td>Rotate tires.</td></tr>
+                  <tr><td>2</td><td>Replace engine air filter, replace cabin dust/pollen filter, inspect drive belt.</td></tr>
+                  <tr><td>3</td><td>Replace transmission fluid and transfer fluid. On your 2WD truck, the transfer-fluid part does not apply.</td></tr>
+                  <tr><td>4</td><td>Replace spark plugs, replace timing belt and inspect water pump, inspect valve clearance.</td></tr>
+                  <tr><td>5</td><td>Replace engine coolant.</td></tr>
+                  <tr><td>6</td><td>Replace rear differential fluid. This does not apply to your 2WD truck.</td></tr>
+                  <tr><td>7</td><td>Brake-fluid replacement reminder. Honda also states brake fluid should be replaced every 3 years even apart from the main-item message.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="label-cloud">
+              <span class="label-pill">A1 = oil + tire rotation</span>
+              <span class="label-pill">B1 = oil + filter + inspections + tire rotation</span>
+              <span class="label-pill">B12 = B service + rotate tires + both air filters</span>
+              <span class="label-pill">B127 = B service + rotate tires + filters + brake fluid</span>
+            </div>
+          </article>
+
+          <article class="tech-card diagram-card">
+            <h3>Maintenance Reference Map</h3>
+            <div class="diagram-frame">
+              <svg viewBox="0 0 680 300" role="img" aria-label="Maintenance reference diagram">
+                <rect x="58" y="48" width="564" height="196" rx="28" fill="#101a2b" stroke="#61dfff" stroke-width="3"></rect>
+                <rect x="88" y="86" width="136" height="118" rx="18" fill="#172536" stroke="#61dfff" stroke-width="2.5"></rect>
+                <rect x="272" y="86" width="136" height="118" rx="18" fill="#172536" stroke="#ff915e" stroke-width="2.5"></rect>
+                <rect x="456" y="86" width="136" height="118" rx="18" fill="#172536" stroke="#9bd8ff" stroke-width="2.5"></rect>
+                <text x="156" y="126" text-anchor="middle" fill="#dce8f5" font-size="19" font-weight="700">Fluids</text>
+                <text x="156" y="154" text-anchor="middle" fill="#9dc0da" font-size="14">Oil, ATF, brake fluid, washer</text>
+                <text x="340" y="126" text-anchor="middle" fill="#dce8f5" font-size="19" font-weight="700">Torque</text>
+                <text x="340" y="154" text-anchor="middle" fill="#ffcfbd" font-size="14">Wheel nuts, drain bolt</text>
+                <text x="524" y="126" text-anchor="middle" fill="#dce8f5" font-size="19" font-weight="700">Bulbs / Wipers</text>
+                <text x="524" y="154" text-anchor="middle" fill="#9dc0da" font-size="14">Exterior serviceables and blades</text>
+                <line x1="224" y1="145" x2="272" y2="145" stroke="#61dfff" stroke-width="3"></line>
+                <line x1="408" y1="145" x2="456" y2="145" stroke="#61dfff" stroke-width="3"></line>
+              </svg>
+            </div>
+            <p class="diagram-caption">
+              A single service-reference page for the numbers you are most likely to need repeatedly.
+            </p>
+          </article>
+
+          <article class="tech-card" id="fluids">
+            <h3>Fluids And Capacities</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Maintenance fluids and capacities">
+                <tr><th>Item</th><th>Spec</th><th>Service note</th></tr>
+                <tr><td>Engine oil</td><td>0W-20</td><td>Honda specifies the viscosity; final fill amount depends on drain completeness and filter replacement, so finish by dipstick level.</td></tr>
+                <tr><td>Brake fluid</td><td>Honda Heavy Duty Brake Fluid DOT 3</td><td>Use from a sealed container and keep moisture exposure low.</td></tr>
+                <tr><td>Automatic transmission fluid</td><td>Honda ATF Type 2.0</td><td>Use only the specified Honda ATF for drain/fill service on the 6-speed automatic.</td></tr>
+                <tr><td>Engine coolant</td><td>Honda Long Life Antifreeze/Coolant Type 2</td><td>Premixed Honda blue coolant is the standard service fluid.</td></tr>
+                <tr><td>Rear differential fluid</td><td>Not applicable on your 2WD truck</td><td>This applies only to AWD trucks.</td></tr>
+                <tr><td>Transfer assembly fluid</td><td>Not applicable on your 2WD truck</td><td>This applies only to AWD trucks.</td></tr>
+                <tr><td>Washer fluid</td><td>Windshield washer fluid</td><td>No fixed quick-reference capacity shown here; top off as needed.</td></tr>
+              </table>
+            </div>
+            <p class="field-hint">Where Honda quick public references give the fluid type but not a simple one-line capacity, this page stays conservative and points you to finish by level check instead of guessing a fill amount.</p>
+          </article>
+
+          <article class="tech-card span-2" id="filter-cross">
+            <h3>Oil Filter Cross Reference</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Oil filter cross reference">
+                <tr><th>Brand</th><th>Line</th><th>Part number</th><th>Notes</th></tr>
+                <tr><td>Honda</td><td>OEM</td><td>15400-PLM-A02</td><td>Factory baseline filter.</td></tr>
+                <tr><td>FRAM</td><td>Extra Guard</td><td>PH7317</td><td>Routine service interval filter.</td></tr>
+                <tr><td>FRAM</td><td>Tough Guard</td><td>TG7317</td><td>Mid-tier synthetic-blend media.</td></tr>
+                <tr><td>FRAM</td><td>Ultra Synthetic</td><td>XG7317</td><td>Longer synthetic-oil-oriented option.</td></tr>
+                <tr><td>WIX</td><td>WIX</td><td>57356</td><td>Standard WIX spin-on.</td></tr>
+                <tr><td>WIX</td><td>XP</td><td>57356XP</td><td>WIX synthetic-media premium option.</td></tr>
+                <tr><td>MicroGard</td><td>MicroGard</td><td>MGL57356</td><td>O'Reilly standard line.</td></tr>
+                <tr><td>MicroGard</td><td>Select</td><td>MSL57356</td><td>O'Reilly premium line.</td></tr>
+                <tr><td>Mobil 1</td><td>Mobil 1 Filters</td><td>M1-110A</td><td>Listed in O'Reilly fitment for this platform.</td></tr>
+                <tr><td>Bosch</td><td>Bosch</td><td>3323</td><td>Listed in O'Reilly fitment for this platform.</td></tr>
+                <tr><td>K&amp;N</td><td>Performance Gold</td><td>HP-1008</td><td>Listed in O'Reilly fitment for this platform.</td></tr>
+              </table>
+            </div>
+            <p class="field-hint">
+              The Honda, FRAM, WIX, and MicroGard entries above were verified from brand fitment or brand
+              cross-reference sources. The added Mobil 1, Bosch, and K&amp;N rows come from the current
+              O'Reilly Auto Parts vehicle fitment listing for this filter size.
+            </p>
+          </article>
+
+          <article class="tech-card span-2" id="brake-tire">
+            <h3>Brake And Roadside Service</h3>
+            <div class="form-grid">
+              <div class="tech-card">
+                <h3>Brake Snapshot</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Brake fluid</dt>
+                    <dd>Honda Heavy Duty Brake Fluid DOT 3</dd>
+                  </div>
+                  <div>
+                    <dt>Wheel nut torque</dt>
+                    <dd>94 lb-ft (127 N-m)</dd>
+                  </div>
+                  <div>
+                    <dt>Maintenance Minder</dt>
+                    <dd>Inspect brakes during B service</dd>
+                  </div>
+                  <div>
+                    <dt>Parking brake</dt>
+                    <dd>Adjustment check is part of B service</dd>
+                  </div>
+                </dl>
+                <ul class="highlight-list">
+                  <li>Brake-fluid level should stay between the MIN and MAX marks on the reservoir.</li>
+                  <li>Use brake fluid from a sealed container and keep moisture exposure low.</li>
+                  <li>If the truck pulls, squeals heavily, or pulsates under braking, inspect before towing or highway use.</li>
+                </ul>
+              </div>
+
+              <div class="tech-card">
+                <h3>Tire And Wheel Snapshot</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Common tire size</dt>
+                    <dd>245/60R18</dd>
+                  </div>
+                  <div>
+                    <dt>Wheel size</dt>
+                    <dd>18 x 8</dd>
+                  </div>
+                  <div>
+                    <dt>Bolt pattern</dt>
+                    <dd>5 x 120 mm</dd>
+                  </div>
+                  <div>
+                    <dt>Center bore</dt>
+                    <dd>64.1 mm</dd>
+                  </div>
+                  <div>
+                    <dt>Typical offset</dt>
+                    <dd>ET55</dd>
+                  </div>
+                </dl>
+                <p class="field-hint">
+                  The tire size is from Honda's 2019 Ridgeline feature guide. The bolt pattern, center bore,
+                  and offset are common aftermarket fitment references for 2017-2019 Ridgeline 18-inch wheels.
+                  Always verify the actual wheel or door placard before ordering parts.
+                </p>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="#tire-wheel-lab">Open Tire Section</a>
+                  <a class="utility-link" href="tires.html">Open 3D Lab</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech-card span-2 diagram-card" id="jack-points">
+            <h3>Jack Points (Live 3D Model)</h3>
+            <p class="field-hint">
+              The static jack-point drawing has been removed. Use the live vehicle model so the four
+              roadside jack points are highlighted directly on the truck.
+            </p>
+            <div class="inspector-actions">
+              <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer">Open 3D Jack-Point Map</a>
+              <a class="utility-link" href="quick-sheet.html#emergency-card">Open Emergency Card</a>
+            </div>
+            <div class="checklist-grid">
+              <div class="checklist-card">
+                <h4>Flat-Tire Basics</h4>
+                <ul class="highlight-list">
+                  <li>Park safely, set the parking brake, and block the opposite wheel if needed.</li>
+                  <li>Use the jacking point closest to the tire being changed.</li>
+                  <li>Lower the truck before final wheel-nut tightening.</li>
+                  <li>Tighten wheel nuts in a star pattern to 94 lb-ft.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>TPMS Reminder</h4>
+                <ul class="highlight-list">
+                  <li>Check tire pressures monthly when cold.</li>
+                  <li>The display pressure can be slightly different from a hand gauge.</li>
+                  <li>Inflate to the vehicle placard pressure after repair or seasonal changes.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Shop-Lift Notes</h4>
+                <ul class="highlight-list">
+                  <li>The roadside jack uses the closest side jacking point.</li>
+                  <li>For shop work, use proper lift points and support stands; never rely on the emergency jack alone.</li>
+                  <li>If a wheel or jack point looks damaged, stop and inspect before lifting.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech-card">
+            <h3>Engine Air Filter Cross Reference</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Engine air filter cross reference">
+                <tr><th>Brand</th><th>Line</th><th>Part number</th><th>Notes</th></tr>
+                <tr><td>Honda</td><td>OEM</td><td>17220-5J6-A10</td><td>Factory engine air filter.</td></tr>
+                <tr><td>FRAM</td><td>Extra Guard</td><td>CA12061</td><td>Standard FRAM panel filter.</td></tr>
+                <tr><td>FRAM</td><td>Ultra</td><td>XGA12061</td><td>Longer-life premium FRAM air filter.</td></tr>
+                <tr><td>WIX</td><td>WIX</td><td>WA10339</td><td>WIX panel filter for 2017-2019 Ridgeline 3.5L.</td></tr>
+                <tr><td>MicroGard</td><td>MicroGard</td><td>MGA10339</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>MicroGard</td><td>Select</td><td>MSA31067</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>Purolator</td><td>Purolator</td><td>A29152</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>STP</td><td>STP</td><td>SA12061</td><td>Cross-listed by FRAM comparison table.</td></tr>
+              </table>
+            </div>
+            <p class="field-hint">
+              This engine air filter size is shared with several late-model Honda V6 applications, so you may
+              also see Passport, Pilot, and Odyssey in fitment references for the same part number family.
+            </p>
+          </article>
+
+          <article class="tech-card">
+            <h3>Cabin Air Filter Cross Reference</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Cabin air filter cross reference">
+                <tr><th>Brand</th><th>Line</th><th>Part number</th><th>Notes</th></tr>
+                <tr><td>Honda</td><td>OEM</td><td>80292-TZ5-A41</td><td>Current OEM reference for the 2017-2020 fitment family.</td></tr>
+                <tr><td>FRAM</td><td>Fresh Breeze</td><td>CF11182</td><td>Carbon + baking soda cabin filter.</td></tr>
+                <tr><td>FRAM</td><td>Drive</td><td>FDC11182</td><td>Base FRAM cabin filter line.</td></tr>
+                <tr><td>FRAM</td><td>Titanium</td><td>FSC11182</td><td>Premium FRAM cabin filter line.</td></tr>
+                <tr><td>WIX</td><td>WIX</td><td>24201</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>WIX</td><td>XP</td><td>24815XP</td><td>Premium activated-carbon WIX XP fitment listing.</td></tr>
+                <tr><td>MicroGard</td><td>MicroGard</td><td>3752</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>K&amp;N</td><td>K&amp;N</td><td>VF2033</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>Purolator</td><td>Purolator</td><td>C36080</td><td>Cross-listed by FRAM comparison table.</td></tr>
+                <tr><td>STP</td><td>STP</td><td>CAF1873P</td><td>Cross-listed by FRAM comparison table.</td></tr>
+              </table>
+            </div>
+            <p class="field-hint">
+              The cabin air filter sits behind the glove box. If you want, I can add a local glove-box removal
+              diagram on this page too so this section becomes a full cabin-filter service guide.
+            </p>
+          </article>
+
+          <article class="tech-card" id="torque">
+            <h3>Verified Torque Specs</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Verified service torque specs">
+                <tr><th>Fastener</th><th>Torque</th><th>Verification note</th></tr>
+                <tr><td>Wheel nuts</td><td>94 lb-ft</td><td>Owner manual flat-tire procedure</td></tr>
+                <tr><td>Engine oil drain bolt</td><td>29 lb-ft</td><td>Owner manual oil-change procedure</td></tr>
+                <tr><td>Engine oil fill cap</td><td>Hand-tight</td><td>Owner manual procedure guidance</td></tr>
+              </table>
+            </div>
+            <p class="source-note">I only listed the torque values I could verify cleanly from owner-manual style sources. If you want a deeper torque library for spark plugs, brake hardware, suspension, or hitch fasteners, the next step would be a service-manual-based pass.</p>
+          </article>
+
+          <article class="tech-card span-2">
+            <h3>Common Garage Jobs</h3>
+            <div class="checklist-grid">
+              <div class="checklist-card">
+                <h4>Oil Change</h4>
+                <ul class="highlight-list">
+                  <li>Check the truck is level before final oil reading.</li>
+                  <li>Replace the filter and crush washer together.</li>
+                  <li>Torque the drain bolt to 29 lb-ft.</li>
+                  <li>Reset the Maintenance Minder after confirming the level.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Wheel / Tire Service</h4>
+                <ul class="highlight-list">
+                  <li>Verify the tire size on the truck before ordering.</li>
+                  <li>Torque wheel nuts to 94 lb-ft in a star pattern.</li>
+                  <li>Recheck torque after a short drive if wheels were removed.</li>
+                  <li>Confirm tire pressure from the driver-door placard.</li>
+                </ul>
+              </div>
+              <div class="checklist-card">
+                <h4>Battery Service</h4>
+                <ul class="highlight-list">
+                  <li>Photograph the installed battery label before replacement.</li>
+                  <li>Clean and protect the terminals before reconnecting.</li>
+                  <li>Use the engine-bay ground point for jump procedures.</li>
+                  <li>Save the new battery info in the Garage Log when done.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech-card" id="bulbs">
+            <h3>Bulbs</h3>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Bulb replacement reference">
+                <tr><th>Position</th><th>Spec</th><th>Notes</th></tr>
+                <tr><td>High beam headlight</td><td>60W HB3 (halogen type)</td><td>LED low-beam models still use service guidance for other lamps.</td></tr>
+                <tr><td>Low beam headlight</td><td>LED or 55W H11 (halogen type)</td><td>Depends on trim.</td></tr>
+                <tr><td>Back-up light</td><td>21W</td><td>Rear pillar assembly.</td></tr>
+                <tr><td>Rear turn signal</td><td>21W</td><td>Rear pillar assembly.</td></tr>
+                <tr><td>Rear license plate</td><td>5W</td><td>Serviceable bulb.</td></tr>
+                <tr><td>Brake / taillight</td><td>LED</td><td>Dealer/qualified technician replacement.</td></tr>
+                <tr><td>High-mount brake light</td><td>LED</td><td>Dealer/qualified technician replacement.</td></tr>
+              </table>
+            </div>
+          </article>
+
+          <article class="tech-card" id="wipers">
+            <h3>Wipers</h3>
+            <ul class="highlight-list">
+              <li>Inspect blade condition at least every six months.</li>
+              <li>Use the maintenance position/service procedure from the owner manual before changing blades.</li>
+              <li>I still have not promoted an exact blade length here because the public sources conflict; verify before ordering.</li>
+            </ul>
+          </article>
+
+          <article class="tech-card">
+            <h3>Service Rhythm</h3>
+            <ul class="highlight-list">
+              <li>Maintenance Minder is the primary service guide.</li>
+              <li>Monthly checks: engine oil, coolant, washer fluid, brake fluid, battery terminals, exterior lights, and tires.</li>
+              <li>When towing or hauling often, keep a closer eye on fluids, brakes, and tire condition.</li>
+            </ul>
+          </article>
+
+          <article class="tech-card">
+            <h3>Source Notes</h3>
+            <p class="source-note">
+              Maintenance and bulb information on this page is based on the 2019 owner-manual maintenance and specifications sections, plus Honda Info Center specs where applicable.
+            </p>
+            <div class="reference-list">
+              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=recommended+oil" target="_blank" rel="noreferrer">Owner manual maintenance section</a>
+              <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=light+bulbs" target="_blank" rel="noreferrer">Owner manual bulb replacement pages</a>
+              <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/" target="_blank" rel="noreferrer">Honda towing capacity reference</a>
+              <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/" target="_blank" rel="noreferrer">Honda specifications</a>
+              <a href="https://honda.oempartsonline.com/v-2019-honda-ridgeline--rt--3-5l-v6-gas/maintenance-and-lubrication--filters" target="_blank" rel="noreferrer">Honda OEM oil filter listing</a>
+              <a href="https://www.fram.com/fram-extra-guard-air-filter-rigid-panel-ca12061" target="_blank" rel="noreferrer">FRAM engine air filter cross reference</a>
+              <a href="https://www.fram.com/fram-fresh-breeze-cabin-air-filter-cf11182" target="_blank" rel="noreferrer">FRAM cabin air filter cross reference</a>
+              <a href="https://www.fram.com/fram-ultra-spin-on-oil-filter-xg7317" target="_blank" rel="noreferrer">FRAM oil filter cross reference</a>
+              <a href="https://www2.wixfilters.com/Lookup/PartApplications.aspx?Part=57356" target="_blank" rel="noreferrer">WIX oil filter applications</a>
+              <a href="https://www.partsgeek.com/p3rwqrj-honda-ridgeline-air-filter.html" target="_blank" rel="noreferrer">WIX engine air filter fitment</a>
+              <a href="https://www.partsgeek.com/jfhnzh2-honda-ridgeline-cabin-air-filter.html" target="_blank" rel="noreferrer">WIX cabin air filter fitment</a>
+              <a href="https://www.oreillyauto.com/shop/b/filters/engine-oil-filter/80c2d8dbb188/v/a/127660/automotive-medium-duty-2003-freightliner-mt55" target="_blank" rel="noreferrer">O'Reilly oil filter fitment list</a>
+            </div>
+          </article>
+        </section>
+      </main>
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="#maintenance-updater">Update</a>
+        <a href="#minder">Codes</a>
+        <a href="#drain-hardware">Washers</a>
+        <a href="#fluids">Fluids</a>
+        <a href="#tire-wheel-lab">Tires</a>
+        <a href="#brake-tire">Brakes</a>
+        <a href="quick-sheet.html">Quick Sheet</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="maintenance.js"></script>
+  </body>
+</html>

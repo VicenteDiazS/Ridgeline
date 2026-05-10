@@ -315,7 +315,11 @@ function updateCloudStatusFromState() {
     return;
   }
 
-  setCloudStatus("Cloud sync status: ready.");
+  setCloudStatus(
+    `Cloud sync status: Supabase ready. GitHub backup ${
+      state.githubBackupConfigured ? "configured." : "not configured."
+    }`
+  );
 }
 
 async function retryCloudSyncNow() {

@@ -546,6 +546,13 @@ async function clearBrowserCaches() {
 }
 
 async function triggerLiveRefresh(setStatus) {
+  setStatus("Refreshing saved data from Supabase and backup hooks...");
+
+  try {
+    const garageData = await import("./garage-data.js");
+    await garageData.refreshGarageBackups();
+  } catch {}
+
   setStatus("Refreshing with live network code...");
 
   try {
@@ -604,8 +611,8 @@ function buildTopbarLiveRefreshButton() {
   button.type = "button";
   button.dataset.liveRefreshButton = "true";
   button.textContent = "Refresh";
-  button.title = "Reload fresh code from GitHub";
-  button.setAttribute("aria-label", "Reload fresh code from GitHub");
+  button.title = "Reload fresh saved data and code";
+  button.setAttribute("aria-label", "Reload fresh saved data and code");
 
   const searchButton = topbarActions.querySelector("[data-open-search]");
   topbarActions.insertBefore(button, searchButton || null);
@@ -1286,7 +1293,7 @@ function buildSectionStepper(sections) {
   });
 
   currentButton?.addEventListener("click", () => {
-    document.querySelector(".menu-toggle")?.click();
+    document.querySelector("[data-open-site-menu]")?.click();
   });
 
   window.addEventListener("ridgeline:active-section", (event) => {
@@ -1580,8 +1587,9 @@ function buildCurrentPageChip(sections) {
   });
 
   window.addEventListener("ridgeline:active-section", (event) => {
-    const label = sections.find((section) => section.id === event.detail?.id)?.label;
     const target = chip.querySelector("[data-current-section-label]");
+    const mapLabel = event.detail?.id === "viewer" ? target?.dataset.vehicleMapLabel : "";
+    const label = mapLabel || sections.find((section) => section.id === event.detail?.id)?.label;
     if (target && label) {
       target.textContent = label;
     }
@@ -1595,22 +1603,27 @@ function buildHomeCommandCenter() {
 
   const recent = loadRecentNav().slice(0, 4);
   const cards = [
-    { label: "Engine", href: "engine.html#engine-model", icon: "engine", note: "3D J35Y6 model and labels." },
-    { label: "Tires", href: "tires.html", icon: "wheel", note: "Wheel fitment and clearance." },
-    { label: "Fuses", href: "hood.html#fuses", icon: "bolt", note: "Under-hood and cabin fuse maps." },
-    { label: "Maintenance", href: "maintenance.html", icon: "wrench", note: "Fluids, torque, service records." },
-    { label: "NFC", href: "nfc.html", icon: "nfc", note: "Truck tag console and landing pages." },
-    { label: "Diagnostics", href: "diagnostics.html", icon: "diag", note: "Symptoms, checks, and routes." }
+    { label: "Service", href: "maintenance.html", icon: "wrench", note: "Log work, check fluids, torque, filters, bulbs, and recurring intervals." },
+    { label: "Electrical", href: "hood.html", icon: "bolt", note: "Open hood and cabin fuse maps, battery notes, circuits, and diagnostics routes." },
+    { label: "3D Models", href: "#model-launchpad", icon: "cube", note: "Jump into the truck map, J35Y6 engine model, tire lab, or AR view." },
+    { label: "Garage", href: "garage.html", icon: "garage", note: "Review saved notes, service tracker, fuse favorites, and reference photos." },
+    { label: "Emergency", href: "quick-sheet.html", icon: "flash", note: "Fast roadside specs, jack points, tire pressure, and need-it-now references." },
+    { label: "Diagnostics", href: "diagnostics.html", icon: "diag", note: "Start from symptoms and move into the right electrical or service checks." }
   ];
 
   const section = document.createElement("section");
   section.className = "home-command-center";
   section.id = "command-center";
   section.innerHTML = `
-    <div class="section-head">
-      <div>
+    <div class="home-command-head">
+      <div class="home-command-title">
         <p class="eyebrow">Command Center</p>
-        <h2>Fast Truck Actions</h2>
+        <h2>Choose The Work, Then The Page</h2>
+        <p>Use the truck map first, then jump into the exact reference layer you need.</p>
+      </div>
+      <div class="home-command-status" aria-label="Current truck summary">
+        <span>2019 Ridgeline</span>
+        <strong>Service reference, garage memory, and live 3D navigation</strong>
       </div>
     </div>
     <div class="visual-card-grid">
@@ -1632,16 +1645,17 @@ function buildHomeCommandCenter() {
           ${
             recent.length
               ? recent.map((item) => `<a href="${item.href}">${item.label}</a>`).join("")
-              : `<a href="maintenance.html#oil-service">Oil Service</a><a href="hood.html#fuses">Fuse Boxes</a>`
+              : `<a href="maintenance.html">Oil Service</a><a href="hood.html">Fuse Boxes</a>`
           }
         </div>
       </article>
       <article class="home-memory-card">
-        <span>Favorites</span>
+        <span>High Priority</span>
         <div class="home-memory-links">
-          <a href="maintenance.html#maintenance-updater">Quick Update</a>
+          <a href="maintenance.html">Quick Update</a>
           <a href="index.html?system=jack-points#viewer">Jack Points</a>
-          <a href="quick-sheet.html#emergency-card">Emergency Card</a>
+          <a href="quick-sheet.html">Emergency Card</a>
+          <a href="nfc.html">NFC Tags</a>
         </div>
       </article>
     </div>
@@ -2030,14 +2044,6 @@ function buildSiteMenu() {
     return null;
   }
 
-  const button = document.createElement("button");
-  button.className = "menu-toggle";
-  button.type = "button";
-  button.setAttribute("aria-pressed", "false");
-  button.textContent = "Nav";
-  topbarActions.insertBefore(button, topbarActions.firstChild);
-  navActionButtons = [...navActionButtons, button];
-
   const page = currentPageName();
   const menu = document.createElement("div");
   menu.className = "site-menu";
@@ -2090,6 +2096,12 @@ function buildSiteMenu() {
           <button class="site-menu-tool-button" type="button" data-tool-action="refresh-sw">
             Update Service Worker
           </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="refresh-live">
+            Live Refresh
+          </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="resume-section">
+            Resume Last Section
+          </button>
           <button class="site-menu-tool-button" type="button" data-tool-action="top">
             Scroll To Top
           </button>
@@ -2117,10 +2129,12 @@ function buildSiteMenu() {
     }
   };
 
-  bindPress(button, toggleNavigationMode);
-
   menu.querySelectorAll("[data-close-menu], .site-menu-link").forEach((element) => {
     element.addEventListener("click", closeMenu);
+  });
+
+  document.querySelectorAll("[data-open-site-menu]").forEach((element) => {
+    bindPress(element, openMenu);
   });
 
   const toolsToggle = menu.querySelector("[data-tools-toggle]");
@@ -2187,6 +2201,25 @@ function buildSiteMenu() {
     }
   );
 
+  menu.querySelector("[data-tool-action='refresh-live']")?.addEventListener("click", async () => {
+    setToolsStatus("Refreshing saved data and code...");
+    await triggerLiveRefresh(setToolsStatus);
+  });
+
+  menu.querySelector("[data-tool-action='resume-section']") && bindPress(
+    menu.querySelector("[data-tool-action='resume-section']"),
+    () => {
+      const target = document.getElementById(getLastSection());
+      if (!target) {
+        setToolsStatus("No saved section to resume yet.");
+        return;
+      }
+      scrollToSectionElement(target, "smooth");
+      setToolsStatus("Resumed last section.");
+      closeMenu();
+    }
+  );
+
   menu.querySelector("[data-tool-action='refresh-sw']")?.addEventListener("click", async () => {
     setToolsStatus("Updating service worker...");
     try {
@@ -2203,7 +2236,7 @@ function buildSiteMenu() {
     }
   });
 
-  return { menu, closeMenu };
+  return { menu, openMenu, closeMenu };
 }
 
 function recordCurrentPageVisit() {
@@ -2624,7 +2657,6 @@ const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 setWorkArea(getSavedWorkArea());
 const siteMenu = buildSiteMenu();
-buildTopbarLiveRefreshButton();
 const brandLink = document.querySelector(".brand");
 buildHomeCommandCenter();
 buildMaintenanceJobMode();
@@ -2643,7 +2675,6 @@ buildContextualBottomBar();
 buildMiniToolsDrawer();
 const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
-buildResumeButton();
 buildBackToMapButton();
 buildScrollProgress();
 if (!isMobileNavMode) {

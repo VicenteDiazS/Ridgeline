@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <meta
+      name="description"
+      content="Mobile-first 2019 Honda Ridgeline service reference with an interactive vehicle map, fuse help, specs, and truck-specific documentation."
+    />
+    <title>Ridgeline Interface</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="#viewer">Vehicle Map</a>
+          <a href="#systems">Zones</a>
+          <a href="#technical">Specs</a>
+          <a href="#references">Sources</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+
+      <nav class="route-strip" aria-label="Fast sections">
+        <a href="#viewer">Vehicle Map</a>
+        <a href="#model-launchpad">3D Models</a>
+        <a href="engine.html">Engine</a>
+        <a href="tires.html">Tires</a>
+        <a href="hood.html#fuses">Fuses</a>
+        <a href="maintenance.html">Maintenance</a>
+        <a href="quick-sheet.html#emergency-card">Emergency Card</a>
+        <a href="diagnostics.html">Diagnostics</a>
+        <a href="garage.html">Garage</a>
+      </nav>
+
+      <main id="top">
+        <section class="viewer-section" id="viewer">
+          <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
+          <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
+          <div class="viewer-header home-viewer-header">
+            <div>
+              <p class="eyebrow">Live Vehicle Map</p>
+              <h1>Ridgeline Service Console</h1>
+              <p class="home-viewer-subtitle">
+                3D truck map, service shortcuts, NFC targets, and garage records built around this 2019 Ridgeline.
+              </p>
+            </div>
+            <div class="home-status-stack" aria-label="Truck status summary">
+              <div class="home-status-pill">
+                <span>Truck</span>
+                <strong>2019 Ridgeline</strong>
+              </div>
+              <div class="home-status-pill">
+                <span>Drive</span>
+                <strong>2WD</strong>
+              </div>
+              <div class="home-status-pill">
+                <span>Major Service</span>
+                <strong>165,980 mi</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-quick-strip" aria-label="High priority shortcuts">
+            <a href="maintenance.html">
+              <span>Next Action</span>
+              <strong>Log Maintenance</strong>
+            </a>
+            <a href="index.html?system=jack-points#viewer">
+              <span>Roadside</span>
+              <strong>Jack Points</strong>
+            </a>
+            <a href="nfc.html">
+              <span>Truck Tags</span>
+              <strong>NFC Console</strong>
+            </a>
+            <a href="quick-sheet.html">
+              <span>Fast Reference</span>
+              <strong>Emergency Card</strong>
+            </a>
+          </div>
+
+          <div class="viewer-console" aria-label="Viewer tools">
+            <button
+              class="viewer-tools-button"
+              id="viewer-tools-toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="viewer-tools-menu"
+            >
+              Tools
+            </button>
+            <div class="viewer-tools-menu" id="viewer-tools-menu" hidden>
+              <button class="viewer-toggle" id="exploded-toggle" type="button" aria-pressed="false">
+                Exploded View
+              </button>
+              <button class="viewer-toggle" id="cinematic-toggle" type="button" aria-pressed="false">
+                Cinematic Focus
+              </button>
+              <a class="viewer-link" href="ar-lab.html">AR Lab</a>
+              <a class="viewer-link" href="photo-atlas.html">Photo Atlas</a>
+            </div>
+            <div class="viewer-quick-menu">
+              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-service-menu">Service</button>
+              <div class="viewer-quick-menu-panel" id="viewer-service-menu" hidden>
+                <a href="maintenance.html">Quick Update</a>
+                <a href="maintenance.html">Oil Service</a>
+                <a href="maintenance.html">Drain Hardware</a>
+                <a href="tires.html">Tire Lab</a>
+              </div>
+            </div>
+            <div class="viewer-quick-menu">
+              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-models-menu">Models</button>
+              <div class="viewer-quick-menu-panel" id="viewer-models-menu" hidden>
+                <a href="index.html">Truck Map</a>
+                <a href="engine.html">Engine Model</a>
+                <a href="tires.html">Wheel Model</a>
+                <a href="ar-lab.html">AR Lab</a>
+              </div>
+            </div>
+            <div class="viewer-quick-menu">
+              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-electrical-menu">Electrical</button>
+              <div class="viewer-quick-menu-panel" id="viewer-electrical-menu" hidden>
+                <a href="hood.html">Engine Fuses</a>
+                <a href="cabin.html">Cabin Fuses</a>
+                <a href="diagnostics.html">Diagnostics</a>
+                <a href="nfc.html">NFC Tags</a>
+              </div>
+            </div>
+            <div class="viewer-quick-menu">
+              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-garage-menu">Garage</button>
+              <div class="viewer-quick-menu-panel" id="viewer-garage-menu" hidden>
+                <a href="garage.html">Dashboard</a>
+                <a href="garage.html">Notes</a>
+                <a href="photo-atlas.html">Photo Atlas</a>
+                <a href="quick-sheet.html">Quick Sheet</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="viewer-layout">
+            <div class="viewer-stage">
+              <div class="viewer-stage-frame" aria-hidden="true"></div>
+              <div class="viewer-grid" aria-hidden="true"></div>
+              <div class="viewer-backdrop"></div>
+              <div class="viewer-hud" aria-hidden="true">
+                <div class="hud-corners">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="hud-topbar">
+                  <button class="hud-chip hud-chip-button" type="button" data-hud-action="vehicle-link">
+                    Vehicle Link
+                  </button>
+                  <button class="hud-chip hud-chip-button" type="button" data-hud-action="live-diagnostics">
+                    Live Diagnostics
+                  </button>
+                  <button class="hud-chip hud-chip-button" type="button" data-hud-action="zone-tracking">
+                    Zone Tracking
+                  </button>
+                </div>
+                <div class="hud-side hud-side-left">
+                  <span>Front Bay</span>
+                  <span>Cabin</span>
+                  <span>Cargo</span>
+                </div>
+                <div class="hud-side hud-side-right">
+                  <span>Fuse</span>
+                  <span>Power</span>
+                  <span>Towing</span>
+                </div>
+                <div class="hud-bottombar">
+                  <div class="hud-readout">
+                    <span>Drive</span>
+                    <strong>2WD</strong>
+                  </div>
+                  <div class="hud-readout">
+                    <span>Power</span>
+                    <strong>280 HP</strong>
+                  </div>
+                  <div class="hud-readout">
+                    <span>Map Mode</span>
+                    <strong>Service</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="viewer-startup" id="viewer-startup" aria-hidden="true">
+                <div class="startup-panel">
+                  <span class="startup-eyebrow">Ridgeline Interface</span>
+                  <strong>Vehicle Map Booting</strong>
+                  <div class="startup-bar"><span id="startup-bar-fill"></span></div>
+                  <p id="startup-copy">Initializing truck model, overlays, and service zones.</p>
+                </div>
+              </div>
+              <div id="truck-view" aria-label="Interactive 3D truck viewer"></div>
+              <div id="hotspot-layer" class="hotspot-layer" aria-hidden="false"></div>
+              <div id="viewer-status" class="viewer-status" hidden></div>
+            </div>
+
+            <aside class="inspector-panel">
+              <p class="eyebrow">Current Selection</p>
+              <h3 id="inspector-title">Under-Hood Fuse Box A</h3>
+              <p id="inspector-description" class="inspector-description">
+                Primary under-hood fuse box for major electrical protection and
+                troubleshooting.
+              </p>
+
+              <div class="inspector-meta">
+                <div class="meta-block">
+                  <span>Area</span>
+                  <strong id="inspector-area">Front engine bay</strong>
+                </div>
+                <div class="meta-block">
+                  <span>Use Case</span>
+                  <strong id="inspector-use">Electrical diagnosis</strong>
+                </div>
+              </div>
+
+              <ul id="inspector-points" class="inspector-points"></ul>
+
+              <div id="inspector-links" class="inspector-links"></div>
+
+              <div class="inspector-actions">
+                <button class="ghost-button" id="open-area-window" type="button">
+                  Open Area Window
+                </button>
+                <button class="ghost-button" id="reset-camera" type="button">
+                  Reset Camera
+                </button>
+              </div>
+            </aside>
+          </div>
+
+          <div id="system-chips" class="system-chips" aria-label="System shortcuts"></div>
+        </section>
+
+        <section class="model-launchpad" id="model-launchpad">
+          <div class="section-head">
+            <p class="eyebrow">3D Models</p>
+            <h2>Open A Model Fast</h2>
+            <p class="section-copy">
+              Tap any live preview to jump straight into that model page. The truck preview also opens
+              the jack-point map directly on the Ridgeline model.
+            </p>
+          </div>
+          <div class="model-launchpad-grid" aria-label="3D model quick launch">
+            <article class="model-preview-card" data-model-card="truck">
+              <a class="model-preview-stage" href="index.html?system=jack-points#viewer" data-model-preview aria-label="Open Ridgeline jack-point map"></a>
+              <div class="model-preview-meta">
+                <strong>Ridgeline Jack-Point Map</strong>
+                <p>Live truck model with all four roadside jack points highlighted.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer">Open Jack Points</a>
+                <a class="utility-link" href="#viewer">Open Vehicle Map</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="engine">
+              <a class="model-preview-stage" href="engine.html#engine-model" data-model-preview aria-label="Open engine model"></a>
+              <div class="model-preview-meta">
+                <strong>J35Y6 Engine Model</strong>
+                <p>Detailed component labels and per-part service information.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="engine.html#engine-model">Open Engine Model</a>
+                <a class="utility-link" href="engine.html#engine-part-reference">Open Part Reference</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="tire">
+              <a class="model-preview-stage" href="tires.html" data-model-preview aria-label="Open tire and wheel model"></a>
+              <div class="model-preview-meta">
+                <strong>Tire And Wheel Lab</strong>
+                <p>3D wheel fitment reference with measurements and clearance notes.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="tires.html">Open Tire Lab</a>
+                <a class="utility-link" href="maintenance.html#tire-wheel-lab">Open Tire Specs</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <p class="eyebrow">Personal Garage Reference</p>
+            <h1>Truck Info Without The Clutter</h1>
+            <p class="hero-subtitle">2019 Honda Ridgeline</p>
+            <p class="hero-text">
+              Keep the vehicle map front and center, then open the garage menu only when you need a shortcut
+              into fuses, battery, maintenance, diagnostics, or your saved notes.
+            </p>
+            <div class="hero-actions" aria-label="Common actions">
+              <a class="utility-link utility-link-strong" href="hood.html#fuses">Fuse Lookup</a>
+              <a class="utility-link" href="maintenance.html">Maintenance</a>
+              <a class="utility-link" href="garage.html#dashboard">Garage Dashboard</a>
+            </div>
+          </div>
+
+          <div class="hero-readout">
+            <div class="readout-card">
+              <span>VIN</span>
+              <strong>5FPYK2F64KB002267</strong>
+            </div>
+            <div class="readout-card">
+              <span>Drive</span>
+              <strong>2WD</strong>
+            </div>
+            <div class="readout-card">
+              <span>Engine</span>
+              <strong>3.5L SOHC i-VTEC V6</strong>
+            </div>
+            <div class="readout-card">
+              <span>Built</span>
+              <strong>Lincoln, Alabama</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="truck-profile-section" id="truck-profile">
+          <div class="section-head">
+            <p class="eyebrow">Truck Snapshot</p>
+            <h2>Truck Profile Dashboard</h2>
+            <p class="section-copy">
+              The truck's core identity, major recorded service, and ownership-critical details in one polished view.
+            </p>
+          </div>
+
+          <div class="dashboard-grid truck-dashboard-grid">
+            <article class="dashboard-card truck-dashboard-card truck-dashboard-card-strong">
+              <span>Current Truck</span>
+              <strong>2019 Honda Ridgeline</strong>
+              <p>VIN 5FPYK2F64KB002267 · 2WD · 3.5L SOHC i-VTEC V6 · 6-speed automatic</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Major Service</span>
+              <strong>165,980 miles</strong>
+              <p>Timing belt service completed April 25, 2026.</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Installed Kit</span>
+              <strong>AISIN TKH-002</strong>
+              <p>RockAuto.com timing belt replacement kit recorded for the truck.</p>
+            </article>
+            <article class="dashboard-card truck-dashboard-card">
+              <span>Build Origin</span>
+              <strong>Lincoln, Alabama</strong>
+              <p>Honda Manufacturing of Alabama, second-generation Ridgeline platform.</p>
+            </article>
+          </div>
+
+          <div class="truck-profile-layout">
+            <article class="tech-card truck-service-card">
+              <h3>Recorded Major Service</h3>
+              <div class="status-list">
+                <div class="status-row"><strong>Date</strong><span>April 25, 2026</span></div>
+                <div class="status-row"><strong>Mileage</strong><span>165,980 miles</span></div>
+                <div class="status-row"><strong>Source</strong><span>RockAuto.com</span></div>
+                <div class="status-row"><strong>Kit</strong><span>AISIN TKH-002 Timing Belt Replacement Kit</span></div>
+              </div>
+              <ul class="highlight-list truck-service-list">
+                <li>Timing belt replaced</li>
+                <li>Crankshaft sprocket replaced</li>
+                <li>Timing belt tensioner replaced</li>
+                <li>Timing belt pulleys replaced</li>
+                <li>Timing belt cover seal replaced</li>
+                <li>Water pump replaced</li>
+              </ul>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="maintenance.html#major-service-log">Open Maintenance Record</a>
+                <a class="utility-link" href="garage.html#dashboard">Open Garage Log</a>
+              </div>
+            </article>
+
+            <div class="technical-grid truck-profile-grid">
+              <article class="tech-card">
+                <h3>Decoded From VIN</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>VIN</dt>
+                    <dd>5FPYK2F64KB002267</dd>
+                  </div>
+                  <div>
+                    <dt>Year</dt>
+                    <dd>2019</dd>
+                  </div>
+                  <div>
+                    <dt>Make / Model</dt>
+                    <dd>Honda Ridgeline</dd>
+                  </div>
+                  <div>
+                    <dt>Body</dt>
+                    <dd>Crew cab pickup</dd>
+                  </div>
+                </dl>
+              </article>
+
+              <article class="tech-card">
+                <h3>Powertrain</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Engine</dt>
+                    <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
+                  </div>
+                  <div>
+                    <dt>Output</dt>
+                    <dd>280 hp / 262 lb-ft</dd>
+                  </div>
+                  <div>
+                    <dt>Transmission</dt>
+                    <dd>6-speed automatic</dd>
+                  </div>
+                  <div>
+                    <dt>Drive</dt>
+                    <dd>2WD</dd>
+                  </div>
+                </dl>
+              </article>
+
+              <article class="tech-card">
+                <h3>Build Info</h3>
+                <dl class="spec-list">
+                  <div>
+                    <dt>Plant</dt>
+                    <dd>Honda Manufacturing of Alabama, Lincoln</dd>
+                  </div>
+                  <div>
+                    <dt>WMI</dt>
+                    <dd>5FP</dd>
+                  </div>
+                  <div>
+                    <dt>Platform</dt>
+                    <dd>Second-generation Ridgeline</dd>
+                  </div>
+                  <div>
+                    <dt>Note</dt>
+                    <dd>Exact paint color and every option are not encoded in the VIN.</dd>
+                  </div>
+                </dl>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="systems-section" id="systems">
+          <div class="section-head">
+            <p class="eyebrow">Documentation Zones</p>
+            <h2>Quick Entry Areas</h2>
+            <p class="section-copy">
+              These match the selectable areas on the vehicle map and give you a faster flat-list way to get where you need to go.
+            </p>
+          </div>
+          <div id="system-grid" class="system-grid"></div>
+        </section>
+
+        <section class="technical-section" id="technical">
+          <div class="section-head">
+            <p class="eyebrow">Technical Reference</p>
+            <h2>Powertrain And Chassis</h2>
+          </div>
+
+          <div class="technical-grid">
+            <article class="tech-card">
+              <h3>Engine</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Name</dt>
+                  <dd>3.5-liter, 24-valve SOHC i-VTEC V-6</dd>
+                </div>
+                <div>
+                  <dt>Fueling</dt>
+                  <dd>Direct injection</dd>
+                </div>
+                <div>
+                  <dt>Output</dt>
+                  <dd>280 hp at 6,000 rpm</dd>
+                </div>
+                <div>
+                  <dt>Torque</dt>
+                  <dd>262 lb-ft at 4,700 rpm</dd>
+                </div>
+                <div>
+                  <dt>Systems</dt>
+                  <dd>VCM, drive-by-wire, Eco Assist, ACM, ANC</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Drivetrain</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Transmission</dt>
+                  <dd>6-speed automatic</dd>
+                </div>
+                <div>
+                  <dt>Drive</dt>
+                  <dd>2WD or i-VTM4 all-wheel drive</dd>
+                </div>
+                <div>
+                  <dt>Modes</dt>
+                  <dd>Normal, Snow, and on AWD also Mud and Sand</dd>
+                </div>
+                <div>
+                  <dt>Fuel</dt>
+                  <dd>Regular unleaded</dd>
+                </div>
+                <div>
+                  <dt>Tow Rating</dt>
+                  <dd>3,500 lb 2WD / 5,000 lb AWD</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="tech-card">
+              <h3>Chassis</h3>
+              <dl class="spec-list">
+                <div>
+                  <dt>Front</dt>
+                  <dd>MacPherson strut suspension</dd>
+                </div>
+                <div>
+                  <dt>Rear</dt>
+                  <dd>Multi-link independent suspension</dd>
+                </div>
+                <div>
+                  <dt>Steering</dt>
+                  <dd>Electric power-assisted rack-and-pinion</dd>
+                </div>
+                <div>
+                  <dt>Brakes</dt>
+                  <dd>4-wheel disc with ABS, EBD, and Brake Assist</dd>
+                </div>
+                <div>
+                  <dt>Tires</dt>
+                  <dd><a href="tires.html">P245/60 R18 105H all-season</a></dd>
+                </div>
+              </dl>
+            </article>
+          </div>
+        </section>
+
+        <section class="references-section" id="references">
+          <div class="section-head">
+            <p class="eyebrow">Reference Backbone</p>
+            <h2>Core Sources</h2>
+          </div>
+
+          <div class="reference-list">
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/3-5-Liter-i-VTEC-V-6-Engine/" target="_blank" rel="noreferrer">
+              Honda engine reference
+            </a>
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/" target="_blank" rel="noreferrer">
+              Honda towing reference
+            </a>
+            <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=fuse+box+location" target="_blank" rel="noreferrer">
+              Owner's manual fuse locations
+            </a>
+            <a href="https://www.carmanualsonline.info/honda-ridgeline-2019-owner-s-manual-in-english/?srch=towing" target="_blank" rel="noreferrer">
+              Owner's manual towing section
+            </a>
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Features-by-Trim/" target="_blank" rel="noreferrer">
+              Honda trim and engineering guide
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="area-modal" id="area-modal" hidden>
+      <div class="area-modal-backdrop" id="area-modal-backdrop"></div>
+      <section class="area-modal-panel" aria-labelledby="area-modal-title" aria-modal="true" role="dialog">
+        <div class="area-modal-head">
+          <div>
+            <p class="eyebrow">Area Actions</p>
+            <h2 id="area-modal-title">Front Engine Bay</h2>
+          </div>
+          <button class="modal-close" id="close-area-modal" type="button" aria-label="Close area window">
+            Close
+          </button>
+        </div>
+
+        <p class="area-modal-copy" id="area-modal-copy">
+          Choose what you want to see for this section of the truck.
+        </p>
+
+        <div class="area-modal-meta" id="area-modal-meta"></div>
+        <div class="area-modal-actions" id="area-modal-actions"></div>
+      </section>
+    </div>
+
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="model-gallery.js"></script>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

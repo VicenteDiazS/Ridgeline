@@ -457,6 +457,20 @@ const systems = [
   }
 ];
 
+function compactHotspotLabel(label = "") {
+  const compactLabels = {
+    "Battery / Jump-Start": "Battery",
+    "Driver-Left Fuse Box": "Driver Fuse",
+    "Roadside Jack Points": "Jack Points",
+    "Tires / Wheels": "Tires",
+    "Trailer Hitch / Wiring": "Hitch",
+    "Bed / In-Bed Trunk": "Bed Trunk",
+    "Cabin Electronics": "Cabin"
+  };
+
+  return compactLabels[label] || label;
+}
+
 const viewerElement = document.getElementById("truck-view");
 const hotspotLayer = document.getElementById("hotspot-layer");
 const viewerStatus = document.getElementById("viewer-status");
@@ -489,6 +503,21 @@ const startupBarFill = document.getElementById("startup-bar-fill");
 const startupCopy = document.getElementById("startup-copy");
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
 const requestedSystemId = new URLSearchParams(window.location.search).get("system");
+
+function setVehicleMapContextLabel(labels) {
+  const target = document.querySelector("[data-current-section-label]");
+  if (!target) {
+    return;
+  }
+
+  const labelList = (Array.isArray(labels) ? labels : [labels])
+    .map((label) => `${label || ""}`.trim())
+    .filter(Boolean);
+  const label = labelList.length ? labelList.join(" / ") : "Vehicle Map";
+  target.textContent = label;
+  target.title = label;
+  target.dataset.vehicleMapLabel = label;
+}
 
 let renderer;
 const isPhoneViewer =
@@ -1766,7 +1795,7 @@ if (!renderer) {
     `;
     label.addEventListener("click", () => {
       stopShowcaseRotation();
-      selectSystem("jack-points", false);
+      selectSystem("jack-points", false, [guide.label, "Roadside Jack Points"]);
     });
     jackPointLayer.appendChild(label);
     return { ...guide, element: label };
@@ -1795,6 +1824,7 @@ if (!renderer) {
     pill.className = "callout-pill callout-pill-button";
     pill.type = "button";
     pill.textContent = system.label;
+    pill.dataset.shortLabel = compactHotspotLabel(system.label);
     pill.setAttribute("aria-label", `Show ${system.label} details`);
     pill.addEventListener("click", () => {
       stopShowcaseRotation();
@@ -1983,6 +2013,7 @@ if (!renderer) {
 
   function clearSelection() {
     selectedSystem = null;
+    setVehicleMapContextLabel("Vehicle Map");
     titleEl.textContent = defaultInspectorState.title;
     descriptionEl.textContent = "Tap a circle on the truck to inspect that area.";
     areaEl.textContent = defaultInspectorState.area;
@@ -2051,7 +2082,7 @@ if (!renderer) {
     }, autoRotateResumeDelay);
   }
 
-  function selectSystem(id, moveCamera = false) {
+  function selectSystem(id, moveCamera = false, contextLabels = null) {
     const system = systems.find((entry) => entry.id === id);
     if (!system) {
       return;
@@ -2060,6 +2091,7 @@ if (!renderer) {
     selectedSystem = system;
     jackPointMarkerGroup.visible = id === "jack-points";
     setInspector(system);
+    setVehicleMapContextLabel(contextLabels || system.contextLabels || system.label);
 
     systems.forEach((entry, index) => {
       const isActive = entry.id === id;
@@ -2241,6 +2273,7 @@ if (!renderer) {
         "is-edge-pinned",
         rawLabelX !== labelX || rawLabelY !== labelY || x !== anchorX || y !== anchorY
       );
+      callout.root.classList.toggle("is-active", isActive);
       callout.line.style.left = `${anchorX}px`;
       callout.line.style.top = `${anchorY}px`;
       callout.line.style.width = `${length}px`;

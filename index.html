@@ -34,13 +34,25 @@
           <a href="#references">Sources</a>
         </nav>
         <div class="topbar-actions">
-          <button class="search-button" type="button" data-open-search>Search</button>
+          <a class="header-nav-button" href="index.html#viewer" data-nav-icon="map" aria-label="Open vehicle map" title="Vehicle map">Map</a>
+          <a class="header-nav-button" href="maintenance.html" data-nav-icon="wrench" aria-label="Open service page" title="Service">Service</a>
+          <a class="header-nav-button" href="garage.html" data-nav-icon="garage" aria-label="Open garage page" title="Garage">Garage</a>
+          <button class="search-button" type="button" data-open-search aria-label="Search site" title="Search site">Search</button>
+          <button class="header-nav-button header-more-button" type="button" data-open-site-menu data-nav-icon="menu" aria-label="Open full site menu" title="Full menu">More</button>
         </div>
+        <nav class="header-quick-nav" aria-label="Quick find">
+          <a href="hood.html">Electrical</a>
+          <a href="quick-sheet.html">Emergency</a>
+          <a href="diagnostics.html">Diagnostics</a>
+          <a href="index.html#model-launchpad">3D Models</a>
+          <a href="tires.html">Tires</a>
+          <a href="nfc.html">NFC</a>
+        </nav>
       </header>
 
       <nav class="route-strip" aria-label="Fast sections">
-        <a href="#model-launchpad">3D Models</a>
         <a href="#viewer">Vehicle Map</a>
+        <a href="#model-launchpad">3D Models</a>
         <a href="engine.html">Engine</a>
         <a href="tires.html">Tires</a>
         <a href="hood.html#fuses">Fuses</a>
@@ -51,54 +63,6 @@
       </nav>
 
       <main id="top">
-        <section class="model-launchpad" id="model-launchpad">
-          <div class="section-head">
-            <p class="eyebrow">3D Models</p>
-            <h2>Open A Model Fast</h2>
-            <p class="section-copy">
-              Tap any live preview to jump straight into that model page. The truck preview also opens
-              the jack-point map directly on the Ridgeline model.
-            </p>
-          </div>
-          <div class="model-launchpad-grid" aria-label="3D model quick launch">
-            <article class="model-preview-card" data-model-card="truck">
-              <a class="model-preview-stage" href="index.html?system=jack-points#viewer" data-model-preview aria-label="Open Ridgeline jack-point map"></a>
-              <div class="model-preview-meta">
-                <strong>Ridgeline Jack-Point Map</strong>
-                <p>Live truck model with all four roadside jack points highlighted.</p>
-              </div>
-              <div class="inspector-actions">
-                <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer">Open Jack Points</a>
-                <a class="utility-link" href="#viewer">Open Vehicle Map</a>
-              </div>
-            </article>
-
-            <article class="model-preview-card" data-model-card="engine">
-              <a class="model-preview-stage" href="engine.html#engine-model" data-model-preview aria-label="Open engine model"></a>
-              <div class="model-preview-meta">
-                <strong>J35Y6 Engine Model</strong>
-                <p>Detailed component labels and per-part service information.</p>
-              </div>
-              <div class="inspector-actions">
-                <a class="utility-link utility-link-strong" href="engine.html#engine-model">Open Engine Model</a>
-                <a class="utility-link" href="engine.html#engine-part-reference">Open Part Reference</a>
-              </div>
-            </article>
-
-            <article class="model-preview-card" data-model-card="tire">
-              <a class="model-preview-stage" href="tires.html" data-model-preview aria-label="Open tire and wheel model"></a>
-              <div class="model-preview-meta">
-                <strong>Tire And Wheel Lab</strong>
-                <p>3D wheel fitment reference with measurements and clearance notes.</p>
-              </div>
-              <div class="inspector-actions">
-                <a class="utility-link utility-link-strong" href="tires.html">Open Tire Lab</a>
-                <a class="utility-link" href="maintenance.html#tire-wheel-lab">Open Tire Specs</a>
-              </div>
-            </article>
-          </div>
-        </section>
-
         <section class="viewer-section" id="viewer">
           <div class="viewer-ambient viewer-ambient-a" aria-hidden="true"></div>
           <div class="viewer-ambient viewer-ambient-b" aria-hidden="true"></div>
@@ -127,7 +91,7 @@
           </div>
 
           <div class="home-quick-strip" aria-label="High priority shortcuts">
-            <a href="maintenance.html#maintenance-updater">
+            <a href="maintenance.html">
               <span>Next Action</span>
               <strong>Log Maintenance</strong>
             </a>
@@ -139,7 +103,7 @@
               <span>Truck Tags</span>
               <strong>NFC Console</strong>
             </a>
-            <a href="quick-sheet.html#emergency-card">
+            <a href="quick-sheet.html">
               <span>Fast Reference</span>
               <strong>Emergency Card</strong>
             </a>
@@ -168,17 +132,17 @@
             <div class="viewer-quick-menu">
               <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-service-menu">Service</button>
               <div class="viewer-quick-menu-panel" id="viewer-service-menu" hidden>
-                <a href="maintenance.html#maintenance-updater">Quick Update</a>
-                <a href="maintenance.html#oil-service">Oil Service</a>
-                <a href="maintenance.html#drain-hardware">Drain Hardware</a>
+                <a href="maintenance.html">Quick Update</a>
+                <a href="maintenance.html">Oil Service</a>
+                <a href="maintenance.html">Drain Hardware</a>
                 <a href="tires.html">Tire Lab</a>
               </div>
             </div>
             <div class="viewer-quick-menu">
               <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-models-menu">Models</button>
               <div class="viewer-quick-menu-panel" id="viewer-models-menu" hidden>
-                <a href="index.html#viewer">Truck Map</a>
-                <a href="engine.html#engine-model">Engine Model</a>
+                <a href="index.html">Truck Map</a>
+                <a href="engine.html">Engine Model</a>
                 <a href="tires.html">Wheel Model</a>
                 <a href="ar-lab.html">AR Lab</a>
               </div>
@@ -186,8 +150,8 @@
             <div class="viewer-quick-menu">
               <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-electrical-menu">Electrical</button>
               <div class="viewer-quick-menu-panel" id="viewer-electrical-menu" hidden>
-                <a href="hood.html#fuses">Engine Fuses</a>
-                <a href="cabin.html#fuses">Cabin Fuses</a>
+                <a href="hood.html">Engine Fuses</a>
+                <a href="cabin.html">Cabin Fuses</a>
                 <a href="diagnostics.html">Diagnostics</a>
                 <a href="nfc.html">NFC Tags</a>
               </div>
@@ -195,8 +159,8 @@
             <div class="viewer-quick-menu">
               <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-garage-menu">Garage</button>
               <div class="viewer-quick-menu-panel" id="viewer-garage-menu" hidden>
-                <a href="garage.html#dashboard">Dashboard</a>
-                <a href="garage.html#notes">Notes</a>
+                <a href="garage.html">Dashboard</a>
+                <a href="garage.html">Notes</a>
                 <a href="photo-atlas.html">Photo Atlas</a>
                 <a href="quick-sheet.html">Quick Sheet</a>
               </div>
@@ -299,6 +263,54 @@
           </div>
 
           <div id="system-chips" class="system-chips" aria-label="System shortcuts"></div>
+        </section>
+
+        <section class="model-launchpad" id="model-launchpad">
+          <div class="section-head">
+            <p class="eyebrow">3D Models</p>
+            <h2>Open A Model Fast</h2>
+            <p class="section-copy">
+              Tap any live preview to jump straight into that model page. The truck preview also opens
+              the jack-point map directly on the Ridgeline model.
+            </p>
+          </div>
+          <div class="model-launchpad-grid" aria-label="3D model quick launch">
+            <article class="model-preview-card" data-model-card="truck">
+              <a class="model-preview-stage" href="index.html?system=jack-points#viewer" data-model-preview aria-label="Open Ridgeline jack-point map"></a>
+              <div class="model-preview-meta">
+                <strong>Ridgeline Jack-Point Map</strong>
+                <p>Live truck model with all four roadside jack points highlighted.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer">Open Jack Points</a>
+                <a class="utility-link" href="#viewer">Open Vehicle Map</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="engine">
+              <a class="model-preview-stage" href="engine.html#engine-model" data-model-preview aria-label="Open engine model"></a>
+              <div class="model-preview-meta">
+                <strong>J35Y6 Engine Model</strong>
+                <p>Detailed component labels and per-part service information.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="engine.html#engine-model">Open Engine Model</a>
+                <a class="utility-link" href="engine.html#engine-part-reference">Open Part Reference</a>
+              </div>
+            </article>
+
+            <article class="model-preview-card" data-model-card="tire">
+              <a class="model-preview-stage" href="tires.html" data-model-preview aria-label="Open tire and wheel model"></a>
+              <div class="model-preview-meta">
+                <strong>Tire And Wheel Lab</strong>
+                <p>3D wheel fitment reference with measurements and clearance notes.</p>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="tires.html">Open Tire Lab</a>
+                <a class="utility-link" href="maintenance.html#tire-wheel-lab">Open Tire Specs</a>
+              </div>
+            </article>
+          </div>
         </section>
 
         <section class="hero-panel">

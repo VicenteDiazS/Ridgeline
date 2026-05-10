@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <title>Ridgeline Tire And Wheel Lab</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body data-no-hero-actions data-no-section-rail>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="maintenance.html">Maintenance</a>
+          <a href="garage.html">Garage Log</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+
+      <main id="top" class="section-page-main wheel-page-main">
+        <section class="wheel-model-hero" id="wheel-model">
+          <div class="wheel-hero-copy">
+            <p class="eyebrow">Tire And Wheel Lab</p>
+            <h1>2019 Ridgeline Wheel Fitment Viewer</h1>
+            <p class="section-copy">
+              A 3D tire and wheel reference for the stock 245/60R18 setup, with fitment notes,
+              wheel-well measurement placeholders, and arrows for the numbers that matter.
+            </p>
+            <p class="wheel-model-note">
+              The tire model is a generic GLB scaled to the Ridgeline's stock tire diameter.
+              The specs and arrows represent the truck, not exact OEM Honda CAD geometry.
+            </p>
+            <div class="section-utility-nav wheel-utility-nav" aria-label="Section shortcuts">
+              <a class="utility-link utility-link-strong" href="#fitment-guide">Fitment Guide</a>
+              <a class="utility-link" href="#wheel-well">Wheel Well</a>
+              <a class="utility-link" href="#source-audit">Sources</a>
+              <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+            </div>
+          </div>
+
+          <div class="wheel-stage">
+            <div id="wheel-viewer" class="wheel-viewer" aria-label="Interactive Ridgeline tire and wheel model"></div>
+            <div id="wheel-label-layer" class="wheel-label-layer" aria-hidden="false"></div>
+            <div id="wheel-viewer-status" class="viewer-status">Loading tire model...</div>
+            <div class="wheel-stage-toolbar" aria-label="Measurement layers">
+              <button class="viewer-toggle" type="button" data-wheel-layer="tire" aria-pressed="true">Tire</button>
+              <button class="viewer-toggle" type="button" data-wheel-layer="wheel">Wheel</button>
+              <button class="viewer-toggle" type="button" data-wheel-layer="clearance">Clearance</button>
+              <button class="viewer-toggle" type="button" data-wheel-layer="all">All</button>
+            </div>
+          </div>
+
+          <aside class="wheel-inspector" aria-live="polite">
+            <p class="eyebrow">Selected Measurement</p>
+            <h3 id="wheel-inspector-title">Outer Tire Diameter</h3>
+            <p id="wheel-inspector-description" class="inspector-description">
+              Stock 245/60R18 calculates to about 29.6 inches tall.
+            </p>
+            <div class="wheel-inspector-meta" id="wheel-inspector-meta">
+              <span>245/60R18</span>
+              <span>Stock reference</span>
+            </div>
+          </aside>
+
+          <div class="wheel-control-bar" aria-label="Tire model camera views">
+            <button class="viewer-toggle" type="button" data-wheel-view="front" aria-pressed="true">Front View</button>
+            <button class="viewer-toggle" type="button" data-wheel-view="side">Width View</button>
+            <button class="viewer-toggle" type="button" data-wheel-view="clearance">Wheel Well</button>
+            <button class="viewer-toggle" type="button" data-wheel-view="angle">Fitment Angle</button>
+            <button class="viewer-toggle" type="button" data-wheel-labels aria-pressed="true">Labels</button>
+          </div>
+        </section>
+
+        <section class="wheel-spec-dashboard" id="stock-specs">
+          <div class="dashboard-grid wheel-dashboard-grid">
+            <article class="dashboard-card wheel-dashboard-card wheel-dashboard-card-strong">
+              <span>OEM Tire</span>
+              <strong>245/60R18 105H</strong>
+              <p>Honda lists 245/60 R18 all-season tires on 18-inch wheels for the 2019 Ridgeline.</p>
+            </article>
+            <article class="dashboard-card wheel-dashboard-card">
+              <span>Largest Practical Stock Size</span>
+              <strong>265/60R18</strong>
+              <p>Most owner reports treat this as the no-lift upper bound, but aggressive A/T shoulders can still rub.</p>
+            </article>
+            <article class="dashboard-card wheel-dashboard-card">
+              <span>Calculated Diameter</span>
+              <strong>29.6 in</strong>
+              <p>18-inch wheel plus two 5.8-inch sidewalls.</p>
+            </article>
+            <article class="dashboard-card wheel-dashboard-card">
+              <span>Cold Pressure</span>
+              <strong>35 psi / 35 psi</strong>
+              <p>Front and rear pressure listed in Honda accessory wheel instructions.</p>
+            </article>
+            <article class="dashboard-card wheel-dashboard-card">
+              <span>OEM Wheel</span>
+              <strong>18 x 8J ET55</strong>
+              <p>Accessory wheel instructions list 18 x 8J with 55 mm inset.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-page-grid" id="fitment-guide">
+          <article class="tech-card">
+            <h3>Stock Wheel Specs</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>Tire</dt>
+                <dd>245/60R18 105H</dd>
+              </div>
+              <div>
+                <dt>Wheel</dt>
+                <dd>18 x 8J, ET55</dd>
+              </div>
+              <div>
+                <dt>Bolt Pattern</dt>
+                <dd>5 x 120 mm</dd>
+              </div>
+              <div>
+                <dt>Center Bore</dt>
+                <dd>64.1 mm fitment reference</dd>
+              </div>
+              <div>
+                <dt>Lug Torque</dt>
+                <dd>94 lb-ft</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="tech-card">
+            <h3>Size Math</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>Section Width</dt>
+                <dd>245 mm / 9.6 in</dd>
+              </div>
+              <div>
+                <dt>Sidewall</dt>
+                <dd>147 mm / 5.8 in</dd>
+              </div>
+              <div>
+                <dt>Wheel Diameter</dt>
+                <dd>18 in</dd>
+              </div>
+              <div>
+                <dt>Outer Diameter</dt>
+                <dd>29.6 in</dd>
+              </div>
+              <div>
+                <dt>Circumference</dt>
+                <dd>92.9 in calculated</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="tech-card span-2">
+            <h3>Stock Rim Fitment Matrix</h3>
+            <div class="fitment-table-wrap">
+              <table class="fitment-table">
+                <thead>
+                  <tr>
+                    <th>Size</th>
+                    <th>Diameter</th>
+                    <th>Width</th>
+                    <th>Speedometer Error</th>
+                    <th>Stock Truck Guidance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>245/60R18</td>
+                    <td>29.6 in</td>
+                    <td>9.6 in</td>
+                    <td>0%</td>
+                    <td>OEM baseline. Best no-rub confidence across tire types.</td>
+                  </tr>
+                  <tr>
+                    <td>255/60R18</td>
+                    <td>30.0 in</td>
+                    <td>10.0 in</td>
+                    <td>+1.4%</td>
+                    <td>Best upsize if you want a near no-rub setup on stock suspension.</td>
+                  </tr>
+                  <tr>
+                    <td>265/60R18</td>
+                    <td>30.5 in</td>
+                    <td>10.4 in</td>
+                    <td>+3.0%</td>
+                    <td>Common maximum on stock setup. Some A/T models rub at full lock or while reversing.</td>
+                  </tr>
+                  <tr>
+                    <td>245/65R18</td>
+                    <td>30.5 in</td>
+                    <td>9.6 in</td>
+                    <td>+3.0%</td>
+                    <td>Narrow but taller option. Clearance check still required.</td>
+                  </tr>
+                  <tr>
+                    <td>255/65R18</td>
+                    <td>31.1 in</td>
+                    <td>10.0 in</td>
+                    <td>+5.1%</td>
+                    <td>Usually clearance-sensitive on stock geometry. Treat as trim/lift territory.</td>
+                  </tr>
+                  <tr>
+                    <td>265/65R18</td>
+                    <td>31.6 in</td>
+                    <td>10.4 in</td>
+                    <td>+6.8%</td>
+                    <td>Not a stock-height recommendation. Plan for lift and trimming.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="source-note">
+              Forum guidance is not a guarantee. Tire brand, side lug shape, alignment, suspension height,
+              tread type, wheel offset, and spacers can change whether a size rubs.
+            </p>
+          </article>
+
+          <article class="tech-card">
+            <h3>Tire Types That Fit The Stock 18s</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>All-Season (Highway)</dt>
+                <dd>Best daily-driver comfort and mpg. Widest no-surprise fitment in 245/60R18.</dd>
+              </div>
+              <div>
+                <dt>All-Weather (3PMSF)</dt>
+                <dd>Year-round option for mixed climates. Better snow traction than standard all-season.</dd>
+              </div>
+              <div>
+                <dt>All-Terrain</dt>
+                <dd>Fits in stock sizes, but aggressive shoulders are the first to create rubbing at larger sizes.</dd>
+              </div>
+              <div>
+                <dt>Winter / Snow</dt>
+                <dd>Dedicated winter tires fit in OEM size and remain the best option for real ice and deep snow.</dd>
+              </div>
+              <div>
+                <dt>Mud-Terrain</dt>
+                <dd>Available in 18-inch sizes, but usually heavier/louder and more likely to need clearance mods.</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="tech-card">
+            <h3>Useful Rules Before Buying</h3>
+            <dl class="spec-list">
+              <div>
+                <dt>Safest No-Rub Bet</dt>
+                <dd>245/60R18, followed by 255/60R18 for a mild upsize.</dd>
+              </div>
+              <div>
+                <dt>Practical Stock Upper Bound</dt>
+                <dd>265/60R18 with tire-model dependent rubbing risk.</dd>
+              </div>
+              <div>
+                <dt>Load And Speed</dt>
+                <dd>Match or exceed OEM service level (105H) unless your use-case requires a different spec.</dd>
+              </div>
+              <div>
+                <dt>Pressure Baseline</dt>
+                <dd>Start at 35 psi front/rear cold, then tune by wear pattern and ride preference.</dd>
+              </div>
+              <div>
+                <dt>After Install Check</dt>
+                <dd>Test forward and reverse at full lock and over driveway compression before long trips.</dd>
+              </div>
+            </dl>
+          </article>
+        </section>
+
+        <section class="wheel-well-section" id="wheel-well">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Wheel Well Measurements</p>
+              <h2>Field Measurements To Add Later</h2>
+            </div>
+          </div>
+          <p class="section-copy">
+            These are the measurements that will make the fitment page much more precise once you can measure
+            your truck. The 3D viewer already has clearance arrows in the same positions.
+          </p>
+          <div class="wheel-well-grid">
+            <article class="tech-card">
+              <h3>Front Liner Clearance</h3>
+              <p>Measure from the front edge of the tire to the closest liner or mud-flap contact point at full lock.</p>
+              <strong>Pending your measurement</strong>
+            </article>
+            <article class="tech-card">
+              <h3>Rear Liner Clearance</h3>
+              <p>Measure the rear edge of the tire to the liner at full lock and while reversing slowly.</p>
+              <strong>Pending your measurement</strong>
+            </article>
+            <article class="tech-card">
+              <h3>Top Compression Room</h3>
+              <p>Measure from tire crown to the wheel-well liner with the truck level on the ground.</p>
+              <strong>Pending your measurement</strong>
+            </article>
+            <article class="tech-card">
+              <h3>Inner / Outer Clearance</h3>
+              <p>Measure inner suspension clearance and outer fender-lip poke using the same steering angle.</p>
+              <strong>Pending your measurement</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="references-section" id="source-audit">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Source Audit</p>
+              <h2>Reference Stack</h2>
+            </div>
+          </div>
+          <div class="reference-list">
+            <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Exterior-Features/Wheels-and-Tires/" target="_blank" rel="noreferrer">
+              Honda Info Center - 2019 Ridgeline wheels and tires
+            </a>
+            <a href="https://www.collegehillshonda.com/instructions/ridgeline/2019/18wheelst6z.pdf" target="_blank" rel="noreferrer">
+              Honda 18-inch accessory wheel instructions - rim, tire, pressure, torque
+            </a>
+            <a href="https://tiresize.com/tiresizes/265-60R18.htm" target="_blank" rel="noreferrer">
+              TireSize reference - 265/60R18 dimensions and approved wheel-width range
+            </a>
+            <a href="https://tirewheelguide.com/sizes/honda/ridgeline/2019/" target="_blank" rel="noreferrer">
+              TireWheelGuide - bolt pattern, center bore, thread, pressure reference
+            </a>
+            <a href="https://www.reddit.com/r/hondaridgeline/comments/11bo5sf/whats_the_biggest_tire_size/" target="_blank" rel="noreferrer">
+              Ridgeline owner thread - largest no-lift tire discussions and mixed rub outcomes
+            </a>
+            <a href="https://www.reddit.com/r/hondaridgeline/comments/1iltwf0/2656018_no_rub/" target="_blank" rel="noreferrer">
+              Ridgeline owner report - 265/60R18 no-rub setup example
+            </a>
+            <a href="https://www.reddit.com/r/hondaridgeline/comments/1ktuy3j/26560r18_not_fitting/" target="_blank" rel="noreferrer">
+              Ridgeline owner report - 265/60R18 all-terrain rubbing / fitment caution
+            </a>
+            <a href="https://www.reddit.com/r/hondaridgeline/comments/1kw2y8w/lets_talk_tires_sizes_and_options/" target="_blank" rel="noreferrer">
+              Ridgeline forum discussion - size math and real-world fitment reports
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#fitment-guide">Fitment</a>
+        <a href="#wheel-well">Wheel Well</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="wheel-viewer.js"></script>
+  </body>
+</html>
