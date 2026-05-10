@@ -4,7 +4,8 @@ export const STORAGE = {
   maintenanceLog: "ridgeline-maintenance-log",
   photos: "ridgeline-photos",
   favorites: "ridgeline-favorites",
-  areaJournal: "ridgeline-area-journal"
+  areaJournal: "ridgeline-area-journal",
+  profile: "ridgeline-truck-profile"
 };
 
 const SUPABASE = {
@@ -27,7 +28,8 @@ const SYNCABLE_KEYS = new Set([
   STORAGE.maintenanceLog,
   STORAGE.photos,
   STORAGE.favorites,
-  STORAGE.areaJournal
+  STORAGE.areaJournal,
+  STORAGE.profile
 ]);
 
 const signedUrlCache = new Map();
@@ -158,7 +160,7 @@ function cloudPayloadForStorageKey(key, value) {
 }
 
 function fallbackForStorageKey(key) {
-  return key === STORAGE.notes || key === STORAGE.tracker || key === STORAGE.areaJournal ? {} : [];
+  return key === STORAGE.notes || key === STORAGE.tracker || key === STORAGE.areaJournal || key === STORAGE.profile ? {} : [];
 }
 
 async function requestSupabase(path, options = {}) {
@@ -552,7 +554,7 @@ export function setGarageCloudEnabled(enabled) {
     localStorage.setItem(REMOTE_ENABLED_KEY, "1");
     localStorage.removeItem(REMOTE_DISABLED_UNTIL_KEY);
   } else {
-    localStorage.removeItem(REMOTE_ENABLED_KEY);
+    localStorage.setItem(REMOTE_ENABLED_KEY, "0");
   }
 
   remoteInitPromise = null;

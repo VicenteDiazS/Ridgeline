@@ -14,6 +14,8 @@ import {
 
 const notesForm = document.querySelector("[data-notes-form]");
 const trackerForm = document.querySelector("[data-tracker-form]");
+const profileForm = document.querySelector("[data-profile-form]");
+const profileSummary = document.querySelector("[data-profile-summary]");
 const photosInput = document.querySelector("[data-photo-input]");
 const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
@@ -32,6 +34,16 @@ const defaultNotes = {
 const defaultTracker = {
   timing_belt_service: "4/25/2026 / 165,980 miles"
 };
+const defaultProfile = {
+  vin: "5FPYK2F64KB002267",
+  vehicle: "2019 Honda Ridgeline",
+  trim_drive: "2WD",
+  engine: "J35Y6 3.5L V6",
+  current_mileage: "165980",
+  tire_size_pressure: "245/60R18 / 35 psi",
+  wheel_torque: "94 lb-ft",
+  parts_notes: "Timing belt service completed 4/25/2026 at 165,980 miles using AISIN TKH-002."
+};
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -39,6 +51,10 @@ function hydrateGarageForms() {
   }
   if (trackerForm) {
     hydrateForm(trackerForm, loadJson(STORAGE.tracker, defaultTracker));
+  }
+  if (profileForm) {
+    hydrateForm(profileForm, loadJson(STORAGE.profile, defaultProfile));
+    renderProfileSummary();
   }
 }
 
@@ -52,6 +68,36 @@ if (trackerForm) {
   trackerForm.addEventListener("input", () => {
     saveJson(STORAGE.tracker, formPayload(trackerForm));
   });
+}
+
+if (profileForm) {
+  profileForm.addEventListener("input", () => {
+    saveJson(STORAGE.profile, formPayload(profileForm));
+    renderProfileSummary();
+    renderDashboard();
+  });
+}
+
+function renderProfileSummary() {
+  if (!profileSummary) {
+    return;
+  }
+
+  const profile = profileForm ? formPayload(profileForm) : loadJson(STORAGE.profile, defaultProfile);
+  const summaryItems = [
+    ["VIN", profile.vin],
+    ["Vehicle", profile.vehicle],
+    ["Trim / drive", profile.trim_drive],
+    ["Engine", profile.engine],
+    ["Mileage", profile.current_mileage ? `${Number(profile.current_mileage).toLocaleString("en-US")} mi` : ""],
+    ["Tires", profile.tire_size_pressure],
+    ["Wheel torque", profile.wheel_torque],
+    ["Battery", profile.battery]
+  ].filter(([, value]) => value);
+
+  profileSummary.innerHTML = summaryItems
+    .map(([label, value]) => `<div class="mini-spec"><span>${label}</span><span>${value}</span></div>`)
+    .join("");
 }
 
 function serviceLabelFromKey(key) {
@@ -243,6 +289,7 @@ function renderDashboard() {
   const maintenanceLog = loadJson(STORAGE.maintenanceLog, []);
   const favorites = loadJson(STORAGE.favorites, []);
   const photos = loadJson(STORAGE.photos, []);
+  const profile = loadJson(STORAGE.profile, defaultProfile);
   const areas = ["hood", "cabin", "cargo", "rear-hitch"].map((key) => loadAreaJournal(key));
   const noteFields = Object.values(notes).filter(Boolean).length;
   const trackerFields = Object.values(tracker).filter(Boolean).length;
@@ -253,7 +300,7 @@ function renderDashboard() {
   );
 
   const cards = [
-    ["Truck Profile", "VIN 5FPYK2F64KB002267", "2019 Ridgeline / 2WD / 3.5L V6"],
+    ["Truck Profile", profile.vin || "VIN not set", `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`],
     ["Saved Notes", `${noteFields} fields`, "Installed parts and general truck memory"],
     ["Service Tracker", `${trackerFields} entries`, "Mileage and last-service checkpoints"],
     ["Quick Updates", `${maintenanceLog.length} entries`, "Fast maintenance notes saved from the Maintenance page"],

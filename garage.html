@@ -14,7 +14,7 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
           <a href="index.html#viewer">Vehicle Map</a>
           <a href="maintenance.html">Maintenance</a>
@@ -57,6 +57,46 @@
               Fast status view for how complete your truck memory layer is getting.
             </p>
             <div class="dashboard-grid" data-garage-dashboard></div>
+          </article>
+
+          <article class="tech-card span-2 truck-profile-editor" id="truck-profile">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Truck Profile</p>
+                <h3>VIN, Specs, Fluids, And Parts</h3>
+              </div>
+            </div>
+            <p class="small-note">
+              Store the actual identity and service specs for this Ridgeline. These fields save through Garage data so they can sync to Supabase and GitHub backup when configured.
+            </p>
+            <form class="form-stack truck-profile-form" data-profile-form>
+              <div class="form-grid">
+                <label><span>VIN</span><input name="vin" type="text" placeholder="5FPYK2F64KB002267" /></label>
+                <label><span>Year / Make / Model</span><input name="vehicle" type="text" placeholder="2019 Honda Ridgeline" /></label>
+                <label><span>Trim / Drive</span><input name="trim_drive" type="text" placeholder="Sport / 2WD" /></label>
+                <label><span>Engine</span><input name="engine" type="text" placeholder="J35Y6 3.5L V6" /></label>
+                <label><span>Transmission</span><input name="transmission" type="text" placeholder="6-speed automatic" /></label>
+                <label><span>Current mileage</span><input name="current_mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="165980" /></label>
+              </div>
+              <div class="form-grid">
+                <label><span>Oil</span><input name="oil" type="text" placeholder="0W-20, capacity, preferred brand" /></label>
+                <label><span>Transmission fluid</span><input name="trans_fluid" type="text" placeholder="Honda ATF DW-1 / service note" /></label>
+                <label><span>Brake fluid</span><input name="brake_fluid" type="text" placeholder="DOT 3 / last flush" /></label>
+                <label><span>Coolant</span><input name="coolant" type="text" placeholder="Honda Type 2 / service note" /></label>
+                <label><span>Tire size / pressure</span><input name="tire_size_pressure" type="text" placeholder="245/60R18 / 35 psi" /></label>
+                <label><span>Wheel torque</span><input name="wheel_torque" type="text" placeholder="94 lb-ft" /></label>
+              </div>
+              <div class="form-grid">
+                <label><span>Battery</span><input name="battery" type="text" placeholder="Group size, CCA, install date" /></label>
+                <label><span>Oil filter</span><input name="oil_filter" type="text" placeholder="Part number" /></label>
+                <label><span>Engine air filter</span><input name="engine_air_filter" type="text" placeholder="Part number" /></label>
+                <label><span>Cabin air filter</span><input name="cabin_air_filter" type="text" placeholder="Part number" /></label>
+                <label><span>Wipers</span><input name="wipers" type="text" placeholder="Driver / passenger sizes" /></label>
+                <label><span>Registration / insurance</span><input name="registration" type="text" placeholder="Renewal date or note" /></label>
+              </div>
+              <label><span>Common part numbers / notes</span><textarea name="parts_notes" rows="5" placeholder="Timing belt kit, brakes, trailer adapter, filters, bulbs, tools, insurance notes..."></textarea></label>
+            </form>
+            <div class="truck-profile-summary" data-profile-summary></div>
           </article>
 
           <article class="tech-card diagram-card">

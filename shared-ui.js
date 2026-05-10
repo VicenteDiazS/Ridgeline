@@ -11,6 +11,8 @@ const CONTENT_MODE_STORAGE_KEY = "ridgeline-content-mode";
 const RECENT_NAV_STORAGE_KEY = "ridgeline-recent-nav";
 const LAST_SECTION_STORAGE_PREFIX = "ridgeline-last-section:";
 const WORK_AREA_STORAGE_KEY = "ridgeline-work-area";
+const FAVORITE_PINS_STORAGE_KEY = "ridgeline-favorite-pins";
+const LAST_TASK_STORAGE_KEY = "ridgeline-last-task";
 const prefersCompactDefault =
   window.matchMedia("(max-width: 900px)").matches || window.matchMedia("(pointer: coarse)").matches;
 const isMobileNavMode = prefersCompactDefault;
@@ -120,7 +122,7 @@ function normalizeRecentHref(value = "") {
     if (url.origin !== location.origin) {
       return value;
     }
-    return `${url.pathname.split("/").pop() || "index.html"}${url.hash || ""}`;
+    return `${url.pathname.split("/").pop() || "index.html"}${url.search || ""}${url.hash || ""}`;
   } catch {
     return value;
   }
@@ -139,6 +141,92 @@ function saveRecentNav(items) {
   localStorage.setItem(RECENT_NAV_STORAGE_KEY, JSON.stringify(items));
 }
 
+function showToast(message, tone = "info") {
+  if (!message) {
+    return;
+  }
+
+  let stack = document.querySelector(".toast-stack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.className = "toast-stack";
+    stack.setAttribute("aria-live", "polite");
+    document.body.appendChild(stack);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast-message toast-${tone}`;
+  toast.textContent = message;
+  stack.appendChild(toast);
+
+  window.setTimeout(() => toast.classList.add("is-leaving"), 2400);
+  window.setTimeout(() => toast.remove(), 2900);
+}
+
+function saveLastTask(task = {}, announce = false) {
+  if (!task.href || !task.label) {
+    return;
+  }
+
+  const next = {
+    href: normalizeRecentHref(task.href),
+    label: `${task.label}`.trim(),
+    kind: task.kind || "page",
+    at: task.at || new Date().toISOString()
+  };
+  localStorage.setItem(LAST_TASK_STORAGE_KEY, JSON.stringify(next));
+  if (announce) {
+    showToast(`Saved ${next.label} as your last task`);
+  }
+}
+
+function getLastTask() {
+  try {
+    return JSON.parse(localStorage.getItem(LAST_TASK_STORAGE_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function restoreLastTask() {
+  const task = getLastTask();
+  if (!task?.href) {
+    showToast("No last task saved yet", "warning");
+    return;
+  }
+
+  showToast(`Opening ${task.label}`);
+  window.location.href = task.href;
+}
+
+function currentLocationHref() {
+  return `${currentPageName()}${location.search || ""}${location.hash || ""}`;
+}
+
+function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(value);
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+  return Promise.resolve();
+}
+
+function copyCurrentLocation() {
+  const url = new URL(currentLocationHref(), location.href).href;
+  copyText(url)
+    .then(() => showToast("Copied this location"))
+    .catch(() => showToast("Could not copy link", "warning"));
+}
+
 function recordRecentNavEntry({ href, label }) {
   if (!href || !label) {
     return;
@@ -151,6 +239,7 @@ function recordRecentNavEntry({ href, label }) {
     ...current.filter((item) => item.href !== normalizedHref)
   ].slice(0, 8);
   saveRecentNav(next);
+  saveLastTask({ href: normalizedHref, label, kind: "page" });
 }
 
 function currentPageDisplayLabel() {
@@ -704,6 +793,9 @@ function scrollToHashTarget() {
   if (targetSection?.hidden) {
     setContentMode("full", true);
   }
+
+  target.classList?.add("is-visible");
+  target.closest(".section-reveal")?.classList.add("is-visible");
 
   const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
   const offset = Math.max(72, topbarHeight + 18);
@@ -1348,7 +1440,7 @@ function actionForPage(page) {
   };
 
   return actions[page] || [
-    { label: "Home", href: "index.html#top", icon: "map" },
+    { label: "Home", href: "index.html", icon: "home" },
     { label: "Search", action: "search", icon: "search" },
     { label: "Emergency", href: "quick-sheet.html#emergency-card", icon: "flash" },
     { label: "More", action: "tools", icon: "menu" }
@@ -1356,8 +1448,28 @@ function actionForPage(page) {
 }
 
 function performUiAction(action) {
+  if (action === "command") {
+    openCommandPalette();
+    return;
+  }
+  if (action === "quick-capture") {
+    openQuickCapture();
+    return;
+  }
+  if (action === "sync-settings") {
+    openSyncSettings();
+    return;
+  }
   if (action === "search") {
     openSearch();
+    return;
+  }
+  if (action === "copy-location") {
+    copyCurrentLocation();
+    return;
+  }
+  if (action === "last-task") {
+    restoreLastTask();
     return;
   }
   if (action === "tools") {
@@ -1421,11 +1533,16 @@ function buildMiniToolsDrawer() {
         <button class="modal-close" type="button" data-mini-tools-close>Close</button>
       </div>
       <div class="mini-tools-grid">
+        <button type="button" data-mini-action="command" data-nav-icon="search">Command Palette</button>
         <button type="button" data-mini-action="search" data-nav-icon="search">Search Site</button>
-        <a href="index.html#top" data-nav-icon="map">Home Console</a>
+        <button type="button" data-mini-action="copy-location" data-nav-icon="copy">Copy Location</button>
+        <button type="button" data-mini-action="last-task" data-nav-icon="history">Last Task</button>
+        <button type="button" data-mini-action="quick-capture" data-nav-icon="garage">Quick Add</button>
+        <button type="button" data-mini-action="sync-settings" data-nav-icon="bolt">Sync Settings</button>
+        <a href="index.html" data-nav-icon="home">Home Console</a>
         <button type="button" data-mini-action="refresh" data-nav-icon="flash">Live Refresh</button>
         <a href="nfc.html" data-nav-icon="nfc">NFC Console</a>
-        <a href="maintenance.html#maintenance-updater" data-nav-icon="wrench">Add Update</a>
+        <a href="maintenance.html" data-nav-icon="wrench">Add Update</a>
         <a href="quick-sheet.html#emergency-card" data-nav-icon="flash">Emergency Card</a>
       </div>
       <section class="work-mode-panel" aria-label="Working area">
@@ -1516,7 +1633,7 @@ function closeMiniToolsDrawer() {
     return;
   }
   drawer.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden) {
+  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden) {
     document.body.classList.remove("modal-open");
   }
 }
@@ -2239,6 +2356,782 @@ function buildSiteMenu() {
   return { menu, openMenu, closeMenu };
 }
 
+function buildBreadcrumbTrail(sections = []) {
+  if (document.querySelector(".breadcrumb-trail")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const trail = document.createElement("nav");
+  trail.className = "breadcrumb-trail";
+  trail.setAttribute("aria-label", "Current location");
+  trail.innerHTML = `
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <a href="${currentPageName() === "index.html" ? "index.html#viewer" : location.pathname.split("/").pop()}">${currentPageDisplayLabel()}</a>
+    <span data-breadcrumb-section-wrap hidden>/ <strong data-breadcrumb-section></strong></span>
+  `;
+  if (supportHost) {
+    supportHost.appendChild(trail);
+  } else {
+    document.querySelector(".topbar")?.insertAdjacentElement("afterend", trail);
+  }
+
+  const sectionWrap = trail.querySelector("[data-breadcrumb-section-wrap]");
+  const sectionLabel = trail.querySelector("[data-breadcrumb-section]");
+  window.addEventListener("ridgeline:active-section", (event) => {
+    const label = sections.find((section) => section.id === event.detail?.id)?.label;
+    sectionWrap.hidden = !label;
+    if (label) {
+      sectionLabel.textContent = label;
+    }
+  });
+}
+
+function buildRecentStrip() {
+  if (document.querySelector(".recent-strip")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const items = loadRecentNav().slice(0, 5);
+  const fallback = [
+    { label: "Vehicle Map", href: "index.html#viewer" },
+    { label: "Maintenance", href: "maintenance.html" },
+    { label: "Fuse Boxes", href: "hood.html#fuses" },
+    { label: "Garage", href: "garage.html" }
+  ];
+  const links = items.length ? items : fallback;
+  const strip = document.createElement("nav");
+  strip.className = "recent-strip";
+  strip.setAttribute("aria-label", "Recently viewed");
+  strip.innerHTML = `
+    <span>Recent</span>
+    ${links.map((item) => `<a href="${item.href}">${item.label}</a>`).join("")}
+  `;
+  if (supportHost) {
+    supportHost.appendChild(strip);
+  } else {
+    document.querySelector(".breadcrumb-trail")?.insertAdjacentElement("afterend", strip);
+  }
+}
+
+function buildSyncStatusBadges() {
+  if (document.querySelector(".sync-status-badges")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const badges = document.createElement("div");
+  badges.className = "sync-status-badges";
+  badges.setAttribute("aria-label", "Save and backup status");
+  const render = (message = "Saved locally") => {
+    const githubReady = Boolean(localStorage.getItem("ridgeline-github-backup-endpoint"));
+    const supabaseOff = localStorage.getItem("ridgeline-remote-enabled") === "0";
+    badges.innerHTML = `
+      <span>Saved</span>
+      <span>${supabaseOff ? "Supabase off" : "Supabase ready"}</span>
+      <span>${githubReady ? "GitHub backup ready" : "GitHub backup not set"}</span>
+      <strong>${message}</strong>
+    `;
+  };
+  render();
+  window.addEventListener("ridgeline:storage-hydrated", () => render("Synced from remote"));
+  window.addEventListener("storage", () => render());
+  if (supportHost) {
+    supportHost.appendChild(badges);
+  } else {
+    document.querySelector(".recent-strip")?.insertAdjacentElement("afterend", badges);
+  }
+}
+
+function buildPageActionBar() {
+  if (document.querySelector(".page-action-bar")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const current = currentPageName();
+  const relatedHref =
+    current === "index.html"
+      ? "hood.html#fuses"
+      : current === "maintenance.html"
+        ? "garage.html"
+        : current === "garage.html"
+          ? "maintenance.html"
+          : "index.html#viewer";
+  const bar = document.createElement("nav");
+  bar.className = "page-action-bar";
+  bar.setAttribute("aria-label", "Page actions");
+  bar.innerHTML = `
+    <a href="garage.html#notes">Save Note</a>
+    <a href="photo-atlas.html">Add Photo</a>
+    <a href="maintenance.html">Mark Done</a>
+    <a href="${relatedHref}">Open Related</a>
+    <button type="button" data-page-action="quick-capture">Quick Add</button>
+    <button type="button" data-page-action="sync-settings">Sync</button>
+    <button type="button" data-page-action="copy-location">Copy Link</button>
+    <button type="button" data-page-action="last-task">Last Task</button>
+  `;
+  bar.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-page-action]");
+    if (!button) {
+      return;
+    }
+    performUiAction(button.dataset.pageAction);
+  });
+  if (supportHost) {
+    supportHost.appendChild(bar);
+  } else {
+    document.querySelector(".sync-status-badges")?.insertAdjacentElement("afterend", bar);
+  }
+}
+
+const quickCommands = [
+  { label: "Open Garage Notes", hint: "Save notes, records, and reminders", href: "garage.html#notes", icon: "garage" },
+  { label: "Open Truck Profile", hint: "VIN, fluids, tires, torque, and common part numbers", href: "garage.html#truck-profile", icon: "garage" },
+  { label: "Find Under-Hood Fuse Box A", hint: "Jump to the active 3D map hotspot", href: "index.html?system=fuse-engine-a#viewer", icon: "bolt" },
+  { label: "Show Jack Points", hint: "Open the truck map on roadside jack points", href: "index.html?system=jack-points#viewer", icon: "wrench" },
+  { label: "Run Diagnostics", hint: "Go to quick checks and troubleshooting", href: "diagnostics.html#quick-checks", icon: "diag" },
+  { label: "Open Tire Lab", hint: "Fitment, pressure, and wheel reference", href: "tires.html#wheel-model", icon: "wheel" },
+  { label: "Open Emergency Card", hint: "Fast roadside reference", href: "quick-sheet.html#emergency-card", icon: "flash" },
+  { label: "Write NFC Tag", hint: "Open the NFC tag console", href: "nfc.html#tag-writer", icon: "nfc" },
+  { label: "Back To Vehicle Map", hint: "Return to the 3D truck home screen", href: "index.html#viewer", icon: "map" }
+];
+
+const needLauncherActions = [
+  { label: "Find a fuse", href: "hood.html#fuses", icon: "bolt" },
+  { label: "Diagnose a problem", href: "diagnostics.html#quick-checks", icon: "diag" },
+  { label: "Log service", href: "maintenance.html", icon: "wrench" },
+  { label: "Jack the truck", href: "index.html?system=jack-points#viewer", icon: "wrench" },
+  { label: "Save a note", href: "garage.html#notes", icon: "garage" },
+  { label: "Use emergency card", href: "quick-sheet.html#emergency-card", icon: "flash" }
+];
+
+const visualSiteMapGroups = [
+  {
+    label: "Electrical",
+    links: [
+      { label: "Hood Fuses", href: "hood.html#fuses" },
+      { label: "Cabin Fuses", href: "cabin.html#fuses" },
+      { label: "Diagnostics", href: "diagnostics.html#quick-checks" }
+    ]
+  },
+  {
+    label: "Maintenance",
+    links: [
+      { label: "Service Log", href: "maintenance.html" },
+      { label: "Tire Lab", href: "tires.html#wheel-model" },
+      { label: "Quick Sheet", href: "quick-sheet.html#emergency-card" }
+    ]
+  },
+  {
+    label: "Garage",
+    links: [
+      { label: "Truck Profile", href: "garage.html#truck-profile" },
+      { label: "Notes", href: "garage.html#notes" },
+      { label: "Photo Atlas", href: "photo-atlas.html" },
+      { label: "NFC Tags", href: "nfc.html#tag-writer" }
+    ]
+  },
+  {
+    label: "Models",
+    links: [
+      { label: "Vehicle Map", href: "index.html#viewer" },
+      { label: "Engine", href: "engine.html#engine-model" },
+      { label: "AR Lab", href: "ar-lab.html" }
+    ]
+  }
+];
+
+function runCommand(command) {
+  saveLastTask({ href: command.href, label: command.label, kind: "command" });
+  showToast(`Opening ${command.label}`);
+  window.location.href = command.href;
+}
+
+function buildCommandPalette() {
+  const modal = document.createElement("div");
+  modal.className = "command-palette";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="command-backdrop" data-close-command></div>
+    <section class="command-panel" aria-modal="true" role="dialog" aria-labelledby="command-title">
+      <div class="command-head">
+        <div>
+          <p class="eyebrow">Command Palette</p>
+          <h2 id="command-title">Jump Straight To The Task</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-command aria-label="Close command palette">Close</button>
+      </div>
+      <input class="command-input" type="search" placeholder="Try fuse, jack, note, tire, emergency..." />
+      <div class="command-list"></div>
+      <div class="search-foot">
+        <span>Tip: press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd></span>
+      </div>
+    </section>
+  `;
+  document.body.appendChild(modal);
+
+  const input = modal.querySelector(".command-input");
+  const list = modal.querySelector(".command-list");
+  const render = () => {
+    const query = input.value.trim().toLowerCase();
+    const matches = quickCommands.filter((command) => {
+      const haystack = `${command.label} ${command.hint}`.toLowerCase();
+      return !query || haystack.includes(query);
+    });
+    list.innerHTML = matches
+      .map(
+        (command, index) => `
+          <button type="button" data-command-index="${quickCommands.indexOf(command)}" data-nav-icon="${command.icon}">
+            <strong>${command.label}</strong>
+            <span>${command.hint}</span>
+          </button>
+        `
+      )
+      .join("");
+    if (!matches.length) {
+      list.innerHTML = `<p class="search-empty">No command found. Try a simpler truck word.</p>`;
+    }
+  };
+
+  input.addEventListener("input", render);
+  modal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close-command]")) {
+      closeCommandPalette();
+      return;
+    }
+    const commandButton = event.target.closest("[data-command-index]");
+    if (!commandButton) {
+      return;
+    }
+    const command = quickCommands[Number(commandButton.dataset.commandIndex)];
+    if (command) {
+      closeCommandPalette();
+      runCommand(command);
+    }
+  });
+  render();
+  return { modal, input, render };
+}
+
+function openCommandPalette() {
+  commandPalette.modal.hidden = false;
+  document.body.classList.add("modal-open");
+  commandPalette.render();
+  commandPalette.input.focus();
+  commandPalette.input.select();
+}
+
+function closeCommandPalette() {
+  commandPalette.modal.hidden = true;
+  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function loadFavoritePins() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAVORITE_PINS_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFavoritePins(pins) {
+  localStorage.setItem(FAVORITE_PINS_STORAGE_KEY, JSON.stringify(pins.slice(0, 6)));
+}
+
+function buildNeedLauncher() {
+  if (document.querySelector(".need-launcher")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const launcher = document.createElement("section");
+  launcher.className = "need-launcher";
+  launcher.setAttribute("aria-label", "Task launcher");
+  launcher.innerHTML = `
+    <div class="compact-section-head">
+      <div>
+        <p class="eyebrow">I Need To</p>
+        <h2>Start From The Job</h2>
+      </div>
+      <button type="button" data-launch-command>Command Palette</button>
+    </div>
+    <div class="need-launcher-grid">
+      ${needLauncherActions
+        .map((action) => `<a href="${action.href}" data-nav-icon="${action.icon}">${action.label}</a>`)
+        .join("")}
+    </div>
+  `;
+  launcher.querySelector("[data-launch-command]")?.addEventListener("click", openCommandPalette);
+
+  if (supportHost) {
+    supportHost.appendChild(launcher);
+  } else {
+    document.querySelector(".page-action-bar")?.insertAdjacentElement("afterend", launcher);
+  }
+}
+
+function buildFavoritePins() {
+  if (document.querySelector(".favorite-pins")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const panel = document.createElement("section");
+  panel.className = "favorite-pins";
+  panel.setAttribute("aria-label", "Favorite pins");
+  panel.innerHTML = `
+    <div class="compact-section-head">
+      <div>
+        <p class="eyebrow">Pinned</p>
+        <h2>Favorite Stops</h2>
+      </div>
+      <button type="button" data-pin-current>Pin Current</button>
+    </div>
+    <div class="favorite-pin-list" data-favorite-pin-list></div>
+  `;
+
+  const list = panel.querySelector("[data-favorite-pin-list]");
+  const defaultPins = [
+    { label: "Vehicle Map", href: "index.html#viewer" },
+    { label: "Garage Notes", href: "garage.html#notes" },
+    { label: "Emergency Card", href: "quick-sheet.html#emergency-card" }
+  ];
+  const render = () => {
+    const pins = loadFavoritePins();
+    const visible = pins.length ? pins : defaultPins;
+    list.innerHTML = visible
+      .map(
+        (pin, index) => `
+          <span class="favorite-pin">
+            <a href="${pin.href}">${pin.label}</a>
+            ${pins.length ? `<button type="button" data-remove-pin="${index}" aria-label="Remove ${pin.label}">Remove</button>` : ""}
+          </span>
+        `
+      )
+      .join("");
+  };
+
+  panel.addEventListener("click", (event) => {
+    const pinButton = event.target.closest("[data-pin-current]");
+    if (pinButton) {
+      const current = { label: currentPageDisplayLabel(), href: currentLocationHref() };
+      const next = [current, ...loadFavoritePins().filter((pin) => pin.href !== current.href)].slice(0, 6);
+      saveFavoritePins(next);
+      render();
+      showToast(`Pinned ${current.label}`);
+      return;
+    }
+
+    const removeButton = event.target.closest("[data-remove-pin]");
+    if (removeButton) {
+      const pins = loadFavoritePins();
+      pins.splice(Number(removeButton.dataset.removePin), 1);
+      saveFavoritePins(pins);
+      render();
+      showToast("Pin removed");
+    }
+  });
+  render();
+
+  if (supportHost) {
+    supportHost.appendChild(panel);
+  } else {
+    document.querySelector(".need-launcher")?.insertAdjacentElement("afterend", panel);
+  }
+}
+
+function buildVisualSiteMap() {
+  if (document.querySelector(".visual-site-map")) {
+    return;
+  }
+
+  const supportHost = getNavigationSupportHost();
+  const map = document.createElement("section");
+  map.className = "visual-site-map";
+  map.setAttribute("aria-label", "Visual site map");
+  map.innerHTML = `
+    <div class="compact-section-head">
+      <div>
+        <p class="eyebrow">Site Map</p>
+        <h2>Find It By Area</h2>
+      </div>
+      <button type="button" data-page-action="last-task">Back To Last Task</button>
+    </div>
+    <div class="site-map-grid">
+      ${visualSiteMapGroups
+        .map(
+          (group) => `
+            <article class="site-map-group">
+              <h3>${group.label}</h3>
+              ${group.links.map((link) => `<a href="${link.href}">${link.label}</a>`).join("")}
+            </article>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+  map.querySelector("[data-page-action='last-task']")?.addEventListener("click", restoreLastTask);
+
+  if (supportHost) {
+    supportHost.appendChild(map);
+  } else {
+    document.querySelector(".favorite-pins")?.insertAdjacentElement("afterend", map);
+  }
+}
+
+function buildQuickCapture() {
+  if (document.querySelector(".quick-capture-modal")) {
+    return;
+  }
+
+  const fab = document.createElement("button");
+  fab.className = "quick-capture-fab";
+  fab.type = "button";
+  fab.setAttribute("aria-label", "Quick add");
+  fab.innerHTML = `<span>+</span>`;
+  fab.addEventListener("click", openQuickCapture);
+  document.body.appendChild(fab);
+
+  const modal = document.createElement("div");
+  modal.className = "quick-capture-modal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="quick-capture-backdrop" data-close-quick-capture></div>
+    <section class="quick-capture-panel" aria-modal="true" role="dialog" aria-labelledby="quick-capture-title">
+      <div class="command-head">
+        <div>
+          <p class="eyebrow">Quick Capture</p>
+          <h2 id="quick-capture-title">Save It Before You Forget</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-quick-capture>Close</button>
+      </div>
+      <form class="quick-capture-form" data-quick-capture-form>
+        <label>
+          <span>Save type</span>
+          <select name="kind" data-quick-capture-kind>
+            <option value="note">Garage note</option>
+            <option value="service">Service log</option>
+            <option value="photo">Reference photo</option>
+            <option value="nfc">NFC tag task</option>
+          </select>
+        </label>
+        <label><span>Title</span><input name="title" type="text" placeholder="Battery label, oil change, fuse cover..." /></label>
+        <label><span>Mileage</span><input name="mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="165980" /></label>
+        <label><span>Details</span><textarea name="details" rows="4" placeholder="Part numbers, symptoms, tools, reminders, or anything useful."></textarea></label>
+        <label data-quick-photo-field hidden><span>Photos</span><input name="photos" type="file" accept="image/*" multiple /></label>
+        <p class="quick-capture-status" data-quick-capture-status aria-live="polite"></p>
+        <div class="quick-capture-actions">
+          <button class="primary-button" type="submit">Save Capture</button>
+          <a class="secondary-button" href="garage.html#dashboard">Open Garage</a>
+        </div>
+      </form>
+    </section>
+  `;
+  document.body.appendChild(modal);
+
+  const form = modal.querySelector("[data-quick-capture-form]");
+  const kindSelect = modal.querySelector("[data-quick-capture-kind]");
+  const photoField = modal.querySelector("[data-quick-photo-field]");
+  const status = modal.querySelector("[data-quick-capture-status]");
+
+  const syncKindUi = () => {
+    photoField.hidden = kindSelect.value !== "photo";
+  };
+
+  kindSelect.addEventListener("change", syncKindUi);
+  modal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close-quick-capture]")) {
+      closeQuickCapture();
+    }
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    status.textContent = "Saving...";
+    const formData = new FormData(form);
+    const kind = formData.get("kind");
+    const title = `${formData.get("title") || ""}`.trim() || "Quick capture";
+    const mileage = `${formData.get("mileage") || ""}`.trim();
+    const details = `${formData.get("details") || ""}`.trim();
+    const capturedAt = new Date().toISOString();
+
+    try {
+      const garageData = await import("./garage-data.js");
+      if (kind === "photo") {
+        const files = [...(form.elements.photos?.files || [])];
+        if (!files.length) {
+          status.textContent = "Choose at least one photo first.";
+          return;
+        }
+        const photos = garageData.loadJson(garageData.STORAGE.photos, []);
+        const entries = await garageData.filesToPhotoEntries(files, { scope: "quick-capture" });
+        garageData.saveJson(garageData.STORAGE.photos, [
+          ...entries.map((entry) => ({ ...entry, label: title || entry.label, note: details, mileage, capturedAt })),
+          ...photos
+        ]);
+      } else if (kind === "service") {
+        const log = garageData.loadJson(garageData.STORAGE.maintenanceLog, []);
+        garageData.saveJson(garageData.STORAGE.maintenanceLog, [
+          { id: `service-${Date.now()}`, title, mileage, details, capturedAt },
+          ...log
+        ]);
+      } else if (kind === "nfc") {
+        const notes = garageData.loadJson(garageData.STORAGE.notes, {});
+        notes[`nfc_task_${Date.now()}`] = `${title}${mileage ? ` | ${mileage} mi` : ""}${details ? ` | ${details}` : ""}`;
+        garageData.saveJson(garageData.STORAGE.notes, notes);
+        window.location.href = "nfc.html#tag-writer";
+        return;
+      } else {
+        const notes = garageData.loadJson(garageData.STORAGE.notes, {});
+        notes[`quick_capture_${Date.now()}`] = `${title}${mileage ? ` | ${mileage} mi` : ""}${details ? ` | ${details}` : ""}`;
+        garageData.saveJson(garageData.STORAGE.notes, notes);
+      }
+
+      localStorage.setItem("ridgeline-last-capture", capturedAt);
+      window.dispatchEvent(new CustomEvent("ridgeline:quick-capture-saved"));
+      showToast("Quick capture saved");
+      status.textContent = "Saved to Garage data and queued for backup.";
+      form.reset();
+      syncKindUi();
+    } catch (error) {
+      console.warn("Quick capture failed.", error);
+      status.textContent = "Could not save this capture.";
+      showToast("Quick capture failed", "warning");
+    }
+  });
+
+  syncKindUi();
+}
+
+function openQuickCapture() {
+  document.querySelector(".quick-capture-modal")?.removeAttribute("hidden");
+  document.body.classList.add("modal-open");
+  document.querySelector(".quick-capture-modal input[name='title']")?.focus();
+}
+
+function closeQuickCapture() {
+  const modal = document.querySelector(".quick-capture-modal");
+  if (!modal) {
+    return;
+  }
+  modal.hidden = true;
+  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden && document.querySelector(".sync-settings-modal")?.hidden !== false) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function buildSyncSettingsPanel() {
+  if (document.querySelector(".sync-settings-modal")) {
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.className = "sync-settings-modal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="quick-capture-backdrop" data-close-sync-settings></div>
+    <section class="sync-settings-panel" aria-modal="true" role="dialog" aria-labelledby="sync-settings-title">
+      <div class="command-head">
+        <div>
+          <p class="eyebrow">Backup Health</p>
+          <h2 id="sync-settings-title">Supabase And GitHub Sync</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-sync-settings>Close</button>
+      </div>
+      <div class="sync-health-grid" data-sync-health-grid></div>
+      <label class="sync-toggle-row">
+        <input type="checkbox" data-sync-enabled />
+        <span>Use Supabase remote refresh and saves</span>
+      </label>
+      <label>
+        <span>GitHub backup endpoint</span>
+        <input data-github-backup-endpoint type="url" placeholder="https://..." />
+      </label>
+      <p class="small-note" data-sync-settings-status aria-live="polite"></p>
+      <div class="quick-capture-actions">
+        <button class="primary-button" type="button" data-force-sync-refresh>Force Remote Refresh</button>
+        <button class="secondary-button" type="button" data-save-sync-settings>Save Settings</button>
+      </div>
+    </section>
+  `;
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", async (event) => {
+    if (event.target.closest("[data-close-sync-settings]")) {
+      closeSyncSettings();
+      return;
+    }
+
+    if (event.target.closest("[data-save-sync-settings]")) {
+      await saveSyncSettings();
+      return;
+    }
+
+    if (event.target.closest("[data-force-sync-refresh]")) {
+      await forceSyncRefresh();
+    }
+  });
+}
+
+async function renderSyncSettings() {
+  const modal = document.querySelector(".sync-settings-modal");
+  if (!modal) {
+    return;
+  }
+
+  const grid = modal.querySelector("[data-sync-health-grid]");
+  const status = modal.querySelector("[data-sync-settings-status]");
+  const endpoint = modal.querySelector("[data-github-backup-endpoint]");
+  const enabled = modal.querySelector("[data-sync-enabled]");
+  const lastRefresh = localStorage.getItem("ridgeline-last-remote-refresh");
+  const lastCapture = localStorage.getItem("ridgeline-last-capture");
+
+  try {
+    const garageData = await import("./garage-data.js");
+    const state = garageData.getGarageCloudState();
+    endpoint.value = localStorage.getItem("ridgeline-github-backup-endpoint") || "";
+    enabled.checked = state.enabled;
+    grid.innerHTML = `
+      <article><span>Supabase</span><strong>${state.configured && state.enabled ? "Ready" : "Off"}</strong><p>${state.temporarilyDisabled ? "Temporarily paused after a failed request." : "Loads with no-store refresh requests."}</p></article>
+      <article><span>GitHub Backup</span><strong>${state.githubBackupConfigured ? "Configured" : "Not Set"}</strong><p>${state.githubBackupConfigured ? "Queued after Garage data saves." : "Add an endpoint to enable backup posts."}</p></article>
+      <article><span>Last Refresh</span><strong>${lastRefresh ? new Date(lastRefresh).toLocaleString() : "Not yet"}</strong><p>Refresh pulls from GitHub and Supabase, not cached page data.</p></article>
+      <article><span>Last Capture</span><strong>${lastCapture ? new Date(lastCapture).toLocaleString() : "None"}</strong><p>Quick captures save through Garage data.</p></article>
+    `;
+    status.textContent = "Sync state loaded.";
+  } catch {
+    grid.innerHTML = `<article><span>Sync</span><strong>Unavailable</strong><p>Could not load the Garage data module.</p></article>`;
+    status.textContent = "Sync settings could not load.";
+  }
+}
+
+async function saveSyncSettings() {
+  const modal = document.querySelector(".sync-settings-modal");
+  const status = modal?.querySelector("[data-sync-settings-status]");
+  try {
+    const garageData = await import("./garage-data.js");
+    garageData.setGarageCloudEnabled(Boolean(modal.querySelector("[data-sync-enabled]")?.checked));
+    garageData.setGitHubBackupEndpoint(modal.querySelector("[data-github-backup-endpoint]")?.value || "");
+    status.textContent = "Settings saved.";
+    showToast("Sync settings saved");
+    await renderSyncSettings();
+  } catch {
+    status.textContent = "Could not save sync settings.";
+  }
+}
+
+async function forceSyncRefresh() {
+  const modal = document.querySelector(".sync-settings-modal");
+  const status = modal?.querySelector("[data-sync-settings-status]");
+  status.textContent = "Refreshing from remote...";
+  try {
+    const garageData = await import("./garage-data.js");
+    const ok = await garageData.refreshGarageBackups({ enableRemote: true });
+    localStorage.setItem("ridgeline-last-remote-refresh", new Date().toISOString());
+    window.dispatchEvent(new CustomEvent("ridgeline:storage-hydrated"));
+    status.textContent = ok ? "Remote refresh complete." : "Refresh ran, but no remote backup responded.";
+    showToast(status.textContent);
+    await renderSyncSettings();
+  } catch {
+    status.textContent = "Could not refresh remote backups.";
+    showToast("Remote refresh failed", "warning");
+  }
+}
+
+function openSyncSettings() {
+  const modal = document.querySelector(".sync-settings-modal");
+  modal?.removeAttribute("hidden");
+  document.body.classList.add("modal-open");
+  renderSyncSettings();
+}
+
+function closeSyncSettings() {
+  const modal = document.querySelector(".sync-settings-modal");
+  if (!modal) {
+    return;
+  }
+  modal.hidden = true;
+  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden && document.querySelector(".quick-capture-modal")?.hidden !== false) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function buildEmptyStates() {
+  const configs = [
+    { selector: "[data-favorites-list]", title: "No fuse favorites saved yet.", copy: "Save repeat fuse checks so they show up here.", href: "hood.html#fuses", action: "Open Fuses" },
+    { selector: "[data-photo-grid]", title: "No reference photos yet.", copy: "Add real truck photos for fuse covers, labels, hitch wiring, and service areas.", action: "Quick Add Photo", quickKind: "photo" },
+    { selector: "[data-atlas-grid]", title: "No photos in this atlas yet.", copy: "Photos added in Garage appear here by truck area.", href: "garage.html#photos", action: "Open Photos" },
+    { selector: "[data-area-summary]", title: "No area journals yet.", copy: "Use area pages or quick capture to start building truck-specific notes.", action: "Quick Add Note", quickKind: "note" },
+    { selector: "#nfc-target-grid", title: "No NFC targets rendered yet.", copy: "Open the writer to choose a truck location and prepare a tag.", href: "nfc.html#tag-writer", action: "Open Writer" }
+  ];
+
+  const render = () => {
+    configs.forEach((config) => {
+      document.querySelectorAll(config.selector).forEach((container) => {
+        const hasRealContent = [...container.children].some((child) => !child.classList.contains("empty-state-card"));
+        container.querySelector(".empty-state-card")?.remove();
+        if (hasRealContent || (container.textContent || "").trim()) {
+          return;
+        }
+        const empty = document.createElement(config.href ? "a" : "button");
+        empty.className = "empty-state-card";
+        if (config.href) {
+          empty.href = config.href;
+        } else {
+          empty.type = "button";
+          empty.addEventListener("click", () => openQuickCaptureWithKind(config.quickKind || "note"));
+        }
+        empty.innerHTML = `
+          <span>${config.title}</span>
+          <p>${config.copy}</p>
+          <strong>${config.action}</strong>
+        `;
+        container.appendChild(empty);
+      });
+    });
+  };
+
+  window.setTimeout(render, 900);
+  window.addEventListener("ridgeline:storage-hydrated", () => window.setTimeout(render, 250));
+  window.addEventListener("ridgeline:quick-capture-saved", () => window.setTimeout(render, 250));
+}
+
+function openQuickCaptureWithKind(kind) {
+  openQuickCapture();
+  const select = document.querySelector("[data-quick-capture-kind]");
+  if (select) {
+    select.value = kind;
+    select.dispatchEvent(new Event("change"));
+  }
+}
+
+function getNavigationSupportHost() {
+  if (currentPageName() !== "index.html") {
+    return null;
+  }
+
+  let host = document.querySelector(".home-support-panel");
+  if (host) {
+    return host;
+  }
+
+  const viewer = document.querySelector("#viewer");
+  if (!viewer) {
+    return null;
+  }
+
+  host = document.createElement("section");
+  host.className = "home-support-panel";
+  host.setAttribute("aria-label", "Home navigation support");
+  viewer.insertAdjacentElement("afterend", host);
+  return host;
+}
+
 function recordCurrentPageVisit() {
   const hash = location.hash && location.hash !== "#top" ? location.hash : "";
   recordRecentNavEntry({
@@ -2294,6 +3187,14 @@ function buildSearchModal() {
         <button class="modal-close" type="button" data-close-search aria-label="Close search">Close</button>
       </div>
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
+      <div class="search-suggestions" aria-label="Suggested searches">
+        <button type="button" data-search-suggestion="Fuses">Fuses</button>
+        <button type="button" data-search-suggestion="Oil">Oil</button>
+        <button type="button" data-search-suggestion="Jack Points">Jack Points</button>
+        <button type="button" data-search-suggestion="Tire Pressure">Tire Pressure</button>
+        <button type="button" data-search-suggestion="NFC">NFC</button>
+        <button type="button" data-search-suggestion="Battery">Battery</button>
+      </div>
       <div class="search-results" id="site-search-results"></div>
       <div class="search-foot">
         <span>Tip: press <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd></span>
@@ -2655,6 +3556,9 @@ function searchEntries(entries, query = "") {
 const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
+const commandPalette = buildCommandPalette();
+document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
+document.body.classList.add(`page-${currentPageName().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "index"}`);
 setWorkArea(getSavedWorkArea());
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
@@ -2670,6 +3574,16 @@ buildViewModeRail();
 setContentMode(getSavedContentMode(), false);
 buildMobileNavAccordion(pageSections);
 simplifyNavigationLayout();
+buildBreadcrumbTrail(pageSections);
+buildRecentStrip();
+buildSyncStatusBadges();
+buildPageActionBar();
+buildNeedLauncher();
+buildFavoritePins();
+buildVisualSiteMap();
+buildQuickCapture();
+buildSyncSettingsPanel();
+buildEmptyStates();
 buildCurrentPageChip(pageSections);
 buildContextualBottomBar();
 buildMiniToolsDrawer();
@@ -2691,6 +3605,8 @@ if (location.hash || new URLSearchParams(location.search).has("nfc")) {
     requestAnimationFrame(scrollToHashTarget);
     setTimeout(scrollToHashTarget, 160);
     setTimeout(scrollToHashTarget, 520);
+    setTimeout(scrollToHashTarget, 1200);
+    setTimeout(scrollToHashTarget, 1800);
   });
 }
 
@@ -2816,13 +3732,20 @@ function openSearch() {
 
 function closeSearch() {
   searchModal.hidden = true;
-  if (!siteMenu || siteMenu.menu.hidden) {
+  if ((!siteMenu || siteMenu.menu.hidden) && commandPalette.modal.hidden) {
     document.body.classList.remove("modal-open");
   }
 }
 
 document.querySelectorAll("[data-open-search]").forEach((button) => {
   button.addEventListener("click", openSearch);
+});
+searchModal.querySelectorAll("[data-search-suggestion]").forEach((button) => {
+  button.addEventListener("click", () => {
+    searchInput.value = button.dataset.searchSuggestion || "";
+    renderResults(searchInput.value);
+    searchInput.focus();
+  });
 });
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {
   el.addEventListener("click", closeSearch);
@@ -2837,17 +3760,28 @@ document.addEventListener("keydown", (event) => {
 
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
     event.preventDefault();
-    openSearch();
+    if (event.shiftKey) {
+      openCommandPalette();
+    } else {
+      openSearch();
+    }
   }
 
   if (event.key === "Escape" && !searchModal.hidden) {
     closeSearch();
   }
 
+  if (event.key === "Escape" && !commandPalette.modal.hidden) {
+    closeCommandPalette();
+  }
+
   if (event.key === "Escape" && siteMenu && !siteMenu.menu.hidden) {
     siteMenu.closeMenu();
   }
 });
+
+window.ridgelineShowToast = showToast;
+window.ridgelineSaveLastTask = saveLastTask;
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

@@ -503,6 +503,7 @@ const startupBarFill = document.getElementById("startup-bar-fill");
 const startupCopy = document.getElementById("startup-copy");
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
 const requestedSystemId = new URLSearchParams(window.location.search).get("system");
+let mapLabelMode = localStorage.getItem("ridgeline-map-label-mode") || "labels";
 
 function setVehicleMapContextLabel(labels) {
   const target = document.querySelector("[data-current-section-label]");
@@ -1778,6 +1779,62 @@ if (!renderer) {
   orientationCallout.appendChild(orientationPill);
   hotspotLayer.appendChild(orientationCallout);
 
+  const hotspotTray = document.createElement("aside");
+  hotspotTray.className = "hotspot-tray";
+  hotspotTray.setAttribute("aria-live", "polite");
+  hotspotTray.innerHTML = `
+    <div>
+      <span class="hotspot-tray-kicker">Selected Area</span>
+      <strong data-hotspot-tray-title>Fuse Box A</strong>
+      <p data-hotspot-tray-copy>Tap a truck hotspot to see area details and shortcuts.</p>
+    </div>
+    <div class="hotspot-tray-actions" data-hotspot-tray-actions></div>
+  `;
+  viewerStage?.appendChild(hotspotTray);
+  const hotspotTrayTitle = hotspotTray.querySelector("[data-hotspot-tray-title]");
+  const hotspotTrayCopy = hotspotTray.querySelector("[data-hotspot-tray-copy]");
+  const hotspotTrayActions = hotspotTray.querySelector("[data-hotspot-tray-actions]");
+
+  const mapModeBar = document.createElement("div");
+  mapModeBar.className = "map-mode-switch";
+  mapModeBar.setAttribute("aria-label", "Map label mode");
+  mapModeBar.innerHTML = `
+    <button type="button" data-map-label-mode="labels">Labels</button>
+    <button type="button" data-map-label-mode="focus">Focus</button>
+    <button type="button" data-map-label-mode="clean">Clean</button>
+  `;
+  viewerStage?.appendChild(mapModeBar);
+
+  const mapMiniLegend = document.createElement("div");
+  mapMiniLegend.className = "map-mini-legend";
+  mapMiniLegend.setAttribute("aria-label", "Vehicle map legend");
+  mapMiniLegend.innerHTML = `
+    <span><i class="legend-dot legend-dot-live"></i>Tap targets</span>
+    <span><i class="legend-dot legend-dot-selected"></i>Selected</span>
+    <span><i class="legend-line"></i>Related labels</span>
+  `;
+  viewerStage?.appendChild(mapMiniLegend);
+
+  function applyMapLabelMode(mode = "labels") {
+    mapLabelMode = ["labels", "focus", "clean"].includes(mode) ? mode : "labels";
+    localStorage.setItem("ridgeline-map-label-mode", mapLabelMode);
+    viewerStage?.setAttribute("data-map-label-mode", mapLabelMode);
+    mapModeBar.querySelectorAll("[data-map-label-mode]").forEach((button) => {
+      const isActive = button.dataset.mapLabelMode === mapLabelMode;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+  }
+
+  mapModeBar.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-map-label-mode]");
+    if (!button) {
+      return;
+    }
+    applyMapLabelMode(button.dataset.mapLabelMode);
+  });
+  applyMapLabelMode(mapLabelMode);
+
   const jackPointLayer = document.createElement("div");
   jackPointLayer.className = "jack-point-label-layer";
   jackPointLayer.hidden = true;
@@ -1920,6 +1977,31 @@ if (!renderer) {
     visibilityDirty = false;
   }
 
+  function relatedActionsForSystem(system) {
+    const rawActions = [
+      ...(system.actions || []),
+      {
+        label: "Garage Note",
+        href: `garage.html#notes`,
+        description: `Save a note about ${system.label}.`
+      },
+      {
+        label: "Photo Atlas",
+        href: "photo-atlas.html",
+        description: "Compare this map area with real truck photos."
+      }
+    ];
+    const seen = new Set();
+    return rawActions.filter((action) => {
+      const key = `${action.label}|${action.href}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+
   function setInspector(system) {
     titleEl.textContent = system.label;
     descriptionEl.textContent = system.description;
@@ -1975,6 +2057,16 @@ if (!renderer) {
       anchor.textContent = link.label;
       linksEl.appendChild(anchor);
     });
+
+    hotspotTrayTitle.textContent = system.label;
+    hotspotTrayCopy.textContent = `${system.area} - ${system.use}`;
+    const primaryActions = relatedActionsForSystem(system).slice(0, 4);
+    hotspotTrayActions.innerHTML = primaryActions
+      .map((action) => `<a href="${action.href}">${action.label}</a>`)
+      .join("");
+    if (!hotspotTrayActions.children.length) {
+      hotspotTrayActions.innerHTML = `<a href="garage.html#notes">Open Notes</a>`;
+    }
   }
 
   function openAreaModal(system) {
@@ -1990,7 +2082,7 @@ if (!renderer) {
     });
 
     areaModalActions.innerHTML = "";
-    system.actions.forEach((action) => {
+    relatedActionsForSystem(system).forEach((action) => {
       const anchor = document.createElement("a");
       anchor.className = "action-card";
       anchor.href = action.href;
@@ -2092,6 +2184,20 @@ if (!renderer) {
     jackPointMarkerGroup.visible = id === "jack-points";
     setInspector(system);
     setVehicleMapContextLabel(contextLabels || system.contextLabels || system.label);
+    window.ridgelineSaveLastTask?.({
+      href: `index.html?system=${encodeURIComponent(system.id)}#viewer`,
+      label: system.label,
+      kind: "hotspot"
+    });
+    window.dispatchEvent(
+      new CustomEvent("ridgeline:hotspot-selected", {
+        detail: {
+          id: system.id,
+          label: system.label,
+          href: `index.html?system=${encodeURIComponent(system.id)}#viewer`
+        }
+      })
+    );
 
     systems.forEach((entry, index) => {
       const isActive = entry.id === id;
