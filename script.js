@@ -254,9 +254,9 @@ const systems = [
       "jackPointFrontRightZone",
       "jackPointRearRightZone"
     ],
-    point: new THREE.Vector3(1.28, 0.58, 1.08),
-    camera: new THREE.Vector3(2.05, 1.68, 5.9),
-    target: new THREE.Vector3(0.36, 0.62, 1.0)
+    point: new THREE.Vector3(-1.3, 0.58, 1.08),
+    camera: new THREE.Vector3(-2.05, 1.68, 5.9),
+    target: new THREE.Vector3(-0.36, 0.62, 1.0)
   },
   {
     id: "fuse-cabin",
@@ -480,6 +480,7 @@ const areaModalMeta = document.getElementById("area-modal-meta");
 const areaModalActions = document.getElementById("area-modal-actions");
 const viewerToolsToggle = document.getElementById("viewer-tools-toggle");
 const viewerToolsMenu = document.getElementById("viewer-tools-menu");
+const viewerQuickMenuButtons = [...document.querySelectorAll(".viewer-quick-menu-button")];
 const explodedToggle = document.getElementById("exploded-toggle");
 const cinematicToggle = document.getElementById("cinematic-toggle");
 const viewerStage = document.querySelector(".viewer-stage");
@@ -1250,7 +1251,7 @@ if (!renderer) {
     0.22,
     0.08,
     0.12,
-    new THREE.Vector3(1.28, 0.54, 1.1),
+    new THREE.Vector3(-1.3, 0.54, 1.1),
     { y: 0.06 }
   );
   createServiceZone(
@@ -1258,7 +1259,7 @@ if (!renderer) {
     0.22,
     0.08,
     0.12,
-    new THREE.Vector3(-1.3, 0.54, 1.1),
+    new THREE.Vector3(1.28, 0.54, 1.1),
     { y: 0.06 }
   );
   createServiceZone(
@@ -1266,7 +1267,7 @@ if (!renderer) {
     0.22,
     0.08,
     0.12,
-    new THREE.Vector3(1.28, 0.54, -1.1),
+    new THREE.Vector3(-1.3, 0.54, -1.1),
     { y: -0.06 }
   );
   createServiceZone(
@@ -1274,7 +1275,7 @@ if (!renderer) {
     0.22,
     0.08,
     0.12,
-    new THREE.Vector3(-1.3, 0.54, -1.1),
+    new THREE.Vector3(1.28, 0.54, -1.1),
     { y: -0.06 }
   );
 
@@ -1314,6 +1315,15 @@ if (!renderer) {
     child.userData.isFallbackVisual = !isServiceZone && !isServiceOutline;
   });
 
+  function setFallbackVisualsVisible(visible) {
+    truck.children.forEach((child) => {
+      if (child.userData.isFallbackVisual) {
+        child.visible = visible;
+      }
+    });
+  }
+
+  setFallbackVisualsVisible(false);
   refreshExplodableNodes();
   applyExplodedState(false);
 
@@ -1556,11 +1566,7 @@ if (!renderer) {
       rebuildOcclusionMeshes();
       visibilityDirty = true;
 
-      truck.children.forEach((child) => {
-        if (child !== modelRoot && child.userData.isFallbackVisual) {
-          child.visible = false;
-        }
-      });
+      setFallbackVisualsVisible(false);
 
       viewerStatus.hidden = true;
   }
@@ -1585,6 +1591,8 @@ if (!renderer) {
         },
         undefined,
         () => {
+          setFallbackVisualsVisible(true);
+          refreshExplodableNodes(truck);
           viewerStatus.hidden = false;
           viewerStatus.textContent =
             "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
@@ -1649,28 +1657,28 @@ if (!renderer) {
       label: "Front Left",
       shortLabel: "FL",
       note: "Behind front wheel",
-      point: new THREE.Vector3(1.28, 0.56, 1.18)
+      point: new THREE.Vector3(-1.3, 0.56, 1.18)
     },
     {
       key: "rear-left",
       label: "Rear Left",
       shortLabel: "RL",
       note: "Ahead of rear wheel",
-      point: new THREE.Vector3(-1.3, 0.56, 1.18)
+      point: new THREE.Vector3(1.28, 0.56, 1.18)
     },
     {
       key: "front-right",
       label: "Front Right",
       shortLabel: "FR",
       note: "Behind front wheel",
-      point: new THREE.Vector3(1.28, 0.56, -1.18)
+      point: new THREE.Vector3(-1.3, 0.56, -1.18)
     },
     {
       key: "rear-right",
       label: "Rear Right",
       shortLabel: "RR",
       note: "Ahead of rear wheel",
-      point: new THREE.Vector3(-1.3, 0.56, -1.18)
+      point: new THREE.Vector3(1.28, 0.56, -1.18)
     }
   ];
   const jackPointMarkerGroup = new THREE.Group();
@@ -2413,6 +2421,54 @@ if (!renderer) {
     viewerToolsToggle.setAttribute("aria-expanded", isOpen ? "false" : "true");
     if (viewerToolsMenu) {
       viewerToolsMenu.hidden = isOpen;
+    }
+    closeViewerQuickMenus();
+  });
+
+  function closeViewerQuickMenus(exceptButton = null) {
+    viewerQuickMenuButtons.forEach((button) => {
+      if (button === exceptButton) {
+        return;
+      }
+
+      button.setAttribute("aria-expanded", "false");
+      const panel = document.getElementById(button.getAttribute("aria-controls"));
+      if (panel) {
+        panel.hidden = true;
+      }
+    });
+  }
+
+  viewerQuickMenuButtons.forEach((button) => {
+    const panel = document.getElementById(button.getAttribute("aria-controls"));
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = button.getAttribute("aria-expanded") === "true";
+      closeViewerQuickMenus(button);
+      button.setAttribute("aria-expanded", isOpen ? "false" : "true");
+      if (panel) {
+        panel.hidden = isOpen;
+      }
+      viewerToolsToggle?.setAttribute("aria-expanded", "false");
+      if (viewerToolsMenu) {
+        viewerToolsMenu.hidden = true;
+      }
+    });
+
+    panel?.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => closeViewerQuickMenus());
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".viewer-console")) {
+      closeViewerQuickMenus();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeViewerQuickMenus();
     }
   });
 

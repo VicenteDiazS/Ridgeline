@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <title>Ridgeline NFC Landing</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-no-hero-actions data-no-section-rail>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="nfc.html">NFC Console</a>
+          <a href="maintenance.html">Maintenance</a>
+          <a href="diagnostics.html">Diagnostics</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+
+      <main id="top" class="section-page-main nfc-landing-main">
+        <section class="nfc-landing-hero" id="nfc-landing-hero">
+          <div class="nfc-landing-status">
+            <span id="nfc-landing-badge">NFC</span>
+            <strong id="nfc-landing-category">Truck Tag</strong>
+          </div>
+          <h1 id="nfc-landing-title">Loading NFC Target</h1>
+          <p class="section-copy" id="nfc-landing-description">
+            Loading the matching Ridgeline section for this tag.
+          </p>
+          <div class="nfc-landing-actions">
+            <a class="primary-button" id="nfc-landing-primary" href="nfc.html">Open NFC Console</a>
+            <button class="secondary-button" id="nfc-landing-copy" type="button">Copy This Tag URL</button>
+            <a class="secondary-button" href="nfc.html">Manage Tags</a>
+          </div>
+        </section>
+
+        <section class="nfc-landing-grid" aria-label="NFC target details">
+          <article class="nfc-landing-card">
+            <span>Place Tag Here</span>
+            <strong id="nfc-landing-placement">Checking target...</strong>
+            <p id="nfc-landing-placement-note">The page will show the recommended physical tag location.</p>
+          </article>
+          <article class="nfc-landing-card">
+            <span>Use This For</span>
+            <strong>Fast Truck Reference</strong>
+            <p id="nfc-landing-use">The page will show the best use case for this tag.</p>
+          </article>
+          <article class="nfc-landing-card">
+            <span>Tag Payload</span>
+            <strong>Landing Page URL</strong>
+            <p id="nfc-landing-url">This is the URL stored on the NFC tag.</p>
+          </article>
+        </section>
+
+        <section class="nfc-landing-notes">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Tag Notes</p>
+              <h2>What This Tag Opens</h2>
+            </div>
+          </div>
+          <div class="nfc-landing-note-list" id="nfc-landing-notes"></div>
+        </section>
+
+        <section class="nfc-landing-related">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Related</p>
+              <h2>Useful Nearby Pages</h2>
+            </div>
+          </div>
+          <div class="nfc-landing-related-grid" id="nfc-landing-related"></div>
+        </section>
+      </main>
+
+      <nav class="section-dock" aria-label="Quick return">
+        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="nfc.html">NFC Console</a>
+        <a href="quick-sheet.html#emergency-card">Emergency Card</a>
+        <a href="#top">Top</a>
+      </nav>
+    </div>
+
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="nfc-landing.js"></script>
+  </body>
+</html>

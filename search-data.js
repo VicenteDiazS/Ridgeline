@@ -18,6 +18,23 @@ export const searchIndex = [
     keywords: ["engine", "transmission", "suspension", "brakes", "wheels", "tire size"]
   },
   {
+    title: "Drain Plug Washers And Bolts",
+    url: "maintenance.html#drain-hardware",
+    category: "Maintenance",
+    keywords: [
+      "crush washer",
+      "drain plug",
+      "oil drain bolt",
+      "oil washer",
+      "transmission washer",
+      "94109-14000",
+      "90009-r70-a00",
+      "90471-px4-000",
+      "90471-rgr-000",
+      "94109-20000"
+    ]
+  },
+  {
     title: "AR Lab",
     url: "ar-lab.html",
     category: "Tools",
@@ -73,20 +90,26 @@ export const searchIndex = [
     keywords: ["nfc", "tag", "tags", "write", "read", "iphone", "url", "fuse box tag", "truck tags"]
   },
   {
+    title: "NFC Landing Pages",
+    url: "nfc-landing.html?target=vehicle-map",
+    category: "Tools",
+    keywords: ["nfc landing", "tag landing", "scan tag", "truck tag", "open section", "iphone nfc"]
+  },
+  {
     title: "Under-Hood Fuse Box A NFC Target",
-    url: "hood.html#hood-fuse-box-a",
+    url: "nfc-landing.html?target=hood-fuse-box-a",
     category: "Electrical",
     keywords: ["nfc", "tag", "fuse box a", "under hood", "passenger side", "diagram"]
   },
   {
     title: "Under-Hood Fuse Box B NFC Target",
-    url: "hood.html#hood-fuse-box-b",
+    url: "nfc-landing.html?target=hood-fuse-box-b",
     category: "Electrical",
     keywords: ["nfc", "tag", "fuse box b", "under hood", "brake fluid side", "diagram"]
   },
   {
     title: "Cabin Fuse Box NFC Target",
-    url: "cabin.html#cabin-fuse-box-a",
+    url: "nfc-landing.html?target=cabin-fuse-box-a",
     category: "Electrical",
     keywords: ["nfc", "tag", "cabin fuse", "driver left", "under dash", "diagram"]
   },

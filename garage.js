@@ -240,6 +240,7 @@ function renderDashboard() {
 
   const notes = loadJson(STORAGE.notes, {});
   const tracker = loadJson(STORAGE.tracker, {});
+  const maintenanceLog = loadJson(STORAGE.maintenanceLog, []);
   const favorites = loadJson(STORAGE.favorites, []);
   const photos = loadJson(STORAGE.photos, []);
   const areas = ["hood", "cabin", "cargo", "rear-hitch"].map((key) => loadAreaJournal(key));
@@ -255,6 +256,7 @@ function renderDashboard() {
     ["Truck Profile", "VIN 5FPYK2F64KB002267", "2019 Ridgeline / 2WD / 3.5L V6"],
     ["Saved Notes", `${noteFields} fields`, "Installed parts and general truck memory"],
     ["Service Tracker", `${trackerFields} entries`, "Mileage and last-service checkpoints"],
+    ["Quick Updates", `${maintenanceLog.length} entries`, "Fast maintenance notes saved from the Maintenance page"],
     ["Fuse Saves", `${favorites.length} favorites`, "Frequently checked circuits saved locally"],
     ["Photo Atlas", `${photos.length + areaPhotos} photos`, "Garage and area-reference images"],
     ["Area Journals", `${areaNotes} notes`, "Hood, cabin, cargo, and hitch journals"]

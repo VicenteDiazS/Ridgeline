@@ -202,7 +202,8 @@ function renderTargetCards() {
           </dl>
           <div class="nfc-card-actions">
             <button type="button" data-nfc-select="${target.id}">Select</button>
-            <a href="${target.url}">Open</a>
+            <a href="${target.url}">Open Landing</a>
+            <a href="${target.sectionUrl}">Open Section</a>
           </div>
         </article>
       `

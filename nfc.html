@@ -14,7 +14,7 @@
   <body data-no-hero-actions data-no-section-rail>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
           <a href="index.html#viewer">Vehicle Map</a>
           <a href="hood.html#fuses">Fuses</a>
@@ -31,14 +31,14 @@
           <p class="eyebrow">Truck Tags</p>
           <h1>NFC Tag Console</h1>
           <p class="section-copy">
-            Program tags around the Ridgeline so a phone tap opens the exact fuse diagram, service record,
-            engine view, or truck section inside this site.
+            Program tags around the Ridgeline so a phone tap opens a focused landing page for the exact
+            fuse diagram, service record, engine view, or truck section inside this site.
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#tag-writer">Write A Tag</a>
             <a class="utility-link" href="#tag-map">Tag Map</a>
             <a class="utility-link" href="#iphone-nfc-workflow">iPhone Setup</a>
-            <a class="utility-link" href="hood.html#hood-fuse-box-a">Fuse Box A</a>
+            <a class="utility-link" href="nfc-landing.html?target=hood-fuse-box-a">Sample Landing</a>
           </div>
         </section>
 
@@ -46,7 +46,7 @@
           <article class="nfc-readiness-card">
             <span>iPhone target format</span>
             <strong>URL / URI record</strong>
-            <p>Use the generated page URL as the NFC payload so Safari opens the exact section.</p>
+            <p>Use the generated landing-page URL as the NFC payload so Safari opens the correct truck area.</p>
           </article>
           <article class="nfc-readiness-card">
             <span>Browser NFC access</span>
@@ -75,7 +75,7 @@
             <article>
               <span>1</span>
               <strong>Select the truck location</strong>
-              <p>Pick the fuse box, engine view, service record, or section that the tag should open.</p>
+              <p>Pick the fuse box, engine view, service record, or truck area that the tag should open.</p>
             </article>
             <article>
               <span>2</span>

@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v165";
+const CACHE_NAME = "ridgeline-console-v179";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -13,6 +13,7 @@ const CORE_ASSETS = [
   "./engine.html",
   "./tires.html",
   "./nfc.html",
+  "./nfc-landing.html",
   "./ar-lab.html",
   "./photo-atlas.html",
   "./quick-sheet.html",
@@ -22,6 +23,7 @@ const CORE_ASSETS = [
   "./engine-part-data.js",
   "./wheel-viewer.js",
   "./nfc.js",
+  "./nfc-landing.js",
   "./nfc-data.js",
   "./fuse-interactive.js",
   "./ar-viewer.js",
@@ -32,6 +34,7 @@ const CORE_ASSETS = [
   "./search-data.js",
   "./garage.js",
   "./garage-data.js",
+  "./maintenance.js",
   "./section-tools.js",
   "./manifest.json",
   "./favicon.svg",
@@ -133,6 +136,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (shouldRuntimeCache(event.request)) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() => caches.match(event.request, { ignoreSearch: true }))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request, { ignoreSearch: true }).then((cached) => {
       if (cached) {
@@ -140,10 +156,6 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fetch(event.request).then((response) => {
-        if (response.ok && shouldRuntimeCache(event.request)) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
         return response;
       });
     })

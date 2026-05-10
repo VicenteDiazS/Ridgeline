@@ -1,4 +1,5 @@
 import { searchIndex } from "./search-data.js";
+import { nfcTargets } from "./nfc-data.js";
 
 const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
@@ -9,6 +10,7 @@ const hasDeepTargetOnLoad = Boolean(location.hash) || Boolean(nfcTargetId);
 const CONTENT_MODE_STORAGE_KEY = "ridgeline-content-mode";
 const RECENT_NAV_STORAGE_KEY = "ridgeline-recent-nav";
 const LAST_SECTION_STORAGE_PREFIX = "ridgeline-last-section:";
+const WORK_AREA_STORAGE_KEY = "ridgeline-work-area";
 const prefersCompactDefault =
   window.matchMedia("(max-width: 900px)").matches || window.matchMedia("(pointer: coarse)").matches;
 const isMobileNavMode = prefersCompactDefault;
@@ -18,6 +20,71 @@ let optionalSections = [];
 let navOnlySections = [];
 let viewModeButtons = [];
 let navActionButtons = [];
+let fullSearchIndexPromise = null;
+let fullSearchIndexCache = null;
+
+const workAreas = [
+  {
+    id: "all",
+    label: "All",
+    title: "All Truck Areas",
+    links: [
+      { label: "Vehicle Map", href: "index.html#viewer" },
+      { label: "Search", action: "search" },
+      { label: "Maintenance", href: "maintenance.html" }
+    ]
+  },
+  {
+    id: "engine",
+    label: "Engine Bay",
+    title: "Working On Engine Bay",
+    links: [
+      { label: "Engine Model", href: "engine.html#engine-model" },
+      { label: "Oil Service", href: "maintenance.html#oil-service" },
+      { label: "Hood Fuses", href: "hood.html#fuses" }
+    ]
+  },
+  {
+    id: "cabin",
+    label: "Cabin",
+    title: "Working On Cabin",
+    links: [
+      { label: "Cabin Fuses", href: "cabin.html#fuses" },
+      { label: "Diagnostics", href: "diagnostics.html" },
+      { label: "NFC Tags", href: "nfc.html" }
+    ]
+  },
+  {
+    id: "wheels",
+    label: "Wheels",
+    title: "Working On Wheels",
+    links: [
+      { label: "Tire Lab", href: "tires.html" },
+      { label: "Jack Points", href: "index.html?system=jack-points#viewer" },
+      { label: "Brake/Tire", href: "maintenance.html#brake-tire" }
+    ]
+  },
+  {
+    id: "cargo",
+    label: "Cargo",
+    title: "Working On Cargo",
+    links: [
+      { label: "Cargo", href: "cargo.html" },
+      { label: "Photo Atlas", href: "photo-atlas.html" },
+      { label: "Garage Notes", href: "garage.html#notes" }
+    ]
+  },
+  {
+    id: "hitch",
+    label: "Hitch",
+    title: "Working On Hitch",
+    links: [
+      { label: "Pinout", href: "rear-hitch.html#pinout" },
+      { label: "Diagnostics", href: "diagnostics.html" },
+      { label: "Emergency", href: "quick-sheet.html#emergency-card" }
+    ]
+  }
+];
 
 function bindPress(target, handler) {
   if (!target || typeof handler !== "function") {
@@ -112,6 +179,23 @@ function refreshRecentPanel(panel) {
   }
 
   panel.innerHTML = buildRecentNavMarkup();
+}
+
+function getSavedWorkArea() {
+  const saved = localStorage.getItem(WORK_AREA_STORAGE_KEY) || "all";
+  return workAreas.some((area) => area.id === saved) ? saved : "all";
+}
+
+function getWorkArea(id = getSavedWorkArea()) {
+  return workAreas.find((area) => area.id === id) || workAreas[0];
+}
+
+function setWorkArea(id) {
+  const area = getWorkArea(id);
+  localStorage.setItem(WORK_AREA_STORAGE_KEY, area.id);
+  document.body.dataset.workArea = area.id;
+  window.dispatchEvent(new CustomEvent("ridgeline:work-area", { detail: { area } }));
+  return area;
 }
 
 function lastSectionStorageKey() {
@@ -556,6 +640,8 @@ function getSectionTitle(section) {
 
 function getNavIcon(label, href) {
   const value = `${label} ${href}`.toLowerCase();
+  if (value.includes("search")) return "search";
+  if (value.includes("more") || value.includes("menu") || value.includes("tool")) return "menu";
   if (value.includes("viewer") || value.includes("map")) return "map";
   if (value.includes("engine") || value.includes("j35")) return "engine";
   if (value.includes("tire") || value.includes("wheel")) return "wheel";
@@ -1208,6 +1294,533 @@ function buildSectionStepper(sections) {
   });
 }
 
+function actionForPage(page) {
+  const actions = {
+    "index.html": [
+      { label: "Models", href: "#model-launchpad", icon: "cube" },
+      { label: "Jack", href: "index.html?system=jack-points#viewer", icon: "wrench" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "engine.html": [
+      { label: "Labels", href: "#engine-model", icon: "engine" },
+      { label: "Parts", href: "#engine-part-reference", icon: "wrench" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "maintenance.html": [
+      { label: "Update", href: "#maintenance-updater", icon: "wrench" },
+      { label: "Oil", href: "#oil-service", icon: "bolt" },
+      { label: "Jobs", href: "#job-mode", icon: "map" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "tires.html": [
+      { label: "3D Tire", href: "#wheel-model", icon: "wheel" },
+      { label: "Fitment", href: "#fitment-guide", icon: "wrench" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "nfc.html": [
+      { label: "Write", href: "#tag-writer", icon: "nfc" },
+      { label: "Map", href: "#tag-map", icon: "map" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "diagnostics.html": [
+      { label: "Checks", href: "#quick-checks", icon: "diag" },
+      { label: "Fuses", href: "hood.html#fuses", icon: "bolt" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "garage.html": [
+      { label: "Dash", href: "#dashboard", icon: "map" },
+      { label: "Notes", href: "#notes", icon: "wrench" },
+      { label: "Search", action: "search", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ]
+  };
+
+  return actions[page] || [
+    { label: "Home", href: "index.html#top", icon: "map" },
+    { label: "Search", action: "search", icon: "search" },
+    { label: "Emergency", href: "quick-sheet.html#emergency-card", icon: "flash" },
+    { label: "More", action: "tools", icon: "menu" }
+  ];
+}
+
+function performUiAction(action) {
+  if (action === "search") {
+    openSearch();
+    return;
+  }
+  if (action === "tools") {
+    toggleMiniToolsDrawer();
+    return;
+  }
+  if (action === "top") {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    return;
+  }
+  if (action === "refresh") {
+    triggerLiveRefresh(() => {});
+  }
+}
+
+function buildContextualBottomBar() {
+  if (document.querySelector(".context-action-bar")) {
+    return;
+  }
+
+  const bar = document.createElement("nav");
+  bar.className = "context-action-bar";
+  bar.setAttribute("aria-label", "Context actions");
+  bar.innerHTML = actionForPage(currentPageName())
+    .map((item) => {
+      const attrs = item.action
+        ? `href="#" data-context-action="${item.action}"`
+        : `href="${item.href}"`;
+      return `<a class="context-action" ${attrs} data-nav-icon="${item.icon || getNavIcon(item.label, item.href || item.action)}"><span>${item.label}</span></a>`;
+    })
+    .join("");
+
+  bar.addEventListener("click", (event) => {
+    const actionLink = event.target.closest("[data-context-action]");
+    if (!actionLink) {
+      return;
+    }
+    event.preventDefault();
+    performUiAction(actionLink.dataset.contextAction);
+  });
+
+  document.body.appendChild(bar);
+}
+
+function buildMiniToolsDrawer() {
+  if (document.querySelector(".mini-tools-drawer")) {
+    return;
+  }
+
+  const drawer = document.createElement("div");
+  drawer.className = "mini-tools-drawer";
+  drawer.hidden = true;
+  drawer.innerHTML = `
+    <div class="mini-tools-backdrop" data-mini-tools-close></div>
+    <aside class="mini-tools-panel" aria-label="Quick tools">
+      <div class="mini-tools-head">
+        <div>
+          <p class="eyebrow">Quick Tools</p>
+          <h2>Control Center</h2>
+        </div>
+        <button class="modal-close" type="button" data-mini-tools-close>Close</button>
+      </div>
+      <div class="mini-tools-grid">
+        <button type="button" data-mini-action="search" data-nav-icon="search">Search Site</button>
+        <a href="index.html#top" data-nav-icon="map">Home Console</a>
+        <button type="button" data-mini-action="refresh" data-nav-icon="flash">Live Refresh</button>
+        <a href="nfc.html" data-nav-icon="nfc">NFC Console</a>
+        <a href="maintenance.html#maintenance-updater" data-nav-icon="wrench">Add Update</a>
+        <a href="quick-sheet.html#emergency-card" data-nav-icon="flash">Emergency Card</a>
+      </div>
+      <section class="work-mode-panel" aria-label="Working area">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Focus</p>
+            <h3>I'm Working On</h3>
+          </div>
+        </div>
+        <div class="work-mode-options">
+          ${workAreas
+            .map((area) => `<button type="button" data-work-area="${area.id}">${area.label}</button>`)
+            .join("")}
+        </div>
+        <div class="work-mode-links" data-work-mode-links></div>
+      </section>
+    </aside>
+  `;
+
+  document.body.appendChild(drawer);
+
+  drawer.addEventListener("click", (event) => {
+    if (event.target.closest("[data-mini-tools-close]")) {
+      closeMiniToolsDrawer();
+      return;
+    }
+
+    const action = event.target.closest("[data-mini-action]");
+    if (action) {
+      performUiAction(action.dataset.miniAction);
+      closeMiniToolsDrawer();
+      return;
+    }
+
+    const workButton = event.target.closest("[data-work-area]");
+    if (workButton) {
+      updateWorkModeUi(setWorkArea(workButton.dataset.workArea));
+    }
+  });
+
+  drawer.addEventListener("click", (event) => {
+    if (event.target.closest(".mini-tools-grid a, .work-mode-links a")) {
+      closeMiniToolsDrawer();
+    }
+  });
+
+  updateWorkModeUi(getWorkArea());
+}
+
+function updateWorkModeUi(area = getWorkArea()) {
+  document.querySelectorAll("[data-work-area]").forEach((button) => {
+    const active = button.dataset.workArea === area.id;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+
+  const links = document.querySelector("[data-work-mode-links]");
+  if (links) {
+    links.innerHTML = area.links
+      .map((link) =>
+        link.action
+          ? `<button type="button" data-mini-action="${link.action}">${link.label}</button>`
+          : `<a href="${link.href}">${link.label}</a>`
+      )
+      .join("");
+  }
+
+  const chip = document.querySelector("[data-work-chip-label]");
+  if (chip) {
+    chip.textContent = area.title;
+  }
+}
+
+function openMiniToolsDrawer() {
+  buildMiniToolsDrawer();
+  const drawer = document.querySelector(".mini-tools-drawer");
+  if (!drawer) {
+    return;
+  }
+  drawer.hidden = false;
+  document.body.classList.add("modal-open");
+  updateWorkModeUi(getWorkArea());
+}
+
+function closeMiniToolsDrawer() {
+  const drawer = document.querySelector(".mini-tools-drawer");
+  if (!drawer) {
+    return;
+  }
+  drawer.hidden = true;
+  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+function toggleMiniToolsDrawer() {
+  const drawer = document.querySelector(".mini-tools-drawer");
+  if (drawer && !drawer.hidden) {
+    closeMiniToolsDrawer();
+  } else {
+    openMiniToolsDrawer();
+  }
+}
+
+function buildCurrentPageChip(sections) {
+  if (!main || document.querySelector(".current-page-chip")) {
+    return;
+  }
+
+  const chip = document.createElement("button");
+  chip.className = "current-page-chip";
+  chip.type = "button";
+  chip.setAttribute("aria-expanded", "false");
+  chip.innerHTML = `
+    <span>${currentPageDisplayLabel()}</span>
+    <strong data-current-section-label>${sections[0]?.label || "Top"}</strong>
+  `;
+
+  const panel = document.createElement("div");
+  panel.className = "current-page-panel";
+  panel.hidden = true;
+  panel.innerHTML = `
+    <div class="current-page-panel-head">
+      <span data-work-chip-label>${getWorkArea().title}</span>
+      <button type="button" data-current-page-close>Close</button>
+    </div>
+    <div class="current-page-panel-links">
+      ${(sections || [])
+        .map((section) => `<a href="#${section.id}">${section.label}</a>`)
+        .join("") || `<a href="#top">Top</a>`}
+    </div>
+  `;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "current-page-wrapper";
+  wrapper.append(chip, panel);
+
+  if (topbar) {
+    topbar.insertAdjacentElement("afterend", wrapper);
+  } else {
+    document.body.insertAdjacentElement("afterbegin", wrapper);
+  }
+
+  const closePanel = () => {
+    chip.setAttribute("aria-expanded", "false");
+    panel.hidden = true;
+  };
+
+  bindPress(chip, () => {
+    const expanded = chip.getAttribute("aria-expanded") === "true";
+    chip.setAttribute("aria-expanded", expanded ? "false" : "true");
+    panel.hidden = expanded;
+  });
+
+  panel.addEventListener("click", (event) => {
+    if (event.target.closest("[data-current-page-close], a")) {
+      closePanel();
+    }
+  });
+
+  window.addEventListener("ridgeline:active-section", (event) => {
+    const label = sections.find((section) => section.id === event.detail?.id)?.label;
+    const target = chip.querySelector("[data-current-section-label]");
+    if (target && label) {
+      target.textContent = label;
+    }
+  });
+}
+
+function buildHomeCommandCenter() {
+  if (currentPageName() !== "index.html" || !main || document.querySelector(".home-command-center")) {
+    return;
+  }
+
+  const recent = loadRecentNav().slice(0, 4);
+  const cards = [
+    { label: "Engine", href: "engine.html#engine-model", icon: "engine", note: "3D J35Y6 model and labels." },
+    { label: "Tires", href: "tires.html", icon: "wheel", note: "Wheel fitment and clearance." },
+    { label: "Fuses", href: "hood.html#fuses", icon: "bolt", note: "Under-hood and cabin fuse maps." },
+    { label: "Maintenance", href: "maintenance.html", icon: "wrench", note: "Fluids, torque, service records." },
+    { label: "NFC", href: "nfc.html", icon: "nfc", note: "Truck tag console and landing pages." },
+    { label: "Diagnostics", href: "diagnostics.html", icon: "diag", note: "Symptoms, checks, and routes." }
+  ];
+
+  const section = document.createElement("section");
+  section.className = "home-command-center";
+  section.id = "command-center";
+  section.innerHTML = `
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Command Center</p>
+        <h2>Fast Truck Actions</h2>
+      </div>
+    </div>
+    <div class="visual-card-grid">
+      ${cards
+        .map(
+          (card) => `
+            <a class="visual-nav-card" href="${card.href}" data-nav-icon="${card.icon}">
+              <strong>${card.label}</strong>
+              <span>${card.note}</span>
+            </a>
+          `
+        )
+        .join("")}
+    </div>
+    <div class="home-memory-grid">
+      <article class="home-memory-card">
+        <span>Recently Used</span>
+        <div class="home-memory-links">
+          ${
+            recent.length
+              ? recent.map((item) => `<a href="${item.href}">${item.label}</a>`).join("")
+              : `<a href="maintenance.html#oil-service">Oil Service</a><a href="hood.html#fuses">Fuse Boxes</a>`
+          }
+        </div>
+      </article>
+      <article class="home-memory-card">
+        <span>Favorites</span>
+        <div class="home-memory-links">
+          <a href="maintenance.html#maintenance-updater">Quick Update</a>
+          <a href="index.html?system=jack-points#viewer">Jack Points</a>
+          <a href="quick-sheet.html#emergency-card">Emergency Card</a>
+        </div>
+      </article>
+    </div>
+  `;
+
+  const viewer = document.getElementById("viewer");
+  if (viewer) {
+    viewer.insertAdjacentElement("afterend", section);
+  } else {
+    main.insertAdjacentElement("afterbegin", section);
+  }
+}
+
+function buildMaintenanceJobMode() {
+  if (currentPageName() !== "maintenance.html" || document.getElementById("job-mode")) {
+    return;
+  }
+
+  const jobs = [
+    {
+      title: "Oil Change",
+      href: "#oil-service",
+      steps: ["Open oil reference", "Enter mileage", "Save update"],
+      parts: "0W-20, filter, 94109-14000 washer"
+    },
+    {
+      title: "Tire Rotation",
+      href: "#brake-tire",
+      steps: ["Open jack points", "Torque wheels", "Save mileage"],
+      parts: "94 lb-ft wheel torque, 35 psi cold"
+    },
+    {
+      title: "Battery Check",
+      href: "hood.html#battery-service",
+      steps: ["Check terminals", "Test voltage", "Log battery note"],
+      parts: "Group 48 / H6 reference"
+    },
+    {
+      title: "Fuse Diagnosis",
+      href: "hood.html#fuses",
+      steps: ["Pick fuse box", "Check fuse table", "Open diagnostics"],
+      parts: "Fuse puller, spare low-profile fuses"
+    },
+    {
+      title: "Trailer Lights",
+      href: "rear-hitch.html#pinout",
+      steps: ["Open pinout", "Check ground", "Test running/turn lights"],
+      parts: "7-way tester or multimeter"
+    }
+  ];
+
+  const section = document.createElement("section");
+  section.className = "job-mode-section";
+  section.id = "job-mode";
+  section.innerHTML = `
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Job Mode</p>
+        <h2>Start A Truck Job</h2>
+        <p class="section-copy">Pick the task first, then the page only shows the links and reminders you need while working.</p>
+      </div>
+    </div>
+    <div class="job-card-grid">
+      ${jobs
+        .map(
+          (job) => `
+            <article class="job-card">
+              <span>${job.parts}</span>
+              <strong>${job.title}</strong>
+              <ol>
+                ${job.steps.map((step) => `<li>${step}</li>`).join("")}
+              </ol>
+              <div class="job-card-actions">
+                <a class="utility-link utility-link-strong" href="${job.href}">Open Job</a>
+                <a class="utility-link" href="#maintenance-updater">Log It</a>
+              </div>
+            </article>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+
+  const grid = document.querySelector(".section-page-grid");
+  if (grid) {
+    grid.insertAdjacentElement("beforebegin", section);
+  } else {
+    main?.appendChild(section);
+  }
+}
+
+function parseMaintenanceLog() {
+  try {
+    const entries = JSON.parse(localStorage.getItem("ridgeline-maintenance-log") || "[]");
+    return Array.isArray(entries) ? entries : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildMaintenanceTimeline() {
+  if (currentPageName() !== "maintenance.html" || document.getElementById("maintenance-timeline")) {
+    return;
+  }
+
+  const savedEntries = parseMaintenanceLog().slice(0, 6);
+  const fallbackEntries = [
+    {
+      date: "April 25, 2026",
+      mileageText: "165,980 miles",
+      service: "Timing belt service",
+      note: "AISIN TKH-002 timing belt kit, water pump, sprocket, tensioner, pulleys, and cover seal."
+    }
+  ];
+  const entries = savedEntries.length
+    ? savedEntries.map((entry) => ({
+        date: entry.date,
+        mileageText: entry.mileageText,
+        service: entry.service?.replace(/_/g, " ") || "Maintenance update",
+        note: entry.note || "Saved maintenance update."
+      }))
+    : fallbackEntries;
+
+  const section = document.createElement("section");
+  section.className = "maintenance-timeline-section";
+  section.id = "maintenance-timeline";
+  section.innerHTML = `
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Timeline</p>
+        <h2>Maintenance History</h2>
+      </div>
+      <a class="utility-link" href="#maintenance-updater">Add Update</a>
+    </div>
+    <div class="maintenance-timeline">
+      ${entries
+        .map(
+          (entry) => `
+            <article class="timeline-item">
+              <span>${entry.date || "Saved date"} / ${entry.mileageText || "Mileage not set"}</span>
+              <strong>${entry.service}</strong>
+              <p>${entry.note}</p>
+            </article>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+
+  const jobMode = document.getElementById("job-mode");
+  if (jobMode) {
+    jobMode.insertAdjacentElement("afterend", section);
+  } else {
+    main?.appendChild(section);
+  }
+}
+
+function improveModelLoadingSurfaces() {
+  document.querySelectorAll("[data-model-preview]").forEach((stage) => {
+    stage.setAttribute("data-loading-label", stage.getAttribute("aria-label") || "Preparing 3D model");
+  });
+
+  const engineStage = document.querySelector(".engine-stage");
+  if (engineStage && !engineStage.querySelector(".model-loading-plate")) {
+    engineStage.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="model-loading-plate" aria-hidden="true"><span>Preparing Engine Model</span><strong>3D</strong></div>`
+    );
+  }
+
+  const wheelStage = document.querySelector(".wheel-stage");
+  if (wheelStage && !wheelStage.querySelector(".model-loading-plate")) {
+    wheelStage.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="model-loading-plate" aria-hidden="true"><span>Preparing Tire Model</span><strong>3D</strong></div>`
+    );
+  }
+}
+
 function enableSectionTransitions() {
   if (!main || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
@@ -1658,12 +2271,365 @@ function buildSearchModal() {
   return modal;
 }
 
+const SEARCH_PAGE_URLS = [
+  "index.html",
+  "hood.html",
+  "cabin.html",
+  "cargo.html",
+  "rear-hitch.html",
+  "maintenance.html",
+  "diagnostics.html",
+  "garage.html",
+  "engine.html",
+  "tires.html",
+  "nfc.html",
+  "nfc-landing.html",
+  "ar-lab.html",
+  "photo-atlas.html",
+  "quick-sheet.html"
+];
+
+const SEARCH_SYNONYMS = new Map([
+  ["tyre", ["tire", "wheel"]],
+  ["tyres", ["tires", "wheels"]],
+  ["rim", ["wheel"]],
+  ["rims", ["wheels"]],
+  ["washer", ["crush washer", "seal", "gasket"]],
+  ["washers", ["crush washers", "seals", "gaskets"]],
+  ["bolt", ["plug", "fastener"]],
+  ["plug", ["bolt", "drain plug"]],
+  ["oil", ["engine oil", "oil change", "filter"]],
+  ["trans", ["transmission", "atf"]],
+  ["tranny", ["transmission", "atf"]],
+  ["atf", ["transmission fluid"]],
+  ["battery", ["jump", "jump start", "no crank", "group 48", "h6"]],
+  ["start", ["starter", "no start", "no crank"]],
+  ["starting", ["starter", "no crank", "battery"]],
+  ["fuse", ["relay", "electrical", "circuit"]],
+  ["fuses", ["relays", "electrical", "circuit"]],
+  ["tag", ["nfc", "landing"]],
+  ["tags", ["nfc", "landing"]],
+  ["code", ["diagnostic", "obd", "obd2", "trouble code"]],
+  ["codes", ["diagnostics", "obd", "obd2", "trouble codes"]],
+  ["tow", ["towing", "hitch", "trailer"]],
+  ["trailer", ["hitch", "tow", "towing", "pinout"]],
+  ["map", ["vehicle map", "3d", "truck model"]],
+  ["model", ["3d", "viewer"]],
+  ["jack", ["jack point", "jacking", "roadside", "spare tire"]]
+]);
+
+function normalizeSearchText(value = "") {
+  return `${value}`
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9/.-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenizeSearch(value = "") {
+  const normalized = normalizeSearchText(value);
+  if (!normalized) {
+    return [];
+  }
+
+  return normalized
+    .split(" ")
+    .filter((token) => token.length > 1 || /\d/.test(token));
+}
+
+function expandSearchQuery(value = "") {
+  const normalized = normalizeSearchText(value);
+  const tokens = tokenizeSearch(normalized);
+  const expanded = new Set(tokens);
+
+  tokens.forEach((token) => {
+    SEARCH_SYNONYMS.get(token)?.forEach((term) => {
+      tokenizeSearch(term).forEach((expandedToken) => expanded.add(expandedToken));
+    });
+  });
+
+  return {
+    phrase: normalized,
+    tokens,
+    expandedTokens: [...expanded]
+  };
+}
+
+function stripSearchNoise(root) {
+  root.querySelectorAll("script, style, svg, canvas, nav, header, footer, .section-dock, .topbar-actions").forEach((node) => {
+    node.remove();
+  });
+}
+
+function textFromElement(element) {
+  const clone = element.cloneNode(true);
+  stripSearchNoise(clone);
+  return clone.textContent?.replace(/\s+/g, " ").trim() || "";
+}
+
+function getSearchEntryText(entry) {
+  return `${entry.title || ""} ${entry.category || ""} ${(entry.keywords || []).join(" ")} ${entry.excerpt || ""} ${entry.url || ""}`;
+}
+
+function makeSearchEntry(entry, source = "static") {
+  const keywords = Array.isArray(entry.keywords) ? entry.keywords : [];
+  const text = getSearchEntryText({ ...entry, keywords });
+  const normalized = normalizeSearchText(text);
+  const tokens = tokenizeSearch(normalized);
+  return {
+    title: entry.title || "Untitled",
+    url: entry.url || "#",
+    category: entry.category || "Reference",
+    keywords,
+    excerpt: entry.excerpt || "",
+    source,
+    normalized,
+    tokens
+  };
+}
+
+function titleFromSection(section, pageTitle) {
+  return (
+    section.querySelector("h1, h2, h3, h4, .subsection-title, strong")?.textContent?.trim() ||
+    section.getAttribute("aria-label") ||
+    pageTitle ||
+    "Reference"
+  );
+}
+
+function excerptFromText(text = "", maxLength = 150) {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (compact.length <= maxLength) {
+    return compact;
+  }
+  return `${compact.slice(0, maxLength - 1).trim()}...`;
+}
+
+function categoryFromPage(pageUrl, pageTitle) {
+  const page = pageUrl.split("?")[0];
+  if (page.includes("maintenance")) return "Maintenance";
+  if (page.includes("diagnostics")) return "Diagnostics";
+  if (page.includes("garage") || page.includes("photo")) return "Garage";
+  if (page.includes("engine")) return "Engine";
+  if (page.includes("tire")) return "Tires";
+  if (page.includes("hood") || page.includes("cabin")) return "Electrical";
+  if (page.includes("hitch")) return "Towing";
+  if (page.includes("cargo")) return "Cargo";
+  if (page.includes("nfc")) return "NFC";
+  if (page.includes("ar")) return "AR";
+  return pageTitle || "Reference";
+}
+
+function entriesFromHtml(pageUrl, html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const pageTitle = doc.querySelector("h1")?.textContent?.trim() || doc.title || pageUrl;
+  const category = categoryFromPage(pageUrl, pageTitle);
+  const entries = [];
+
+  const pageText = textFromElement(doc.body || doc.documentElement);
+  entries.push(
+    makeSearchEntry(
+      {
+        title: pageTitle,
+        url: pageUrl,
+        category,
+        keywords: [pageTitle, doc.title, pageUrl],
+        excerpt: excerptFromText(pageText)
+      },
+      "page"
+    )
+  );
+
+  const sections = [
+    ...doc.querySelectorAll("main section[id], main article[id], main h2[id], main h3[id], main h4[id]")
+  ];
+
+  sections.forEach((section) => {
+    const id = section.id;
+    if (!id) {
+      return;
+    }
+
+    const targetBlock = section.matches("h2, h3, h4")
+      ? section.closest("article, section") || section
+      : section;
+    const text = textFromElement(targetBlock);
+    if (text.length < 18) {
+      return;
+    }
+
+    const title = titleFromSection(targetBlock, pageTitle);
+    entries.push(
+      makeSearchEntry(
+        {
+          title,
+          url: `${pageUrl}#${id}`,
+          category,
+          keywords: [title, pageTitle, id.replace(/-/g, " ")],
+          excerpt: excerptFromText(text)
+        },
+        "section"
+      )
+    );
+  });
+
+  return entries;
+}
+
+function entriesFromNfcTargets() {
+  return nfcTargets.flatMap((target) => [
+    makeSearchEntry(
+      {
+        title: `${target.title} NFC Landing`,
+        url: target.url,
+        category: "NFC",
+        keywords: [
+          target.id,
+          target.title,
+          target.category,
+          target.badge,
+          target.placement,
+          target.quickUse,
+          ...(target.details || []),
+          ...(target.relatedLinks || []).map((link) => link.label)
+        ],
+        excerpt: target.description
+      },
+      "nfc"
+    ),
+    makeSearchEntry(
+      {
+        title: target.title,
+        url: target.sectionUrl,
+        category: target.category,
+        keywords: [target.id, target.title, target.placement, target.description, target.quickUse],
+        excerpt: target.quickUse || target.description
+      },
+      "nfc-section"
+    )
+  ]);
+}
+
+async function buildFullSearchIndex() {
+  if (fullSearchIndexCache) {
+    return fullSearchIndexCache;
+  }
+
+  if (fullSearchIndexPromise) {
+    return fullSearchIndexPromise;
+  }
+
+  fullSearchIndexPromise = (async () => {
+    const staticEntries = searchIndex.map((entry) => makeSearchEntry(entry, "static"));
+    const pageEntryGroups = await Promise.all(
+      SEARCH_PAGE_URLS.map(async (pageUrl) => {
+        try {
+          const response = await fetch(pageUrl, { cache: "force-cache" });
+          if (!response.ok) {
+            return [];
+          }
+          return entriesFromHtml(pageUrl, await response.text());
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const merged = [...staticEntries, ...entriesFromNfcTargets(), ...pageEntryGroups.flat()];
+    const byUrlTitle = new Map();
+    merged.forEach((entry) => {
+      const key = `${entry.url}|${entry.title}`;
+      if (!byUrlTitle.has(key)) {
+        byUrlTitle.set(key, entry);
+      }
+    });
+
+    fullSearchIndexCache = [...byUrlTitle.values()];
+    return fullSearchIndexCache;
+  })();
+
+  return fullSearchIndexPromise;
+}
+
+function scoreSearchEntry(entry, queryParts) {
+  if (!queryParts.phrase) {
+    return 0;
+  }
+
+  const title = normalizeSearchText(entry.title);
+  const category = normalizeSearchText(entry.category);
+  const url = normalizeSearchText(entry.url);
+  const haystack = entry.normalized || normalizeSearchText(getSearchEntryText(entry));
+  const entryTokens = entry.tokens || tokenizeSearch(haystack);
+  const tokenSet = new Set(entryTokens);
+  let score = 0;
+  let matchedOriginalTokens = 0;
+
+  if (title === queryParts.phrase) score += 180;
+  if (title.includes(queryParts.phrase)) score += 90;
+  if (haystack.includes(queryParts.phrase)) score += 62;
+  if (category.includes(queryParts.phrase)) score += 24;
+  if (url.includes(queryParts.phrase)) score += 18;
+
+  queryParts.expandedTokens.forEach((token) => {
+    const exact = tokenSet.has(token);
+    const starts = entryTokens.some((entryToken) => entryToken.startsWith(token) || token.startsWith(entryToken));
+    const partial = haystack.includes(token);
+
+    if (exact) score += title.includes(token) ? 24 : 14;
+    else if (starts) score += 9;
+    else if (partial) score += 5;
+  });
+
+  queryParts.tokens.forEach((token) => {
+    if (tokenSet.has(token) || haystack.includes(token) || entryTokens.some((entryToken) => entryToken.startsWith(token))) {
+      matchedOriginalTokens += 1;
+    }
+  });
+
+  if (queryParts.tokens.length > 1) {
+    const coverage = matchedOriginalTokens / queryParts.tokens.length;
+    score += Math.round(coverage * 34);
+    if (coverage < 0.5 && !haystack.includes(queryParts.phrase)) {
+      score *= 0.35;
+    }
+  }
+
+  if (entry.source === "static") score += 7;
+  if (entry.source === "section") score += 3;
+
+  return score;
+}
+
+function searchEntries(entries, query = "") {
+  const queryParts = expandSearchQuery(query);
+  if (!queryParts.phrase) {
+    return entries.slice(0, 10);
+  }
+
+  return entries
+    .map((entry) => ({ entry, score: scoreSearchEntry(entry, queryParts) }))
+    .filter((result) => result.score >= 5)
+    .sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title))
+    .slice(0, 18)
+    .map((result) => result.entry);
+}
+
 const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
+setWorkArea(getSavedWorkArea());
 const siteMenu = buildSiteMenu();
 buildTopbarLiveRefreshButton();
 const brandLink = document.querySelector(".brand");
+buildHomeCommandCenter();
+buildMaintenanceJobMode();
+buildMaintenanceTimeline();
+improveModelLoadingSurfaces();
 const pageSections = collectPageSections();
 recordCurrentPageVisit();
 registerRecentNavTracking();
@@ -1672,6 +2638,9 @@ buildViewModeRail();
 setContentMode(getSavedContentMode(), false);
 buildMobileNavAccordion(pageSections);
 simplifyNavigationLayout();
+buildCurrentPageChip(pageSections);
+buildContextualBottomBar();
+buildMiniToolsDrawer();
 const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
 buildResumeButton();
@@ -1737,35 +2706,74 @@ if (brandLink) {
   });
 }
 
-function renderResults(query = "") {
-  const value = query.trim().toLowerCase();
-  const results = !value
-    ? searchIndex.slice(0, 8)
-    : searchIndex.filter((entry) => {
-        const haystack = `${entry.title} ${entry.category} ${entry.keywords.join(" ")}`.toLowerCase();
-        return haystack.includes(value);
-      }).slice(0, 12);
-
+function renderSearchEntries(results) {
   searchResults.innerHTML = "";
 
+  const groups = new Map();
   results.forEach((entry) => {
-    const anchor = document.createElement("a");
-    anchor.className = "search-result";
-    anchor.href = entry.url;
-    anchor.innerHTML = `
-      <span>${entry.category}</span>
-      <strong>${entry.title}</strong>
-      <p>${entry.url}</p>
-    `;
-    searchResults.appendChild(anchor);
+    const key = entry.category || "Reference";
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key).push(entry);
+  });
+
+  groups.forEach((entries, categoryName) => {
+    const group = document.createElement("section");
+    group.className = "search-result-group";
+    const heading = document.createElement("h3");
+    heading.textContent = categoryName;
+    group.appendChild(heading);
+
+    entries.slice(0, 5).forEach((entry) => {
+      const anchor = document.createElement("a");
+      anchor.className = "search-result";
+      anchor.href = entry.url;
+
+      const category = document.createElement("span");
+      category.textContent = entry.source === "section" ? "Page section" : entry.category;
+      const title = document.createElement("strong");
+      title.textContent = entry.title;
+      const excerpt = document.createElement("p");
+      excerpt.textContent = entry.excerpt || entry.url;
+
+      anchor.append(category, title, excerpt);
+      group.appendChild(anchor);
+    });
+
+    searchResults.appendChild(group);
   });
 
   if (!results.length) {
     const empty = document.createElement("p");
     empty.className = "search-empty";
-    empty.textContent = "No matches yet. Try a fuse number, acronym, or page name.";
+    empty.textContent = "No matches yet. Try a simpler word, part name, fuse label, service phrase, or page name.";
     searchResults.appendChild(empty);
   }
+}
+
+function renderResults(query = "") {
+  const requestId = `${Date.now()}-${Math.random()}`;
+  searchResults.dataset.requestId = requestId;
+
+  const staticEntries = [
+    ...searchIndex.map((entry) => makeSearchEntry(entry, "static")),
+    ...entriesFromNfcTargets()
+  ];
+  renderSearchEntries(searchEntries(staticEntries, query));
+
+  buildFullSearchIndex()
+    .then((entries) => {
+      if (searchResults.dataset.requestId !== requestId) {
+        return;
+      }
+      renderSearchEntries(searchEntries(entries, query));
+    })
+    .catch(() => {
+      if (!searchResults.children.length) {
+        renderSearchEntries(searchEntries(staticEntries, query));
+      }
+    });
 }
 
 function openSearch() {

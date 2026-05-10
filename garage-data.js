@@ -1,6 +1,7 @@
 export const STORAGE = {
   notes: "ridgeline-notes",
   tracker: "ridgeline-tracker",
+  maintenanceLog: "ridgeline-maintenance-log",
   photos: "ridgeline-photos",
   favorites: "ridgeline-favorites",
   areaJournal: "ridgeline-area-journal"
@@ -22,6 +23,7 @@ const REMOTE_DISABLED_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 const SYNCABLE_KEYS = new Set([
   STORAGE.notes,
   STORAGE.tracker,
+  STORAGE.maintenanceLog,
   STORAGE.photos,
   STORAGE.favorites,
   STORAGE.areaJournal

@@ -14,7 +14,7 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="index.html">Ridgeline Service Console</a>
+        <a class="brand" href="index.html#top" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
           <a href="index.html#viewer">Vehicle Map</a>
           <a href="index.html#systems">Zones</a>
@@ -31,6 +31,8 @@
           <p class="section-copy">This page collects the service specs and tire fitment tools you are likely to need repeatedly when working on the truck.</p>
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
+            <a class="utility-link utility-link-strong" href="#maintenance-updater">Update Log</a>
+            <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
             <a class="utility-link" href="#minder">Service Codes</a>
             <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
             <a class="utility-link utility-link-strong" href="#tire-wheel-lab">Tire Lab</a>
@@ -52,6 +54,49 @@
         </section>
 
         <section class="section-page-grid">
+          <article class="tech-card span-2 quick-update-card" id="maintenance-updater">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Fast Entry</p>
+                <h3>Quick Maintenance Update</h3>
+                <p class="section-copy">
+                  Enter mileage, pick what changed, and the site fills in today's date automatically.
+                  Optional notes are saved to the maintenance history and Garage notes.
+                </p>
+              </div>
+            </div>
+            <form class="quick-update-form" data-maintenance-update-form>
+              <label>
+                <span>Mileage</span>
+                <input name="mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="166240" autocomplete="off" required />
+              </label>
+              <label>
+                <span>Update type</span>
+                <select name="service">
+                  <option value="oil_change">Oil change</option>
+                  <option value="tire_rotation">Tire rotation</option>
+                  <option value="brake_service">Brake service</option>
+                  <option value="trans_service">Transmission service</option>
+                  <option value="battery_install">Battery install</option>
+                  <option value="filters">Air filters</option>
+                  <option value="timing_belt_service">Timing belt service</option>
+                  <option value="trailer_wiring">Trailer wiring check</option>
+                  <option value="general_note">General note</option>
+                </select>
+              </label>
+              <label class="quick-update-note">
+                <span>Optional note</span>
+                <textarea name="note" rows="3" placeholder="Part number, fluid used, filter brand, issue found, or reminder"></textarea>
+              </label>
+              <div class="quick-update-actions">
+                <button class="utility-link utility-link-strong" type="submit">Save Update</button>
+                <a class="utility-link" href="garage.html#notes">Open Full Garage Log</a>
+              </div>
+            </form>
+            <p class="small-note" data-maintenance-update-status aria-live="polite"></p>
+            <div class="quick-update-recent" data-maintenance-update-list></div>
+          </article>
+
           <article class="tech-card span-2" id="oil-service">
             <h3>Oil Service Quick Reference</h3>
             <div class="form-grid">
@@ -110,6 +155,87 @@
                   These OEM numbers are the anchor part numbers the aftermarket cross-references below are built around.
                 </p>
               </div>
+            </div>
+          </article>
+
+          <article class="tech-card span-2" id="drain-hardware">
+            <h3>Drain Plug Washers, Bolts, And Useful Hardware</h3>
+            <p class="source-note">
+              Keep these small parts stocked before fluid service. Replace crush washers when the plug is removed. Your truck profile is 2WD, so the AWD rear differential and transfer hardware is listed as optional reference only.
+            </p>
+            <div class="table-scroll">
+              <table class="fuse-table" aria-label="Honda Ridgeline drain plug washer and bolt reference">
+                <tr>
+                  <th>Use</th>
+                  <th>OEM part number</th>
+                  <th>Size / tool note</th>
+                  <th>Truck note</th>
+                </tr>
+                <tr>
+                  <td>Engine oil drain plug washer</td>
+                  <td>94109-14000</td>
+                  <td>14 mm crush washer</td>
+                  <td>Use with every engine oil change.</td>
+                </tr>
+                <tr>
+                  <td>Engine oil drain bolt / plug</td>
+                  <td>90009-R70-A00</td>
+                  <td>M14 x 1.5 thread, 17 mm hex, 14 mm plug listing</td>
+                  <td>Replace if rounded, damaged, cross-threaded, or leaking.</td>
+                </tr>
+                <tr>
+                  <td>Automatic transmission drain plug washer</td>
+                  <td>90471-PX4-000</td>
+                  <td>18 mm crush washer</td>
+                  <td>For 6AT drain-and-fill service. The drain plug commonly uses a square-drive style plug.</td>
+                </tr>
+                <tr>
+                  <td>ATF pipe / warmer drain plug washer</td>
+                  <td>90471-RGR-000</td>
+                  <td>12 mm crush washer</td>
+                  <td>Listed in the 2019 Ridgeline 6AT ATF pipe / ATF warmer parts diagram.</td>
+                </tr>
+                <tr>
+                  <td>Rear differential drain washer</td>
+                  <td>90471-PX4-000</td>
+                  <td>18 mm crush washer</td>
+                  <td>AWD-only reference. Not used on your 2WD truck.</td>
+                </tr>
+                <tr>
+                  <td>Rear differential fill washer</td>
+                  <td>94109-20000</td>
+                  <td>20 mm crush washer</td>
+                  <td>AWD-only reference. Also commonly used on Honda transfer case fill/drain plugs.</td>
+                </tr>
+                <tr>
+                  <td>Transfer case drain / fill washer</td>
+                  <td>94109-20000</td>
+                  <td>20 mm crush washer</td>
+                  <td>AWD-only reference for Ridgeline/Pilot-style transfer hardware.</td>
+                </tr>
+              </table>
+            </div>
+            <div class="dashboard-grid maintenance-hardware-grid">
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Stock For Oil Changes</span>
+                <strong>94109-14000</strong>
+                <p>Buy these in quantity. This is the engine oil drain crush washer.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Keep One Spare Bolt</span>
+                <strong>90009-R70-A00</strong>
+                <p>Engine oil drain plug, M14 x 1.5 thread with 17 mm hex.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>Stock For 6AT Service</span>
+                <strong>90471-PX4-000</strong>
+                <p>18 mm washer used for the automatic transmission drain plug.</p>
+              </article>
+              <article class="dashboard-card truck-dashboard-card">
+                <span>AWD Only</span>
+                <strong>94109-20000</strong>
+                <p>20 mm washer for rear differential fill and transfer case style plugs.</p>
+              </article>
             </div>
           </article>
 
@@ -532,7 +658,9 @@
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#maintenance-updater">Update</a>
         <a href="#minder">Codes</a>
+        <a href="#drain-hardware">Washers</a>
         <a href="#fluids">Fluids</a>
         <a href="#tire-wheel-lab">Tires</a>
         <a href="#brake-tire">Brakes</a>
@@ -541,5 +669,6 @@
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="maintenance.js"></script>
   </body>
 </html>

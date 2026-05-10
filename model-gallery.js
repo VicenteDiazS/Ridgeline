@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
@@ -11,6 +12,8 @@ if (!previewCards.length) {
     window.matchMedia("(max-width: 900px)").matches ||
     window.matchMedia("(pointer: coarse)").matches;
   const gltfLoader = new GLTFLoader();
+  const fbxLoader = new FBXLoader();
+  fbxLoader.setResourcePath("./assets/ridgeline-2021/textures/");
   const previews = [];
 
   const previewConfigs = {
@@ -18,11 +21,13 @@ if (!previewCards.length) {
       urls: isMobile
         ? [
             "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb",
-            "./assets/ridgeline-2021/honda-ridgeline-2021.glb"
+            "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
+            "./assets/ridgeline-2021/honda-ridgeline-2021.fbx"
           ]
         : [
             "./assets/ridgeline-2021/honda-ridgeline-2021.glb",
-            "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
+            "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb",
+            "./assets/ridgeline-2021/honda-ridgeline-2021.fbx"
           ],
       cameraDirection: new THREE.Vector3(1.02, 0.2, 0.98),
       targetHeightRatio: 0.3,
@@ -55,11 +60,13 @@ if (!previewCards.length) {
         chain.catch(
           () =>
             new Promise((resolve, reject) => {
-              gltfLoader.load(
+              const isFbx = /\.fbx(?:$|\?)/i.test(url);
+              const loader = isFbx ? fbxLoader : gltfLoader;
+              loader.load(
                 url,
-                (gltf) => resolve(gltf.scene),
+                (asset) => resolve(isFbx ? asset : asset.scene),
                 undefined,
-                (error) => reject(error)
+                reject
               );
             })
         ),
