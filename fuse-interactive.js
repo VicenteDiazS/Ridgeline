@@ -36,8 +36,192 @@ const acronymDefinitions = {
   AUDIO: "Audio head unit or amplifier circuit"
 };
 
+const phraseDefinitions = [
+  ["DR P/W", "Driver power window"],
+  ["AS P/W", "Passenger-side power window"],
+  ["P/W", "Power window"],
+  ["S/R", "Sunroof"],
+  ["FR", "Front"],
+  ["RR", "Rear"],
+  ["INTR", "Interior"],
+  ["H/L", "Headlight"],
+  ["H/L LO", "Low-beam headlight"],
+  ["H/L HI", "High-beam headlight"],
+  ["P/SEAT", "Power seat"],
+  ["REC", "Recline"],
+  ["SLI", "Slide"],
+  ["MTR", "Motor"],
+  ["WIP", "Wiper"],
+  ["DEF", "Defogger / defroster"],
+  ["MG CLUTCH", "Magnetic clutch for the A/C compressor"],
+  ["MISS SOL", "Mission solenoid / transmission-related solenoid wording used on Honda fuse labels"],
+  ["TRL", "Trailer"],
+  ["E-BRAKE", "Electric brake"],
+  ["F/B", "Fuse block / fuse box main feed"],
+  ["CTR", "Center"],
+  ["RLY", "Relay"],
+  ["IG COIL", "Ignition coil"],
+  ["IG MAIN", "Ignition main feed"],
+  ["DBW", "Drive-by-wire throttle control"],
+  ["FI", "Fuel injection"]
+];
+
+const fuseLayouts = {
+  "hood-a": {
+    viewBox: "0 0 1000 560",
+    title: "Engine Compartment Fuse Box A",
+    subtitle: "Passenger-side damper-house box. Cover orientation redrawn from 2017-2019 Ridgeline diagrams.",
+    outer: [8, 8, 984, 522],
+    blanks: [
+      [20, 18, 82, 120], [122, 18, 82, 120], [224, 18, 82, 120], [326, 18, 82, 120],
+      [428, 18, 82, 120], [530, 18, 82, 120], [632, 18, 356, 120],
+      [20, 400, 82, 104], [122, 400, 82, 104], [224, 400, 82, 104],
+      [530, 400, 82, 104], [632, 400, 82, 104], [734, 400, 82, 104], [830, 310, 80, 120]
+    ],
+    fuses: [
+      ...["1A", "1B", "1C", "1D", "1E", "1F"].map((position, index) => ({
+        position, x: 118 + index * 55, y: 152, w: 52, h: 38, kind: "block", group: "1"
+      })),
+      ...["2A", "2B", "2C", "2D", "2E", "2F", "2G", "2H", "2I", "2J", "2K", "2L"].map((position, index) => ({
+        position, x: 610 + index * 31, y: 152, w: 29, h: 38, kind: "block", group: "2"
+      })),
+      ...["12", "13", "14", "15", "16", "17", "18", "19"].map((position, index) => ({
+        position, x: 20 + index * 40, y: 225, w: 28, h: 72
+      })),
+      ...["4", "5", "6", "7", "8", "9", "10"].map((position, index) => ({
+        position, x: 60 + index * 40, y: 315, w: 28, h: 72
+      })),
+      ...["20", "21", "22", "23", "24", "25", "26", "27", "28", "29"].map((position, index) => ({
+        position, x: 610 + index * 39, y: 225, w: 28, h: 72
+      })),
+      ...["3A", "3B", "3C", "3D"].map((position, index) => ({
+        position, x: 535 + index * 58, y: 315, w: 55, h: 38, kind: "block", group: "3"
+      })),
+      { position: "11", x: 920, y: 315, w: 60, h: 34 }
+    ],
+    groupLabels: [
+      { label: "1", x: 282, y: 146 },
+      { label: "2", x: 780, y: 146 },
+      { label: "3", x: 651, y: 309 }
+    ],
+    orientation: ["Front of truck", "Passenger side damper house"]
+  },
+  "hood-b": {
+    viewBox: "0 0 1000 360",
+    title: "Engine Compartment Fuse Box B",
+    subtitle: "Brake-fluid-reservoir side box. Cover orientation redrawn from 2017-2019 Ridgeline diagrams.",
+    outer: [8, 8, 984, 320],
+    blanks: [
+      [22, 26, 150, 98], [22, 218, 150, 90], [192, 218, 150, 90], [365, 218, 150, 90],
+      [538, 218, 150, 90], [898, 36, 78, 100], [898, 150, 78, 78]
+    ],
+    fuses: [
+      ...["1A", "1B", "1C", "1D", "1E", "1F", "1G", "1H"].map((position, index) => ({
+        position, x: 192 + index * 62, y: 58, w: 60, h: 42, kind: "block", group: "1"
+      })),
+      ...["11", "10", "9", "8", "7", "6", "5", "4", "3"].map((position, index) => ({
+        position, x: 192 + index * 47, y: 132, w: 34, h: 86
+      })),
+      { position: "2", x: 616, y: 132, w: 72, h: 86 },
+      { position: "17", x: 90, y: 147, w: 80, h: 34 },
+      { position: "16", x: 805, y: 44, w: 78, h: 34 },
+      { position: "15", x: 805, y: 86, w: 78, h: 34 },
+      { position: "14", x: 805, y: 134, w: 78, h: 58 },
+      { position: "13", x: 900, y: 38, w: 78, h: 88 },
+      { position: "12", x: 900, y: 150, w: 78, h: 78 }
+    ],
+    groupLabels: [{ label: "1", x: 440, y: 52 }],
+    orientation: ["Driver side / brake fluid reservoir", "Front of truck"]
+  },
+  "cabin-a": {
+    viewBox: "0 0 760 620",
+    title: "Interior Fuse Box Type A",
+    subtitle: "Driver-left under-dash panel. Redrawn to match the cover-style 2017-2019 Ridgeline layout.",
+    outer: [8, 8, 744, 584],
+    blanks: [[52, 56, 112, 96], [306, 56, 158, 96], [560, 56, 158, 96]],
+    fuses: [
+      ...["36", "37", "38", "39", "40", "41", "42"].map((position, index) => ({
+        position, x: 52 + index * 96, y: 180, w: 88, h: 34, kind: "wide"
+      })),
+      ...["25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35"].map((position, index) => ({
+        position, x: 104 + index * 52, y: 235, w: 34, h: 96
+      })),
+      ...["14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"].map((position, index) => ({
+        position, x: 104 + index * 52, y: 345, w: 34, h: 78
+      })),
+      ...["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"].map((position, index) => ({
+        position, x: 52 + index * 52, y: 438, w: 34, h: 88
+      }))
+    ],
+    orientation: ["Side-panel label orientation", "Driver footwell"]
+  },
+  "cabin-b": {
+    viewBox: "0 0 760 260",
+    title: "Interior Fuse Box Type B",
+    subtitle: "Supplemental under-dash strip. Lettered positions A-G from the 2019 fuse listing.",
+    outer: [110, 42, 540, 150],
+    blanks: [],
+    fuses: ["A", "B", "C", "D", "E", "F", "G"].map((position, index) => ({
+      position, x: 165 + index * 68, y: 112, w: 54, h: 42, kind: "wide"
+    })),
+    orientation: ["Supplemental fuse strip", "Under dash"]
+  }
+};
+
 function normalizePosition(value) {
   return value.replace(/\s+/g, "").toUpperCase();
+}
+
+function escapeHtml(value = "") {
+  return `${value}`.replace(/[&<>"']/g, (char) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return entities[char];
+  });
+}
+
+function renderFuseCell(fuse) {
+  const labelSize = `${fuse.position}`.length > 2 ? 15 : 18;
+  const classes = ["fuse-cell", fuse.kind ? `fuse-cell-${fuse.kind}` : ""].filter(Boolean).join(" ");
+  return `
+    <g class="${classes}" data-fuse-position="${escapeHtml(fuse.position)}" tabindex="0" role="button" aria-label="Fuse ${escapeHtml(fuse.position)}">
+      <rect x="${fuse.x}" y="${fuse.y}" width="${fuse.w}" height="${fuse.h}" rx="4"></rect>
+      <text x="${fuse.x + fuse.w / 2}" y="${fuse.y + fuse.h / 2 + labelSize / 3}" text-anchor="middle" font-size="${labelSize}" font-weight="800">${escapeHtml(fuse.position)}</text>
+    </g>
+  `;
+}
+
+function renderFuseDiagram(diagramEl) {
+  const layout = fuseLayouts[diagramEl.dataset.fuseDiagram];
+  if (!layout) {
+    return;
+  }
+
+  const [outerX, outerY, outerWidth, outerHeight] = layout.outer;
+  const blanks = layout.blanks
+    .map(([x, y, width, height]) => `<rect class="fuse-blank" x="${x}" y="${y}" width="${width}" height="${height}" rx="2"></rect>`)
+    .join("");
+  const groupLabels = (layout.groupLabels || [])
+    .map((item) => `<text class="fuse-group-label" x="${item.x}" y="${item.y}" text-anchor="middle">${escapeHtml(item.label)}</text>`)
+    .join("");
+  const orientation = (layout.orientation || [])
+    .map((item, index) => `<text class="fuse-orientation-label" x="${index ? outerX + outerWidth - 18 : outerX + 18}" y="${outerY + outerHeight + 22}" text-anchor="${index ? "end" : "start"}">${escapeHtml(item)}</text>`)
+    .join("");
+
+  diagramEl.innerHTML = `
+    <svg viewBox="${layout.viewBox}" role="img" aria-label="${escapeHtml(layout.title)} diagram">
+      <rect class="fuse-shell" x="${outerX}" y="${outerY}" width="${outerWidth}" height="${outerHeight}" rx="3"></rect>
+      ${blanks}
+      ${groupLabels}
+      ${layout.fuses.map(renderFuseCell).join("")}
+      ${orientation}
+    </svg>
+  `;
 }
 
 function buildTableMap(table) {
@@ -73,6 +257,26 @@ function distanceBetween(a, b) {
 }
 
 function createFuseTargets(svg, entries) {
+  const explicitTargets = [...svg.querySelectorAll("[data-fuse-position]")];
+  if (explicitTargets.length) {
+    const targets = new Map();
+    explicitTargets.forEach((targetEl) => {
+      const position = normalizePosition(targetEl.dataset.fusePosition || "");
+      if (!entries.has(position)) {
+        return;
+      }
+
+      targetEl.classList.add("fuse-hit");
+      targets.set(position, {
+        position,
+        element: targetEl,
+        text: targetEl.querySelector("text"),
+        rect: targetEl.querySelector("rect")
+      });
+    });
+    return targets;
+  }
+
   const textCandidates = [...svg.querySelectorAll("text")].filter((textEl) => {
     const label = textEl.textContent.trim();
     return entries.has(normalizePosition(label));
@@ -156,15 +360,25 @@ function bindDiagram(diagramEl) {
     }
 
     const text = `${entry.circuit} ${entry.type}`.toUpperCase();
-    const found = Object.entries(acronymDefinitions).filter(([key]) => {
-      const pattern = new RegExp(`\\b${key}\\b`);
-      return pattern.test(text);
+    const found = new Map();
+
+    phraseDefinitions.forEach(([key, definition]) => {
+      if (text.includes(key)) {
+        found.set(key, definition);
+      }
+    });
+
+    Object.entries(acronymDefinitions).forEach(([key, definition]) => {
+      const pattern = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
+      if (pattern.test(text)) {
+        found.set(key, definition);
+      }
     });
 
     acronymList.innerHTML = "";
-    acronymPanel.hidden = !found.length;
+    acronymPanel.hidden = !found.size;
 
-    found.forEach(([key, definition]) => {
+    found.forEach((definition, key) => {
       const item = document.createElement("div");
       item.className = "acronym-item";
       item.innerHTML = `<strong>${key}</strong><span>${definition}</span>`;
@@ -194,13 +408,15 @@ function bindDiagram(diagramEl) {
     entry.row.classList.add("is-active");
 
     targets.forEach((target) => {
-      target.text.classList.remove("is-active");
+      target.element?.classList.remove("is-active");
+      target.text?.classList.remove("is-active");
       target.rect?.classList.remove("is-active");
     });
 
     const target = targets.get(normalized);
     if (target) {
-      target.text.classList.add("is-active");
+      target.element?.classList.add("is-active");
+      target.text?.classList.add("is-active");
       target.rect?.classList.add("is-active");
     }
   }
@@ -235,17 +451,18 @@ function bindDiagram(diagramEl) {
 
   targets.forEach((target) => {
     const handler = () => setActive(target.position);
-    target.text.addEventListener("click", handler);
-    target.text.addEventListener("keydown", (event) => {
+    const interactiveEl = target.element || target.text;
+    interactiveEl.addEventListener("click", handler);
+    interactiveEl.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         handler();
       }
     });
-    target.text.setAttribute("tabindex", "0");
-    target.text.setAttribute("role", "button");
+    interactiveEl.setAttribute("tabindex", "0");
+    interactiveEl.setAttribute("role", "button");
 
-    if (target.rect) {
+    if (!target.element && target.rect) {
       target.rect.addEventListener("click", handler);
     }
   });
@@ -256,5 +473,6 @@ function bindDiagram(diagramEl) {
   }
 }
 
+diagramEls.forEach(renderFuseDiagram);
 diagramEls.forEach(bindDiagram);
 initGarageCloudSync();
