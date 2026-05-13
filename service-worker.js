@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v235";
+const CACHE_NAME = "ridgeline-console-v237";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -36,6 +36,8 @@ const CORE_ASSETS = [
   "./garage-data.js",
   "./maintenance.js",
   "./section-tools.js",
+  "./agent-status.js",
+  "./agent-last-run.json",
   "./manifest.json",
   "./favicon.svg",
   "./favicon-32x32.png",

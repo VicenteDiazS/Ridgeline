@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "intervalMinutes": 90,
+  "repoRoot": ".",
+  "branch": "main",
+  "remote": "origin",
+  "codexArgs": [
+    "exec",
+    "--sandbox",
+    "workspace-write",
+    "--ask-for-approval",
+    "never",
+    "--search"
+  ],
+  "prompt": "Continue the Ridgeline site agent loop as Anton. Read ANTON.md, AGENT_STATE.md, AGENT_BACKLOG.md, and SITE_QUALITY_AUDIT.md, then pick the highest-value next task, implement it, verify with screenshots/browser checks if UI changed, and update the state files before stopping.",
+  "commitChanges": true,
+  "pushChanges": true,
+  "requireCleanWorktree": true,
+  "commitMessagePrefix": "chore: automated Ridgeline agent run",
+  "maxRunMinutes": 120
+}

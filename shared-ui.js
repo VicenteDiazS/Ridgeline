@@ -744,6 +744,80 @@ function toggleNavigationMode() {
   }
 }
 
+function buildUniversalHeaderActions() {
+  if (!topbarActions) {
+    return;
+  }
+
+  const actions = [
+    {
+      key: "map",
+      label: "Map",
+      href: "index.html#viewer",
+      icon: "map",
+      aria: "Open vehicle map",
+      title: "Vehicle map"
+    },
+    {
+      key: "service",
+      label: "Service",
+      href: "maintenance.html",
+      icon: "wrench",
+      aria: "Open service page",
+      title: "Service"
+    },
+    {
+      key: "garage",
+      label: "Garage",
+      href: "garage.html",
+      icon: "garage",
+      aria: "Open garage page",
+      title: "Garage"
+    }
+  ];
+
+  const searchButton = topbarActions.querySelector("[data-open-search]");
+  actions.forEach((action) => {
+    if (topbarActions.querySelector(`[data-header-action="${action.key}"]`)) {
+      return;
+    }
+
+    const existingLink = Array.from(topbarActions.querySelectorAll("a[href]")).find((link) => (
+      normalizeRecentHref(link.getAttribute("href")) === normalizeRecentHref(action.href)
+    ));
+    if (existingLink) {
+      existingLink.classList.add("header-nav-button");
+      existingLink.dataset.headerAction = action.key;
+      existingLink.dataset.navIcon = existingLink.dataset.navIcon || action.icon;
+      existingLink.setAttribute("aria-label", existingLink.getAttribute("aria-label") || action.aria);
+      existingLink.title = existingLink.title || action.title;
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.className = "header-nav-button";
+    link.href = action.href;
+    link.dataset.headerAction = action.key;
+    link.dataset.navIcon = action.icon;
+    link.setAttribute("aria-label", action.aria);
+    link.title = action.title;
+    link.textContent = action.label;
+    topbarActions.insertBefore(link, searchButton || null);
+  });
+
+  if (!topbarActions.querySelector("[data-open-site-menu]")) {
+    const moreButton = document.createElement("button");
+    moreButton.className = "header-nav-button header-more-button";
+    moreButton.type = "button";
+    moreButton.dataset.openSiteMenu = "true";
+    moreButton.dataset.navIcon = "menu";
+    moreButton.setAttribute("aria-label", "Open full site menu");
+    moreButton.title = "Full menu";
+    moreButton.textContent = "More";
+    topbarActions.appendChild(moreButton);
+  }
+}
+
 function buildTopbarLiveRefreshButton() {
   if (!topbarActions || document.querySelector("[data-live-refresh-button]")) {
     return null;
@@ -3765,6 +3839,7 @@ const commandPalette = buildCommandPalette();
 document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
 document.body.classList.add(`page-${currentPageName().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "index"}`);
 setWorkArea(getSavedWorkArea());
+buildUniversalHeaderActions();
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
 buildHomeCommandCenter();

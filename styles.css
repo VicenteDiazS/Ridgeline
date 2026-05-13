@@ -10559,3 +10559,123 @@ select:focus {
     font-size: 0.76rem;
   }
 }
+.agent-status-section {
+  border: 1px solid rgba(93, 223, 255, 0.22);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(9, 20, 32, 0.94), rgba(17, 14, 30, 0.94)),
+    rgba(7, 16, 25, 0.9);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  margin: clamp(1.25rem, 3vw, 2rem) 0;
+  padding: clamp(1.1rem, 2.4vw, 1.6rem);
+}
+
+.agent-status-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.agent-status-head h2 {
+  font-size: clamp(1.45rem, 3vw, 2.35rem);
+  margin: 0.2rem 0 0;
+}
+
+.agent-status-pill {
+  border: 1px solid rgba(93, 223, 255, 0.28);
+  border-radius: 999px;
+  color: #dff7ff;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.7rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.agent-status-pill[data-agent-run-state="completed"] {
+  border-color: rgba(104, 255, 190, 0.38);
+  color: #8fffd0;
+}
+
+.agent-status-pill[data-agent-run-state="error"],
+.agent-status-pill[data-agent-run-state="waiting-for-tokens-or-auth"] {
+  border-color: rgba(255, 207, 104, 0.38);
+  color: #ffd66e;
+}
+
+.agent-status-summary {
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 1rem 0 0;
+  max-width: 78ch;
+}
+
+.agent-status-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.agent-status-grid div {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.85rem;
+}
+
+.agent-status-grid span,
+.agent-status-empty {
+  color: var(--muted);
+}
+
+.agent-status-grid span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+}
+
+.agent-status-grid strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.agent-status-files {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.agent-status-files li {
+  border: 1px solid rgba(93, 223, 255, 0.16);
+  border-radius: 12px;
+  color: #cceeff;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.65rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .agent-status-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .agent-status-pill {
+    justify-content: center;
+  }
+
+  .agent-status-grid,
+  .agent-status-files {
+    grid-template-columns: 1fr;
+  }
+}

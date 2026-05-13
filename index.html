@@ -60,6 +60,7 @@
         <a href="quick-sheet.html#emergency-card">Emergency Card</a>
         <a href="diagnostics.html">Diagnostics</a>
         <a href="garage.html">Garage</a>
+        <a href="#agent-status">Agent</a>
       </nav>
 
       <main id="top">
@@ -349,6 +350,17 @@
           </div>
         </section>
 
+        <section class="agent-status-section" id="agent-status" data-agent-status aria-live="polite">
+          <div class="agent-status-head">
+            <div>
+              <p class="eyebrow">Coding Agent</p>
+              <h2>Last Automatic Site Run</h2>
+            </div>
+            <span class="agent-status-pill" data-agent-run-state="loading">Loading</span>
+          </div>
+          <p class="agent-status-summary">Loading the local agent run log...</p>
+        </section>
+
         <section class="truck-profile-section" id="truck-profile">
           <div class="section-head">
             <p class="eyebrow">Truck Snapshot</p>
@@ -622,6 +634,7 @@
     </div>
 
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="agent-status.js"></script>
     <script type="module" src="model-gallery.js"></script>
     <script type="module" src="script.js"></script>
   </body>
