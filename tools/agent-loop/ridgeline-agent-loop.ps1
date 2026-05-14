@@ -49,6 +49,24 @@ function Resolve-CodexPath {
   throw "codex.exe was not found. Open the ChatGPT/Codex extension in VS Code once, or add codex.exe to PATH."
 }
 
+function Join-ProcessArguments {
+  param([array]$Arguments)
+
+  return ($Arguments | ForEach-Object {
+    $value = [string]$_
+    if ($value -eq "") {
+      return '""'
+    }
+    if ($value -notmatch '[\s"]') {
+      return $value
+    }
+
+    $escaped = $value -replace '(\\*)"', '$1$1\"'
+    $escaped = $escaped -replace '(\\+)$', '$1$1'
+    return '"{0}"' -f $escaped
+  }) -join " "
+}
+
 function Get-GitChangedFiles {
   Push-Location $RepoRoot
   try {
@@ -169,8 +187,16 @@ function Invoke-AgentOnce {
       if ($_ -match '\s') { '"{0}"' -f ($_ -replace '"', '\"') } else { $_ }
     }
     Write-Log "Running: $codexPath $($displayArgs -join ' ')"
-    & $codexPath @codexArgsToRun > $stdoutPath 2> $stderrPath
-    $exitCode = $LASTEXITCODE
+    $process = Start-Process `
+      -FilePath $codexPath `
+      -ArgumentList (Join-ProcessArguments -Arguments $codexArgsToRun) `
+      -WorkingDirectory $RepoRoot `
+      -RedirectStandardOutput $stdoutPath `
+      -RedirectStandardError $stderrPath `
+      -WindowStyle Hidden `
+      -Wait `
+      -PassThru
+    $exitCode = $process.ExitCode
 
     Set-Content -LiteralPath $outputPath -Value @(
       "STDOUT:"
