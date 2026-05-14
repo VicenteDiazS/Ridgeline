@@ -1,15 +1,15 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "error",
-    "startedAt":  "2026-05-14T04:35:30.0626630-05:00",
-    "finishedAt":  "2026-05-14T04:35:38.8606236-05:00",
-    "lastHeartbeatAt":  "2026-05-14T04:35:38.9499392-05:00",
+    "status":  "waiting-for-tokens-or-auth",
+    "startedAt":  "2026-05-14T06:05:29.6269089-05:00",
+    "finishedAt":  "2026-05-14T06:05:31.3686217-05:00",
+    "lastHeartbeatAt":  "2026-05-14T06:05:31.4641504-05:00",
     "intervalMinutes":  90,
-    "nextExpectedRunAt":  "2026-05-14T06:05:38.8606236-05:00",
+    "nextExpectedRunAt":  "2026-05-14T07:35:31.3686217-05:00",
     "commit":  "",
     "pushed":  false,
-    "summary":  "Agent loop error: OpenAI Codex v0.130.0-alpha.5",
+    "summary":  "Codex exited with code 2. This can happen when tokens are unavailable, auth expires, or the service is busy. See C:\\Users\\diazv\\Desktop\\Ridgeline\\agent-runs\\codex-20260514-060530.log.",
     "changedFiles":  [
                          "agent-last-run.json"
                      ],
