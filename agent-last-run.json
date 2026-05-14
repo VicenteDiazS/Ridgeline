@@ -1,15 +1,15 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "command-error",
-    "startedAt":  "2026-05-14T13:35:29.8785991-05:00",
-    "finishedAt":  "2026-05-14T13:35:31.7341933-05:00",
-    "lastHeartbeatAt":  "2026-05-14T13:35:31.8292693-05:00",
+    "status":  "error",
+    "startedAt":  "2026-05-14T18:05:30.8166821-05:00",
+    "finishedAt":  "2026-05-14T18:05:48.4934935-05:00",
+    "lastHeartbeatAt":  "2026-05-14T18:05:48.6549581-05:00",
     "intervalMinutes":  30,
-    "nextExpectedRunAt":  "2026-05-14T14:05:31.7341933-05:00",
+    "nextExpectedRunAt":  "2026-05-14T18:35:48.4934935-05:00",
     "commit":  "",
     "pushed":  false,
-    "summary":  "Codex exited with code 2 because the runner passed Anton's prompt as separate command arguments. The runner has been fixed; the next scheduled run should use the repaired command.",
+    "summary":  "Agent loop error: OpenAI Codex v0.130.0-alpha.5",
     "changedFiles":  [
                          "agent-last-run.json"
                      ],
