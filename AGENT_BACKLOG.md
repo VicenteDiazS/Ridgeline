@@ -5,7 +5,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 ## High Priority
 
 - Continue validating fuse diagram accuracy and add source notes for every fuse box.
-- Improve `tools/audit/Invoke-BrowserSmoke.ps1` with scoped interaction checks for Search, More, and sample section links.
+- Add deeper browser checks for keyboard focus behavior in Search and More after the current click checks.
 
 ## Fuse And Electrical
 

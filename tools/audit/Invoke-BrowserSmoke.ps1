@@ -10,6 +10,189 @@ if (-not (Test-Path -LiteralPath $BrowserPath -PathType Leaf)) {
     throw "Microsoft Edge was not found at '$BrowserPath'. Pass -BrowserPath with a Chromium-compatible browser."
 }
 
+function ConvertTo-JsString {
+    param([string]$Value)
+
+    $escaped = $Value.Replace("\", "\\").Replace("""", "\""").Replace("`r", "\r").Replace("`n", "\n")
+    return """$escaped"""
+}
+
+function Join-ProcessArguments {
+    param([string[]]$Arguments)
+
+    ($Arguments | ForEach-Object {
+        if ($_ -match '[\s"]') {
+            '"' + ($_.Replace('"', '\"')) + '"'
+        } else {
+            $_
+        }
+    }) -join " "
+}
+
+function Invoke-EdgeDumpDom {
+    param(
+        [string]$BrowserPath,
+        [string]$PageUri,
+        [string]$OutputPath,
+        [string]$ErrorPath,
+        [string]$ProfilePath,
+        [int]$VirtualTimeBudget = 3500
+    )
+
+    $args = @(
+        "--headless=new",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
+        "--disable-background-networking",
+        "--disable-component-update",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-extensions",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--allow-file-access-from-files",
+        "--user-data-dir=$ProfilePath",
+        "--window-size=1280,900",
+        "--virtual-time-budget=$VirtualTimeBudget",
+        "--dump-dom",
+        $PageUri
+    )
+
+    $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
+    $processInfo.FileName = $BrowserPath
+    $processInfo.UseShellExecute = $false
+    $processInfo.CreateNoWindow = $true
+    $processInfo.RedirectStandardOutput = $true
+    $processInfo.RedirectStandardError = $true
+    $processInfo.Arguments = Join-ProcessArguments $args
+
+    $process = [System.Diagnostics.Process]::new()
+    $process.StartInfo = $processInfo
+    [void]$process.Start()
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+    Set-Content -LiteralPath $OutputPath -Value $stdout -Encoding UTF8
+    Set-Content -LiteralPath $ErrorPath -Value $stderr -Encoding UTF8
+
+    if ($process.ExitCode -ne 0) {
+        throw "Browser render failed for $PageUri with exit code $($process.ExitCode). $stderr"
+    }
+}
+
+function Invoke-InteractionSmoke {
+    param(
+        [string]$Page,
+        [string]$PageUri,
+        [string]$Root,
+        [string]$BrowserPath,
+        [string]$TempDir
+    )
+
+    $probeName = ".ridgeline-browser-probe-$([System.Guid]::NewGuid().ToString("N")).html"
+    $probePath = Join-Path $Root $probeName
+    $probeUri = [System.Uri]::new($probePath).AbsoluteUri
+    $resultPath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe.html")
+    $errPath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe.err")
+    $profilePath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe-profile")
+
+    $pageLiteral = ConvertTo-JsString $Page
+    $uriLiteral = ConvertTo-JsString $PageUri
+    $probeHtml = @"
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Ridgeline browser interaction probe</title></head>
+<body>
+<pre id="result">PENDING</pre>
+<script>
+(async () => {
+  const pageName = $pageLiteral;
+  const pageUri = $uriLiteral;
+  const result = document.querySelector("#result");
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const assert = (condition, message) => {
+    if (!condition) {
+      throw new Error(message);
+    }
+  };
+  try {
+    const frame = document.createElement("iframe");
+    frame.src = pageUri;
+    frame.style.width = "1280px";
+    frame.style.height = "900px";
+    document.body.appendChild(frame);
+    await new Promise((resolve, reject) => {
+      frame.addEventListener("load", resolve, { once: true });
+      frame.addEventListener("error", () => reject(new Error("iframe failed to load")), { once: true });
+      setTimeout(() => reject(new Error("iframe load timed out")), 5000);
+    });
+    await sleep(1200);
+
+    const doc = frame.contentDocument;
+    const win = frame.contentWindow;
+    assert(doc, "cannot inspect rendered page");
+
+    const searchButton = doc.querySelector("[data-open-search]");
+    assert(searchButton, "missing search button");
+    searchButton.click();
+    await sleep(300);
+    const searchModal = doc.querySelector(".search-modal");
+    const searchInput = doc.querySelector("#site-search-input");
+    assert(searchModal && searchModal.hidden === false, "search modal did not open");
+    assert(searchInput, "missing search input");
+    searchInput.value = "fuse";
+    searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await sleep(900);
+    assert(doc.querySelector("#site-search-results").children.length > 0, "search returned no results for fuse");
+    doc.querySelector("[data-close-search]")?.click();
+    await sleep(150);
+
+    const menuButton = doc.querySelector("[data-open-site-menu]");
+    assert(menuButton, "missing More menu button");
+    menuButton.click();
+    await sleep(300);
+    const menu = doc.querySelector("#site-menu");
+    assert(menu && menu.hidden === false, "site menu did not open");
+    assert(doc.querySelectorAll(".site-menu-link").length >= 5, "site menu has too few links");
+    doc.querySelector("[data-close-menu]")?.click();
+    await sleep(150);
+
+    const sectionLink = [...doc.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
+      .find((link) => link.hash && doc.querySelector(link.hash));
+    assert(sectionLink, "missing usable in-page section link");
+    const expectedHash = sectionLink.hash;
+    sectionLink.click();
+    await sleep(300);
+    assert(win.location.hash === expectedHash, "section link did not update the hash");
+
+    result.textContent = "PASS " + pageName;
+  } catch (error) {
+    result.textContent = "FAIL " + pageName + ": " + error.message;
+  }
+})();
+</script>
+</body>
+</html>
+"@
+
+    try {
+        Set-Content -LiteralPath $probePath -Value $probeHtml -Encoding UTF8
+        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $probeUri -OutputPath $resultPath -ErrorPath $errPath -ProfilePath $profilePath -VirtualTimeBudget 8000
+        $probeDom = Get-Content -Raw -LiteralPath $resultPath
+        if ($probeDom -notmatch "PASS\s+$([regex]::Escape($Page))") {
+            $statusMatch = [regex]::Match($probeDom, "(?s)<pre id=""result"">(.*?)</pre>")
+            $status = if ($statusMatch.Success) { [System.Net.WebUtility]::HtmlDecode($statusMatch.Groups[1].Value).Trim() } else { "No probe result was rendered." }
+            throw "Interaction smoke failed for ${Page}: $status"
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $probePath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("ridgeline-browser-smoke-" + [System.Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
 
@@ -24,32 +207,7 @@ try {
         $domPath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + ".html")
         $errPath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + ".err")
         $profilePath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + "-profile")
-        $args = @(
-            "--headless=new",
-            "--disable-gpu",
-            "--disable-software-rasterizer",
-            "--disable-dev-shm-usage",
-            "--no-sandbox",
-            "--disable-background-networking",
-            "--disable-component-update",
-            "--disable-sync",
-            "--metrics-recording-only",
-            "--disable-extensions",
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--allow-file-access-from-files",
-            "--user-data-dir=$profilePath",
-            "--window-size=1280,900",
-            "--virtual-time-budget=3500",
-            "--dump-dom",
-            $pageUri
-        )
-
-        $process = Start-Process -FilePath $BrowserPath -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput $domPath -RedirectStandardError $errPath
-        if ($process.ExitCode -ne 0) {
-            $stderr = Get-Content -Raw -LiteralPath $errPath
-            throw "Browser smoke test failed for $page with exit code $($process.ExitCode). $stderr"
-        }
+        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $pageUri -OutputPath $domPath -ErrorPath $errPath -ProfilePath $profilePath
 
         $dom = Get-Content -Raw -LiteralPath $domPath
         $checks = @(
@@ -74,7 +232,9 @@ try {
             throw "$page is missing the injected subpage support controls."
         }
 
-        Write-Host "Browser smoke passed for $page"
+        Invoke-InteractionSmoke -Page $page -PageUri $pageUri -Root $Root -BrowserPath $BrowserPath -TempDir $tempDir
+
+        Write-Host "Browser smoke and interactions passed for $page"
     }
 }
 finally {
