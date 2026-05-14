@@ -1,17 +1,17 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "blocked-dirty-worktree",
-    "startedAt":  "2026-05-13T19:54:49.2409544-05:00",
-    "finishedAt":  "2026-05-13T19:54:49.6213880-05:00",
-    "lastHeartbeatAt":  "2026-05-13T19:54:49.8870196-05:00",
+    "status":  "error",
+    "startedAt":  "2026-05-13T19:55:49.8839364-05:00",
+    "finishedAt":  "2026-05-13T19:55:53.2777538-05:00",
+    "lastHeartbeatAt":  "2026-05-13T19:55:53.5445503-05:00",
     "intervalMinutes":  90,
-    "nextExpectedRunAt":  "2026-05-13T21:24:49.6213880-05:00",
+    "nextExpectedRunAt":  "2026-05-13T21:25:53.2777538-05:00",
     "commit":  "",
     "pushed":  false,
-    "summary":  "Anton did not start because the worktree already has 1 changed file(s). Commit, stash, or review those changes first so automated commits only include Anton\u0027s own work.",
+    "summary":  "Agent loop error: error: unexpected argument \u0027--search\u0027 found",
     "changedFiles":  [
-                         "debug-screenshots/audit-agent-heartbeat-desktop-v238.png"
+                         "agent-last-run.json"
                      ],
     "log":  "agent-runs/agent-loop.log"
 }
