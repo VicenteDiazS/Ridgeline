@@ -30,6 +30,25 @@ function Read-Config {
   return Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
 }
 
+function Resolve-CodexPath {
+  $command = Get-Command codex -ErrorAction SilentlyContinue
+  if ($command) {
+    return $command.Source
+  }
+
+  $extensionRoot = Join-Path $env:USERPROFILE ".vscode\extensions"
+  if (Test-Path -LiteralPath $extensionRoot) {
+    $candidate = Get-ChildItem -LiteralPath $extensionRoot -Recurse -Filter "codex.exe" -ErrorAction SilentlyContinue |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+    if ($candidate) {
+      return $candidate.FullName
+    }
+  }
+
+  throw "codex.exe was not found. Open the ChatGPT/Codex extension in VS Code once, or add codex.exe to PATH."
+}
+
 function Get-GitChangedFiles {
   Push-Location $RepoRoot
   try {
@@ -102,10 +121,7 @@ function Invoke-AgentOnce {
       return
     }
 
-    $codex = Get-Command codex -ErrorAction SilentlyContinue
-    if (-not $codex) {
-      throw "codex.exe was not found on PATH."
-    }
+    $codexPath = Resolve-CodexPath
 
     $repoArg = Resolve-Path (Join-Path $RepoRoot ([string]$config.repoRoot))
     $codexArgsToRun = @()
@@ -115,8 +131,8 @@ function Invoke-AgentOnce {
     $codexArgsToRun += @([string]$config.prompt)
 
     $outputPath = Join-Path $RunDir ("codex-{0}.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
-    Write-Log "Running: codex $($codexArgsToRun -join ' ')"
-    & codex @codexArgsToRun *> $outputPath
+    Write-Log "Running: $codexPath $($codexArgsToRun -join ' ')"
+    & $codexPath @codexArgsToRun *> $outputPath
     $exitCode = $LASTEXITCODE
 
     if ($exitCode -ne 0) {
