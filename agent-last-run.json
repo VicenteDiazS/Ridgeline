@@ -1,13 +1,15 @@
-﻿{
-    "status":  "blocked-dirty-worktree",
-    "startedAt":  "2026-05-13T19:38:02.5389538-05:00",
-    "finishedAt":  "2026-05-13T19:38:02.9278654-05:00",
-    "commit":  "",
-    "pushed":  false,
-    "summary":  "Anton did not start because the worktree already has 1 changed file(s). Commit, stash, or review those changes first so automated commits only include Anton\u0027s own work.",
-    "changedFiles":  [
-                         "agent-last-run.json",
-                         "tools/agent-loop/ridgeline-agent-loop.ps1"
-                     ],
-    "log":  "agent-runs/agent-loop.log"
+{
+  "agentName": "Anton",
+  "statusVersion": 2,
+  "status": "needs-first-clean-run",
+  "startedAt": null,
+  "finishedAt": null,
+  "lastHeartbeatAt": null,
+  "intervalMinutes": 90,
+  "nextExpectedRunAt": null,
+  "commit": null,
+  "pushed": false,
+  "summary": "Anton is installed and scheduled to check the Ridgeline repo every 90 minutes. Commit the current setup changes, then the next scheduled run can begin.",
+  "changedFiles": [],
+  "log": "agent-runs/agent-loop.log"
 }

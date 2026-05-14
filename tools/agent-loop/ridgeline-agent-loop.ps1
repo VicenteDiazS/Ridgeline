@@ -79,10 +79,34 @@ function Write-AgentStatus {
     [array]$ChangedFiles = @()
   )
 
+  $intervalMinutes = 90
+  try {
+    $statusConfig = Read-Config
+    if ($statusConfig.intervalMinutes) {
+      $intervalMinutes = [int]$statusConfig.intervalMinutes
+    }
+  } catch {
+    $intervalMinutes = 90
+  }
+
+  $nextExpectedRunAt = $null
+  if ($FinishedAt) {
+    try {
+      $nextExpectedRunAt = ([DateTimeOffset]::Parse($FinishedAt).AddMinutes($intervalMinutes)).ToString("o")
+    } catch {
+      $nextExpectedRunAt = $null
+    }
+  }
+
   $payload = [ordered]@{
+    agentName = "Anton"
+    statusVersion = 2
     status = $Status
     startedAt = $StartedAt
     finishedAt = $FinishedAt
+    lastHeartbeatAt = [DateTimeOffset]::Now.ToString("o")
+    intervalMinutes = $intervalMinutes
+    nextExpectedRunAt = $nextExpectedRunAt
     commit = $Commit
     pushed = $Pushed
     summary = $Summary
