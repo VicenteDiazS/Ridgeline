@@ -1,6 +1,6 @@
 param(
   [string]$TaskName = "Ridgeline Codex Agent Loop",
-  [int]$IntervalMinutes = 90
+  [int]$IntervalMinutes = 30
 )
 
 $ErrorActionPreference = "Stop"

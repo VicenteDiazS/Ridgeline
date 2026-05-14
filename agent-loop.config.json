@@ -1,11 +1,13 @@
 {
   "enabled": true,
-  "intervalMinutes": 90,
+  "intervalMinutes": 30,
   "repoRoot": ".",
   "branch": "main",
   "remote": "origin",
   "codexArgs": [
     "exec",
+    "--config",
+    "approval_policy=\"never\"",
     "--sandbox",
     "workspace-write"
   ],
