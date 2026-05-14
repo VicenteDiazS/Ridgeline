@@ -163,9 +163,25 @@ function Invoke-AgentOnce {
     $codexArgsToRun += @([string]$config.prompt)
 
     $outputPath = Join-Path $RunDir ("codex-{0}.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
+    $stdoutPath = Join-Path $RunDir ("codex-{0}.stdout.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
+    $stderrPath = Join-Path $RunDir ("codex-{0}.stderr.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
     Write-Log "Running: $codexPath $($codexArgsToRun -join ' ')"
-    & $codexPath @codexArgsToRun *> $outputPath
-    $exitCode = $LASTEXITCODE
+    $process = Start-Process `
+      -FilePath $codexPath `
+      -ArgumentList $codexArgsToRun `
+      -WorkingDirectory $RepoRoot `
+      -RedirectStandardOutput $stdoutPath `
+      -RedirectStandardError $stderrPath `
+      -Wait `
+      -PassThru
+    $exitCode = $process.ExitCode
+
+    Set-Content -LiteralPath $outputPath -Value @(
+      "STDOUT:"
+      if (Test-Path -LiteralPath $stdoutPath) { Get-Content -LiteralPath $stdoutPath -Raw }
+      "STDERR:"
+      if (Test-Path -LiteralPath $stderrPath) { Get-Content -LiteralPath $stderrPath -Raw }
+    ) -Encoding UTF8
 
     if ($exitCode -ne 0) {
       $failureText = "Codex exited with code $exitCode. This can happen when tokens are unavailable, auth expires, or the service is busy. See $outputPath."
