@@ -9167,7 +9167,8 @@ body {
   z-index: 20;
 }
 
-.home-support-panel {
+.home-support-panel,
+.subpage-support-panel {
   display: grid;
   gap: 8px;
   margin-top: 12px;
@@ -9180,12 +9181,28 @@ body {
 .home-support-panel .breadcrumb-trail,
 .home-support-panel .recent-strip,
 .home-support-panel .sync-status-badges,
-.home-support-panel .page-action-bar {
+.home-support-panel .page-action-bar,
+.subpage-support-panel .breadcrumb-trail,
+.subpage-support-panel .recent-strip,
+.subpage-support-panel .sync-status-badges,
+.subpage-support-panel .page-action-bar {
   margin-top: 0;
 }
 
-.home-support-panel .page-action-bar {
+.home-support-panel .page-action-bar,
+.subpage-support-panel .page-action-bar {
   position: static;
+}
+
+.subpage-support-panel {
+  margin-top: -8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(5, 12, 20, 0.36);
+}
+
+.subpage-support-panel .breadcrumb-trail {
+  padding-block: 4px;
 }
 
 .search-suggestions {
@@ -10084,10 +10101,10 @@ body {
 
 @media (max-width: 760px) {
   .quick-capture-fab {
-    right: auto;
-    left: 12px;
-    top: calc(250px + env(safe-area-inset-top, 0px));
-    bottom: auto;
+    right: max(12px, env(safe-area-inset-right, 0px));
+    left: auto;
+    top: auto;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
     width: 44px;
     height: 44px;
     border-radius: 15px;

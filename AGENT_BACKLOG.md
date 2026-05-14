@@ -4,7 +4,6 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
-- Clean up subpage first-screen layout so navigation helpers are useful but do not bury the actual page title.
 - Build a reusable browser audit script instead of one-off inline scripts.
 - Add a repeatable screenshot script for desktop/mobile smoke tests.
 - Add a lightweight local test checklist command or script that runs link checks and browser checks together.
@@ -25,6 +24,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add a clear current-page indicator in the universal header/menu.
 - Improve empty states for garage data and photo atlas.
 - Add keyboard focus checks for modals and menus.
+- Continue tuning subpage helper density after real-device review; the page title should remain the first content priority.
 
 ## Performance And Offline
 
@@ -47,4 +47,3 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add export/import for garage notes.
 - Add printable quick sheets.
 - Add QR/NFC landing flows for specific fuse diagrams and maintenance tasks.
-

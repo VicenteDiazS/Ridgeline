@@ -6,6 +6,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 - Every HTML page uses a consistent top header with brand, primary section links, search, and a full-site menu.
 - Header actions are normalized by `shared-ui.js` so subpages receive the same Map, Service, Garage, Search, and More controls as the home page.
+- Subpage support controls are injected after the page hero instead of above the main content, keeping each page title near the top of the first screen.
 - Every real HTML page has a `main` landmark and page title.
 - Every real HTML page has a meta description for browser, search, and assistive-tool context.
 - Internal anchor links are checked so buttons and section links do not point to missing pages or missing sections.
@@ -25,7 +26,9 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 ## Latest Verification Notes
 
-- Universal header behavior added in `shared-ui.js`.
-- Meta descriptions added to subpages.
-- Service worker cache advanced to `ridgeline-console-v236`.
-- Browser screenshots and click/navigation checks should be refreshed whenever this file changes.
+- Subpage intro layout cleanup added in `shared-ui.js` and `styles.css`.
+- Mobile quick-add FAB moved below content and above the bottom bar to avoid covering hero copy.
+- Service worker cache advanced to `ridgeline-console-v238`.
+- Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` as `debug-screenshots/*-v238.png`.
+- Browser interaction checks passed for header controls, Search, More, section links, and subpage helper placement.
+- Static internal link/anchor audit passed for 15 HTML files.

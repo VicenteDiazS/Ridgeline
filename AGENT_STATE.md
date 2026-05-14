@@ -1,11 +1,12 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-13
+Last updated: 2026-05-14
 
 ## Current Site Status
 
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
 - Universal header navigation has been added across pages.
+- Subpage helper controls now sit after the page hero so the main title is visible sooner on mobile and desktop.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
 - Manual full-access startup script exists at `tools/agent-loop/Start-AntonManual.ps1`.
@@ -13,11 +14,13 @@ Last updated: 2026-05-13
 
 ## Last Completed Work
 
-- Added consistent header actions: Map, Service, Garage, Search, More.
-- Added meta descriptions to subpages.
-- Bumped service worker cache to `ridgeline-console-v236`.
-- Verified 15 pages in browser with 0 header/menu/search failures.
-- Captured 22 audit screenshots.
+- Moved injected subpage helper controls below the page hero so page titles are visible sooner on mobile and desktop.
+- Added a shared subpage intro insertion helper for the view-mode rail, mobile navigation accordion, and page support controls.
+- Moved the mobile quick-add FAB to the lower right above the bottom bar so it does not cover hero copy.
+- Bumped service worker cache to `ridgeline-console-v238`.
+- Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` in `debug-screenshots/*-v238.png`.
+- Verified Search, More, header controls, section link targets, and subpage helper placement with headless Edge/CDP.
+- Re-ran the static internal link/anchor audit across 15 HTML files.
 
 ## Known Cautions
 
@@ -27,12 +30,12 @@ Last updated: 2026-05-13
 
 ## Best Next Task
 
-Improve the subpage information architecture so the injected support panels do not push each page’s main title too far down on mobile and desktop. Preserve the helpful tools, but make the first screen feel cleaner and more direct.
+Build reusable local audit scripts for screenshots, browser interaction checks, and static internal link/anchor validation so future loops do not depend on one-off inline commands.
 
 ## Next Verification Target
 
-After the next UI change:
+After the next tooling change:
 
-- Capture desktop and mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
-- Verify header controls, Search, More, and section links.
-- Re-run the static internal link/anchor audit.
+- Run the new reusable audit command against `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
+- Confirm generated screenshots land in `debug-screenshots/`.
+- Confirm the static link/anchor check still passes for all HTML files.

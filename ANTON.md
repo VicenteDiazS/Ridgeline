@@ -66,3 +66,8 @@ Anton should prefer one well-scoped helper over many unfocused helpers.
 - Navigation should land exactly where the user expects.
 - Screenshots and browser checks are expected for UI work.
 - The agent should keep improving the site, but not make random changes just to stay busy.
+
+## Recent Layout Decision
+
+- Keep subpage heroes as the first meaningful content after the header. Injected helper controls such as view modes, mobile navigation, breadcrumbs, recent pages, and page actions should sit after the hero unless a specific page design calls for a different order.
+- Prefer turning repeatable browser and link checks into scripts; the last run used one-off PowerShell/Python commands and should be captured as reusable tooling next.

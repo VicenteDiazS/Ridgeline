@@ -619,6 +619,30 @@ function setContentMode(mode = "full", persist = true) {
   }
 }
 
+function getSubpageIntroAnchor() {
+  return (
+    document.querySelector(
+      "main .section-page-hero, main .section-page-main, main .engine-page-main, main .wheel-page-main, main .nfc-page-main, main .nfc-landing-main"
+    ) || document.querySelector("main > section, main > article")
+  );
+}
+
+function insertSubpageIntroTool(element) {
+  if (!element) {
+    return false;
+  }
+
+  const introTools = main ? [...main.querySelectorAll(":scope > .subpage-intro-tool")] : [];
+  const anchor = introTools.at(-1) || getSubpageIntroAnchor();
+  if (!anchor) {
+    return false;
+  }
+
+  element.classList.add("subpage-intro-tool");
+  anchor.insertAdjacentElement("afterend", element);
+  return true;
+}
+
 function buildViewModeRail() {
   if (!topbar || !main || document.querySelector(".view-mode-rail")) {
     return;
@@ -648,6 +672,8 @@ function buildViewModeRail() {
     indexLeadSection.insertAdjacentElement("afterend", rail);
   } else if (quickActionBar) {
     quickActionBar.insertAdjacentElement("afterend", rail);
+  } else if (insertSubpageIntroTool(rail)) {
+    // Keep subpage titles as the first content after the header.
   } else {
     topbar.insertAdjacentElement("afterend", rail);
   }
@@ -1341,6 +1367,8 @@ function buildMobileNavAccordion(sections) {
   const indexLeadSection = isIndexPage ? document.querySelector("main > section:first-child") : null;
   if (isIndexPage && indexLeadSection) {
     indexLeadSection.insertAdjacentElement("afterend", container);
+  } else if (insertSubpageIntroTool(container)) {
+    // Keep subpage titles as the first content after the header.
   } else {
     topbar.insertAdjacentElement("afterend", container);
   }
@@ -3390,24 +3418,35 @@ function openQuickCaptureWithKind(kind) {
 }
 
 function getNavigationSupportHost() {
-  if (currentPageName() !== "index.html") {
-    return null;
-  }
-
-  let host = document.querySelector(".home-support-panel");
+  const isHome = currentPageName() === "index.html";
+  let host = document.querySelector(isHome ? ".home-support-panel" : ".subpage-support-panel");
   if (host) {
     return host;
   }
 
-  const viewer = document.querySelector("#viewer");
-  if (!viewer) {
-    return null;
+  host = document.createElement("section");
+  host.className = isHome ? "home-support-panel" : "subpage-support-panel";
+  host.setAttribute("aria-label", isHome ? "Home navigation support" : "Page navigation support");
+
+  if (isHome) {
+    const viewer = document.querySelector("#viewer");
+    if (!viewer) {
+      return null;
+    }
+    viewer.insertAdjacentElement("afterend", host);
+    return host;
   }
 
-  host = document.createElement("section");
-  host.className = "home-support-panel";
-  host.setAttribute("aria-label", "Home navigation support");
-  viewer.insertAdjacentElement("afterend", host);
+  if (insertSubpageIntroTool(host)) {
+    return host;
+  }
+
+  if (main) {
+    main.insertAdjacentElement("afterbegin", host);
+  } else {
+    document.querySelector(".topbar")?.insertAdjacentElement("afterend", host);
+  }
+
   return host;
 }
 
