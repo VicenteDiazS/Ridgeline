@@ -78,6 +78,13 @@ Install as a scheduled task:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentLoopTask.ps1 -IntervalMinutes 90
 ```
 
+If Windows asks for Administrator permission, approve it. Updating an existing scheduled task's wake/logon triggers may require elevation.
+
+Anton is installed with two triggers:
+
+- every 90 minutes
+- at Windows logon, so a missed sleep/lid-close run gets another chance as soon as the laptop wakes and signs in
+
 Allow plugged-in laptop closed-lid operation:
 
 ```powershell
@@ -85,6 +92,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Enable-An
 ```
 
 This sets plugged-in lid close behavior to "do nothing", enables plugged-in wake timers, and updates Anton's scheduled task with `WakeToRun`. Use the `-IncludeBattery` switch only if you intentionally want the same behavior while unplugged.
+
+If the laptop enters a deep sleep state that ignores wake timers, Anton cannot run while it is fully asleep. The site heartbeat panel will show "No recent check-in" after the grace period, and the logon trigger will run Anton when Windows wakes/signs in again.
 
 The runner uses `agent-loop.config.json`, writes logs to `agent-runs/`, updates `agent-last-run.json`, commits completed changes, and pushes them to the configured GitHub remote when Git authentication is available.
 

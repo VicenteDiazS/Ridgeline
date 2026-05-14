@@ -92,7 +92,7 @@ function getLoopHealth(data) {
     return {
       state: "stale",
       label: "No recent check-in",
-      copy: `Anton has not checked in for ${Math.round(heartbeatAgeMinutes)} minutes. Check Windows Task Scheduler or laptop power.`
+      copy: `Anton has not checked in for ${Math.round(heartbeatAgeMinutes)} minutes. The laptop may have slept through a run; wake it, sign in, and check Task Scheduler.`
     };
   }
 
