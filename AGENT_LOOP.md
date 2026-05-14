@@ -78,6 +78,14 @@ Install as a scheduled task:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentLoopTask.ps1 -IntervalMinutes 90
 ```
 
+Allow plugged-in laptop closed-lid operation:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Enable-AntonLaptopMode.ps1
+```
+
+This sets plugged-in lid close behavior to "do nothing", enables plugged-in wake timers, and updates Anton's scheduled task with `WakeToRun`. Use the `-IncludeBattery` switch only if you intentionally want the same behavior while unplugged.
+
 The runner uses `agent-loop.config.json`, writes logs to `agent-runs/`, updates `agent-last-run.json`, commits completed changes, and pushes them to the configured GitHub remote when Git authentication is available.
 
 By default, scheduled mode requires a clean git worktree before it starts. This prevents Anton from accidentally committing unrelated manual edits that were already present.

@@ -25,7 +25,8 @@ $settings = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
   -DontStopIfGoingOnBatteries `
   -MultipleInstances IgnoreNew `
-  -StartWhenAvailable
+  -StartWhenAvailable `
+  -WakeToRun
 
 Register-ScheduledTask `
   -TaskName $TaskName `
