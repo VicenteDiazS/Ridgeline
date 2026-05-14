@@ -266,6 +266,32 @@ function Invoke-AgentOnce {
     }
 
     Write-AgentStatus -Status "completed" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $lastMessage -Commit $commitSha -Pushed $pushed -ChangedFiles $changedFiles
+
+    $statusOnlyChanges = @(Get-GitChangedFiles | Where-Object { $_ -eq "agent-last-run.json" })
+    if ($config.commitChanges -and $statusOnlyChanges.Count -gt 0) {
+      Write-Log "Committing updated agent status."
+      $statusCommitSha = $null
+      git add -- agent-last-run.json
+      $statusMessage = "chore: update Anton run status: {0}" -f (Get-Date).ToString("yyyy-MM-dd HH:mm")
+      git commit -m $statusMessage
+      if ($LASTEXITCODE -eq 0) {
+        $statusCommitSha = (git rev-parse --short HEAD).Trim()
+        Write-Log "Committed status update $statusCommitSha."
+      }
+
+      if ($config.pushChanges -and $statusCommitSha) {
+        $branch = [string]$config.branch
+        if ([string]::IsNullOrWhiteSpace($branch)) {
+          $branch = (git branch --show-current).Trim()
+        }
+        git push ([string]$config.remote) $branch
+        if ($LASTEXITCODE -eq 0) {
+          Write-Log "Pushed status update $statusCommitSha to $($config.remote)/$branch."
+        } else {
+          Write-Log "Push failed for status update $statusCommitSha. Check GitHub authentication or branch protection."
+        }
+      }
+    }
   } catch {
     $message = "Agent loop error: $($_.Exception.Message)"
     Write-Log $message
