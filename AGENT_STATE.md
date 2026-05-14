@@ -7,6 +7,7 @@ Last updated: 2026-05-14
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
 - Universal header navigation has been added across pages.
 - Subpage helper controls now sit after the page hero so the main title is visible sooner on mobile and desktop.
+- Reusable audit scripts now live in `tools/audit/` for internal link checks, rendered browser smoke checks, and desktop/mobile screenshot capture.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
 - Manual full-access startup script exists at `tools/agent-loop/Start-AntonManual.ps1`.
@@ -14,13 +15,12 @@ Last updated: 2026-05-14
 
 ## Last Completed Work
 
-- Moved injected subpage helper controls below the page hero so page titles are visible sooner on mobile and desktop.
-- Added a shared subpage intro insertion helper for the view-mode rail, mobile navigation accordion, and page support controls.
-- Moved the mobile quick-add FAB to the lower right above the bottom bar so it does not cover hero copy.
-- Bumped service worker cache to `ridgeline-console-v238`.
-- Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` in `debug-screenshots/*-v238.png`.
-- Verified Search, More, header controls, section link targets, and subpage helper placement with headless Edge/CDP.
-- Re-ran the static internal link/anchor audit across 15 HTML files.
+- Added `tools/audit/Test-InternalLinks.ps1` for static internal HTML file and anchor validation.
+- Added `tools/audit/Invoke-BrowserSmoke.ps1` for rendered Edge checks that confirm main landmarks, header controls, page titles, and subpage support controls.
+- Added `tools/audit/Capture-Screenshots.ps1` for repeatable desktop/mobile captures.
+- Added `tools/audit/Invoke-SiteAudit.ps1` as the single local checklist command that runs links, browser smoke checks, and screenshots.
+- Verified the new wrapper against `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
+- Captured desktop/mobile screenshots for those pages as `debug-screenshots/audit-v239b-*.png`.
 
 ## Known Cautions
 
@@ -30,12 +30,11 @@ Last updated: 2026-05-14
 
 ## Best Next Task
 
-Build reusable local audit scripts for screenshots, browser interaction checks, and static internal link/anchor validation so future loops do not depend on one-off inline commands.
+Continue validating fuse diagram accuracy and add source notes for every fuse box without changing factual fuse data unless a reliable source is in hand.
 
 ## Next Verification Target
 
-After the next tooling change:
+After the next content/data change:
 
-- Run the new reusable audit command against `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
-- Confirm generated screenshots land in `debug-screenshots/`.
-- Confirm the static link/anchor check still passes for all HTML files.
+- Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v240`.
+- If fuse/source notes change, record the source and review the affected Hood/Cabin diagrams in the browser.

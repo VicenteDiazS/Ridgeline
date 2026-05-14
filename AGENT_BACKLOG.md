@@ -4,10 +4,8 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
-- Build a reusable browser audit script instead of one-off inline scripts.
-- Add a repeatable screenshot script for desktop/mobile smoke tests.
-- Add a lightweight local test checklist command or script that runs link checks and browser checks together.
 - Continue validating fuse diagram accuracy and add source notes for every fuse box.
+- Improve `tools/audit/Invoke-BrowserSmoke.ps1` with scoped interaction checks for Search, More, and sample section links.
 
 ## Fuse And Electrical
 
@@ -28,7 +26,6 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## Performance And Offline
 
-- Turn the ad hoc browser checks into a saved script.
 - Add service worker cache audit notes.
 - Check image sizes and defer non-critical heavy assets.
 - Keep adaptive motion behavior tied to connection quality and reduced-motion preference.

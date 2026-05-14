@@ -1,17 +1,17 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "error",
-    "startedAt":  "2026-05-14T18:05:30.8166821-05:00",
-    "finishedAt":  "2026-05-14T18:05:48.4934935-05:00",
-    "lastHeartbeatAt":  "2026-05-14T18:05:48.6549581-05:00",
+    "status":  "running",
+    "startedAt":  "2026-05-14T18:13:37.7349422-05:00",
+    "finishedAt":  "",
+    "lastHeartbeatAt":  "2026-05-14T18:13:38.0054496-05:00",
     "intervalMinutes":  30,
-    "nextExpectedRunAt":  "2026-05-14T18:35:48.4934935-05:00",
+    "nextExpectedRunAt":  null,
     "commit":  "",
     "pushed":  false,
-    "summary":  "Agent loop error: OpenAI Codex v0.130.0-alpha.5",
+    "summary":  "Agent run started.",
     "changedFiles":  [
-                         "agent-last-run.json"
+                         null
                      ],
     "log":  "agent-runs/agent-loop.log"
 }

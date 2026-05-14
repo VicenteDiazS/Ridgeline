@@ -10,6 +10,11 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Every real HTML page has a `main` landmark and page title.
 - Every real HTML page has a meta description for browser, search, and assistive-tool context.
 - Internal anchor links are checked so buttons and section links do not point to missing pages or missing sections.
+- Repeatable local audit scripts live under `tools/audit/`:
+  - `Test-InternalLinks.ps1` checks local HTML links and anchors.
+  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge and checks landmarks/header controls.
+  - `Capture-Screenshots.ps1` captures desktop and mobile screenshots.
+  - `Invoke-SiteAudit.ps1` runs the checklist together.
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
 - The service worker cache version is bumped when site structure changes so installed/offline copies refresh.
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
@@ -26,9 +31,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 ## Latest Verification Notes
 
-- Subpage intro layout cleanup added in `shared-ui.js` and `styles.css`.
-- Mobile quick-add FAB moved below content and above the bottom bar to avoid covering hero copy.
-- Service worker cache advanced to `ridgeline-console-v238`.
-- Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` as `debug-screenshots/*-v238.png`.
-- Browser interaction checks passed for header controls, Search, More, section links, and subpage helper placement.
+- Added reusable audit scripts in `tools/audit/`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v239b`.
 - Static internal link/anchor audit passed for 15 HTML files.
+- Browser smoke checks passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
+- Captured desktop/mobile screenshots for those pages as `debug-screenshots/audit-v239b-*.png`.
