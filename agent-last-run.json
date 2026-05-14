@@ -1,17 +1,17 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "blocked-dirty-worktree",
-    "startedAt":  "2026-05-13T21:05:29.5739001-05:00",
-    "finishedAt":  "2026-05-13T21:05:29.8625969-05:00",
-    "lastHeartbeatAt":  "2026-05-13T21:05:30.0499841-05:00",
+    "status":  "error",
+    "startedAt":  "2026-05-14T04:35:30.0626630-05:00",
+    "finishedAt":  "2026-05-14T04:35:38.8606236-05:00",
+    "lastHeartbeatAt":  "2026-05-14T04:35:38.9499392-05:00",
     "intervalMinutes":  90,
-    "nextExpectedRunAt":  "2026-05-13T22:35:29.8625969-05:00",
+    "nextExpectedRunAt":  "2026-05-14T06:05:38.8606236-05:00",
     "commit":  "",
     "pushed":  false,
-    "summary":  "Anton did not start because the worktree already has 1 changed file(s). Commit, stash, or review those changes first so automated commits only include Anton\u0027s own work.",
+    "summary":  "Agent loop error: OpenAI Codex v0.130.0-alpha.5",
     "changedFiles":  [
-                         "agent-loop.config.json"
+                         "agent-last-run.json"
                      ],
     "log":  "agent-runs/agent-loop.log"
 }
