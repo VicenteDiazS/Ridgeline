@@ -54,6 +54,21 @@ function describeNextRun(value) {
   return `About ${minutes} min`;
 }
 
+function summarizeRun(data) {
+  const summary = data.summary || "No agent run summary has been recorded yet.";
+  const lowered = summary.toLowerCase();
+
+  if (lowered.includes("unrecognized subcommand") || lowered.includes("unexpected argument")) {
+    return "Anton launched, but the Codex command line was malformed. The runner needs a script fix rather than more tokens.";
+  }
+
+  if ((data.status || "").includes("waiting-for-tokens-or-auth")) {
+    return "Anton launched, but Codex stopped before doing useful work. Check the run log to separate auth, quota, service, and command-line errors.";
+  }
+
+  return summary;
+}
+
 function getLoopHealth(data) {
   const interval = Number(data.intervalMinutes) || 90;
   const heartbeat = data.lastHeartbeatAt || data.finishedAt || data.startedAt;
@@ -72,11 +87,14 @@ function getLoopHealth(data) {
     };
   }
 
-  if (["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth"].includes(status)) {
+  if (["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth", "command-error"].includes(status)) {
+    const copy = status === "command-error"
+      ? "Anton reached Codex, but the runner command failed before site work could begin."
+      : "Anton checked in, but the last run needs a fix before useful work can continue.";
     return {
       state: "attention",
       label: "Needs attention",
-      copy: "Anton checked in, but the last run needs a fix before useful work can continue."
+      copy
     };
   }
 
@@ -114,11 +132,12 @@ function renderAgentStatus(data) {
   const pushedText = data.pushed ? "Pushed to GitHub" : "Not pushed";
   const health = getLoopHealth(data);
   const intervalText = `${Number(data.intervalMinutes) || 90} min`;
+  const runSummary = summarizeRun(data);
 
   statusRoot.innerHTML = `
     <div class="agent-status-head">
       <div>
-        <p class="eyebrow">Coding Agent</p>
+        <p class="eyebrow">Anton Monitor</p>
         <h2>Anton Automatic Site Loop</h2>
       </div>
       <span class="agent-status-pill" data-agent-run-state="${escapeHtml(data.status || "unknown")}">${escapeHtml(data.status || "unknown")}</span>
@@ -127,7 +146,7 @@ function renderAgentStatus(data) {
       <strong>${health.label}</strong>
       <span>${health.copy}</span>
     </div>
-    <p class="agent-status-summary">${escapeHtml(data.summary || "No agent run summary has been recorded yet.")}</p>
+    <p class="agent-status-summary">${escapeHtml(runSummary)}</p>
     <div class="agent-status-grid">
       <div><span>Loop</span><strong>Every ${intervalText}</strong></div>
       <div><span>Next Check</span><strong>${describeNextRun(data.nextExpectedRunAt)}</strong></div>

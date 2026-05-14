@@ -10714,6 +10714,40 @@ select:focus {
   overflow-wrap: anywhere;
 }
 
+.home-status-pill-agent {
+  border-color: rgba(93, 223, 255, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(93, 223, 255, 0.2), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(7, 17, 26, 0.8);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.agent-status-section {
+  border-color: rgba(93, 223, 255, 0.42);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(93, 223, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 90% 8%, rgba(104, 255, 190, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(8, 20, 31, 0.98), rgba(17, 14, 30, 0.96));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(93, 223, 255, 0.06) inset;
+}
+
+.agent-status-section .eyebrow {
+  color: #8eeaff;
+}
+
+.agent-status-head h2 {
+  font-size: clamp(1.7rem, 4vw, 3rem);
+}
+
+.agent-status-summary {
+  color: #c8d8e5;
+  font-size: clamp(0.98rem, 1.6vw, 1.08rem);
+}
+
 @media (max-width: 720px) {
   .agent-status-head {
     align-items: stretch;

@@ -180,9 +180,23 @@ function Invoke-AgentOnce {
     ) -Encoding UTF8
 
     if ($exitCode -ne 0) {
-      $failureText = "Codex exited with code $exitCode. This can happen when tokens are unavailable, auth expires, or the service is busy. See $outputPath."
+      $combinedOutput = ""
+      if (Test-Path -LiteralPath $stdoutPath) {
+        $combinedOutput += Get-Content -LiteralPath $stdoutPath -Raw
+      }
+      if (Test-Path -LiteralPath $stderrPath) {
+        $combinedOutput += Get-Content -LiteralPath $stderrPath -Raw
+      }
+      $failureStatus = "waiting-for-tokens-or-auth"
+      $failureText = "Codex exited with code $exitCode. Check the captured stdout/stderr for the exact cause. See $outputPath."
+      if ($combinedOutput -match "unrecognized subcommand|unexpected argument") {
+        $failureStatus = "command-error"
+        $failureText = "Codex exited with code $exitCode because the runner passed an invalid command-line argument. See $outputPath."
+      } elseif ($combinedOutput -match "quota|rate limit|tokens|authentication|unauthorized|forbidden|login") {
+        $failureText = "Codex exited with code $exitCode because auth, quota, rate limit, or token access may need attention. See $outputPath."
+      }
       Write-Log $failureText
-      Write-AgentStatus -Status "waiting-for-tokens-or-auth" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $failureText -ChangedFiles (Get-GitChangedFiles)
+      Write-AgentStatus -Status $failureStatus -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $failureText -ChangedFiles (Get-GitChangedFiles)
       return
     }
 
