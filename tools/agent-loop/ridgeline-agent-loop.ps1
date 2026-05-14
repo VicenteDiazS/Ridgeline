@@ -61,6 +61,13 @@ function Get-GitChangedFiles {
   }
 }
 
+function Get-BlockingGitChangedFiles {
+  $ignored = @(
+    "agent-last-run.json"
+  )
+  return @(Get-GitChangedFiles | Where-Object { $ignored -notcontains $_ })
+}
+
 function Write-AgentStatus {
   param(
     [string]$Status,
@@ -105,21 +112,22 @@ function Invoke-AgentOnce {
 
   Set-Content -LiteralPath $LockPath -Value ([DateTimeOffset]::Now.ToString("o")) -Encoding UTF8
   $started = [DateTimeOffset]::Now.ToString("o")
-  $summary = "Agent run started."
-  Write-AgentStatus -Status "running" -StartedAt $started -FinishedAt $null -Summary $summary -ChangedFiles (Get-GitChangedFiles)
 
   Push-Location $RepoRoot
   try {
     Write-Log "Starting Ridgeline Codex agent run."
     Write-Log "Repository: $RepoRoot"
 
-    $startingChanges = Get-GitChangedFiles
+    $startingChanges = Get-BlockingGitChangedFiles
     if ($config.requireCleanWorktree -and $startingChanges.Count -gt 0) {
       $message = "Anton did not start because the worktree already has $($startingChanges.Count) changed file(s). Commit, stash, or review those changes first so automated commits only include Anton's own work."
       Write-Log $message
-      Write-AgentStatus -Status "blocked-dirty-worktree" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $message -ChangedFiles $startingChanges
+      Write-AgentStatus -Status "blocked-dirty-worktree" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $message -ChangedFiles (Get-GitChangedFiles)
       return
     }
+
+    $summary = "Agent run started."
+    Write-AgentStatus -Status "running" -StartedAt $started -FinishedAt $null -Summary $summary -ChangedFiles (Get-GitChangedFiles)
 
     $codexPath = Resolve-CodexPath
 

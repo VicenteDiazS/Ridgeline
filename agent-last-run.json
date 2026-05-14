@@ -1,10 +1,13 @@
-{
-  "status": "not-run-yet",
-  "startedAt": null,
-  "finishedAt": null,
-  "commit": null,
-  "pushed": false,
-  "summary": "Anton, the local Ridgeline coding agent, has been installed in the project but has not run yet.",
-  "changedFiles": [],
-  "log": "agent-runs/agent-loop.log"
+﻿{
+    "status":  "blocked-dirty-worktree",
+    "startedAt":  "2026-05-13T19:38:02.5389538-05:00",
+    "finishedAt":  "2026-05-13T19:38:02.9278654-05:00",
+    "commit":  "",
+    "pushed":  false,
+    "summary":  "Anton did not start because the worktree already has 1 changed file(s). Commit, stash, or review those changes first so automated commits only include Anton\u0027s own work.",
+    "changedFiles":  [
+                         "agent-last-run.json",
+                         "tools/agent-loop/ridgeline-agent-loop.ps1"
+                     ],
+    "log":  "agent-runs/agent-loop.log"
 }
