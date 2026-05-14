@@ -165,16 +165,12 @@ function Invoke-AgentOnce {
     $outputPath = Join-Path $RunDir ("codex-{0}.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
     $stdoutPath = Join-Path $RunDir ("codex-{0}.stdout.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
     $stderrPath = Join-Path $RunDir ("codex-{0}.stderr.log" -f (Get-Date).ToString("yyyyMMdd-HHmmss"))
-    Write-Log "Running: $codexPath $($codexArgsToRun -join ' ')"
-    $process = Start-Process `
-      -FilePath $codexPath `
-      -ArgumentList $codexArgsToRun `
-      -WorkingDirectory $RepoRoot `
-      -RedirectStandardOutput $stdoutPath `
-      -RedirectStandardError $stderrPath `
-      -Wait `
-      -PassThru
-    $exitCode = $process.ExitCode
+    $displayArgs = $codexArgsToRun | ForEach-Object {
+      if ($_ -match '\s') { '"{0}"' -f ($_ -replace '"', '\"') } else { $_ }
+    }
+    Write-Log "Running: $codexPath $($displayArgs -join ' ')"
+    & $codexPath @codexArgsToRun > $stdoutPath 2> $stderrPath
+    $exitCode = $LASTEXITCODE
 
     Set-Content -LiteralPath $outputPath -Value @(
       "STDOUT:"
