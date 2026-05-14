@@ -10663,6 +10663,78 @@ select:focus {
   border-color: rgba(255, 207, 104, 0.28);
 }
 
+.agent-control-panel {
+  align-items: center;
+  border: 1px solid rgba(93, 223, 255, 0.24);
+  border-radius: 18px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(93, 223, 255, 0.08), rgba(255, 255, 255, 0.018)),
+    rgba(5, 14, 22, 0.64);
+}
+
+.agent-control-panel strong,
+.agent-control-panel span {
+  display: block;
+}
+
+.agent-control-panel strong {
+  color: #e8faff;
+}
+
+.agent-control-panel span {
+  color: var(--muted);
+  line-height: 1.45;
+  margin-top: 0.18rem;
+  overflow-wrap: anywhere;
+}
+
+.agent-control-panel span[data-agent-control-state="ok"] {
+  color: #8fffd0;
+}
+
+.agent-control-panel span[data-agent-control-state="error"] {
+  color: #ffd66e;
+}
+
+.agent-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.agent-control-button {
+  border: 1px solid rgba(104, 255, 190, 0.32);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.18), rgba(104, 255, 190, 0.06)),
+    rgba(6, 21, 17, 0.84);
+  color: #eafff7;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  min-height: 40px;
+  padding: 0 0.85rem;
+}
+
+.agent-control-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.agent-control-button-secondary {
+  border-color: rgba(93, 223, 255, 0.26);
+  background:
+    linear-gradient(180deg, rgba(93, 223, 255, 0.12), rgba(93, 223, 255, 0.04)),
+    rgba(7, 17, 26, 0.8);
+}
+
 .agent-status-grid {
   display: grid;
   gap: 0.75rem;
@@ -10761,6 +10833,19 @@ select:focus {
   .agent-heartbeat {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .agent-control-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .agent-control-actions {
+    justify-content: stretch;
+  }
+
+  .agent-control-button {
+    flex: 1 1 140px;
   }
 
   .agent-status-grid,

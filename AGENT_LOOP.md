@@ -108,3 +108,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Start-Ant
 ```
 
 Use manual mode when you want Anton to have complete computer access and ask before broader actions. Scheduled mode should stay workspace-scoped because a background task cannot reliably pause for a human approval conversation.
+
+Home page start button:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Start-AntonControlServer.ps1
+```
+
+This starts a small local control server at `http://127.0.0.1:8765`. The home page's Anton panel can POST to that helper to start the existing scheduled task immediately.
+
+Keep the default localhost binding for normal use. If you intentionally expose it beyond this PC, pass a private token:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Start-AntonControlServer.ps1 -Prefix "http://+:8765/" -Token "choose-a-long-private-token"
+```
+
+Then set the matching control URL and token from the home page's Anton panel. Exposing this helper may require Windows firewall or URL reservation changes, and it should only be used on a trusted private network or through a secure tunnel.

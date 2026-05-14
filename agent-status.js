@@ -1,5 +1,8 @@
 const statusRoot = document.querySelector("[data-agent-status]");
 const STALE_GRACE_MINUTES = 30;
+const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
+const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
+const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
 
 function formatDate(value) {
   if (!value) {
@@ -25,6 +28,81 @@ function escapeHtml(value = "") {
     "\"": "&quot;",
     "'": "&#39;"
   })[character]);
+}
+
+function getControlUrl() {
+  try {
+    return localStorage.getItem(CONTROL_URL_KEY) || DEFAULT_CONTROL_URL;
+  } catch {
+    return DEFAULT_CONTROL_URL;
+  }
+}
+
+function getControlToken() {
+  try {
+    return localStorage.getItem(CONTROL_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function setControlMessage(message, state = "idle") {
+  const messageNode = statusRoot?.querySelector("[data-agent-control-message]");
+  if (!messageNode) {
+    return;
+  }
+  messageNode.dataset.agentControlState = state;
+  messageNode.textContent = message;
+}
+
+async function startAntonNow(button) {
+  const controlUrl = getControlUrl().replace(/\/+$/, "");
+  const token = getControlToken();
+  const headers = token ? { "X-Anton-Token": token } : {};
+
+  button.disabled = true;
+  button.textContent = "Starting...";
+  setControlMessage("Contacting Anton control server...", "pending");
+
+  try {
+    const response = await fetch(`${controlUrl}/start`, {
+      method: "POST",
+      headers
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.ok === false) {
+      throw new Error(payload.message || `Control server returned ${response.status}.`);
+    }
+    setControlMessage(payload.message || "Anton start request sent.", "ok");
+  } catch (error) {
+    setControlMessage(`Start failed: ${error.message}`, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Start Anton";
+  }
+}
+
+function editControlSettings() {
+  const currentUrl = getControlUrl();
+  const nextUrl = window.prompt("Anton control server URL", currentUrl);
+  if (nextUrl === null) {
+    return;
+  }
+
+  const trimmedUrl = nextUrl.trim() || DEFAULT_CONTROL_URL;
+  const currentToken = getControlToken();
+  const nextToken = window.prompt("Anton control token, if your server requires one", currentToken);
+  if (nextToken === null) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(CONTROL_URL_KEY, trimmedUrl);
+    localStorage.setItem(CONTROL_TOKEN_KEY, nextToken.trim());
+    setControlMessage(`Control server set to ${trimmedUrl}.`, "ok");
+  } catch {
+    setControlMessage("Control settings could not be saved in this browser.", "error");
+  }
 }
 
 function minutesUntil(value) {
@@ -146,6 +224,16 @@ function renderAgentStatus(data) {
       <strong>${health.label}</strong>
       <span>${health.copy}</span>
     </div>
+    <div class="agent-control-panel">
+      <div>
+        <strong>Remote Start</strong>
+        <span data-agent-control-message>Start Anton through the local control server at ${escapeHtml(getControlUrl())}.</span>
+      </div>
+      <div class="agent-control-actions">
+        <button class="agent-control-button" type="button" data-agent-start>Start Anton</button>
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-agent-control-settings>Control URL</button>
+      </div>
+    </div>
     <p class="agent-status-summary">${escapeHtml(runSummary)}</p>
     <div class="agent-status-grid">
       <div><span>Loop</span><strong>Every ${intervalText}</strong></div>
@@ -162,6 +250,11 @@ function renderAgentStatus(data) {
         : `<p class="agent-status-empty">No changed files were recorded for the last run.</p>`
     }
   `;
+
+  const startButton = statusRoot.querySelector("[data-agent-start]");
+  const settingsButton = statusRoot.querySelector("[data-agent-control-settings]");
+  startButton?.addEventListener("click", () => startAntonNow(startButton));
+  settingsButton?.addEventListener("click", editControlSettings);
 }
 
 if (statusRoot) {
