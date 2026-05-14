@@ -1,15 +1,17 @@
-{
-  "agentName": "Anton",
-  "statusVersion": 2,
-  "status": "needs-first-clean-run",
-  "startedAt": null,
-  "finishedAt": null,
-  "lastHeartbeatAt": null,
-  "intervalMinutes": 90,
-  "nextExpectedRunAt": null,
-  "commit": null,
-  "pushed": false,
-  "summary": "Anton is installed and scheduled to check the Ridgeline repo every 90 minutes. Commit the current setup changes, then the next scheduled run can begin.",
-  "changedFiles": [],
-  "log": "agent-runs/agent-loop.log"
+﻿{
+    "agentName":  "Anton",
+    "statusVersion":  2,
+    "status":  "blocked-dirty-worktree",
+    "startedAt":  "2026-05-13T19:54:49.2409544-05:00",
+    "finishedAt":  "2026-05-13T19:54:49.6213880-05:00",
+    "lastHeartbeatAt":  "2026-05-13T19:54:49.8870196-05:00",
+    "intervalMinutes":  90,
+    "nextExpectedRunAt":  "2026-05-13T21:24:49.6213880-05:00",
+    "commit":  "",
+    "pushed":  false,
+    "summary":  "Anton did not start because the worktree already has 1 changed file(s). Commit, stash, or review those changes first so automated commits only include Anton\u0027s own work.",
+    "changedFiles":  [
+                         "debug-screenshots/audit-agent-heartbeat-desktop-v238.png"
+                     ],
+    "log":  "agent-runs/agent-loop.log"
 }
