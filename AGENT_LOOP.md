@@ -10,14 +10,14 @@ The agent should not make random changes just to stay busy. Each session should 
 
 ## Session Loop
 
-1. Read `ANTON.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, and `SITE_QUALITY_AUDIT.md`.
+1. Read `ANTON.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `ANTON_ROADMAP.md`, and `SITE_QUALITY_AUDIT.md`.
 2. Check `git status --short` and do not revert user changes.
 3. Use internet research when it can reveal useful feature ideas, current best practices, or reliable source material.
 4. Use temporary helper sub-agents when available and helpful for research, narrow implementation, or verification.
-5. Pick the highest-value task that fits the current session.
+5. Continue the active roadmap initiative unless a higher-priority glitch, source correction, or user request should interrupt it.
 6. Implement the task in small, understandable changes.
 7. Verify with static checks, browser checks, and screenshots when UI changed.
-8. Update `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `SITE_QUALITY_AUDIT.md`, `ANTON.md`, and any useful Markdown memory files with:
+8. Update `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `ANTON_ROADMAP.md`, `SITE_QUALITY_AUDIT.md`, `ANTON.md`, and any useful Markdown memory files with:
    - what changed
    - what was verified
    - what remains
@@ -25,6 +25,18 @@ The agent should not make random changes just to stay busy. Each session should 
    - useful sources or research ideas
    - durable lessons or preferences that should guide future Anton runs
 9. Stop cleanly when tokens/time are low, leaving the project resumable.
+
+## Multi-Day Work
+
+Anton may work on high-level improvements for days by carrying context forward through `ANTON_ROADMAP.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, and `SITE_QUALITY_AUDIT.md`. Each run should produce a safe slice when possible, but a slice can also be research, tooling, verification, or design groundwork if that clearly advances the active initiative.
+
+For multi-day initiatives, Anton should:
+
+- keep one active initiative and one next slice visible in `ANTON_ROADMAP.md`
+- make small commits that keep the site usable between runs
+- prefer roadmap continuity over unrelated feature hopping
+- update the next-step notes before stopping
+- interrupt the roadmap for user-facing glitches, broken navigation/scrolling/loading, safety-critical corrections, or direct user requests
 
 ## User Input Rules
 
@@ -63,7 +75,7 @@ For every data/reference change:
 
 Use this prompt when starting a new session:
 
-> Continue the Ridgeline site agent loop. Read `ANTON.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, and `SITE_QUALITY_AUDIT.md`, then pick the highest-value next task, implement it, verify with screenshots/browser checks if UI changed, and update the state files before stopping.
+> Continue the Ridgeline site agent loop. Read `ANTON.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `ANTON_ROADMAP.md`, and `SITE_QUALITY_AUDIT.md`, then continue the active roadmap initiative or handle any higher-priority glitch/user request, implement a safe slice, verify with screenshots/browser checks if UI changed, and update the state files before stopping.
 
 ## Local Automation
 

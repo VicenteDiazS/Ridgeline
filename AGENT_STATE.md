@@ -13,6 +13,8 @@ Last updated: 2026-05-15
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
 - Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
+- Diagnostics now has a Fuse Symptom Finder that routes common owner electrical symptoms into the existing Hood/Cabin/Hitch references without adding new fuse ratings or positions.
+- Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
@@ -40,6 +42,10 @@ Last updated: 2026-05-15
 - Extended search synonyms for outlet/socket/charger/radio/stereo/screen/camera terms.
 - Extended `tools/audit/Invoke-BrowserSmoke.ps1` so future browser smoke checks assert those search aliases appear.
 - Bumped the service worker cache to `ridgeline-console-v245`.
+- Added `diagnostics.html#fuse-symptom-finder` with practical symptom cards for accessory power, trailer lights, audio/display, and reverse/backup issues, all routing into existing verified references.
+- Added search and browser-smoke coverage for `outlet not working` surfacing the Fuse Symptom Finder.
+- Corrected the Maintenance Minder guide by removing the unsupported 2019 Ridgeline sub-item 7/B127 brake-fluid example and replacing it with a separate 3-year brake-fluid note from Honda owner PDFs.
+- Bumped the service worker cache to `ridgeline-console-v247`.
 
 ## Known Cautions
 
@@ -49,7 +55,7 @@ Last updated: 2026-05-15
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a fuller symptom-to-fuse workflow that uses the existing verified tables without asserting new fuse facts.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is expanding the Fuse Symptom Finder with more symptoms only where it can route to existing references without inventing fuse facts.
 
 ## Next Verification Target
 
@@ -83,3 +89,6 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` with Edge and Chrome, but Chromium `--dump-dom` returned an empty DOM in this shell before interaction checks could run.
 - Verified the search aliases with a Playwright/Chrome browser probe: `power outlet`, `trailer brake lights`, `radio`, and `backup camera` each surfaced the intended shortcut result.
 - Captured Playwright screenshots for `index.html`, `hood.html`, and `cabin.html` at desktop/mobile sizes under `debug-screenshots/audit-v245-*.png`, plus `debug-screenshots/audit-v245-mobile-search-power-outlet.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran a Playwright/Chrome browser probe for `diagnostics.html`, search, and `maintenance.html#minder`; verified the Fuse Symptom Finder renders, mobile cards do not overflow, `outlet not working` returns the Fuse Symptom Finder, search closes without leaving `modal-open`, and the Maintenance Minder section no longer shows B127 or the old brake-fluid sub-code wording.
+- Captured screenshots under `debug-screenshots/audit-v247-diagnostics-desktop.png`, `debug-screenshots/audit-v247-diagnostics-mobile.png`, `debug-screenshots/audit-v247-search-outlet-not-working.png`, and `debug-screenshots/audit-v247-maintenance-minder-desktop.png`.

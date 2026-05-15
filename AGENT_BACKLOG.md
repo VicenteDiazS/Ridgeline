@@ -12,13 +12,15 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 - Deepen source notes with exact owner-manual/page or cover-label references as reliable sources are captured.
 - Add clearer acronym definitions for fuse circuits.
-- Expand the new search aliases into a fuller guided fuse-finder workflow for common symptoms, without changing fuse facts unless sourced.
-- Add a fuse-finder workflow: symptom to likely fuse boxes and fuse positions.
+- Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
+- Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets.
 
 ## Research Notes
 
 - 2026-05-15: Owner-search terms worth supporting include power outlet / cigarette lighter / accessory socket, trailer running/brake/reverse lights, radio/audio/display screen, and backup camera. Sources used for idea support and table-term cross-checking: https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses and https://techinfo.honda.com/rjanisis/pubs/QS/AH/AT6Z1717OG/enu/AT6Z1717OG.pdf. These were used to guide search aliases only; no fuse ratings or positions were changed.
+- 2026-05-15: Added the Fuse Symptom Finder using the existing site tables plus source support from the 2019 owner-manual fuse guidance and common 2017-2019 Ridgeline fuse reference wording. Source URLs used for support, accessed 2026-05-15: https://cdn.dealereprocess.org/cdn/servicemanuals/honda/2019-ridgeline.pdf and https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses. No fuse ratings or positions were changed.
+- 2026-05-15: Corrected Maintenance Minder code content against official Honda owner PDFs, accessed 2026-05-15: https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Maintenance_Minder_System.pdf, https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2020%2FRidgeline%2FMY20_Ridgeline_Maintenance_Minder_System.pdf, and https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2017%2FRidgeline%2F2017_Ridgeline_Maintenance_Minder_System.pdf. The durable rule is: 2017-2020 Ridgeline Maintenance Minder sub-items are 1-6 in these Honda PDFs; brake fluid is tracked separately as a 3-year calendar item, not as site code 7/B127.
 
 ## Navigation And UX
 

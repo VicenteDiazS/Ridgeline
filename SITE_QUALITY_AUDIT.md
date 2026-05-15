@@ -20,6 +20,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
+- Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
+- Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 
 ## Manual Review Checklist
@@ -63,3 +65,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Existing Chromium `--dump-dom` browser smoke path returned an empty DOM with both Edge and Chrome in this shell; Playwright/Chrome verification passed for the new search aliases.
 - Captured desktop/mobile Playwright screenshots for `index.html`, `hood.html`, and `cabin.html` under `debug-screenshots/audit-v245-*.png`, plus the mobile search modal screenshot for `power outlet`.
 - Added future browser-smoke assertions for main-content readiness, visible sections, broken in-page hash links, stuck `modal-open` scroll locks, and scrollability after Search, More, Command Palette, Quick Capture, Sync Settings, and section navigation.
+- Added a Diagnostics Fuse Symptom Finder and search shortcut coverage for `outlet not working`.
+- Corrected the Maintenance Minder code guide against Honda owner PDFs: removed unsupported code 7/B127 brake-fluid wording and kept brake fluid as a separate 3-year calendar item.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Playwright/Chrome verification passed for Diagnostics, search, and the Maintenance Minder section. Screenshots captured under `debug-screenshots/audit-v247-diagnostics-desktop.png`, `debug-screenshots/audit-v247-diagnostics-mobile.png`, `debug-screenshots/audit-v247-search-outlet-not-working.png`, and `debug-screenshots/audit-v247-maintenance-minder-desktop.png`.

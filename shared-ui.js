@@ -3646,6 +3646,8 @@ function buildSearchModal() {
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
       <div class="search-suggestions" aria-label="Suggested searches">
         <button type="button" data-search-suggestion="Fuses">Fuses</button>
+        <button type="button" data-search-suggestion="Power outlet">Power Outlet</button>
+        <button type="button" data-search-suggestion="Trailer lights">Trailer Lights</button>
         <button type="button" data-search-suggestion="Oil">Oil</button>
         <button type="button" data-search-suggestion="Jack Points">Jack Points</button>
         <button type="button" data-search-suggestion="Tire Pressure">Tire Pressure</button>

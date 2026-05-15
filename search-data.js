@@ -298,7 +298,7 @@ export const searchIndex = [
     title: "Maintenance Minder Codes",
     url: "maintenance.html#minder",
     category: "Maintenance",
-    keywords: ["maintenance minder", "service codes", "code a", "code b", "code 1", "code 2", "code 3", "code 4", "code 5", "code 6", "code 7"]
+    keywords: ["maintenance minder", "service codes", "code a", "code b", "code 1", "code 2", "code 3", "code 4", "code 5", "code 6", "brake fluid 3 years"]
   },
   {
     title: "Brake / Tire Service",
@@ -341,6 +341,24 @@ export const searchIndex = [
     url: "diagnostics.html#quick-checks",
     category: "Diagnostics",
     keywords: ["no crank", "accessory socket", "tailgate", "trailer lights", "first check"]
+  },
+  {
+    title: "Fuse Symptom Finder",
+    url: "diagnostics.html#fuse-symptom-finder",
+    category: "Diagnostics",
+    excerpt: "Workflow for routing power outlet, trailer light, radio/display, backup light, and rear camera symptoms into the existing fuse tables without changing fuse data.",
+    keywords: [
+      "fuse symptom",
+      "electrical symptom",
+      "outlet not working",
+      "charger dead",
+      "trailer brake lights",
+      "trailer turn signals",
+      "radio not working",
+      "display audio dead",
+      "backup camera",
+      "reverse lights"
+    ]
   },
   {
     title: "No Crank / No Start",

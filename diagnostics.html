@@ -35,6 +35,7 @@
           <p class="section-copy">These are fast entry points for the problems most likely to send you back to the site in the middle of a repair.</p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
+            <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptom Finder</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
             <a class="utility-link" href="#quick-checks">Quick Checks</a>
@@ -79,10 +80,58 @@
               <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
               <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="hood.html#wiring">Hood wiring</a></td></tr>
               <tr><td>Accessory socket dead</td><td>Interior accessory fuse and outlet-specific circuit</td><td><a href="cabin.html#fuses">Cabin fuses</a></td></tr>
-              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="rear-hitch.html">Rear hitch</a></td></tr>
+              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#fuse-symptom-finder">Fuse symptom finder</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
             </table>
+          </article>
+          <article class="tech-card span-2" id="fuse-symptom-finder">
+            <h3>Fuse Symptom Finder</h3>
+            <p>
+              Start with the symptom, then open the existing table that is most likely to contain the matching circuit.
+              Confirm the final fuse number and rating against the truck's cover label before replacing anything.
+            </p>
+            <div class="fuse-finder-grid" aria-label="Symptom to fuse workflow">
+              <article class="fuse-finder-card">
+                <span>Accessory power</span>
+                <strong>12V socket or phone charger is dead</strong>
+                <p>Check cabin accessory-socket entries first, then under-hood accessory power if the symptom spans more than one outlet.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+                  <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Towing lights</span>
+                <strong>Trailer brake, turn, running, or reverse lights fail</strong>
+                <p>Separate trailer wiring checks from truck-side fuse checks so a bad adapter or trailer fault does not send you into the wrong box.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="rear-hitch.html#connector">Connector</a>
+                  <a class="utility-link" href="hood.html#fuses">Trailer Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Audio and screen</span>
+                <strong>Radio, display audio, or amp will not power up</strong>
+                <p>Use the search shortcut for audio terms, then compare both the hood and cabin fuse tables before chasing the head unit.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#fuses">Hood Audio</a>
+                  <a class="utility-link" href="cabin.html#fuses">Cabin Power</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Reverse path</span>
+                <strong>Backup lights, rear camera, or trailer reverse feed fails</strong>
+                <p>Start with reverse/backup wording in the fuse tables, then use the hitch pinout if the truck works but the trailer does not.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#fuses">Backup Fuses</a>
+                  <a class="utility-link" href="rear-hitch.html#pinout">7-Way Pinout</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 owner manual says electrical devices should be checked against the applicable fuse and that fuse locations are on the covers/side-panel label. The owner-wording shortcuts here were cross-checked against the existing site tables and common 2017-2019 Ridgeline fuse reference wording. Sources recorded in the agent backlog; no fuse ratings or positions were changed.
+            </p>
           </article>
         </section>
         <section class="system-grid">
