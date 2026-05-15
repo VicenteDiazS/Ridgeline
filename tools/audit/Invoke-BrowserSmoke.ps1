@@ -133,31 +133,42 @@ function Invoke-InteractionSmoke {
     const doc = frame.contentDocument;
     const win = frame.contentWindow;
     assert(doc, "cannot inspect rendered page");
+    const pressEscape = () => {
+      doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    };
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
+    searchButton.focus();
     searchButton.click();
     await sleep(300);
     const searchModal = doc.querySelector(".search-modal");
     const searchInput = doc.querySelector("#site-search-input");
     assert(searchModal && searchModal.hidden === false, "search modal did not open");
     assert(searchInput, "missing search input");
+    assert(doc.activeElement === searchInput, "search input did not receive focus");
     searchInput.value = "fuse";
     searchInput.dispatchEvent(new Event("input", { bubbles: true }));
     await sleep(900);
     assert(doc.querySelector("#site-search-results").children.length > 0, "search returned no results for fuse");
-    doc.querySelector("[data-close-search]")?.click();
+    pressEscape();
     await sleep(150);
+    assert(searchModal.hidden === true, "Escape did not close search modal");
+    assert(doc.activeElement === searchButton, "search focus did not return to opener");
 
     const menuButton = doc.querySelector("[data-open-site-menu]");
     assert(menuButton, "missing More menu button");
+    menuButton.focus();
     menuButton.click();
     await sleep(300);
     const menu = doc.querySelector("#site-menu");
     assert(menu && menu.hidden === false, "site menu did not open");
     assert(doc.querySelectorAll(".site-menu-link").length >= 5, "site menu has too few links");
-    doc.querySelector("[data-close-menu]")?.click();
+    assert(menu.contains(doc.activeElement), "site menu did not receive focus");
+    pressEscape();
     await sleep(150);
+    assert(menu.hidden === true, "Escape did not close site menu");
+    assert(doc.activeElement === menuButton, "site menu focus did not return to opener");
 
     const sectionLink = [...doc.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
       .find((link) => link.hash && doc.querySelector(link.hash));

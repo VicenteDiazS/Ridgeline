@@ -160,6 +160,12 @@ function setPanelVisibility(panel, visible, displayValue = "grid") {
   panel.setAttribute("aria-hidden", visible ? "false" : "true");
 }
 
+function restoreFocusTo(element) {
+  if (element instanceof HTMLElement && document.contains(element)) {
+    element.focus();
+  }
+}
+
 function normalizeContentMode(mode) {
   if (mode === "navigation") {
     return "navigation";
@@ -2537,11 +2543,19 @@ function buildSiteMenu() {
   `;
 
   document.body.appendChild(menu);
+  let menuReturnFocus = null;
 
-  const openMenu = () => {
+  const openMenu = (event) => {
+    menuReturnFocus =
+      event?.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
     refreshRecentPanel(recentPanel);
     menu.hidden = false;
     document.body.classList.add("modal-open");
+    menu.querySelector(".site-menu-panel button, .site-menu-link, .site-menu-panel a")?.focus();
   };
 
   const closeMenu = () => {
@@ -2549,6 +2563,8 @@ function buildSiteMenu() {
     if (searchModal.hidden) {
       document.body.classList.remove("modal-open");
     }
+    restoreFocusTo(menuReturnFocus);
+    menuReturnFocus = null;
   };
 
   menu.querySelectorAll("[data-close-menu], .site-menu-link").forEach((element) => {
@@ -3874,6 +3890,7 @@ function searchEntries(entries, query = "") {
 const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
+let searchReturnFocus = null;
 const commandPalette = buildCommandPalette();
 document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
 document.body.classList.add(`page-${currentPageName().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "index"}`);
@@ -4046,7 +4063,13 @@ function renderResults(query = "") {
     });
 }
 
-function openSearch() {
+function openSearch(event) {
+  searchReturnFocus =
+    event?.currentTarget instanceof HTMLElement
+      ? event.currentTarget
+      : document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+        ? document.activeElement
+        : searchReturnFocus;
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
   renderResults(searchInput.value);
@@ -4058,6 +4081,8 @@ function closeSearch() {
   if ((!siteMenu || siteMenu.menu.hidden) && commandPalette.modal.hidden) {
     document.body.classList.remove("modal-open");
   }
+  restoreFocusTo(searchReturnFocus);
+  searchReturnFocus = null;
 }
 
 document.querySelectorAll("[data-open-search]").forEach((button) => {
