@@ -12,7 +12,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Internal anchor links are checked so buttons and section links do not point to missing pages or missing sections.
 - Repeatable local audit scripts live under `tools/audit/`:
   - `Test-InternalLinks.ps1` checks local HTML links and anchors.
-  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, opens Search, verifies Search focus and Escape close/return behavior, opens More, verifies menu focus and Escape close/return behavior, and clicks a sample section link.
+  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, and clicks a sample section link.
   - `Capture-Screenshots.ps1` captures desktop and mobile screenshots.
   - `Invoke-SiteAudit.ps1` runs the checklist together.
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
@@ -49,3 +49,9 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Browser smoke and interaction checks passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
 - Captured desktop/mobile screenshots for the checked pages under `debug-screenshots/audit-v242-*.png`.
 - After the final source-status wording adjustment, `Test-InternalLinks.ps1` passed for 15 HTML files, `Invoke-BrowserSmoke.ps1` passed for `hood.html` and `cabin.html`, and Hood/Cabin screenshots were captured under `debug-screenshots/audit-v242-final-*.png`.
+- Added shared focus trapping and focus-return behavior for Command Palette, Quick Capture, Sync Settings, and the quick-tools drawer, and applied the same Tab wrap helper to Search and More.
+- Extended `Invoke-BrowserSmoke.ps1` to verify Tab and Shift+Tab wrapping for Search, More, Command Palette, Quick Capture, and Sync Settings.
+- Bumped the service worker cache to `ridgeline-console-v243`.
+- Ran `Invoke-SiteAudit.ps1 -Tag audit-v243`; link checks passed and browser checks passed for `index.html` and `hood.html` before the monolithic run timed out.
+- Ran the remaining browser smoke checks separately for `cabin.html`, `maintenance.html`, and `garage.html`; all passed.
+- Captured desktop/mobile screenshots under `debug-screenshots/audit-v243-*.png`.

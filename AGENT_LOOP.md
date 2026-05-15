@@ -95,6 +95,14 @@ This sets plugged-in lid close behavior to "do nothing", enables plugged-in wake
 
 If the laptop enters a deep sleep state that ignores wake timers, Anton cannot run while it is fully asleep. The site heartbeat panel will show "No recent check-in" after the grace period, and the logon trigger will run Anton when Windows wakes/signs in again.
 
+Always-on Anton mode:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Enable-AntonAlwaysOn.ps1 -DisableHibernate
+```
+
+This sets sleep and hibernate timers to never, sets lid close to do nothing, enables wake timers on plugged-in and battery power, and updates Anton's scheduled task to wake and keep running on battery. Disabling hibernate requires administrator permission, so approve the Windows elevation prompt if it appears.
+
 The runner uses `agent-loop.config.json`, writes logs to `agent-runs/`, updates `agent-last-run.json`, commits completed changes, and pushes them to the configured GitHub remote when Git authentication is available.
 
 By default, scheduled mode requires a clean git worktree before it starts. This prevents Anton from accidentally committing unrelated manual edits that were already present.

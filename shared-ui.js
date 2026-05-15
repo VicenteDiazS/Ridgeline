@@ -166,6 +166,90 @@ function restoreFocusTo(element) {
   }
 }
 
+function getFocusableElements(container) {
+  if (!container) {
+    return [];
+  }
+
+  const selector = [
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])"
+  ].join(",");
+
+  return [...container.querySelectorAll(selector)].filter((element) => {
+    const style = window.getComputedStyle(element);
+    return (
+      element instanceof HTMLElement &&
+      !element.hidden &&
+      !element.closest("[hidden]") &&
+      element.tabIndex >= 0 &&
+      style.display !== "none" &&
+      style.visibility !== "hidden"
+    );
+  });
+}
+
+function focusFirstIn(container, preferredSelector = "") {
+  const preferred = preferredSelector ? container?.querySelector(preferredSelector) : null;
+  if (preferred instanceof HTMLElement && !preferred.disabled) {
+    preferred.focus();
+    if (typeof preferred.select === "function") {
+      preferred.select();
+    }
+    return preferred;
+  }
+
+  const [first] = getFocusableElements(container);
+  first?.focus();
+  return first || null;
+}
+
+function keepFocusInside(container, event) {
+  if (event.key !== "Tab" || !container || container.hidden) {
+    return;
+  }
+
+  const focusable = getFocusableElements(container);
+  if (!focusable.length) {
+    event.preventDefault();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+
+  if (event.shiftKey && active === first) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+
+  if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function bindFocusTrap(container) {
+  container?.addEventListener("keydown", (event) => keepFocusInside(container, event));
+}
+
+function isAnyModalOpen() {
+  return [
+    ".search-modal",
+    "#site-menu",
+    ".command-palette",
+    ".quick-capture-modal",
+    ".sync-settings-modal",
+    ".mini-tools-drawer"
+  ].some((selector) => document.querySelector(selector)?.hidden === false);
+}
+
 function normalizeContentMode(mode) {
   if (mode === "navigation") {
     return "navigation";
@@ -1870,6 +1954,7 @@ function buildMiniToolsDrawer() {
   `;
 
   document.body.appendChild(drawer);
+  bindFocusTrap(drawer);
 
   drawer.addEventListener("click", (event) => {
     if (event.target.closest("[data-mini-tools-close]")) {
@@ -1929,9 +2014,13 @@ function openMiniToolsDrawer() {
   if (!drawer) {
     return;
   }
+  if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+    drawer.returnFocusElement = document.activeElement;
+  }
   drawer.hidden = false;
   document.body.classList.add("modal-open");
   updateWorkModeUi(getWorkArea());
+  focusFirstIn(drawer, "[data-mini-tools-close], button, a[href]");
 }
 
 function closeMiniToolsDrawer() {
@@ -1939,10 +2028,14 @@ function closeMiniToolsDrawer() {
   if (!drawer) {
     return;
   }
+  const returnFocusElement = drawer.returnFocusElement;
   drawer.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden) {
+  const anotherModalOpen = isAnyModalOpen();
+  if (!anotherModalOpen) {
     document.body.classList.remove("modal-open");
+    restoreFocusTo(returnFocusElement);
   }
+  drawer.returnFocusElement = null;
 }
 
 function toggleMiniToolsDrawer() {
@@ -2543,6 +2636,7 @@ function buildSiteMenu() {
   `;
 
   document.body.appendChild(menu);
+  bindFocusTrap(menu);
   let menuReturnFocus = null;
 
   const openMenu = (event) => {
@@ -2555,12 +2649,12 @@ function buildSiteMenu() {
     refreshRecentPanel(recentPanel);
     menu.hidden = false;
     document.body.classList.add("modal-open");
-    menu.querySelector(".site-menu-panel button, .site-menu-link, .site-menu-panel a")?.focus();
+    focusFirstIn(menu, ".site-menu-panel button, .site-menu-link, .site-menu-panel a");
   };
 
   const closeMenu = () => {
     menu.hidden = true;
-    if (searchModal.hidden) {
+    if (!isAnyModalOpen()) {
       document.body.classList.remove("modal-open");
     }
     restoreFocusTo(menuReturnFocus);
@@ -2895,6 +2989,7 @@ function buildCommandPalette() {
     </section>
   `;
   document.body.appendChild(modal);
+  bindFocusTrap(modal);
 
   const input = modal.querySelector(".command-input");
   const list = modal.querySelector(".command-list");
@@ -2939,19 +3034,26 @@ function buildCommandPalette() {
   return { modal, input, render };
 }
 
+let commandPaletteReturnFocus = null;
+
 function openCommandPalette() {
+  commandPaletteReturnFocus =
+    document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+      ? document.activeElement
+      : commandPaletteReturnFocus;
   commandPalette.modal.hidden = false;
   document.body.classList.add("modal-open");
   commandPalette.render();
-  commandPalette.input.focus();
-  commandPalette.input.select();
+  focusFirstIn(commandPalette.modal, ".command-input");
 }
 
 function closeCommandPalette() {
   commandPalette.modal.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden) {
+  if (!isAnyModalOpen()) {
     document.body.classList.remove("modal-open");
   }
+  restoreFocusTo(commandPaletteReturnFocus);
+  commandPaletteReturnFocus = null;
 }
 
 function loadFavoritePins() {
@@ -3157,6 +3259,7 @@ function buildQuickCapture() {
     </section>
   `;
   document.body.appendChild(modal);
+  bindFocusTrap(modal);
 
   const form = modal.querySelector("[data-quick-capture-form]");
   const kindSelect = modal.querySelector("[data-quick-capture-kind]");
@@ -3232,10 +3335,17 @@ function buildQuickCapture() {
   syncKindUi();
 }
 
+let quickCaptureReturnFocus = null;
+
 function openQuickCapture() {
-  document.querySelector(".quick-capture-modal")?.removeAttribute("hidden");
+  const modal = document.querySelector(".quick-capture-modal");
+  quickCaptureReturnFocus =
+    document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+      ? document.activeElement
+      : quickCaptureReturnFocus;
+  modal?.removeAttribute("hidden");
   document.body.classList.add("modal-open");
-  document.querySelector(".quick-capture-modal input[name='title']")?.focus();
+  focusFirstIn(modal, "input[name='title']");
 }
 
 function closeQuickCapture() {
@@ -3244,9 +3354,11 @@ function closeQuickCapture() {
     return;
   }
   modal.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden && document.querySelector(".sync-settings-modal")?.hidden !== false) {
+  if (!isAnyModalOpen()) {
     document.body.classList.remove("modal-open");
   }
+  restoreFocusTo(quickCaptureReturnFocus);
+  quickCaptureReturnFocus = null;
 }
 
 function buildSyncSettingsPanel() {
@@ -3284,6 +3396,7 @@ function buildSyncSettingsPanel() {
     </section>
   `;
   document.body.appendChild(modal);
+  bindFocusTrap(modal);
 
   modal.addEventListener("click", async (event) => {
     if (event.target.closest("[data-close-sync-settings]")) {
@@ -3366,11 +3479,18 @@ async function forceSyncRefresh() {
   }
 }
 
+let syncSettingsReturnFocus = null;
+
 function openSyncSettings() {
   const modal = document.querySelector(".sync-settings-modal");
+  syncSettingsReturnFocus =
+    document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+      ? document.activeElement
+      : syncSettingsReturnFocus;
   modal?.removeAttribute("hidden");
   document.body.classList.add("modal-open");
   renderSyncSettings();
+  focusFirstIn(modal, "[data-sync-enabled], input, button");
 }
 
 function closeSyncSettings() {
@@ -3379,9 +3499,11 @@ function closeSyncSettings() {
     return;
   }
   modal.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && searchModal.hidden && commandPalette.modal.hidden && document.querySelector(".quick-capture-modal")?.hidden !== false) {
+  if (!isAnyModalOpen()) {
     document.body.classList.remove("modal-open");
   }
+  restoreFocusTo(syncSettingsReturnFocus);
+  syncSettingsReturnFocus = null;
 }
 
 function buildEmptyStates() {
@@ -3536,6 +3658,7 @@ function buildSearchModal() {
     </section>
   `;
   document.body.appendChild(modal);
+  bindFocusTrap(modal);
   return modal;
 }
 
@@ -4073,12 +4196,12 @@ function openSearch(event) {
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
   renderResults(searchInput.value);
-  searchInput.focus();
+  focusFirstIn(searchModal, "#site-search-input");
 }
 
 function closeSearch() {
   searchModal.hidden = true;
-  if ((!siteMenu || siteMenu.menu.hidden) && commandPalette.modal.hidden) {
+  if (!isAnyModalOpen()) {
     document.body.classList.remove("modal-open");
   }
   restoreFocusTo(searchReturnFocus);
@@ -4125,6 +4248,18 @@ document.addEventListener("keydown", (event) => {
 
   if (event.key === "Escape" && siteMenu && !siteMenu.menu.hidden) {
     siteMenu.closeMenu();
+  }
+
+  if (event.key === "Escape" && document.querySelector(".quick-capture-modal")?.hidden === false) {
+    closeQuickCapture();
+  }
+
+  if (event.key === "Escape" && document.querySelector(".sync-settings-modal")?.hidden === false) {
+    closeSyncSettings();
+  }
+
+  if (event.key === "Escape" && document.querySelector(".mini-tools-drawer")?.hidden === false) {
+    closeMiniToolsDrawer();
   }
 });
 

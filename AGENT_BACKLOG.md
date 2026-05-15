@@ -5,7 +5,6 @@ This backlog is ordered by practical value. The agent should work from the top u
 ## High Priority
 
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
-- Add a full focus-trap audit for modal dialogs after the basic Search and More focus-return checks.
 
 ## Fuse And Electrical
 
@@ -21,7 +20,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Reduce duplicated navigation surfaces where they compete for attention.
 - Add a clear current-page indicator in the universal header/menu.
 - Improve empty states for garage data and photo atlas.
-- Extend keyboard checks beyond Search and More to command palette, quick-capture, and sync settings modals.
+- Add regression coverage for nested modal/drawer handoffs, such as opening Search or Sync Settings from the quick-tools drawer.
 - Continue tuning subpage helper density after real-device review; the page title should remain the first content priority.
 
 ## Performance And Offline

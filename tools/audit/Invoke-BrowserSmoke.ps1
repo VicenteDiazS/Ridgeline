@@ -136,6 +136,38 @@ function Invoke-InteractionSmoke {
     const pressEscape = () => {
       doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     };
+    const getFocusable = (container) => [...container.querySelectorAll([
+      "a[href]",
+      "button:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex='-1'])"
+    ].join(","))].filter((element) => {
+      const style = win.getComputedStyle(element);
+      return !element.hidden && !element.closest("[hidden]") && element.tabIndex >= 0 && style.display !== "none" && style.visibility !== "hidden";
+    });
+    const pressTabFromActiveElement = (shiftKey = false) => {
+      const target = doc.activeElement || doc;
+      target.dispatchEvent(new win.KeyboardEvent("keydown", {
+        key: "Tab",
+        bubbles: true,
+        cancelable: true,
+        shiftKey
+      }));
+    };
+    const assertFocusTrap = (container, label) => {
+      const focusable = getFocusable(container);
+      assert(focusable.length >= 2, label + " needs at least two focusable controls for trap coverage");
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      last.focus();
+      pressTabFromActiveElement(false);
+      assert(doc.activeElement === first, label + " Tab from last control did not wrap to first control");
+      first.focus();
+      pressTabFromActiveElement(true);
+      assert(doc.activeElement === last, label + " Shift+Tab from first control did not wrap to last control");
+    };
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
@@ -147,6 +179,7 @@ function Invoke-InteractionSmoke {
     assert(searchModal && searchModal.hidden === false, "search modal did not open");
     assert(searchInput, "missing search input");
     assert(doc.activeElement === searchInput, "search input did not receive focus");
+    assertFocusTrap(searchModal, "search modal");
     searchInput.value = "fuse";
     searchInput.dispatchEvent(new Event("input", { bubbles: true }));
     await sleep(900);
@@ -165,10 +198,53 @@ function Invoke-InteractionSmoke {
     assert(menu && menu.hidden === false, "site menu did not open");
     assert(doc.querySelectorAll(".site-menu-link").length >= 5, "site menu has too few links");
     assert(menu.contains(doc.activeElement), "site menu did not receive focus");
+    assertFocusTrap(menu, "site menu");
     pressEscape();
     await sleep(150);
     assert(menu.hidden === true, "Escape did not close site menu");
     assert(doc.activeElement === menuButton, "site menu focus did not return to opener");
+
+    menuButton.focus();
+    doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "K", ctrlKey: true, shiftKey: true, bubbles: true }));
+    await sleep(250);
+    const commandModal = doc.querySelector(".command-palette");
+    const commandInput = doc.querySelector(".command-input");
+    assert(commandModal && commandModal.hidden === false, "command palette did not open");
+    assert(doc.activeElement === commandInput, "command palette input did not receive focus");
+    assertFocusTrap(commandModal, "command palette");
+    pressEscape();
+    await sleep(150);
+    assert(commandModal.hidden === true, "Escape did not close command palette");
+    assert(doc.activeElement === menuButton, "command palette focus did not return to opener");
+
+    const quickButton = doc.querySelector(".quick-capture-fab");
+    assert(quickButton, "missing quick capture button");
+    quickButton.focus();
+    quickButton.click();
+    await sleep(250);
+    const quickModal = doc.querySelector(".quick-capture-modal");
+    const quickTitle = doc.querySelector(".quick-capture-modal input[name='title']");
+    assert(quickModal && quickModal.hidden === false, "quick capture modal did not open");
+    assert(doc.activeElement === quickTitle, "quick capture title input did not receive focus");
+    assertFocusTrap(quickModal, "quick capture modal");
+    pressEscape();
+    await sleep(150);
+    assert(quickModal.hidden === true, "Escape did not close quick capture modal");
+    assert(doc.activeElement === quickButton, "quick capture focus did not return to opener");
+
+    const syncButton = doc.querySelector("[data-page-action='sync-settings'], [data-context-action='sync-settings']");
+    assert(syncButton, "missing sync settings opener");
+    syncButton.focus();
+    syncButton.click();
+    await sleep(650);
+    const syncModal = doc.querySelector(".sync-settings-modal");
+    assert(syncModal && syncModal.hidden === false, "sync settings modal did not open");
+    assert(syncModal.contains(doc.activeElement), "sync settings did not receive focus");
+    assertFocusTrap(syncModal, "sync settings modal");
+    pressEscape();
+    await sleep(150);
+    assert(syncModal.hidden === true, "Escape did not close sync settings modal");
+    assert(doc.activeElement === syncButton, "sync settings focus did not return to opener");
 
     const sectionLink = [...doc.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
       .find((link) => link.hash && doc.querySelector(link.hash));

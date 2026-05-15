@@ -10,6 +10,7 @@ Last updated: 2026-05-15
 - Reusable audit scripts now live in `tools/audit/` for internal link checks, rendered browser smoke checks, and desktop/mobile screenshot capture.
 - Browser smoke checks now include scoped interactions and keyboard focus behavior for Search, More, and sample in-page section links.
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
+- Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -30,6 +31,10 @@ Last updated: 2026-05-15
 - Added per-box source-status notes for Hood Fuse Box A, Hood Fuse Box B, Cabin Interior Fuse Box Type A, and Cabin Interior Fuse Box Type B.
 - Updated `tools/audit/Capture-Screenshots.ps1` to launch Edge through `System.Diagnostics.ProcessStartInfo` instead of `Start-Process`, fixing screenshot capture when the environment contains duplicate path keys.
 - Bumped the service worker cache to `ridgeline-console-v242`.
+- Added shared modal focus-trap helpers in `shared-ui.js`.
+- Applied focus trapping to Search, More, Command Palette, Quick Capture, Sync Settings, and the quick-tools drawer.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` to verify Tab and Shift+Tab wrapping for Search, More, Command Palette, Quick Capture, and Sync Settings, plus Escape close/focus return for the newly covered modals.
+- Bumped the service worker cache to `ridgeline-console-v243`.
 
 ## Known Cautions
 
@@ -66,3 +71,6 @@ After the next UI change:
 - After tightening the source-status wording, reran `Test-InternalLinks.ps1`; it passed for 15 HTML files.
 - Reran `Invoke-BrowserSmoke.ps1` for `hood.html` and `cabin.html`; both passed.
 - Captured final Hood/Cabin desktop/mobile screenshots under `debug-screenshots/audit-v242-final-*.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v243`; the static link audit passed and browser smoke passed for `index.html` and `hood.html` before the monolithic command timed out.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('cabin.html','maintenance.html','garage.html')"`; browser smoke and modal focus-trap checks passed for the remaining pages.
+- Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` under `debug-screenshots/audit-v243-*.png`.
