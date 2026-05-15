@@ -10667,6 +10667,62 @@ select:focus {
   max-width: 78ch;
 }
 
+.agent-now-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(190px, 0.8fr));
+  margin-top: 1rem;
+}
+
+.agent-now-card {
+  border: 1px solid rgba(93, 223, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.95rem;
+}
+
+.agent-now-card-strong {
+  border-color: rgba(104, 255, 190, 0.28);
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.1), rgba(104, 255, 190, 0.025)),
+    rgba(5, 18, 16, 0.62);
+}
+
+.agent-now-card span,
+.agent-status-details summary {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-now-card strong {
+  color: var(--text);
+  display: block;
+  line-height: 1.25;
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.agent-now-card p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0.55rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.agent-status-details {
+  border: 1px solid rgba(93, 223, 255, 0.14);
+  border-radius: 16px;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.agent-status-details summary {
+  cursor: pointer;
+}
+
 .agent-heartbeat {
   align-items: center;
   border: 1px solid rgba(93, 223, 255, 0.2);
@@ -11072,6 +11128,10 @@ select:focus {
   .agent-control-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .agent-now-grid {
+    grid-template-columns: 1fr;
   }
 
   .agent-control-actions {

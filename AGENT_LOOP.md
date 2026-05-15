@@ -124,7 +124,7 @@ The runner uses `agent-loop.config.json`, writes logs to `agent-runs/`, updates 
 
 Scheduled mode may start with a dirty worktree. Anton must inspect existing changes, avoid reverting unknown user work, and keep commits focused on its own work whenever possible.
 
-The site reads `agent-last-run.json` on the home page in the `#agent-status` section.
+The site reads `agent-last-run.json` on the home page in the `#agent-status` section. The runner commits and pushes status updates when Anton starts, completes, or hits a token/auth/runner problem so GitHub Pages and an iPhone browser can show what Anton is doing, what changed, and whether the user needs to act.
 
 Manual full-access Anton mode:
 

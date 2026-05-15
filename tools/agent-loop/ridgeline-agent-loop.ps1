@@ -86,6 +86,21 @@ function Get-BlockingGitChangedFiles {
   return @(Get-GitChangedFiles | Where-Object { $ignored -notcontains $_ })
 }
 
+function Get-StatusExcerpt {
+  param([string]$Text)
+
+  if ([string]::IsNullOrWhiteSpace($Text)) {
+    return ""
+  }
+
+  $clean = ($Text -replace "`0", "" -replace "\r\n", "`n").Trim()
+  if ($clean.Length -le 900) {
+    return $clean
+  }
+
+  return $clean.Substring([Math]::Max(0, $clean.Length - 900)).Trim()
+}
+
 function Write-AgentStatus {
   param(
     [string]$Status,
@@ -94,7 +109,14 @@ function Write-AgentStatus {
     [string]$Summary,
     [string]$Commit = $null,
     [bool]$Pushed = $false,
-    [array]$ChangedFiles = @()
+    [array]$ChangedFiles = @(),
+    [string]$Phase = "",
+    [string]$StatusTitle = "",
+    [string]$StatusDetail = "",
+    [string]$ActionRequired = "",
+    [string]$FailureKind = "",
+    [string]$Diagnostic = "",
+    [string]$OutputLog = ""
   )
 
   $intervalMinutes = 90
@@ -116,23 +138,79 @@ function Write-AgentStatus {
     }
   }
 
+  $durationMinutes = $null
+  try {
+    if ($StartedAt -and $FinishedAt) {
+      $durationMinutes = [Math]::Round(([DateTimeOffset]::Parse($FinishedAt) - [DateTimeOffset]::Parse($StartedAt)).TotalMinutes, 1)
+    } elseif ($StartedAt) {
+      $durationMinutes = [Math]::Round(([DateTimeOffset]::Now - [DateTimeOffset]::Parse($StartedAt)).TotalMinutes, 1)
+    }
+  } catch {
+    $durationMinutes = $null
+  }
+
   $payload = [ordered]@{
     agentName = "Anton"
-    statusVersion = 2
+    statusVersion = 3
     status = $Status
+    statusTitle = $StatusTitle
+    statusDetail = $StatusDetail
+    phase = $Phase
+    actionRequired = $ActionRequired
+    failureKind = $FailureKind
+    diagnostic = $Diagnostic
     startedAt = $StartedAt
     finishedAt = $FinishedAt
     lastHeartbeatAt = [DateTimeOffset]::Now.ToString("o")
     intervalMinutes = $intervalMinutes
     nextExpectedRunAt = $nextExpectedRunAt
+    durationMinutes = $durationMinutes
     commit = $Commit
     pushed = $Pushed
     summary = $Summary
     changedFiles = @($ChangedFiles)
     log = "agent-runs/agent-loop.log"
+    outputLog = $OutputLog
   }
 
   $payload | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $StatusPath -Encoding UTF8
+}
+
+function Publish-AgentStatus {
+  param([string]$Reason)
+
+  Push-Location $RepoRoot
+  try {
+    git add -- agent-last-run.json
+    git diff --cached --quiet -- agent-last-run.json
+    if ($LASTEXITCODE -eq 0) {
+      return
+    }
+
+    $message = "chore: update Anton status: {0}" -f $Reason
+    git commit -m $message -- agent-last-run.json
+    if ($LASTEXITCODE -ne 0) {
+      Write-Log "Could not commit Anton status update for '$Reason'."
+      return
+    }
+
+    $statusCommitSha = (git rev-parse --short HEAD).Trim()
+    $config = Read-Config
+    if ($config.pushChanges) {
+      $branch = [string]$config.branch
+      if ([string]::IsNullOrWhiteSpace($branch)) {
+        $branch = (git branch --show-current).Trim()
+      }
+      git push ([string]$config.remote) $branch
+      if ($LASTEXITCODE -eq 0) {
+        Write-Log "Pushed Anton status update $statusCommitSha to $($config.remote)/$branch."
+      } else {
+        Write-Log "Push failed for Anton status update $statusCommitSha."
+      }
+    }
+  } finally {
+    Pop-Location
+  }
 }
 
 function Invoke-AgentOnce {
@@ -164,12 +242,32 @@ function Invoke-AgentOnce {
     if ($config.requireCleanWorktree -and $startingChanges.Count -gt 0) {
       $message = "Anton did not start because the worktree already has $($startingChanges.Count) changed file(s). Commit, stash, or review those changes first so automated commits only include Anton's own work."
       Write-Log $message
-      Write-AgentStatus -Status "blocked-dirty-worktree" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $message -ChangedFiles (Get-GitChangedFiles)
+      Write-AgentStatus `
+        -Status "blocked-dirty-worktree" `
+        -StartedAt $started `
+        -FinishedAt ([DateTimeOffset]::Now.ToString("o")) `
+        -Summary $message `
+        -ChangedFiles (Get-GitChangedFiles) `
+        -Phase "Preflight" `
+        -StatusTitle "Blocked by local changes" `
+        -StatusDetail "Anton found uncommitted files before it started. It stopped so it would not mix unrelated work into an automated commit." `
+        -ActionRequired "Review, commit, or stash the local changes, then start Anton again."
+      Publish-AgentStatus -Reason "blocked"
       return
     }
 
     $summary = "Agent run started."
-    Write-AgentStatus -Status "running" -StartedAt $started -FinishedAt $null -Summary $summary -ChangedFiles (Get-GitChangedFiles)
+    Write-AgentStatus `
+      -Status "running" `
+      -StartedAt $started `
+      -FinishedAt $null `
+      -Summary $summary `
+      -ChangedFiles (Get-GitChangedFiles) `
+      -Phase "Starting Codex" `
+      -StatusTitle "Anton is working" `
+      -StatusDetail "The scheduled task started and Anton is launching Codex for the next site-improvement slice." `
+      -ActionRequired "No action needed. Refresh this page after the run finishes to see the commit, files, and summary."
+    Publish-AgentStatus -Reason "running"
 
     $codexPath = Resolve-CodexPath
 
@@ -222,7 +320,26 @@ function Invoke-AgentOnce {
         $failureText = "Codex exited with code $exitCode because auth, quota, rate limit, or token access may need attention. See $outputPath."
       }
       Write-Log $failureText
-      Write-AgentStatus -Status $failureStatus -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $failureText -ChangedFiles (Get-GitChangedFiles)
+      $actionRequired = if ($failureStatus -eq "command-error") {
+        "Fix the Anton runner command-line configuration, then start Anton again."
+      } else {
+        "Check Codex/OpenAI login, quota, token, or rate-limit status. Anton will retry on the next scheduled run."
+      }
+      $failureKind = if ($failureStatus -eq "command-error") { "runner-command" } else { "tokens-auth-or-service" }
+      Write-AgentStatus `
+        -Status $failureStatus `
+        -StartedAt $started `
+        -FinishedAt ([DateTimeOffset]::Now.ToString("o")) `
+        -Summary $failureText `
+        -ChangedFiles (Get-GitChangedFiles) `
+        -Phase "Codex unavailable" `
+        -StatusTitle "Anton could not use Codex" `
+        -StatusDetail $failureText `
+        -ActionRequired $actionRequired `
+        -FailureKind $failureKind `
+        -Diagnostic (Get-StatusExcerpt -Text $combinedOutput) `
+        -OutputLog ($outputPath.Replace("$RepoRoot\", ""))
+      Publish-AgentStatus -Reason "needs-attention"
       return
     }
 
@@ -265,7 +382,18 @@ function Invoke-AgentOnce {
       Write-Log "No changed files to commit."
     }
 
-    Write-AgentStatus -Status "completed" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $lastMessage -Commit $commitSha -Pushed $pushed -ChangedFiles $changedFiles
+    Write-AgentStatus `
+      -Status "completed" `
+      -StartedAt $started `
+      -FinishedAt ([DateTimeOffset]::Now.ToString("o")) `
+      -Summary $lastMessage `
+      -Commit $commitSha `
+      -Pushed $pushed `
+      -ChangedFiles $changedFiles `
+      -Phase "Completed" `
+      -StatusTitle "Anton finished a run" `
+      -StatusDetail "Anton completed the scheduled site-improvement loop and recorded the result." `
+      -ActionRequired "No action needed unless you want to review the latest commit."
 
     $statusOnlyChanges = @(Get-GitChangedFiles | Where-Object { $_ -eq "agent-last-run.json" })
     if ($config.commitChanges -and $statusOnlyChanges.Count -gt 0) {
@@ -273,7 +401,7 @@ function Invoke-AgentOnce {
       $statusCommitSha = $null
       git add -- agent-last-run.json
       $statusMessage = "chore: update Anton run status: {0}" -f (Get-Date).ToString("yyyy-MM-dd HH:mm")
-      git commit -m $statusMessage
+      git commit -m $statusMessage -- agent-last-run.json
       if ($LASTEXITCODE -eq 0) {
         $statusCommitSha = (git rev-parse --short HEAD).Trim()
         Write-Log "Committed status update $statusCommitSha."
@@ -295,7 +423,19 @@ function Invoke-AgentOnce {
   } catch {
     $message = "Agent loop error: $($_.Exception.Message)"
     Write-Log $message
-    Write-AgentStatus -Status "error" -StartedAt $started -FinishedAt ([DateTimeOffset]::Now.ToString("o")) -Summary $message -ChangedFiles (Get-GitChangedFiles)
+    Write-AgentStatus `
+      -Status "error" `
+      -StartedAt $started `
+      -FinishedAt ([DateTimeOffset]::Now.ToString("o")) `
+      -Summary $message `
+      -ChangedFiles (Get-GitChangedFiles) `
+      -Phase "Runner error" `
+      -StatusTitle "Anton runner hit an error" `
+      -StatusDetail $message `
+      -ActionRequired "Check the Anton logs and runner script. Anton will retry on the next scheduled run." `
+      -FailureKind "runner-error" `
+      -Diagnostic (Get-StatusExcerpt -Text $_.ScriptStackTrace)
+    Publish-AgentStatus -Reason "error"
   } finally {
     Pop-Location
     if (Test-Path -LiteralPath $LockPath) {

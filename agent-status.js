@@ -30,6 +30,17 @@ function escapeHtml(value = "") {
   })[character]);
 }
 
+function renderTextBlock(value = "") {
+  return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function firstUsefulLine(value = "") {
+  return `${value}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean) || "";
+}
+
 function getControlUrl() {
   try {
     return localStorage.getItem(CONTROL_URL_KEY) || DEFAULT_CONTROL_URL;
@@ -133,6 +144,10 @@ function describeNextRun(value) {
 }
 
 function summarizeRun(data) {
+  if (data.statusDetail) {
+    return data.statusDetail;
+  }
+
   const summary = data.summary || "No agent run summary has been recorded yet.";
   const lowered = summary.toLowerCase();
 
@@ -211,6 +226,11 @@ function renderAgentStatus(data) {
   const health = getLoopHealth(data);
   const intervalText = `${Number(data.intervalMinutes) || 90} min`;
   const runSummary = summarizeRun(data);
+  const statusTitle = data.statusTitle || health.label || "Anton status";
+  const actionRequired = data.actionRequired || (health.state === "healthy" ? "No action needed." : health.copy);
+  const phase = data.phase || data.status || "Unknown";
+  const duration = Number.isFinite(Number(data.durationMinutes)) ? `${Number(data.durationMinutes)} min` : "In progress";
+  const diagnostic = data.diagnostic ? firstUsefulLine(data.diagnostic) : "";
 
   statusRoot.innerHTML = `
     <div class="agent-status-head">
@@ -224,6 +244,23 @@ function renderAgentStatus(data) {
       <strong>${health.label}</strong>
       <span>${health.copy}</span>
     </div>
+    <div class="agent-now-grid">
+      <article class="agent-now-card agent-now-card-strong">
+        <span>Right Now</span>
+        <strong>${escapeHtml(statusTitle)}</strong>
+        <p>${escapeHtml(runSummary)}</p>
+      </article>
+      <article class="agent-now-card">
+        <span>Action Needed</span>
+        <strong>${escapeHtml(actionRequired)}</strong>
+        ${diagnostic ? `<p>${escapeHtml(diagnostic)}</p>` : ""}
+      </article>
+      <article class="agent-now-card">
+        <span>Current Phase</span>
+        <strong>${escapeHtml(phase)}</strong>
+        <p>${escapeHtml(data.failureKind ? `Issue type: ${data.failureKind}` : `Run time: ${duration}`)}</p>
+      </article>
+    </div>
     <div class="agent-control-panel">
       <div>
         <strong>Remote Start</strong>
@@ -234,15 +271,21 @@ function renderAgentStatus(data) {
         <button class="agent-control-button agent-control-button-secondary" type="button" data-agent-control-settings>Control URL</button>
       </div>
     </div>
-    <p class="agent-status-summary">${escapeHtml(runSummary)}</p>
+    <details class="agent-status-details" open>
+      <summary>What Anton Did</summary>
+      <p class="agent-status-summary">${renderTextBlock(data.summary || runSummary)}</p>
+    </details>
     <div class="agent-status-grid">
       <div><span>Loop</span><strong>Every ${intervalText}</strong></div>
       <div><span>Next Check</span><strong>${describeNextRun(data.nextExpectedRunAt)}</strong></div>
       <div><span>Heartbeat</span><strong>${formatDate(data.lastHeartbeatAt)}</strong></div>
       <div><span>Started</span><strong>${formatDate(data.startedAt)}</strong></div>
       <div><span>Finished</span><strong>${formatDate(data.finishedAt)}</strong></div>
+      <div><span>Duration</span><strong>${escapeHtml(duration)}</strong></div>
       <div><span>Commit</span><strong>${escapeHtml(data.commit || "None yet")}</strong></div>
       <div><span>GitHub</span><strong>${pushedText}</strong></div>
+      <div><span>Status Version</span><strong>${escapeHtml(data.statusVersion || "Legacy")}</strong></div>
+      <div><span>Output Log</span><strong>${escapeHtml(data.outputLog || data.log || "Not recorded")}</strong></div>
     </div>
     ${
       visibleFiles.length
