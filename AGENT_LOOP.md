@@ -12,15 +12,19 @@ The agent should not make random changes just to stay busy. Each session should 
 
 1. Read `ANTON.md`, `AGENT_STATE.md`, `AGENT_BACKLOG.md`, and `SITE_QUALITY_AUDIT.md`.
 2. Check `git status --short` and do not revert user changes.
-3. Pick the highest-value task that fits the current session.
-4. Implement the task in small, understandable changes.
-5. Verify with static checks, browser checks, and screenshots when UI changed.
-6. Update `AGENT_STATE.md` and any useful Markdown memory files with:
+3. Use internet research when it can reveal useful feature ideas, current best practices, or reliable source material.
+4. Use temporary helper sub-agents when available and helpful for research, narrow implementation, or verification.
+5. Pick the highest-value task that fits the current session.
+6. Implement the task in small, understandable changes.
+7. Verify with static checks, browser checks, and screenshots when UI changed.
+8. Update `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `SITE_QUALITY_AUDIT.md`, `ANTON.md`, and any useful Markdown memory files with:
    - what changed
    - what was verified
    - what remains
    - the best next task
-7. Stop cleanly when tokens/time are low, leaving the project resumable.
+   - useful sources or research ideas
+   - durable lessons or preferences that should guide future Anton runs
+9. Stop cleanly when tokens/time are low, leaving the project resumable.
 
 ## User Input Rules
 

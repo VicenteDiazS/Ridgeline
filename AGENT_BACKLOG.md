@@ -5,6 +5,8 @@ This backlog is ordered by practical value. The agent should work from the top u
 ## High Priority
 
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
+- Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.
+- Build from owner workflows the user is likely to value: quick diagnostics, maintenance planning, fuse finding, parts tracking, offline checklists, garage records, and mobile-first reference tools.
 
 ## Fuse And Electrical
 
@@ -39,6 +41,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## Nice To Have
 
+- Add an "Ideas from research" panel or note stream where Anton can summarize sourced feature candidates before implementing them.
 - Add a local Windows truck-computer mode later.
 - Add export/import for garage notes.
 - Add printable quick sheets.

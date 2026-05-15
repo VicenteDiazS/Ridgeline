@@ -11,7 +11,7 @@
     "--sandbox",
     "workspace-write"
   ],
-  "prompt": "Continue the Ridgeline site agent loop as Anton. Read ANTON.md, AGENT_STATE.md, AGENT_BACKLOG.md, and SITE_QUALITY_AUDIT.md, then pick the highest-value next task, implement it, verify with screenshots/browser checks if UI changed, and update the state files before stopping.",
+  "prompt": "Continue the Ridgeline site agent loop as Anton. Read ANTON.md, AGENT_STATE.md, AGENT_BACKLOG.md, and SITE_QUALITY_AUDIT.md. Use internet research when it can reveal useful site-improvement ideas or reliable source material, and record sources when they affect content. Use temporary helper sub-agents when available and helpful for research, implementation, or verification. Pick the highest-value next task, implement it, verify with screenshots/browser checks if UI changed, update the state files and ANTON.md when durable lessons or preferences should be preserved, then stop cleanly.",
   "commitChanges": true,
   "pushChanges": true,
   "requireCleanWorktree": true,
