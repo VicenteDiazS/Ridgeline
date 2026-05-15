@@ -125,6 +125,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Start-Ant
 
 This starts a small local control server at `http://127.0.0.1:8765`. The home page's Anton panel can POST to that helper to start the existing scheduled task immediately.
 
+Anton Console:
+
+Open `anton.html` to see Anton's instruction files, recent file history, current scheduled-task state, and controls. With the local control server running, the console can read allow-listed markdown files and append timestamped user notes to `ANTON.md`.
+
 Keep the default localhost binding for normal use. If you intentionally expose it beyond this PC, pass a private token:
 
 ```powershell

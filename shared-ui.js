@@ -542,7 +542,8 @@ const menuLinks = [
   { label: "Maintenance", href: "maintenance.html", match: "maintenance.html", note: "Oil, filters, service codes, brakes, tires, and fluids" },
   { label: "Emergency Card", href: "quick-sheet.html#emergency-card", match: "quick-sheet.html", note: "Critical specs and links for roadside or garage work" },
   { label: "Diagnostics", href: "diagnostics.html", match: "diagnostics.html", note: "Symptom-based troubleshooting shortcuts" },
-  { label: "Garage Log", href: "garage.html", match: "garage.html", note: "Your notes, service history, and saved references" }
+  { label: "Garage Log", href: "garage.html", match: "garage.html", note: "Your notes, service history, and saved references" },
+  { label: "Anton Console", href: "anton.html", match: "anton.html", note: "Agent instructions, notes, history, and controls" }
 ];
 
 function currentPageName() {

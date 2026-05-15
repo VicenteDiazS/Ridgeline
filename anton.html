@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071019" />
+    <meta
+      name="description"
+      content="Anton control console for the Ridgeline site agent, including instructions, state, notes, history, and local run controls."
+    />
+    <title>Anton Console | Ridgeline</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="is-subpage">
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="#anton-controls">Controls</a>
+          <a href="#anton-files">Markdown</a>
+          <a href="#anton-note">Add Note</a>
+          <a href="#anton-history">History</a>
+        </nav>
+        <div class="topbar-actions">
+          <a class="header-nav-button" href="index.html#viewer" data-nav-icon="map" aria-label="Open vehicle map" title="Vehicle map">Map</a>
+          <a class="header-nav-button" href="maintenance.html" data-nav-icon="wrench" aria-label="Open service page" title="Service">Service</a>
+          <a class="header-nav-button" href="garage.html" data-nav-icon="garage" aria-label="Open garage page" title="Garage">Garage</a>
+          <button class="search-button" type="button" data-open-search aria-label="Search site" title="Search site">Search</button>
+          <button class="header-nav-button header-more-button" type="button" data-open-site-menu data-nav-icon="menu" aria-label="Open full site menu" title="Full menu">More</button>
+        </div>
+        <nav class="header-quick-nav" aria-label="Quick find">
+          <a href="hood.html">Electrical</a>
+          <a href="quick-sheet.html">Emergency</a>
+          <a href="diagnostics.html">Diagnostics</a>
+          <a href="tires.html">Tires</a>
+          <a href="nfc.html">NFC</a>
+        </nav>
+      </header>
+
+      <nav class="route-strip" aria-label="Fast sections">
+        <a href="index.html">Home</a>
+        <a href="#anton-controls">Controls</a>
+        <a href="#anton-files">Markdown</a>
+        <a href="#anton-note">Add Note</a>
+        <a href="#anton-history">History</a>
+      </nav>
+
+      <main id="top">
+        <section class="anton-console-hero">
+          <div>
+            <p class="eyebrow">Anton Console</p>
+            <h1>Agent Desk</h1>
+            <p class="section-copy">
+              Read Anton's working notes, append instructions, and control the local scheduled loop from one place.
+            </p>
+          </div>
+          <div class="anton-live-card" data-anton-live-card>
+            <span>Control Server</span>
+            <strong data-anton-server-state>Checking...</strong>
+            <p data-anton-server-detail>Looking for the local helper.</p>
+          </div>
+        </section>
+
+        <section class="anton-console-grid" id="anton-controls">
+          <article class="anton-panel anton-controls-panel">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">Loop Controls</p>
+                <h2>Anton Runtime</h2>
+              </div>
+            </div>
+            <div class="anton-control-row">
+              <button class="agent-control-button" type="button" data-anton-action="start">Start Now</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-action="enable">Resume Schedule</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-action="disable">Pause Schedule</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-settings>Control URL</button>
+            </div>
+            <div class="agent-status-grid anton-status-grid">
+              <div><span>Task</span><strong data-anton-task-state>Unknown</strong></div>
+              <div><span>Last Run</span><strong data-anton-last-run>Unknown</strong></div>
+              <div><span>Next Run</span><strong data-anton-next-run>Unknown</strong></div>
+              <div><span>Lock</span><strong data-anton-lock>Unknown</strong></div>
+            </div>
+            <p class="agent-status-summary" data-anton-action-message>Controls use the local Anton helper at http://127.0.0.1:8765.</p>
+          </article>
+
+          <article class="anton-panel" id="anton-note">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">Append To ANTON.md</p>
+                <h2>User Note</h2>
+              </div>
+            </div>
+            <form class="anton-note-form" data-anton-note-form>
+              <label for="anton-note-input">Note for Anton</label>
+              <textarea id="anton-note-input" name="note" rows="7" placeholder="Add an instruction, preference, or reminder for Anton to read at the start of future runs."></textarea>
+              <button class="agent-control-button" type="submit">Append Note</button>
+            </form>
+          </article>
+        </section>
+
+        <section class="anton-panel anton-file-panel" id="anton-files">
+          <div class="compact-section-head">
+            <div>
+              <p class="eyebrow">Markdown Files</p>
+              <h2>Anton Memory</h2>
+            </div>
+            <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-refresh>Refresh</button>
+          </div>
+          <div class="anton-file-tabs" data-anton-file-tabs aria-label="Anton markdown files"></div>
+          <div class="anton-file-meta">
+            <strong data-anton-file-title>ANTON.md</strong>
+            <span data-anton-file-time>Waiting for content</span>
+          </div>
+          <pre class="anton-markdown-view" data-anton-file-content>Start the local Anton control server to load editable agent files.</pre>
+        </section>
+
+        <section class="anton-panel" id="anton-history">
+          <div class="compact-section-head">
+            <div>
+              <p class="eyebrow">Change Trail</p>
+              <h2>Selected File History</h2>
+            </div>
+          </div>
+          <div class="anton-history-list" data-anton-history-list>
+            <p class="agent-status-empty">No history loaded yet.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="anton-console.js"></script>
+    <script type="module" src="shared-ui.js"></script>
+  </body>
+</html>
