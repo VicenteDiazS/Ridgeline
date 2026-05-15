@@ -61,7 +61,7 @@ For every UI/navigation change:
 
 - Run an internal link and anchor audit.
 - Open the site in a real browser.
-- Check desktop and mobile widths.
+- Check iPhone/mobile width first, then desktop width.
 - Capture screenshots into `debug-screenshots/`.
 - Confirm pages and key sections load real content, Search/More/modals close cleanly, body scrolling is restored after overlays, anchor links land on visible sections, and primary header navigation still works.
 

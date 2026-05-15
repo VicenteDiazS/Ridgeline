@@ -4,6 +4,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
+- Treat iPhone/mobile Safari as the main user environment for all navigation, layout, and interaction decisions.
 - Use `ANTON_ROADMAP.md` to keep improving the site through multi-day initiatives instead of isolated one-off changes.
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
 - Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.

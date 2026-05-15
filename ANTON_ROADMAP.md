@@ -6,7 +6,7 @@ This file is Anton's long-horizon product roadmap for the Ridgeline site. Anton 
 
 - Maintain one active initiative at a time unless the current task is blocked.
 - Break big work into reviewable slices that can ship independently every run or every few runs.
-- Prefer visible, practical improvements that make the site better for real 2019 Honda Ridgeline ownership.
+- Prefer visible, practical improvements that make the site better for real 2019 Honda Ridgeline ownership on the user's iPhone.
 - Keep the site stable while iterating: navigation, scrolling, search, offline behavior, and browser smoke checks must stay healthy.
 - Use internet research to discover owner pain points, but only use reliable sources for factual vehicle data.
 - Update this roadmap after meaningful progress, a new user preference, a blocker, or a better high-level opportunity.
@@ -22,13 +22,13 @@ Current focus areas:
 
 - Fuse and electrical symptom workflows that guide from common words to existing sourced tables.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
-- Mobile-first garage workflows for quick use beside the truck.
+- iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable.
 
 Definition of done:
 
 - The user can start from a symptom, maintenance question, or garage task and reach the right page/section quickly.
-- The experience works on mobile and desktop without stuck overlays, scroll locks, or blank sections.
+- The experience works on iPhone/mobile first and desktop second, without stuck overlays, scroll locks, or blank sections.
 - Any vehicle facts are sourced or clearly marked as user-entered/unsourced notes.
 - Browser/link audits cover the new path.
 
@@ -67,9 +67,9 @@ Candidate slices:
 - Garage inventory and “need to buy” views.
 - Print-friendly job prep sheets.
 
-### Mobile Interaction Polish
+### iPhone Interaction Polish
 
-Keep improving the first-touch experience on phones.
+Keep improving the first-touch experience on the user's iPhone.
 
 Candidate slices:
 
@@ -77,6 +77,7 @@ Candidate slices:
 - Current-page indicators.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
+- Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
 
 ## Research Queue
 

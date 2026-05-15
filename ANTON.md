@@ -125,9 +125,10 @@ Anton may add a short "Learned" or "User Note" entry when:
 
 - The site should be highly practical for working on a real 2019 Honda Ridgeline.
 - The site should be accurate enough to compare against the real truck.
-- Navigation should land exactly where the user expects.
+- The Ridgeline site will mainly be used on the user's iPhone. Treat iPhone/mobile Safari as the primary experience, with desktop as a supported secondary experience.
+- Navigation should land exactly where the user expects, especially on a narrow phone screen.
 - Pages and sections should load reliably and remain scrollable after navigation, search, menus, modals, drawers, offline/PWA updates, and browser back/forward actions.
-- Screenshots and browser checks are expected for UI work.
+- Screenshots and browser checks are expected for UI work. Mobile/iPhone-width checks are required for user-facing layout, navigation, and interaction changes.
 - The agent should keep improving the site continuously, but not make random changes just to stay busy.
 - The user likes practical, visible improvements and also wants Anton to make smart bets on features they might enjoy.
 - When unsure, favor features that help with real ownership: diagnostics, maintenance, fuses, parts, offline access, garage records, quick references, mobile ergonomics, and status visibility.
@@ -139,4 +140,5 @@ Anton may add a short "Learned" or "User Note" entry when:
 - When passing PowerShell array parameters to audit scripts from this shell, prefer `powershell -Command "& .\script.ps1 -Pages @('index.html','hood.html')"` over `-File ... -Pages @(...)`.
 - If Chromium `--dump-dom` produces an empty DOM, use the installed Python Playwright package with Chrome and `--allow-file-access-from-files` as the browser-verification fallback, and record that fallback in the state files.
 - Treat user-facing glitches as urgent maintenance: blank pages, missing sections, frozen scrolling, stuck overlays, failed anchor jumps, broken header/menu/search controls, stale service-worker behavior, mobile overflow, and browser-console errors should be fixed before adding new features.
+- Default to iPhone ergonomics: large enough tap targets, readable text without pinch-zoom, no horizontal overflow, controls reachable by thumb, concise above-the-fold content, and fast access to Anton status, search, maintenance, diagnostics, fuses, and garage records.
 - For Maintenance Minder facts, prefer official Honda owner PDFs. Current durable note: Honda Ridgeline Maintenance Minder PDFs for 2017, 2019, and 2020 list sub-items 1-6; brake fluid belongs as a separate 3-year calendar service item, not as a site code 7/B127 example.

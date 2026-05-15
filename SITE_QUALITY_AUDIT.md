@@ -5,6 +5,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 ## Current Baseline
 
 - Every HTML page uses a consistent top header with brand, primary section links, search, and a full-site menu.
+- The primary target environment is the user's iPhone, so mobile Safari-style widths, touch targets, vertical scrolling, and no-horizontal-overflow behavior are treated as first-class quality checks.
 - Header actions are normalized by `shared-ui.js` so subpages receive the same Map, Service, Garage, Search, and More controls as the home page.
 - Subpage support controls are injected after the page hero instead of above the main content, keeping each page title near the top of the first screen.
 - Every real HTML page has a `main` landmark and page title.
@@ -27,7 +28,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 ## Manual Review Checklist
 
-- Open desktop and mobile widths.
+- Open iPhone/mobile width first, then desktop width.
 - Confirm the header remains usable on every page.
 - Open Search and More from multiple pages.
 - Click top navigation links and confirm the page lands at the intended content.
