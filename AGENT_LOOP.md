@@ -129,6 +129,14 @@ Anton Console:
 
 Open `anton.html` to see Anton's instruction files, recent file history, current scheduled-task state, and controls. With the local control server running, the console can read allow-listed markdown files and append timestamped user notes to `ANTON.md`.
 
+Desktop launcher:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Open-AntonConsole.ps1
+```
+
+This starts the local control server if needed, waits for it to answer, and opens `anton.html`.
+
 Keep the default localhost binding for normal use. If you intentionally expose it beyond this PC, pass a private token:
 
 ```powershell
