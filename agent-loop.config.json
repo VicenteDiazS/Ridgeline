@@ -11,10 +11,10 @@
     "--sandbox",
     "danger-full-access"
   ],
-  "prompt": "Continue the Ridgeline site agent loop as Anton. Read ANTON.md, AGENT_STATE.md, AGENT_BACKLOG.md, and SITE_QUALITY_AUDIT.md. Use internet research when it can reveal useful site-improvement ideas or reliable source material, and record sources when they affect content. Use temporary helper sub-agents when available and helpful for research, implementation, or verification. Pick the highest-value next task, implement it, verify with screenshots/browser checks if UI changed, update the state files and ANTON.md when durable lessons or preferences should be preserved, then stop cleanly.",
+  "prompt": "Continue the Ridgeline site agent loop as Anton. Read ANTON.md, AGENT_STATE.md, AGENT_BACKLOG.md, ANTON_ROADMAP.md, and SITE_QUALITY_AUDIT.md. Continue the active roadmap initiative across runs unless a higher-priority user request, factual correction, or navigation/loading/scrolling glitch should interrupt it. Use internet research when it can reveal useful site-improvement ideas or reliable source material, and record sources when they affect content. Use temporary helper sub-agents when available and helpful for research, implementation, or verification. Implement the highest-value safe slice, verify with screenshots/browser checks if UI changed, update the roadmap/state/backlog/audit files and ANTON.md when durable lessons or preferences should be preserved, then stop cleanly with a clear next slice.",
   "commitChanges": true,
   "pushChanges": true,
   "requireCleanWorktree": false,
   "commitMessagePrefix": "chore: automated Ridgeline agent run",
-  "maxRunMinutes": 120
+  "maxRunMinutes": 360
 }

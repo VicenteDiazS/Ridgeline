@@ -4,6 +4,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
+- Use `ANTON_ROADMAP.md` to keep improving the site through multi-day initiatives instead of isolated one-off changes.
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
 - Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.
 - Build from owner workflows the user is likely to value: quick diagnostics, maintenance planning, fuse finding, parts tracking, offline checklists, garage records, and mobile-first reference tools.
