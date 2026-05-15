@@ -15,6 +15,7 @@ Write-Host "Configuring Anton always-on mode..."
 Write-Host "Sleep and hibernate timers will be disabled for both plugged-in and battery power."
 Write-Host "Closing the lid will be set to do nothing for both plugged-in and battery power."
 Write-Host "Wake timers will be enabled for both plugged-in and battery power."
+Write-Host "Display and disk idle timers will be disabled for plugged-in power."
 
 $lidCloseAction = "5ca83367-6e45-459f-a27b-476b1d01c936"
 $unattendedSleepTimeout = "7bc4a2f9-d8fc-4469-b07b-33eb785aaca0"
@@ -29,6 +30,8 @@ powercfg /setacvalueindex SCHEME_CURRENT SUB_SLEEP $unattendedSleepTimeout 0 | O
 powercfg /setdcvalueindex SCHEME_CURRENT SUB_SLEEP $unattendedSleepTimeout 0 | Out-Null
 powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS $lidCloseAction 0 | Out-Null
 powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS $lidCloseAction 0 | Out-Null
+powercfg /change monitor-timeout-ac 0 | Out-Null
+powercfg /change disk-timeout-ac 0 | Out-Null
 powercfg /setactive SCHEME_CURRENT | Out-Null
 
 $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue

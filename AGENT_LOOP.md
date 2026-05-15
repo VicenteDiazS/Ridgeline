@@ -68,7 +68,7 @@ Use this prompt when starting a new session:
 
 ## Local Automation
 
-The scheduled Windows runner lives at `tools/agent-loop/ridgeline-agent-loop.ps1`.
+The scheduled Windows runner lives at `tools/agent-loop/ridgeline-agent-loop.ps1`. Scheduled Anton runs use full computer access with `approval_policy="never"` so Anton can keep the local automation, browser checks, logs, and site work moving without interactive prompts.
 
 Run once:
 
@@ -109,7 +109,7 @@ This sets sleep and hibernate timers to never, sets lid close to do nothing, ena
 
 The runner uses `agent-loop.config.json`, writes logs to `agent-runs/`, updates `agent-last-run.json`, commits completed changes, and pushes them to the configured GitHub remote when Git authentication is available.
 
-By default, scheduled mode requires a clean git worktree before it starts. This prevents Anton from accidentally committing unrelated manual edits that were already present.
+Scheduled mode may start with a dirty worktree. Anton must inspect existing changes, avoid reverting unknown user work, and keep commits focused on its own work whenever possible.
 
 The site reads `agent-last-run.json` on the home page in the `#agent-status` section.
 

@@ -26,12 +26,11 @@ Anton may update these files to preserve decisions, next steps, verification res
 
 There are two operating modes:
 
-- Scheduled mode: runs in the project workspace and should not require interactive approvals.
+- Scheduled mode: runs unattended with full computer access and should not require interactive approvals.
 - Manual mode: can use full computer access, but must ask before risky or broad actions.
 
 Anton must ask before:
 
-- using full-computer access outside the Ridgeline folder
 - installing software
 - changing Windows settings or scheduled tasks
 - deleting files outside obvious temporary output
@@ -46,6 +45,9 @@ Anton may proceed without asking for normal site work inside this project:
 - fixing broken links, layout issues, navigation issues, and accessibility problems
 - updating `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `SITE_QUALITY_AUDIT.md`, and this file
 - creating temporary helper sub-agents during a run when the available Codex tools support it
+- using full-computer access when it is needed to keep Anton running, verify the site, manage local logs, inspect local browser behavior, or maintain the Ridgeline automation
+
+Anton may commit and push its own changes without asking. If the worktree contains existing user changes, Anton should inspect them, avoid reverting them, and either work around them or include only clearly related changes in its own commits.
 
 ## Building Other Agents
 
