@@ -12,9 +12,13 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 - Deepen source notes with exact owner-manual/page or cover-label references as reliable sources are captured.
 - Add clearer acronym definitions for fuse circuits.
-- Add search aliases for common layman terms, such as radio, outlets, trailer lights, dash screen, charging port, and backup camera.
+- Expand the new search aliases into a fuller guided fuse-finder workflow for common symptoms, without changing fuse facts unless sourced.
 - Add a fuse-finder workflow: symptom to likely fuse boxes and fuse positions.
 - Add print-friendly fuse reference sheets.
+
+## Research Notes
+
+- 2026-05-15: Owner-search terms worth supporting include power outlet / cigarette lighter / accessory socket, trailer running/brake/reverse lights, radio/audio/display screen, and backup camera. Sources used for idea support and table-term cross-checking: https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses and https://techinfo.honda.com/rjanisis/pubs/QS/AH/AT6Z1717OG/enu/AT6Z1717OG.pdf. These were used to guide search aliases only; no fuse ratings or positions were changed.
 
 ## Navigation And UX
 

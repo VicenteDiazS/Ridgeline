@@ -132,6 +132,83 @@ export const searchIndex = [
     keywords: ["fuse", "cabin", "driver-left", "kick panel", "under dash", "interior fuse"]
   },
   {
+    title: "Power Outlet / 12V Socket Fuses",
+    url: "cabin.html#fuses",
+    category: "Electrical",
+    excerpt: "Shortcut for phone charger, cigarette lighter, front accessory socket, and console accessory socket searches. Confirm the fuse number on the truck's cover label.",
+    keywords: [
+      "12v",
+      "12 volt",
+      "power outlet",
+      "accessory socket",
+      "front accessory socket",
+      "console accessory socket",
+      "cigarette lighter",
+      "phone charger",
+      "charging port",
+      "usb charger",
+      "outlet not working"
+    ]
+  },
+  {
+    title: "Trailer Light Fuse Search",
+    url: "hood.html#fuses",
+    category: "Electrical",
+    excerpt: "Shortcut for trailer running lights, brake lights, turn signals, reverse lights, and 7-pin connector fuse checks. Verify the cover diagram before replacing anything.",
+    keywords: [
+      "trailer lights",
+      "trailer running lights",
+      "trailer brake lights",
+      "trailer turn signals",
+      "trailer reverse lights",
+      "trailer backup",
+      "trailer small",
+      "7 pin lights",
+      "7-way lights",
+      "hitch lights",
+      "tow lights"
+    ]
+  },
+  {
+    title: "Audio / Radio Fuse Search",
+    url: "hood.html#fuses",
+    category: "Electrical",
+    excerpt: "Shortcut for radio, head unit, audio amp, display audio, and speaker power fuse searches across the existing hood and cabin tables.",
+    keywords: [
+      "radio",
+      "stereo",
+      "audio",
+      "audio amp",
+      "amp",
+      "speaker",
+      "speakers",
+      "head unit",
+      "display audio",
+      "infotainment",
+      "screen",
+      "dash screen",
+      "navigation screen"
+    ]
+  },
+  {
+    title: "Backup / Reverse Light Fuse Search",
+    url: "hood.html#fuses",
+    category: "Electrical",
+    excerpt: "Shortcut for backup light, reverse light, trailer backup, and backup camera fuse-table searches. Use the page table and truck cover label together.",
+    keywords: [
+      "backup",
+      "back up",
+      "reverse light",
+      "reverse lights",
+      "backup light",
+      "backup lights",
+      "backup camera",
+      "rear camera",
+      "camera not working",
+      "trailer backup"
+    ]
+  },
+  {
     title: "Fuse Favorites",
     url: "garage.html#favorites",
     category: "Electrical",

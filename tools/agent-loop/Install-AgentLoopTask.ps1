@@ -42,15 +42,23 @@ $settings = New-ScheduledTaskSettingsSet `
   -DontStopIfGoingOnBatteries `
   -MultipleInstances IgnoreNew `
   -StartWhenAvailable `
-  -WakeToRun
+  -WakeToRun `
+  -RestartCount 3 `
+  -RestartInterval (New-TimeSpan -Minutes 5)
+
+$principal = New-ScheduledTaskPrincipal `
+  -UserId $env:USERNAME `
+  -LogonType Interactive `
+  -RunLevel Highest
 
 Register-ScheduledTask `
   -TaskName $TaskName `
   -Action $action `
   -Trigger @($timeTrigger, $logonTrigger) `
   -Settings $settings `
+  -Principal $principal `
   -Description "Runs the Ridgeline Codex site-improvement agent loop." `
   -Force | Out-Null
 
-Write-Host "Installed scheduled task '$TaskName'. It will run every $IntervalMinutes minute(s) and at Windows logon."
+Write-Host "Installed scheduled task '$TaskName'. It will run every $IntervalMinutes minute(s), at Windows logon, retry failed runs, and request highest privileges."
 Write-Host "To remove it: Unregister-ScheduledTask -TaskName '$TaskName' -Confirm:`$false"

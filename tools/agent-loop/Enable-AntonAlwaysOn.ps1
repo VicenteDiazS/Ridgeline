@@ -54,11 +54,18 @@ if ($task) {
     -DontStopIfGoingOnBatteries `
     -MultipleInstances IgnoreNew `
     -StartWhenAvailable `
-    -WakeToRun
+    -WakeToRun `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Minutes 5)
+
+  $principal = New-ScheduledTaskPrincipal `
+    -UserId $task.Principal.UserId `
+    -LogonType Interactive `
+    -RunLevel Highest
 
   try {
-    Set-ScheduledTask -TaskName $TaskName -Settings $settings | Out-Null
-    Write-Host "Updated scheduled task '$TaskName' so it can wake and keep running on battery."
+    Set-ScheduledTask -TaskName $TaskName -Settings $settings -Principal $principal | Out-Null
+    Write-Host "Updated scheduled task '$TaskName' so it can wake, keep running on battery, retry failures, and request highest privileges."
   } catch {
     Write-Host "Could not update scheduled task '$TaskName' without elevation: $($_.Exception.Message)"
     Write-Host "Run this script from an elevated PowerShell window if the task settings need to be rewritten."

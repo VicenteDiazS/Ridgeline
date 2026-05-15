@@ -184,6 +184,16 @@ function Invoke-InteractionSmoke {
     searchInput.dispatchEvent(new Event("input", { bubbles: true }));
     await sleep(900);
     assert(doc.querySelector("#site-search-results").children.length > 0, "search returned no results for fuse");
+    const setSearchQuery = async (query) => {
+      searchInput.value = query;
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      await sleep(900);
+      return doc.querySelector("#site-search-results").textContent || "";
+    };
+    assert((await setSearchQuery("power outlet")).includes("Power Outlet / 12V Socket Fuses"), "power outlet alias did not surface the fuse shortcut");
+    assert((await setSearchQuery("trailer brake lights")).includes("Trailer Light Fuse Search"), "trailer brake lights alias did not surface the fuse shortcut");
+    assert((await setSearchQuery("radio")).includes("Audio / Radio Fuse Search"), "radio alias did not surface the fuse shortcut");
+    assert((await setSearchQuery("backup camera")).includes("Backup / Reverse Light Fuse Search"), "backup camera alias did not surface the fuse shortcut");
     pressEscape();
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");

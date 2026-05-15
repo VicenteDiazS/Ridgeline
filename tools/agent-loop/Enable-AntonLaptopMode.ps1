@@ -30,10 +30,12 @@ if ($task) {
     -DontStopIfGoingOnBatteries `
     -MultipleInstances IgnoreNew `
     -StartWhenAvailable `
-    -WakeToRun
+    -WakeToRun `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Minutes 5)
 
   Set-ScheduledTask -TaskName $TaskName -Settings $settings | Out-Null
-  Write-Host "Updated scheduled task '$TaskName' so it can wake the computer to run."
+  Write-Host "Updated scheduled task '$TaskName' so it can wake the computer to run and retry failed runs."
 } else {
   Write-Host "Scheduled task '$TaskName' was not found. Install Anton's task first, then run this again."
 }

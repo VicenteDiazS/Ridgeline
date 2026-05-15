@@ -12,6 +12,7 @@ Last updated: 2026-05-15
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
+- Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
@@ -35,6 +36,10 @@ Last updated: 2026-05-15
 - Applied focus trapping to Search, More, Command Palette, Quick Capture, Sync Settings, and the quick-tools drawer.
 - Extended `tools/audit/Invoke-BrowserSmoke.ps1` to verify Tab and Shift+Tab wrapping for Search, More, Command Palette, Quick Capture, and Sync Settings, plus Escape close/focus return for the newly covered modals.
 - Bumped the service worker cache to `ridgeline-console-v243`.
+- Added static search shortcuts for common owner fuse phrases: `power outlet`, `trailer brake lights`, `radio`, and `backup camera`.
+- Extended search synonyms for outlet/socket/charger/radio/stereo/screen/camera terms.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` so future browser smoke checks assert those search aliases appear.
+- Bumped the service worker cache to `ridgeline-console-v245`.
 
 ## Known Cautions
 
@@ -44,7 +49,7 @@ Last updated: 2026-05-15
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a fuller symptom-to-fuse workflow that uses the existing verified tables without asserting new fuse facts.
 
 ## Next Verification Target
 
@@ -74,3 +79,7 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v243`; the static link audit passed and browser smoke passed for `index.html` and `hood.html` before the monolithic command timed out.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('cabin.html','maintenance.html','garage.html')"`; browser smoke and modal focus-trap checks passed for the remaining pages.
 - Captured desktop/mobile screenshots for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html` under `debug-screenshots/audit-v243-*.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` with Edge and Chrome, but Chromium `--dump-dom` returned an empty DOM in this shell before interaction checks could run.
+- Verified the search aliases with a Playwright/Chrome browser probe: `power outlet`, `trailer brake lights`, `radio`, and `backup camera` each surfaced the intended shortcut result.
+- Captured Playwright screenshots for `index.html`, `hood.html`, and `cabin.html` at desktop/mobile sizes under `debug-screenshots/audit-v245-*.png`, plus `debug-screenshots/audit-v245-mobile-search-power-outlet.png`.

@@ -120,3 +120,5 @@ Anton may add a short "Learned" or "User Note" entry when:
 
 - Keep subpage heroes as the first meaningful content after the header. Injected helper controls such as view modes, mobile navigation, breadcrumbs, recent pages, and page actions should sit after the hero unless a specific page design calls for a different order.
 - Prefer turning repeatable browser and link checks into scripts; the last run used one-off PowerShell/Python commands and should be captured as reusable tooling next.
+- When passing PowerShell array parameters to audit scripts from this shell, prefer `powershell -Command "& .\script.ps1 -Pages @('index.html','hood.html')"` over `-File ... -Pages @(...)`.
+- If Chromium `--dump-dom` produces an empty DOM, use the installed Python Playwright package with Chrome and `--allow-file-access-from-files` as the browser-verification fallback, and record that fallback in the state files.

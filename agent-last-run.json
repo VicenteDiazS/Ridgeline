@@ -1,23 +1,20 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  2,
-    "status":  "completed",
-    "startedAt":  "2026-05-15T17:29:36.3049231-05:00",
-    "finishedAt":  "2026-05-15T17:32:22.8398093-05:00",
-    "lastHeartbeatAt":  "2026-05-15T17:32:22.8398093-05:00",
+    "status":  "running",
+    "startedAt":  "2026-05-15T17:57:11.3296759-05:00",
+    "finishedAt":  "",
+    "lastHeartbeatAt":  "2026-05-15T17:57:11.9367864-05:00",
     "intervalMinutes":  30,
-    "nextExpectedRunAt":  "2026-05-15T18:02:22.8398093-05:00",
+    "nextExpectedRunAt":  null,
     "commit":  "",
     "pushed":  false,
-    "summary":  "Added an Anton Console page for reading Anton markdown files, appending user notes to ANTON.md through the local control server, viewing file history, and starting/pausing/resuming the scheduled Anton loop.",
+    "summary":  "Agent run started.",
     "changedFiles":  [
-                         "index.html",
-                         "service-worker.js",
-                         "shared-ui.js",
-                         "styles.css",
-                         "tools/agent-loop/Start-AntonControlServer.ps1",
-                         "anton-console.js",
-                         "anton.html"
+                         "AGENT_LOOP.md",
+                         "tools/agent-loop/Enable-AntonAlwaysOn.ps1",
+                         "tools/agent-loop/Enable-AntonLaptopMode.ps1",
+                         "tools/agent-loop/Install-AgentLoopTask.ps1"
                      ],
     "log":  "agent-runs/agent-loop.log"
 }
