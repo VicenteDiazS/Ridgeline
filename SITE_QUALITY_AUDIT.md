@@ -18,6 +18,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
 - The service worker cache version is bumped when site structure changes so installed/offline copies refresh.
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
+- Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
+- Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 
 ## Manual Review Checklist
 
@@ -39,3 +41,11 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Browser smoke and interaction checks passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
 - Captured desktop/mobile screenshots for the checked pages under `debug-screenshots/audit-v241-*.png`.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v241-final -SkipScreenshots` after the cache bump; it passed.
+- Added source-status notes for Hood Fuse Box A, Hood Fuse Box B, Cabin Interior Fuse Box Type A, and Cabin Interior Fuse Box Type B without changing fuse values.
+- Fixed `Capture-Screenshots.ps1` so screenshot capture works when the shell environment exposes both `Path` and `PATH`.
+- Bumped the service worker cache to `ridgeline-console-v242`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v242`.
+- Static internal link/anchor audit passed for 15 HTML files.
+- Browser smoke and interaction checks passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, and `garage.html`.
+- Captured desktop/mobile screenshots for the checked pages under `debug-screenshots/audit-v242-*.png`.
+- After the final source-status wording adjustment, `Test-InternalLinks.ps1` passed for 15 HTML files, `Invoke-BrowserSmoke.ps1` passed for `hood.html` and `cabin.html`, and Hood/Cabin screenshots were captured under `debug-screenshots/audit-v242-final-*.png`.

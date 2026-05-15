@@ -4,12 +4,12 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
-- Continue validating fuse diagram accuracy and add source notes for every fuse box.
+- Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
 - Add a full focus-trap audit for modal dialogs after the basic Search and More focus-return checks.
 
 ## Fuse And Electrical
 
-- Add source notes for each fuse table and diagram.
+- Deepen source notes with exact owner-manual/page or cover-label references as reliable sources are captured.
 - Add clearer acronym definitions for fuse circuits.
 - Add search aliases for common layman terms, such as radio, outlets, trailer lights, dash screen, charging port, and backup camera.
 - Add a fuse-finder workflow: symptom to likely fuse boxes and fuse positions.

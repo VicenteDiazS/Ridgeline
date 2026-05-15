@@ -12,6 +12,18 @@ if (-not (Test-Path -LiteralPath $BrowserPath -PathType Leaf)) {
     throw "Microsoft Edge was not found at '$BrowserPath'. Pass -BrowserPath with a Chromium-compatible browser."
 }
 
+function Join-ProcessArguments {
+    param([string[]]$Arguments)
+
+    ($Arguments | ForEach-Object {
+        if ($_ -match '[\s"]') {
+            '"' + ($_.Replace('"', '\"')) + '"'
+        } else {
+            $_
+        }
+    }) -join " "
+}
+
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 $viewports = @(
@@ -56,7 +68,23 @@ foreach ($page in $Pages) {
         )
 
         try {
-            $process = Start-Process -FilePath $BrowserPath -ArgumentList $args -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+            $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
+            $processInfo.FileName = $BrowserPath
+            $processInfo.UseShellExecute = $false
+            $processInfo.CreateNoWindow = $true
+            $processInfo.RedirectStandardOutput = $true
+            $processInfo.RedirectStandardError = $true
+            $processInfo.Arguments = Join-ProcessArguments $args
+
+            $process = [System.Diagnostics.Process]::new()
+            $process.StartInfo = $processInfo
+            [void]$process.Start()
+            $stdout = $process.StandardOutput.ReadToEnd()
+            $stderr = $process.StandardError.ReadToEnd()
+            $process.WaitForExit()
+            Set-Content -LiteralPath $stdoutPath -Value $stdout -Encoding UTF8
+            Set-Content -LiteralPath $stderrPath -Value $stderr -Encoding UTF8
+
             if ($process.ExitCode -ne 0) {
                 $stderr = if (Test-Path -LiteralPath $stderrPath) { Get-Content -Raw -LiteralPath $stderrPath } else { "" }
                 throw "Screenshot capture failed for $page at $($viewport.Name) viewport with exit code $($process.ExitCode). $stderr"
