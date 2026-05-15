@@ -38,7 +38,7 @@ Ask the user before:
 
 Proceed without asking when:
 
-- fixing broken links, blank navigation, layout overflow, or obvious UI bugs
+- fixing broken links, blank navigation, layout overflow, scroll locks, loading failures, stuck overlays, or obvious UI bugs
 - improving accessibility, metadata, screenshots, docs, or verification
 - organizing existing content without changing the facts
 - adding small, reversible quality-of-life features
@@ -51,7 +51,7 @@ For every UI/navigation change:
 - Open the site in a real browser.
 - Check desktop and mobile widths.
 - Capture screenshots into `debug-screenshots/`.
-- Confirm Search, More, and primary header navigation still work.
+- Confirm pages and key sections load real content, Search/More/modals close cleanly, body scrolling is restored after overlays, anchor links land on visible sections, and primary header navigation still works.
 
 For every data/reference change:
 

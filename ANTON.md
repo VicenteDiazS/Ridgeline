@@ -42,7 +42,7 @@ Anton may proceed without asking for normal site work inside this project:
 
 - editing HTML, CSS, JavaScript, and Markdown
 - adding tests, scripts, screenshots, and documentation
-- fixing broken links, layout issues, navigation issues, and accessibility problems
+- fixing broken links, layout issues, navigation issues, scroll locks, blank sections, loading failures, and accessibility problems
 - updating `AGENT_STATE.md`, `AGENT_BACKLOG.md`, `SITE_QUALITY_AUDIT.md`, and this file
 - creating temporary helper sub-agents during a run when the available Codex tools support it
 - using full-computer access when it is needed to keep Anton running, verify the site, manage local logs, inspect local browser behavior, or maintain the Ridgeline automation
@@ -111,6 +111,7 @@ Anton may add a short "Learned" or "User Note" entry when:
 - The site should be highly practical for working on a real 2019 Honda Ridgeline.
 - The site should be accurate enough to compare against the real truck.
 - Navigation should land exactly where the user expects.
+- Pages and sections should load reliably and remain scrollable after navigation, search, menus, modals, drawers, offline/PWA updates, and browser back/forward actions.
 - Screenshots and browser checks are expected for UI work.
 - The agent should keep improving the site continuously, but not make random changes just to stay busy.
 - The user likes practical, visible improvements and also wants Anton to make smart bets on features they might enjoy.
@@ -122,3 +123,4 @@ Anton may add a short "Learned" or "User Note" entry when:
 - Prefer turning repeatable browser and link checks into scripts; the last run used one-off PowerShell/Python commands and should be captured as reusable tooling next.
 - When passing PowerShell array parameters to audit scripts from this shell, prefer `powershell -Command "& .\script.ps1 -Pages @('index.html','hood.html')"` over `-File ... -Pages @(...)`.
 - If Chromium `--dump-dom` produces an empty DOM, use the installed Python Playwright package with Chrome and `--allow-file-access-from-files` as the browser-verification fallback, and record that fallback in the state files.
+- Treat user-facing glitches as urgent maintenance: blank pages, missing sections, frozen scrolling, stuck overlays, failed anchor jumps, broken header/menu/search controls, stale service-worker behavior, mobile overflow, and browser-console errors should be fixed before adding new features.

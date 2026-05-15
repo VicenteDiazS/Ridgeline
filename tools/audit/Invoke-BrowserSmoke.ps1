@@ -119,15 +119,16 @@ function Invoke-InteractionSmoke {
   };
   try {
     const frame = document.createElement("iframe");
-    frame.src = pageUri;
     frame.style.width = "1280px";
     frame.style.height = "900px";
-    document.body.appendChild(frame);
-    await new Promise((resolve, reject) => {
+    const frameLoad = new Promise((resolve, reject) => {
       frame.addEventListener("load", resolve, { once: true });
       frame.addEventListener("error", () => reject(new Error("iframe failed to load")), { once: true });
       setTimeout(() => reject(new Error("iframe load timed out")), 5000);
     });
+    frame.src = pageUri;
+    document.body.appendChild(frame);
+    await frameLoad;
     await sleep(1200);
 
     const doc = frame.contentDocument;
@@ -168,6 +169,35 @@ function Invoke-InteractionSmoke {
       pressTabFromActiveElement(true);
       assert(doc.activeElement === last, label + " Shift+Tab from first control did not wrap to last control");
     };
+    const assertPageReady = () => {
+      const main = doc.querySelector("main");
+      assert(main, "missing main content after load");
+      assert(main.textContent.trim().length > 250, "main content looks empty after load");
+      const visibleSections = [...main.querySelectorAll("section, article")].filter((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = win.getComputedStyle(element);
+        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+      });
+      assert(visibleSections.length > 0, "no visible content sections after load");
+      const brokenHashLinks = [...doc.querySelectorAll("a[href^='#']")]
+        .filter((link) => link.hash && link.hash !== "#" && !doc.querySelector(link.hash))
+        .map((link) => link.getAttribute("href"));
+      assert(brokenHashLinks.length === 0, "broken in-page section links: " + brokenHashLinks.slice(0, 5).join(", "));
+    };
+    const assertScrollUnlocked = async (label) => {
+      assert(!doc.body.classList.contains("modal-open"), label + " left body marked modal-open");
+      const bodyOverflowY = win.getComputedStyle(doc.body).overflowY;
+      const htmlOverflowY = win.getComputedStyle(doc.documentElement).overflowY;
+      assert(bodyOverflowY !== "hidden" && htmlOverflowY !== "hidden", label + " left page scroll locked");
+      const maxScroll = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight) - win.innerHeight;
+      if (maxScroll > 120) {
+        const scroller = doc.scrollingElement || doc.documentElement || doc.body;
+        assert(scroller.scrollHeight - scroller.clientHeight > 120, label + " scroll range collapsed unexpectedly");
+      }
+    };
+
+    assertPageReady();
+    await assertScrollUnlocked("initial load");
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
@@ -198,6 +228,7 @@ function Invoke-InteractionSmoke {
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");
     assert(doc.activeElement === searchButton, "search focus did not return to opener");
+    await assertScrollUnlocked("search close");
 
     const menuButton = doc.querySelector("[data-open-site-menu]");
     assert(menuButton, "missing More menu button");
@@ -213,6 +244,7 @@ function Invoke-InteractionSmoke {
     await sleep(150);
     assert(menu.hidden === true, "Escape did not close site menu");
     assert(doc.activeElement === menuButton, "site menu focus did not return to opener");
+    await assertScrollUnlocked("site menu close");
 
     menuButton.focus();
     doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "K", ctrlKey: true, shiftKey: true, bubbles: true }));
@@ -226,6 +258,7 @@ function Invoke-InteractionSmoke {
     await sleep(150);
     assert(commandModal.hidden === true, "Escape did not close command palette");
     assert(doc.activeElement === menuButton, "command palette focus did not return to opener");
+    await assertScrollUnlocked("command palette close");
 
     const quickButton = doc.querySelector(".quick-capture-fab");
     assert(quickButton, "missing quick capture button");
@@ -241,6 +274,7 @@ function Invoke-InteractionSmoke {
     await sleep(150);
     assert(quickModal.hidden === true, "Escape did not close quick capture modal");
     assert(doc.activeElement === quickButton, "quick capture focus did not return to opener");
+    await assertScrollUnlocked("quick capture close");
 
     const syncButton = doc.querySelector("[data-page-action='sync-settings'], [data-context-action='sync-settings']");
     assert(syncButton, "missing sync settings opener");
@@ -255,6 +289,7 @@ function Invoke-InteractionSmoke {
     await sleep(150);
     assert(syncModal.hidden === true, "Escape did not close sync settings modal");
     assert(doc.activeElement === syncButton, "sync settings focus did not return to opener");
+    await assertScrollUnlocked("sync settings close");
 
     const sectionLink = [...doc.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
       .find((link) => link.hash && doc.querySelector(link.hash));
@@ -263,6 +298,9 @@ function Invoke-InteractionSmoke {
     sectionLink.click();
     await sleep(300);
     assert(win.location.hash === expectedHash, "section link did not update the hash");
+    const sectionTarget = doc.querySelector(expectedHash);
+    assert(sectionTarget && sectionTarget.getBoundingClientRect().height > 0, "section target is missing or collapsed after navigation");
+    await assertScrollUnlocked("section navigation");
 
     result.textContent = "PASS " + pageName;
   } catch (error) {
@@ -276,7 +314,7 @@ function Invoke-InteractionSmoke {
 
     try {
         Set-Content -LiteralPath $probePath -Value $probeHtml -Encoding UTF8
-        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $probeUri -OutputPath $resultPath -ErrorPath $errPath -ProfilePath $profilePath -VirtualTimeBudget 8000
+        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $probeUri -OutputPath $resultPath -ErrorPath $errPath -ProfilePath $profilePath -VirtualTimeBudget 16000
         $probeDom = Get-Content -Raw -LiteralPath $resultPath
         if ($probeDom -notmatch "PASS\s+$([regex]::Escape($Page))") {
             $statusMatch = [regex]::Match($probeDom, "(?s)<pre id=""result"">(.*?)</pre>")

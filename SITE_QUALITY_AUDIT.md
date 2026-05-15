@@ -12,7 +12,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Internal anchor links are checked so buttons and section links do not point to missing pages or missing sections.
 - Repeatable local audit scripts live under `tools/audit/`:
   - `Test-InternalLinks.ps1` checks local HTML links and anchors.
-  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, and clicks a sample section link.
+  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, verifies main content and visible sections load, confirms in-page section links resolve, checks page scrolling after load and after overlays close, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, and clicks a sample section link.
   - `Capture-Screenshots.ps1` captures desktop and mobile screenshots.
   - `Invoke-SiteAudit.ps1` runs the checklist together.
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
@@ -30,6 +30,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Click top navigation links and confirm the page lands at the intended content.
 - Check fuse diagrams on Hood and Cabin pages and click sample fuses.
 - Confirm no blank page/blank scroll position appears after navigation.
+- Confirm the page can still scroll after closing Search, More, Command Palette, Quick Capture, Sync Settings, and any drawer/modal added by the change.
 - Run a link audit after adding or renaming pages, sections, or buttons.
 
 ## Latest Verification Notes
@@ -61,3 +62,4 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Existing Chromium `--dump-dom` browser smoke path returned an empty DOM with both Edge and Chrome in this shell; Playwright/Chrome verification passed for the new search aliases.
 - Captured desktop/mobile Playwright screenshots for `index.html`, `hood.html`, and `cabin.html` under `debug-screenshots/audit-v245-*.png`, plus the mobile search modal screenshot for `power outlet`.
+- Added future browser-smoke assertions for main-content readiness, visible sections, broken in-page hash links, stuck `modal-open` scroll locks, and scrollability after Search, More, Command Palette, Quick Capture, Sync Settings, and section navigation.

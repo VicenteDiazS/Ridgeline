@@ -22,6 +22,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## Navigation And UX
 
+- Keep expanding browser smoke coverage for real user glitches: blank pages, collapsed sections, stuck scroll locks after modals/drawers, broken anchor jumps, stale service-worker loads, and mobile-only navigation failures.
 - Make the header, bottom bar, site menu, and search feel consistent on small screens.
 - Reduce duplicated navigation surfaces where they compete for attention.
 - Add a clear current-page indicator in the universal header/menu.
