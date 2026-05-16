@@ -7,7 +7,7 @@ Last updated: 2026-05-16
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
 - Universal header navigation has been added across pages.
 - Subpage helper controls now sit after the page hero so the main title is visible sooner on mobile and desktop.
-- Reusable audit scripts now live in `tools/audit/` for internal link checks, rendered browser smoke checks, and desktop/mobile screenshot capture.
+- Reusable audit scripts now live in `tools/audit/` for internal link checks, rendered browser smoke checks, Garage restore Playwright checks, and desktop/mobile screenshot capture.
 - Browser smoke checks now include scoped interactions and keyboard focus behavior for Search, More, and sample in-page section links.
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
@@ -30,6 +30,7 @@ Last updated: 2026-05-16
 - Garage Restore Backup now has a visible mobile-friendly preview card showing the backup date and recognized data areas before restore; imported photo entries are sanitized so browser-local `dataUrl` image bytes are stripped from top-level and area-journal photo metadata before merge.
 - Garage Restore Backup now validates recognized backup sections by expected shape before enabling restore, skips invalid recognized sections with a visible preview/status note, and shows replace-vs-merge impact text before import.
 - Garage Recent Diagnostic Activity now filters the full derived activity list before applying the six-item display cap, so category filters can still reveal older matching area/service/capture records.
+- Garage restore validation now has reusable Playwright/Chrome audit coverage in `tools/audit/Invoke-GarageRestoreAudit.ps1` instead of relying on one-off fallback scripts.
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Diagnostics now has a mobile density pass: the page is scoped with `diagnostics-page`, the workflow index and diagnostic cards are shorter at iPhone widths, Quick Checks stacks into card-like rows, source notes are visually lighter on mobile, and the bottom action bar routes to the canonical workflow index.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
@@ -254,3 +255,6 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `garage.html`; Edge still rendered without the main landmark before interaction checks.
 - Ran Playwright/Chrome fallback verification for `garage.html#diagnostic-activity`; verified invalid-only backups keep Restore disabled, mixed valid/invalid backups preview replace/merge/skipped impact, invalid service-log sections are not restored, valid sections still restore, imported top-level and area-journal photo `dataUrl` bytes are stripped, the area-journal filter reveals matching items beyond the six-item display cap, and mobile/desktop have no horizontal overflow.
 - Captured screenshots under `debug-screenshots/audit-v270-garage-restore-validation-mobile.png`, `debug-screenshots/audit-v270-garage-restore-complete-mobile.png`, and `debug-screenshots/audit-v270-garage-restore-desktop.png`.
+- Added `tools/audit/Invoke-GarageRestoreAudit.ps1`, a reusable Playwright/Chrome audit for `garage.html#diagnostic-activity` restore behavior. It creates temporary diagnostic-handoff, invalid-only, and mixed valid/invalid Garage backup JSON files, uses Playwright file input handling, verifies Restore disabled/enabled states, preview replace/merge/skipped wording, valid-section-only restore, photo `dataUrl` stripping, restored area activity filtering, and mobile/desktop no-horizontal-overflow behavior.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-GarageRestoreAudit.ps1 -Tag audit-v271`; Garage restore Playwright audit passed and captured `debug-screenshots/audit-v271-garage-restore-audit-mobile.png` and `debug-screenshots/audit-v271-garage-restore-audit-desktop.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
