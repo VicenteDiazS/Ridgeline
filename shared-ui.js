@@ -933,6 +933,16 @@ function buildUniversalHeaderActions() {
     moreButton.textContent = "More";
     topbarActions.appendChild(moreButton);
   }
+
+  if (topbar && !topbar.querySelector(".header-current-page")) {
+    const currentPage = document.createElement("a");
+    currentPage.className = "header-current-page is-current-link";
+    currentPage.href = currentLocationHref();
+    currentPage.setAttribute("aria-current", "page");
+    currentPage.setAttribute("aria-label", `Current page: ${currentPageDisplayLabel()}`);
+    currentPage.innerHTML = `<span>Current</span><strong>${currentPageDisplayLabel()}</strong>`;
+    topbar.insertBefore(currentPage, topbarActions);
+  }
 }
 
 function buildTopbarLiveRefreshButton() {
@@ -1012,6 +1022,23 @@ function normalizeLocalHref(href) {
   } catch {}
 
   return href.startsWith("#") ? href : "";
+}
+
+function pageNameFromHref(href = "") {
+  try {
+    const url = new URL(href, location.href);
+    if (url.origin !== location.origin) {
+      return "";
+    }
+    return url.pathname.split("/").pop() || "index.html";
+  } catch {
+    return "";
+  }
+}
+
+function isCurrentPageHref(href = "") {
+  const targetPage = pageNameFromHref(href);
+  return Boolean(targetPage && targetPage === currentPageName());
 }
 
 function getTargetFromHash(hashValue = "") {
@@ -2487,21 +2514,36 @@ function enhanceActiveLinks() {
   const page = currentPageName();
   const hash = location.hash;
   const links = [
-    ...document.querySelectorAll(".topnav a, .route-strip a, .section-dock a, .section-utility-nav a")
+    ...document.querySelectorAll(
+      ".topnav a, .route-strip a, .header-quick-nav a, .header-current-page, .header-nav-button[href], .mobile-nav-link, .context-action[href], .site-menu-link, .section-dock a, .section-utility-nav a"
+    )
   ];
 
   links.forEach((link) => {
     const href = link.getAttribute("href") || "";
     const localHash = normalizeLocalHref(href);
+    const isSectionOnlyLink =
+      link.closest(".section-dock, .section-utility-nav") ||
+      (href.startsWith("#") && !link.closest(".topnav, .route-strip, .header-quick-nav, .site-menu-links"));
     let active = false;
+    let ariaCurrent = "page";
 
     if (href.startsWith("#")) {
       active = !!hash && href === hash;
+      ariaCurrent = "location";
     } else if (href.includes(".html")) {
-      active = href.split("#")[0] === page && (!localHash || localHash === hash);
+      active = isSectionOnlyLink
+        ? href.split("#")[0] === page && (!localHash || localHash === hash)
+        : isCurrentPageHref(href);
+      ariaCurrent = localHash && localHash === hash ? "location" : "page";
     }
 
     link.classList.toggle("is-current-link", active);
+    if (active) {
+      link.setAttribute("aria-current", ariaCurrent);
+    } else {
+      link.removeAttribute("aria-current");
+    }
   });
 }
 
@@ -2575,9 +2617,12 @@ function buildSiteMenu() {
   const linkMarkup = menuLinks
     .map((link) => {
       const activeClass = page === link.match ? " is-active" : "";
+      const ariaCurrent = page === link.match ? ` aria-current="page"` : "";
+      const currentBadge = page === link.match ? `<em>Current</em>` : "";
       return `
-        <a class="site-menu-link${activeClass}" href="${link.href}">
+        <a class="site-menu-link${activeClass}" href="${link.href}"${ariaCurrent}>
           <strong>${link.label}</strong>
+          ${currentBadge}
           <span>${link.note}</span>
         </a>
       `;

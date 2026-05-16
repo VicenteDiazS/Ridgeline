@@ -28,6 +28,7 @@ Current focus areas:
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable.
+- Current-page orientation in the sticky header and full menu, completed 2026-05-16.
 
 Definition of done:
 
@@ -77,7 +78,7 @@ Keep improving the first-touch experience on the user's iPhone.
 Candidate slices:
 
 - Header/menu/search density tuning.
-- Current-page indicators.
+- Current-page indicators. Completed 2026-05-16 with a sticky-header page chip, full-menu Current badge, `aria-current`, and browser-check coverage.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.

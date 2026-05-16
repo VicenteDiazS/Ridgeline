@@ -184,6 +184,19 @@ function Invoke-InteractionSmoke {
         .map((link) => link.getAttribute("href"));
       assert(brokenHashLinks.length === 0, "broken in-page section links: " + brokenHashLinks.slice(0, 5).join(", "));
     };
+    const assertCurrentPageNavigation = () => {
+      const currentMenuLink = doc.querySelector(".site-menu-link[aria-current='page']");
+      assert(currentMenuLink, "site menu is missing a current-page link");
+      assert(currentMenuLink.querySelector("em")?.textContent.includes("Current"), "site menu current-page link is missing its badge");
+
+      const visibleCurrentLinks = [...doc.querySelectorAll(".topnav a.is-current-link, .route-strip a.is-current-link, .header-quick-nav a.is-current-link, .header-current-page.is-current-link, .header-nav-button.is-current-link, .mobile-nav-link.is-current-link, .context-action.is-current-link")]
+        .filter((link) => {
+          const style = win.getComputedStyle(link);
+          const rect = link.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+        });
+      assert(visibleCurrentLinks.length > 0, "page has no visible current navigation indicator");
+    };
     const assertScrollUnlocked = async (label) => {
       assert(!doc.body.classList.contains("modal-open"), label + " left body marked modal-open");
       const bodyOverflowY = win.getComputedStyle(doc.body).overflowY;
@@ -197,6 +210,7 @@ function Invoke-InteractionSmoke {
     };
 
     assertPageReady();
+    assertCurrentPageNavigation();
     await assertScrollUnlocked("initial load");
 
     const searchButton = doc.querySelector("[data-open-search]");

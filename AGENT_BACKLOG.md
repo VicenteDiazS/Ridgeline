@@ -35,7 +35,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Keep expanding browser smoke coverage for real user glitches: blank pages, collapsed sections, stuck scroll locks after modals/drawers, broken anchor jumps, stale service-worker loads, and mobile-only navigation failures.
 - Make the header, bottom bar, site menu, and search feel consistent on small screens.
 - Reduce duplicated navigation surfaces where they compete for attention.
-- Add a clear current-page indicator in the universal header/menu.
+- Current-page indicator in the universal header/menu completed 2026-05-16; keep it visible during future header density tuning.
 - Improve empty states for garage data and photo atlas.
 - Add regression coverage for nested modal/drawer handoffs, such as opening Search or Sync Settings from the quick-tools drawer.
 - Continue tuning subpage helper density after real-device review; the page title should remain the first content priority.
@@ -51,7 +51,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, or a compact workflow index.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators and clearer active menu state are complete; next safe slice is a compact workflow index.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 

@@ -18,6 +18,7 @@ Last updated: 2026-05-16
 - Diagnostics now has a Trailer-Light Issue Flow that routes trailer brake/turn/running/reverse light and connector-adapter symptoms into existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts, fuse ratings, or pin assignments.
 - Diagnostics now has an Accessory Power Issue Flow that routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms into existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
 - Diagnostics now has an Audio Display Issue Flow that routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work into existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
+- Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -65,6 +66,10 @@ Last updated: 2026-05-16
 - Added search coverage for `radio not working`, `radio dead`, `audio not working`, `no sound`, `speakers not working`, `display audio dead`, `screen not working`, `hondalink not working`, `carplay not working`, `android auto not working`, `usb audio not working`, `bluetooth audio not working`, `amp fuse`, and related audio/display owner phrases.
 - Extended `tools/audit/Invoke-BrowserSmoke.ps1` with a future search assertion for `radio not working` surfacing the Audio Display Issue Flow.
 - Bumped the service worker cache to `ridgeline-console-v252`.
+- Added a compact current-page chip to the sticky header and expanded active-link handling so header, quick-nav, route-strip, contextual bottom bar, mobile nav, and full-menu links receive consistent `is-current-link` and `aria-current` state.
+- Added a Current badge to the active full-menu page entry.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` with current-page navigation assertions.
+- Bumped the service worker cache to `ridgeline-console-v253`.
 
 ## Known Cautions
 
@@ -74,13 +79,13 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is improving iPhone navigation clarity with a current-page indicator in the universal header/menu, because the diagnostics workflow set now has enough deep sections that orientation matters.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a compact diagnostics workflow index near the top of `diagnostics.html`, because the page now has several deep workflows and the current-page orientation slice is complete.
 
 ## Next Verification Target
 
 After the next content/data change:
 
-- Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v242`.
+- Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v254`.
 - If fuse/source notes change, record the source and review the affected Hood/Cabin diagrams in the browser.
 
 After the next UI change:
@@ -126,3 +131,7 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again returned an empty DOM before checking the main landmark.
 - Ran a Playwright/Chrome fallback for `diagnostics.html#audio-display-workflow`; verified the Audio Display Issue Flow renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `radio not working` returns the Audio Display Issue Flow search result, and Escape closes Search without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v252-diagnostics-audio-desktop.png`, `debug-screenshots/audit-v252-diagnostics-audio-mobile.png`, and `debug-screenshots/audit-v252-search-radio-not-working.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html`; Edge `--dump-dom` again returned an empty DOM before the main-landmark check.
+- Ran a Playwright/Chrome fallback for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html` at desktop and iPhone-width mobile; verified main content, exactly one current full-menu page, visible current-page navigation, no horizontal overflow, and Diagnostics mobile More-menu Escape cleanup.
+- Captured screenshots under `debug-screenshots/audit-v253-*.png`, including `debug-screenshots/audit-v253-diagnostics-mobile-menu-current.png`.

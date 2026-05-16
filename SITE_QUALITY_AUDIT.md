@@ -21,6 +21,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
+- The sticky header includes a compact current-page chip, and the full-site menu marks the matching page with `aria-current` and a visible Current badge.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
 - Diagnostics includes a No-Start Workflow for no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios, routing users to existing references without changing repair specifications.
 - Diagnostics includes a Trailer-Light Issue Flow for trailer brake/turn/running/reverse light and connector-adapter symptoms, routing users to existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts.
@@ -95,3 +96,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still returned an empty DOM for `diagnostics.html`; Playwright/Chrome fallback verification passed for desktop and iPhone-width rendering, no horizontal overflow, new search result coverage, and Search Escape close/scroll-lock cleanup.
 - Screenshots captured under `debug-screenshots/audit-v252-diagnostics-audio-desktop.png`, `debug-screenshots/audit-v252-diagnostics-audio-mobile.png`, and `debug-screenshots/audit-v252-search-radio-not-working.png`.
+- Added current-page navigation state across shared header/menu surfaces, a visible Current badge in the full menu, current-page assertions to `Invoke-BrowserSmoke.ps1`, and bumped the service-worker cache to `ridgeline-console-v253`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still returned an empty DOM before the browser-smoke main-landmark check; Playwright/Chrome fallback verification passed for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html` at desktop and iPhone-width mobile.
+- Screenshots captured under `debug-screenshots/audit-v253-*.png`, including `debug-screenshots/audit-v253-diagnostics-mobile-menu-current.png`.
