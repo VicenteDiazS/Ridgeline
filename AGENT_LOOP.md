@@ -91,14 +91,17 @@ Install as a scheduled task:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentLoopTask.ps1 -IntervalMinutes 30
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentCatchupTask.ps1
 ```
 
 If Windows asks for Administrator permission, approve it. Updating an existing scheduled task's wake/logon triggers, retry behavior, or highest-privilege run level requires elevation.
 
-Anton is installed with two triggers:
+Anton is installed with the main interval task plus a wake/unlock catch-up task:
 
 - every 30 minutes
 - at Windows logon, so a missed sleep/lid-close run gets another chance as soon as the laptop wakes and signs in
+- on Windows wake from sleep
+- on session unlock
 
 The scheduled task is configured to request highest privileges and to retry up to 3 times at 5-minute intervals when a run fails. It still runs as the signed-in `diazv` user, so a full reboot may require signing in once before normal interactive tools are available.
 

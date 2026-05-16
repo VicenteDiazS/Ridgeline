@@ -18,6 +18,7 @@ Last updated: 2026-05-16
 - Diagnostics now has a Trailer-Light Issue Flow that routes trailer brake/turn/running/reverse light and connector-adapter symptoms into existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts, fuse ratings, or pin assignments.
 - Diagnostics now has an Accessory Power Issue Flow that routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms into existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
 - Diagnostics now has an Audio Display Issue Flow that routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work into existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
+- Diagnostics now has a compact Workflow Index immediately after the hero, keeping no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check flows reachable without crowding the hero controls.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
@@ -70,6 +71,8 @@ Last updated: 2026-05-16
 - Added a Current badge to the active full-menu page entry.
 - Extended `tools/audit/Invoke-BrowserSmoke.ps1` with current-page navigation assertions.
 - Bumped the service worker cache to `ridgeline-console-v253`.
+- Added `diagnostics.html#workflow-index` as a compact, mobile-first routing index for the existing Diagnostics workflows and trimmed the hero shortcut list so it points to the index instead of listing every deep flow.
+- Added search coverage for `workflow index` / diagnostics-index language and bumped the service worker cache to `ridgeline-console-v255`.
 
 ## Known Cautions
 
@@ -79,7 +82,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a compact diagnostics workflow index near the top of `diagnostics.html`, because the page now has several deep workflows and the current-page orientation slice is complete.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to reduce duplicated Diagnostics routing farther down the page now that `diagnostics.html#workflow-index` exists, or add explicit workflow-index coverage to the reusable browser smoke script.
 
 ## Next Verification Target
 
@@ -135,3 +138,6 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html`; Edge `--dump-dom` again returned an empty DOM before the main-landmark check.
 - Ran a Playwright/Chrome fallback for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html` at desktop and iPhone-width mobile; verified main content, exactly one current full-menu page, visible current-page navigation, no horizontal overflow, and Diagnostics mobile More-menu Escape cleanup.
 - Captured screenshots under `debug-screenshots/audit-v253-*.png`, including `debug-screenshots/audit-v253-diagnostics-mobile-menu-current.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran a Playwright/Chrome fallback for `diagnostics.html`; verified the Workflow Index renders after the hero on desktop and iPhone-width mobile, exposes six workflow cards, has no horizontal overflow, deep card navigation reaches `#trailer-light-workflow` after smooth scroll settles, `workflow index` search returns `diagnostics.html#workflow-index`, and Escape closes Search without leaving `modal-open`.
+- Captured screenshots under `debug-screenshots/audit-v255-diagnostics-desktop.png`, `debug-screenshots/audit-v255-diagnostics-mobile.png`, and `debug-screenshots/audit-v255-search-workflow-index-mobile.png`.

@@ -398,6 +398,13 @@ export const searchIndex = [
     keywords: ["symptom", "routing", "troubleshooting", "quick checks"]
   },
   {
+    title: "Diagnostics Workflow Index",
+    url: "diagnostics.html#workflow-index",
+    category: "Diagnostics",
+    excerpt: "Compact routing index for no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check workflows.",
+    keywords: ["workflow index", "diagnostics index", "symptom index", "diagnostic workflows", "start diagnostics"]
+  },
+  {
     title: "Diagnostic Quick Checks",
     url: "diagnostics.html#quick-checks",
     category: "Diagnostics",

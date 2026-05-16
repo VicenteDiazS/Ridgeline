@@ -712,7 +712,8 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .visual-card-grid {
+  .visual-card-grid,
+  .workflow-index-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -7107,6 +7108,64 @@ kbd {
   color: var(--text);
 }
 
+.diagnostic-workflow-index {
+  display: grid;
+  gap: 14px;
+}
+
+.workflow-index-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workflow-index-card {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  min-height: 156px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.08), rgba(255, 145, 94, 0.045)),
+    rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.workflow-index-card:hover,
+.workflow-index-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(121, 212, 255, 0.34);
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.12), rgba(255, 145, 94, 0.07)),
+    rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 26px rgba(3, 11, 22, 0.26);
+}
+
+.workflow-index-card span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.workflow-index-card strong {
+  line-height: 1.35;
+}
+
+.workflow-index-card small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .fuse-finder-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -7261,6 +7320,7 @@ kbd {
   .home-memory-grid,
   .job-card-grid,
   .visual-card-grid,
+  .workflow-index-grid,
   .fuse-finder-grid {
     grid-template-columns: 1fr;
   }

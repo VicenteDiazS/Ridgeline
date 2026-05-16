@@ -27,6 +27,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Diagnostics includes a Trailer-Light Issue Flow for trailer brake/turn/running/reverse light and connector-adapter symptoms, routing users to existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts.
 - Diagnostics includes an Accessory Power Issue Flow for dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms, routing users to existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
 - Diagnostics includes an Audio Display Issue Flow for dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical-work symptoms, routing users to existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
+- Diagnostics includes a compact Workflow Index after the hero so the deep no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check flows are reachable on iPhone without turning the hero into a dense button list.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
@@ -100,3 +101,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still returned an empty DOM before the browser-smoke main-landmark check; Playwright/Chrome fallback verification passed for `index.html`, `diagnostics.html`, `maintenance.html`, and `garage.html` at desktop and iPhone-width mobile.
 - Screenshots captured under `debug-screenshots/audit-v253-*.png`, including `debug-screenshots/audit-v253-diagnostics-mobile-menu-current.png`.
+- Added `diagnostics.html#workflow-index`, trimmed Diagnostics hero shortcuts, added search coverage for workflow-index language, and bumped the service worker cache to `ridgeline-console-v255`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Playwright/Chrome fallback verification passed for desktop and iPhone-width Workflow Index rendering, no horizontal overflow, smooth-scrolled card navigation to `#trailer-light-workflow`, Search result coverage for `workflow index`, and Search Escape close/scroll-lock cleanup.
+- Screenshots captured under `debug-screenshots/audit-v255-diagnostics-desktop.png`, `debug-screenshots/audit-v255-diagnostics-mobile.png`, and `debug-screenshots/audit-v255-search-workflow-index-mobile.png`.
