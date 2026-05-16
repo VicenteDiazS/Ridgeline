@@ -16,7 +16,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
   - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, verifies main content and visible sections load, confirms in-page section links resolve, checks page scrolling after load and after overlays close, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, checks Diagnostics Workflow Index card/search behavior, and clicks a sample section link.
   - `Invoke-GarageRestoreAudit.ps1` uses Python Playwright with Chrome/Edge to exercise the Garage backup restore file-import path that cannot be covered by DOM dumping: diagnostic-activity handoff rejection, invalid-only backup rejection, mixed valid/invalid preview, valid-section-only restore, photo-byte stripping, restored area activity filtering, and mobile/desktop overflow checks.
   - `Capture-Screenshots.ps1` captures desktop and mobile screenshots.
-  - `Invoke-SiteAudit.ps1` runs the checklist together.
+  - `Invoke-SiteAudit.ps1` runs the checklist together, including the Garage restore Playwright audit by default. It now accepts `-BrowserPath`, `-SkipBrowserSmoke`, and `-SkipGarageRestoreAudit` for targeted local runs.
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
 - The service worker cache version is bumped when site structure changes so installed/offline copies refresh.
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
@@ -45,7 +45,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage Restore Backup includes a visible preview card for recognized backup areas and sanitizes imported photo metadata so browser-local `dataUrl` image bytes are stripped before restoring top-level and area-journal photos.
 - Garage Restore Backup validates recognized backup sections by expected shape, skips invalid recognized sections, previews replace-vs-merge impact, and reminds the user to download a fresh backup before restoring.
 - Garage Restore Backup preview chips compare incoming backup counts with current local Garage counts so the user can see the rough import impact before restoring.
-- Garage Restore Backup has reusable Playwright audit coverage through `tools/audit/Invoke-GarageRestoreAudit.ps1`.
+- Garage Restore Backup has reusable Playwright audit coverage through `tools/audit/Invoke-GarageRestoreAudit.ps1`, and the main audit wrapper runs that restore audit by default before the legacy Edge dump-DOM browser smoke phase.
 - Deep-link navigation reveals every animated `.section-reveal` ancestor of the target, preventing nested hash targets from scrolling into an invisible parent container.
 - Garage Recent Diagnostic Activity filters the full derived activity list before applying the six-item display cap so category filters do not hide older matching records.
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
@@ -199,3 +199,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Bumped the service-worker cache to `ridgeline-console-v271`.
 - `Invoke-GarageRestoreAudit.ps1 -Tag audit-v273` passed, capturing `debug-screenshots/audit-v273-garage-restore-audit-mobile.png` and `debug-screenshots/audit-v273-garage-restore-audit-desktop.png`.
 - Static internal link/anchor audit passed for 16 HTML files after the restore preview and reveal fix.
+- Folded `Invoke-GarageRestoreAudit.ps1` into `Invoke-SiteAudit.ps1`, added wrapper-level `-BrowserPath`, `-SkipBrowserSmoke`, and `-SkipGarageRestoreAudit` switches, synced the wrapper default page list with `quick-sheet.html`, and passed `-SkipScreenshots` through to the restore audit.
+- Static internal link/anchor audit passed for 16 HTML files.
+- `Invoke-GarageRestoreAudit.ps1 -Tag audit-v274 -SkipScreenshots` passed.
+- `Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v274-wrapper -SkipScreenshots -SkipBrowserSmoke` passed link checks plus integrated Garage restore validation.
+- `Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v274-wrapper-full -SkipScreenshots` ran link checks and integrated Garage restore validation before hitting the known Edge dump-DOM blocker: `garage.html is missing main landmark after browser render`.

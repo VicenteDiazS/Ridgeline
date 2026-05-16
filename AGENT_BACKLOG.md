@@ -20,7 +20,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
 - Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, filtered diagnostic-activity JSON export, guarded local Garage restore, mobile restore preview, imported-photo-byte sanitization, restore section-shape validation, replace/merge preview wording, filter-before-cap activity rendering, and reusable Playwright restore audit coverage completed 2026-05-16; future work should review restore behavior with a real user backup before adding conflict resolution or overwrite/merge choices.
-- Garage Restore Backup preview now shows Backup/Current counts and the restore audit catches hidden reveal ancestors on deep links; next tooling slice should fold `Invoke-GarageRestoreAudit.ps1` into the main site audit wrapper.
+- Garage Restore Backup preview now shows Backup/Current counts, the restore audit catches hidden reveal ancestors on deep links, and `Invoke-SiteAudit.ps1` runs `Invoke-GarageRestoreAudit.ps1` by default; next tooling slice should replace or bypass the flaky Edge dump-DOM smoke path with the Playwright/Chrome approach already proven by the restore audit.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -45,7 +45,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Current-page indicator in the universal header/menu completed 2026-05-16; keep it visible during future header density tuning.
 - Improve empty states for garage data and photo atlas.
 - Add regression coverage for nested modal/drawer handoffs, such as opening Search or Sync Settings from the quick-tools drawer.
-- Add main-audit coverage for nested hash targets with animated parents; first targeted coverage now exists in the Garage restore audit for `garage.html#diagnostic-activity`.
+- Add broader main-audit coverage for nested hash targets with animated parents; first targeted coverage now exists in the Garage restore audit for `garage.html#diagnostic-activity` and is included in `Invoke-SiteAudit.ps1`.
 - Continue tuning subpage helper density after real-device review; the page title should remain the first content priority.
 
 ## Performance And Offline
@@ -59,7 +59,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, guarded local Garage restore, backup-shape validation, reusable restore audit coverage, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density and Garage restore wording before adding conflict resolution choices.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, guarded local Garage restore, backup-shape validation, reusable restore audit coverage in the main wrapper, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density and Garage restore wording before adding conflict resolution choices.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 
