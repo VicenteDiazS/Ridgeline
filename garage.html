@@ -87,7 +87,12 @@
                 <button class="ghost-button" type="button" data-choose-garage-backup>Choose Backup</button>
                 <button class="ghost-button" type="button" data-restore-garage-backup disabled>Restore Backup</button>
               </div>
-              <p class="small-note">Download Activity saves the current diagnostic filter as a small JSON handoff. Download Backup saves Garage notes, tracker, logs, favorites, profile, and photo metadata as JSON. Restore Backup imports a selected Garage backup after previewing the recognized data areas. Local-only image files stay in this browser.</p>
+              <div class="garage-backup-help">
+                <p class="small-note"><strong>Activity JSON:</strong> current diagnostic filter only; good for sharing a focused handoff.</p>
+                <p class="small-note"><strong>Garage Backup:</strong> notes, tracker, logs, favorites, profile, and photo metadata; Restore Backup imports only after the recognized data areas are previewed.</p>
+                <p class="small-note"><strong>Photos:</strong> metadata is included, but browser-local image bytes are not included in the backup file.</p>
+              </div>
+              <div class="garage-backup-preview" data-garage-backup-preview hidden></div>
               <p class="small-note diagnostic-activity-status" data-diagnostic-activity-status aria-live="polite"></p>
               <div class="diagnostic-activity-list" data-diagnostic-activity></div>
             </div>

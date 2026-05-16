@@ -434,7 +434,7 @@ function mergeRemoteRows(rows) {
 
     if (row.storage_key === STORAGE.photos) {
       const localPhotos = loadJson(STORAGE.photos, []);
-      const remotePhotos = Array.isArray(row.payload) ? row.payload : [];
+      const remotePhotos = Array.isArray(row.payload) ? row.payload.map(stripPhotoLocalBackup) : [];
       localStorage.setItem(STORAGE.photos, JSON.stringify(mergePhotoLists(localPhotos, remotePhotos)));
       return;
     }
@@ -450,7 +450,7 @@ function mergeRemoteRows(rows) {
         const remoteEntry = remoteArea[areaKey] || {};
         merged[areaKey] = {
           notes: remoteEntry.notes || localEntry.notes || {},
-          photos: mergePhotoLists(localEntry.photos || [], remoteEntry.photos || [])
+          photos: mergePhotoLists(localEntry.photos || [], Array.isArray(remoteEntry.photos) ? remoteEntry.photos.map(stripPhotoLocalBackup) : [])
         };
       });
 

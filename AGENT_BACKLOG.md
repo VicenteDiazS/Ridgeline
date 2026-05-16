@@ -19,7 +19,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
-- Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, filtered diagnostic-activity JSON export, and guarded local Garage restore completed 2026-05-16; future work should review restore behavior with a real backup before adding conflict resolution or overwrite/merge choices.
+- Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, filtered diagnostic-activity JSON export, guarded local Garage restore, mobile restore preview, and imported-photo-byte sanitization completed 2026-05-16; future work should review restore behavior with a real user backup before adding conflict resolution or overwrite/merge choices.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -65,6 +65,6 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 - Add an "Ideas from research" panel or note stream where Anton can summarize sourced feature candidates before implementing them.
 - Add a local Windows truck-computer mode later.
-- Add conflict-aware Garage restore options after the guarded local restore is reviewed with real backup files.
+- Add conflict-aware Garage restore options after the guarded local restore is reviewed with real user backup files.
 - Add more printable quick sheets after source validation; Quick Sheet Fuse Triage print route completed 2026-05-16.
 - Add QR/NFC landing flows for specific fuse diagrams and maintenance tasks.

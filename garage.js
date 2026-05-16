@@ -31,6 +31,7 @@ const garageBackupDownloadButton = document.querySelector("[data-download-garage
 const garageBackupImportInput = document.querySelector("[data-import-garage-backup]");
 const garageBackupImportButton = document.querySelector("[data-choose-garage-backup]");
 const garageBackupRestoreButton = document.querySelector("[data-restore-garage-backup]");
+const garageBackupPreview = document.querySelector("[data-garage-backup-preview]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
 const cloudSyncRetryButton = document.querySelector("[data-cloud-sync-retry]");
@@ -402,10 +403,16 @@ function garageBackupSummary(bundle) {
     [STORAGE.profile]: "truck profile"
   };
   const included = Object.keys(labels).filter((key) => Object.prototype.hasOwnProperty.call(payload, key));
+  const entries = included.map((key) => ({
+    key,
+    label: labels[key],
+    count: garageBackupValueCount(payload[key])
+  }));
 
   return {
     generatedAt: bundle.generatedAt || "",
-    labels: included.map((key) => labels[key])
+    labels: entries.map((entry) => entry.label),
+    entries
   };
 }
 
@@ -415,9 +422,55 @@ function setGarageRestoreReady(ready) {
   }
 }
 
+function garageBackupValueCount(value) {
+  if (Array.isArray(value)) {
+    return `${value.length} item${value.length === 1 ? "" : "s"}`;
+  }
+
+  if (value && typeof value === "object") {
+    const count = Object.keys(value).filter((key) => value[key] !== undefined && value[key] !== null && `${value[key]}` !== "").length;
+    return `${count} field${count === 1 ? "" : "s"}`;
+  }
+
+  return value ? "1 field" : "0 fields";
+}
+
+function renderGarageBackupPreview(summary) {
+  if (!garageBackupPreview) {
+    return;
+  }
+
+  if (!summary?.entries?.length) {
+    garageBackupPreview.hidden = true;
+    garageBackupPreview.innerHTML = "";
+    return;
+  }
+
+  const generated = summary.generatedAt ? new Date(summary.generatedAt).toLocaleString("en-US") : "Date not recorded";
+  garageBackupPreview.hidden = false;
+  garageBackupPreview.innerHTML = `
+    <strong>Backup ready to restore</strong>
+    <span>Created ${escapeHtml(generated)}</span>
+    <div class="garage-backup-preview-list">
+      ${summary.entries
+        .map(
+          (entry) => `
+            <span class="garage-backup-preview-chip">
+              <b>${escapeHtml(entry.label)}</b>
+              <small>${escapeHtml(entry.count)}</small>
+            </span>
+          `
+        )
+        .join("")}
+    </div>
+    <p>Restore replaces notes, tracker, service log, favorites, and truck profile from the backup. Existing photo and area-journal photo metadata is merged.</p>
+  `;
+}
+
 function clearPendingGarageBackup() {
   pendingGarageBackup = null;
   setGarageRestoreReady(false);
+  renderGarageBackupPreview(null);
   if (garageBackupImportInput) {
     garageBackupImportInput.value = "";
   }
@@ -459,8 +512,9 @@ garageBackupImportInput?.addEventListener("change", async () => {
 
     pendingGarageBackup = bundle;
     setGarageRestoreReady(true);
+    renderGarageBackupPreview(summary);
     const generated = summary.generatedAt ? ` from ${new Date(summary.generatedAt).toLocaleString("en-US")}` : "";
-    setDiagnosticActivityStatus(`Backup ready${generated}: ${summary.labels.join(", ")}. Tap Restore Backup to import it.`);
+    setDiagnosticActivityStatus(`Backup ready${generated}. Review the preview, then tap Restore Backup to import it.`);
   } catch (error) {
     console.warn("Garage backup import preview failed.", error);
     setDiagnosticActivityStatus("Could not read that backup JSON file.");

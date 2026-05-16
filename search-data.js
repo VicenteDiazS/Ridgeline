@@ -664,7 +664,7 @@ export const searchIndex = [
     title: "Recent Diagnostic Activity",
     url: "garage.html#diagnostic-activity",
     category: "Personal",
-    excerpt: "Garage dashboard list that groups saved warning-light notes, diagnostic quick captures, service logs, and area-journal notes.",
+    excerpt: "Garage dashboard list that groups saved warning-light notes, diagnostic quick captures, service logs, area-journal notes, and guarded Garage backup restore.",
     keywords: [
       "recent diagnostic activity",
       "diagnostic activity",

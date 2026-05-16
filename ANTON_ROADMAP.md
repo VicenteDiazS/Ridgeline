@@ -32,7 +32,7 @@ Current focus areas:
 - Derived Garage Recent Diagnostic Activity filtering and copy-summary export for warning notes, quick captures, service logs, and area journals without a storage migration. Completed 2026-05-16 on `garage.html#diagnostic-activity`.
 - Garage backup download from the diagnostic activity panel using the existing syncable Garage storage keys, completed 2026-05-16. The JSON includes Garage fields and photo metadata but intentionally excludes local-only image data URLs.
 - Filtered diagnostic-activity JSON download from the diagnostic activity panel, completed 2026-05-16. This is a derived handoff export for the current filter, separate from the restorable full Garage backup and without a storage migration.
-- Guarded local Garage restore from a downloaded backup, completed 2026-05-16. The restore flow validates `ridgeline-garage-backup` JSON, previews recognized data areas, rejects diagnostic-activity handoffs, and enables restore only after a valid backup is selected.
+- Guarded local Garage restore from a downloaded backup, completed 2026-05-16 and tightened in audit-v269. The restore flow validates `ridgeline-garage-backup` JSON, previews recognized data areas in a visible mobile-friendly card, rejects diagnostic-activity handoffs, enables restore only after a valid backup is selected, and strips imported `dataUrl` image bytes from photo metadata before merge.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
@@ -102,7 +102,7 @@ Candidate slices:
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
-- Review Garage restore with a real backup file before adding overwrite/merge conflict choices, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces.
+- Review Garage restore with a real user backup file before adding overwrite/merge conflict choices, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces.
 
 ## Research Queue
 
