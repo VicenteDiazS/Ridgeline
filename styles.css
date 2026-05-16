@@ -5640,6 +5640,23 @@ kbd {
   gap: 8px;
 }
 
+.garage-backup-impact {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 210, 122, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 210, 122, 0.07);
+}
+
+.garage-backup-impact p {
+  margin: 0;
+}
+
+.garage-backup-impact b {
+  color: var(--text);
+}
+
 .garage-backup-preview-chip {
   display: grid;
   gap: 2px;

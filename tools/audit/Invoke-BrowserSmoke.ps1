@@ -296,6 +296,7 @@ function Invoke-InteractionSmoke {
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Activity JSON"), "diagnostic activity JSON handoff note is missing");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("photo metadata"), "garage backup photo-metadata note is missing");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Restore Backup imports"), "garage backup restore note is missing");
+      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Use Download Backup first"), "garage backup pre-restore safety note is missing");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("browser-local image bytes are not included"), "garage backup local-image-byte note is missing");
       const backupPreview = doc.querySelector("#diagnostic-activity [data-garage-backup-preview]");
       assert(backupPreview, "garage backup preview surface is missing");

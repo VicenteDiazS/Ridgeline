@@ -58,6 +58,24 @@ const defaultProfile = {
 };
 let currentDiagnosticActivityFilter = "all";
 let pendingGarageBackup = null;
+const GARAGE_BACKUP_LABELS = {
+  [STORAGE.notes]: "notes",
+  [STORAGE.tracker]: "tracker",
+  [STORAGE.maintenanceLog]: "service log",
+  [STORAGE.photos]: "photo metadata",
+  [STORAGE.favorites]: "favorites",
+  [STORAGE.areaJournal]: "area journals",
+  [STORAGE.profile]: "truck profile"
+};
+const GARAGE_BACKUP_SHAPES = {
+  [STORAGE.notes]: "object",
+  [STORAGE.tracker]: "object",
+  [STORAGE.maintenanceLog]: "array",
+  [STORAGE.photos]: "array",
+  [STORAGE.favorites]: "array",
+  [STORAGE.areaJournal]: "object",
+  [STORAGE.profile]: "object"
+};
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -176,6 +194,10 @@ function shortText(value = "", maxLength = 150) {
   return `${text.slice(0, maxLength - 1).trim()}...`;
 }
 
+function isPlainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 function isDiagnosticText(value = "") {
   return /\b(warning|check engine|dash|mid|code|dtc|fuse|battery|voltage|start|crank|trailer|light|radio|audio|display|outlet|socket|electrical|alternator|starter|tpms|abs|awd|brake)\b/i.test(
     `${value}`
@@ -277,7 +299,7 @@ function getDiagnosticActivityItems() {
       });
   });
 
-  return items.sort((a, b) => a.rank - b.rank).slice(0, 6);
+  return items.sort((a, b) => a.rank - b.rank);
 }
 
 function filterDiagnosticActivityItems(items = getDiagnosticActivityItems()) {
@@ -387,32 +409,65 @@ function garageBackupPayloadFor(bundle) {
   return bundle.payload && typeof bundle.payload === "object" ? bundle.payload : null;
 }
 
-function garageBackupSummary(bundle) {
+function isValidGarageBackupSection(key, value) {
+  const shape = GARAGE_BACKUP_SHAPES[key];
+
+  if (shape === "array") {
+    return Array.isArray(value);
+  }
+
+  if (shape === "object") {
+    return isPlainObject(value);
+  }
+
+  return false;
+}
+
+function validateGarageBackupBundle(bundle) {
   const payload = garageBackupPayloadFor(bundle);
   if (!payload) {
     return null;
   }
 
-  const labels = {
-    [STORAGE.notes]: "notes",
-    [STORAGE.tracker]: "tracker",
-    [STORAGE.maintenanceLog]: "service log",
-    [STORAGE.photos]: "photo metadata",
-    [STORAGE.favorites]: "favorites",
-    [STORAGE.areaJournal]: "area journals",
-    [STORAGE.profile]: "truck profile"
-  };
-  const included = Object.keys(labels).filter((key) => Object.prototype.hasOwnProperty.call(payload, key));
-  const entries = included.map((key) => ({
-    key,
-    label: labels[key],
-    count: garageBackupValueCount(payload[key])
-  }));
+  const validPayload = {};
+  const skippedLabels = [];
+  const entries = Object.keys(GARAGE_BACKUP_LABELS).reduce((list, key) => {
+    if (!Object.prototype.hasOwnProperty.call(payload, key)) {
+      return list;
+    }
+
+    if (!isValidGarageBackupSection(key, payload[key])) {
+      skippedLabels.push(GARAGE_BACKUP_LABELS[key]);
+      return list;
+    }
+
+    validPayload[key] = payload[key];
+    list.push({
+      key,
+      label: GARAGE_BACKUP_LABELS[key],
+      count: garageBackupValueCount(payload[key])
+    });
+    return list;
+  }, []);
 
   return {
     generatedAt: bundle.generatedAt || "",
     labels: entries.map((entry) => entry.label),
-    entries
+    entries,
+    skippedLabels,
+    payload: validPayload
+  };
+}
+
+function garageBackupSummary(bundle) {
+  const validation = validateGarageBackupBundle(bundle);
+  return validation?.entries?.length ? validation : null;
+}
+
+function sanitizedGarageBackupBundle(bundle, summary) {
+  return {
+    ...bundle,
+    payload: summary?.payload || {}
   };
 }
 
@@ -433,6 +488,54 @@ function garageBackupValueCount(value) {
   }
 
   return value ? "1 field" : "0 fields";
+}
+
+function garageBackupImpact(summary) {
+  const replaceLabels = [];
+  const mergeLabels = [];
+  const hasEntry = (key) => summary?.entries?.some((entry) => entry.key === key);
+
+  [
+    [STORAGE.notes, "notes"],
+    [STORAGE.tracker, "tracker"],
+    [STORAGE.maintenanceLog, "service log"],
+    [STORAGE.favorites, "favorites"],
+    [STORAGE.profile, "truck profile"]
+  ].forEach(([key, label]) => {
+    if (hasEntry(key)) {
+      replaceLabels.push(label);
+    }
+  });
+
+  if (hasEntry(STORAGE.areaJournal)) {
+    replaceLabels.push("area-journal notes for matching areas");
+    mergeLabels.push("area-journal photo metadata");
+  }
+
+  if (hasEntry(STORAGE.photos)) {
+    mergeLabels.push("photo metadata");
+  }
+
+  return { replaceLabels, mergeLabels };
+}
+
+function garageBackupImpactMarkup(summary) {
+  const { replaceLabels, mergeLabels } = garageBackupImpact(summary);
+  const rows = [];
+
+  if (replaceLabels.length) {
+    rows.push(`<p><b>Will replace</b> ${escapeHtml(replaceLabels.join(", "))}</p>`);
+  }
+
+  if (mergeLabels.length) {
+    rows.push(`<p><b>Will merge</b> ${escapeHtml(mergeLabels.join(", "))}</p>`);
+  }
+
+  if (summary?.skippedLabels?.length) {
+    rows.push(`<p><b>Skipped invalid</b> ${escapeHtml(summary.skippedLabels.join(", "))}</p>`);
+  }
+
+  return rows.length ? `<div class="garage-backup-impact" data-garage-backup-impact>${rows.join("")}</div>` : "";
 }
 
 function renderGarageBackupPreview(summary) {
@@ -463,7 +566,8 @@ function renderGarageBackupPreview(summary) {
         )
         .join("")}
     </div>
-    <p>Restore replaces notes, tracker, service log, favorites, and truck profile from the backup. Existing photo and area-journal photo metadata is merged.</p>
+    ${garageBackupImpactMarkup(summary)}
+    <p>Download a fresh Garage backup first if you might need to undo this import.</p>
   `;
 }
 
@@ -510,11 +614,12 @@ garageBackupImportInput?.addEventListener("change", async () => {
       return;
     }
 
-    pendingGarageBackup = bundle;
+    pendingGarageBackup = sanitizedGarageBackupBundle(bundle, summary);
     setGarageRestoreReady(true);
     renderGarageBackupPreview(summary);
     const generated = summary.generatedAt ? ` from ${new Date(summary.generatedAt).toLocaleString("en-US")}` : "";
-    setDiagnosticActivityStatus(`Backup ready${generated}. Review the preview, then tap Restore Backup to import it.`);
+    const skipped = summary.skippedLabels.length ? ` Skipped invalid ${summary.skippedLabels.join(", ")}.` : "";
+    setDiagnosticActivityStatus(`Backup ready${generated}. Review the preview, then tap Restore Backup to import it.${skipped}`);
   } catch (error) {
     console.warn("Garage backup import preview failed.", error);
     setDiagnosticActivityStatus("Could not read that backup JSON file.");
@@ -764,7 +869,8 @@ function renderDiagnosticActivity() {
   }
 
   const allItems = getDiagnosticActivityItems();
-  const items = filterDiagnosticActivityItems(allItems);
+  const filteredItems = filterDiagnosticActivityItems(allItems);
+  const items = filteredItems.slice(0, 6);
   diagnosticActivityList.innerHTML = "";
   setDiagnosticActivityStatus("");
 
@@ -781,6 +887,10 @@ function renderDiagnosticActivity() {
       </article>
     `;
     return;
+  }
+
+  if (filteredItems.length > items.length) {
+    setDiagnosticActivityStatus(`Showing 6 of ${filteredItems.length} matching diagnostic items.`);
   }
 
   diagnosticActivityList.innerHTML = items
