@@ -288,8 +288,14 @@ function Invoke-InteractionSmoke {
       assert(doc.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]"), "diagnostic activity copy summary button is missing");
       assert(doc.querySelector("#diagnostic-activity [data-download-diagnostic-activity]"), "diagnostic activity download button is missing");
       assert(doc.querySelector("#diagnostic-activity [data-download-garage-backup]"), "garage backup download button is missing");
+      assert(doc.querySelector("#diagnostic-activity [data-import-garage-backup]"), "garage backup import input is missing");
+      assert(doc.querySelector("#diagnostic-activity [data-choose-garage-backup]"), "garage backup choose button is missing");
+      const restoreButton = doc.querySelector("#diagnostic-activity [data-restore-garage-backup]");
+      assert(restoreButton, "garage backup restore button is missing");
+      assert(restoreButton.disabled === true, "garage backup restore button should start disabled");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("small JSON handoff"), "diagnostic activity JSON handoff note is missing");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("photo metadata"), "garage backup photo-metadata note is missing");
+      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Restore Backup imports"), "garage backup restore note is missing");
 
       const template = doc.querySelector("#warning-light-template");
       assert(template, "garage page is missing warning-light note template");
@@ -347,6 +353,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("warning light note")).includes("Warning Light Note Template"), "warning light note did not surface the garage note template");
     assert((await setSearchQuery("recent diagnostic activity")).includes("Recent Diagnostic Activity"), "recent diagnostic activity did not surface the garage activity list");
     assert((await setSearchQuery("diagnostic activity json")).includes("Recent Diagnostic Activity"), "diagnostic activity json did not surface the garage activity list");
+    assert((await setSearchQuery("restore garage backup")).includes("Recent Diagnostic Activity"), "restore garage backup did not surface the garage backup tools");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");

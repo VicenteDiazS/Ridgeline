@@ -196,7 +196,15 @@ export function buildGarageBackupPayload() {
   return fullBackupPayload();
 }
 
-function mergeBackupBundle(bundle) {
+export function restoreGarageBackupPayload(bundle, options = {}) {
+  if (bundle?.kind !== "ridgeline-garage-backup") {
+    return false;
+  }
+
+  return mergeBackupBundle(bundle, options);
+}
+
+function mergeBackupBundle(bundle, options = {}) {
   const payload = bundle?.payload && typeof bundle.payload === "object" ? bundle.payload : bundle;
   if (!payload || typeof payload !== "object") {
     return false;
@@ -207,7 +215,9 @@ function mergeBackupBundle(bundle) {
     payload: value
   }));
   mergeRemoteRows(rows);
-  window.dispatchEvent(new CustomEvent("ridgeline:storage-hydrated"));
+  if (options.notify !== false) {
+    window.dispatchEvent(new CustomEvent("ridgeline:storage-hydrated"));
+  }
   return true;
 }
 

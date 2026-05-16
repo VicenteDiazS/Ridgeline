@@ -8,6 +8,7 @@ import {
   loadAreaJournal,
   loadJson,
   resolvePhotoSrc,
+  restoreGarageBackupPayload,
   setGarageCloudEnabled,
   saveJson,
   STORAGE
@@ -27,6 +28,9 @@ const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activi
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
 const diagnosticActivityDownloadButton = document.querySelector("[data-download-diagnostic-activity]");
 const garageBackupDownloadButton = document.querySelector("[data-download-garage-backup]");
+const garageBackupImportInput = document.querySelector("[data-import-garage-backup]");
+const garageBackupImportButton = document.querySelector("[data-choose-garage-backup]");
+const garageBackupRestoreButton = document.querySelector("[data-restore-garage-backup]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
 const cloudSyncRetryButton = document.querySelector("[data-cloud-sync-retry]");
@@ -52,6 +56,7 @@ const defaultProfile = {
   parts_notes: "Timing belt service completed 4/25/2026 at 165,980 miles using AISIN TKH-002."
 };
 let currentDiagnosticActivityFilter = "all";
+let pendingGarageBackup = null;
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -372,6 +377,122 @@ function downloadGarageBackup() {
     setDiagnosticActivityStatus("Could not create a Garage backup download.");
   }
 }
+
+function garageBackupPayloadFor(bundle) {
+  if (bundle?.kind !== "ridgeline-garage-backup") {
+    return null;
+  }
+
+  return bundle.payload && typeof bundle.payload === "object" ? bundle.payload : null;
+}
+
+function garageBackupSummary(bundle) {
+  const payload = garageBackupPayloadFor(bundle);
+  if (!payload) {
+    return null;
+  }
+
+  const labels = {
+    [STORAGE.notes]: "notes",
+    [STORAGE.tracker]: "tracker",
+    [STORAGE.maintenanceLog]: "service log",
+    [STORAGE.photos]: "photo metadata",
+    [STORAGE.favorites]: "favorites",
+    [STORAGE.areaJournal]: "area journals",
+    [STORAGE.profile]: "truck profile"
+  };
+  const included = Object.keys(labels).filter((key) => Object.prototype.hasOwnProperty.call(payload, key));
+
+  return {
+    generatedAt: bundle.generatedAt || "",
+    labels: included.map((key) => labels[key])
+  };
+}
+
+function setGarageRestoreReady(ready) {
+  if (garageBackupRestoreButton) {
+    garageBackupRestoreButton.disabled = !ready;
+  }
+}
+
+function clearPendingGarageBackup() {
+  pendingGarageBackup = null;
+  setGarageRestoreReady(false);
+  if (garageBackupImportInput) {
+    garageBackupImportInput.value = "";
+  }
+}
+
+function readGarageBackupFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        resolve(JSON.parse(reader.result));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(reader.error || new Error("Could not read backup file."));
+    reader.readAsText(file);
+  });
+}
+
+garageBackupImportButton?.addEventListener("click", () => {
+  garageBackupImportInput?.click();
+});
+
+garageBackupImportInput?.addEventListener("change", async () => {
+  const file = garageBackupImportInput.files?.[0];
+  clearPendingGarageBackup();
+  if (!file) {
+    return;
+  }
+
+  try {
+    const bundle = await readGarageBackupFile(file);
+    const summary = garageBackupSummary(bundle);
+    if (!summary || !summary.labels.length) {
+      setDiagnosticActivityStatus("Choose a Ridgeline Garage backup JSON file, not a diagnostic activity handoff.");
+      return;
+    }
+
+    pendingGarageBackup = bundle;
+    setGarageRestoreReady(true);
+    const generated = summary.generatedAt ? ` from ${new Date(summary.generatedAt).toLocaleString("en-US")}` : "";
+    setDiagnosticActivityStatus(`Backup ready${generated}: ${summary.labels.join(", ")}. Tap Restore Backup to import it.`);
+  } catch (error) {
+    console.warn("Garage backup import preview failed.", error);
+    setDiagnosticActivityStatus("Could not read that backup JSON file.");
+  }
+});
+
+garageBackupRestoreButton?.addEventListener("click", async () => {
+  if (!pendingGarageBackup) {
+    setDiagnosticActivityStatus("Choose a Garage backup JSON file first.");
+    return;
+  }
+
+  try {
+    const summary = garageBackupSummary(pendingGarageBackup);
+    const restored = restoreGarageBackupPayload(pendingGarageBackup, { notify: false });
+    if (!restored) {
+      setDiagnosticActivityStatus("Could not restore that Garage backup.");
+      return;
+    }
+
+    hydrateGarageForms();
+    await renderPhotos();
+    renderFavorites();
+    renderAreaSummary();
+    renderDashboard();
+    setDiagnosticActivityStatus(`Garage backup restored: ${summary?.labels.join(", ") || "Garage data"}.`);
+    clearPendingGarageBackup();
+  } catch (error) {
+    console.warn("Garage backup restore failed.", error);
+    setDiagnosticActivityStatus("Could not restore that Garage backup.");
+  }
+});
 
 function logQuickServiceEntry() {
   if (!trackerForm || !quickMileageInput || !quickServiceSelect || !quickLogStatus) {

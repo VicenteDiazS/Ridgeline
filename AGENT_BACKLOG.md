@@ -19,7 +19,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
-- Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, and filtered diagnostic-activity JSON export completed 2026-05-16; future work should consider import/restore only after real saved data shows what is useful.
+- Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, filtered diagnostic-activity JSON export, and guarded local Garage restore completed 2026-05-16; future work should review restore behavior with a real backup before adding conflict resolution or overwrite/merge choices.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -57,7 +57,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density or a cautious Garage import/restore design pass after real data accumulates.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, guarded local Garage restore, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density and Garage restore wording before adding conflict resolution choices.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 
@@ -65,6 +65,6 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 - Add an "Ideas from research" panel or note stream where Anton can summarize sourced feature candidates before implementing them.
 - Add a local Windows truck-computer mode later.
-- Add export/import for garage notes.
+- Add conflict-aware Garage restore options after the guarded local restore is reviewed with real backup files.
 - Add more printable quick sheets after source validation; Quick Sheet Fuse Triage print route completed 2026-05-16.
 - Add QR/NFC landing flows for specific fuse diagrams and maintenance tasks.
