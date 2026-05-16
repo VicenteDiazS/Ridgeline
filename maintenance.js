@@ -8,6 +8,7 @@ import {
 const updateForm = document.querySelector("[data-maintenance-update-form]");
 const updateStatus = document.querySelector("[data-maintenance-update-status]");
 const updateList = document.querySelector("[data-maintenance-update-list]");
+const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]")];
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -72,6 +73,60 @@ function appendGarageNote(entry) {
   saveJson(STORAGE.notes, notes);
 }
 
+function copyTextFallback(value = "") {
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+  return Promise.resolve();
+}
+
+function copyText(value = "") {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(value).catch(() => copyTextFallback(value));
+  }
+
+  return copyTextFallback(value);
+}
+
+function servicePrepText(card) {
+  const title = card.dataset.servicePrepTitle || "Service Prep";
+  const items = [...card.querySelectorAll("[data-service-prep-item]")];
+  const checkedItems = items.filter((item) => item.checked);
+  const selected = checkedItems.length ? checkedItems : items;
+  const lines = selected.map((item) => `- ${item.value}`);
+  return [`${title}:`, ...lines].join("\n");
+}
+
+function setServicePrepStatus(card, message) {
+  const status = card.querySelector("[data-service-prep-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function initServicePrepCards() {
+  servicePrepCards.forEach((card) => {
+    card.querySelector("[data-copy-service-prep]")?.addEventListener("click", () => {
+      copyText(servicePrepText(card))
+        .then(() => setServicePrepStatus(card, "Prep copied. Checked items are included; if none are checked, the full card is copied."))
+        .catch(() => setServicePrepStatus(card, "Could not copy automatically. Select the checklist text and copy it manually."));
+    });
+
+    card.querySelector("[data-reset-service-prep]")?.addEventListener("click", () => {
+      card.querySelectorAll("[data-service-prep-item]").forEach((item) => {
+        item.checked = false;
+      });
+      setServicePrepStatus(card, "Checklist reset.");
+    });
+  });
+}
+
 function saveQuickUpdate(event) {
   event.preventDefault();
   const formData = new FormData(updateForm);
@@ -111,6 +166,7 @@ function saveQuickUpdate(event) {
 }
 
 updateForm?.addEventListener("submit", saveQuickUpdate);
+initServicePrepCards();
 
 window.addEventListener("ridgeline:storage-hydrated", renderRecentUpdates);
 renderRecentUpdates();

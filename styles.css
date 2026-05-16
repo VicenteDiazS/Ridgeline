@@ -4949,6 +4949,77 @@ kbd {
   line-height: 1.45;
 }
 
+.service-prep-card {
+  scroll-margin-top: 92px;
+}
+
+.service-prep-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.service-prep-job {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 100%;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(121, 212, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(6, 12, 20, 0.66);
+}
+
+.service-prep-job-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.service-prep-job h4 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.service-prep-job-head a {
+  color: var(--accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.service-prep-job label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.36;
+}
+
+.service-prep-job input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--accent);
+}
+
+.service-prep-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.service-prep-actions .utility-link {
+  min-height: 36px;
+  flex: 1 1 92px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8289,11 +8360,20 @@ kbd {
   .section-page-grid,
   .quick-update-form,
   .quick-update-recent,
+  .service-prep-grid,
   .pinout-studio {
     grid-template-columns: 1fr;
   }
 
   .quick-update-actions .utility-link {
+    width: 100%;
+  }
+
+  .service-prep-job {
+    padding: 12px;
+  }
+
+  .service-prep-actions .utility-link {
     width: 100%;
   }
 

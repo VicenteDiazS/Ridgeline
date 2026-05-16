@@ -36,6 +36,7 @@
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
             <a class="utility-link utility-link-strong" href="#maintenance-updater">Update Log</a>
+            <a class="utility-link utility-link-strong" href="#service-prep">Prep Planner</a>
             <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
             <a class="utility-link" href="#minder">Service Codes</a>
             <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
@@ -120,6 +121,87 @@
             </form>
             <p class="small-note" data-maintenance-update-status aria-live="polite"></p>
             <div class="quick-update-recent" data-maintenance-update-list></div>
+          </article>
+
+          <article class="tech-card span-2 service-prep-card" id="service-prep">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Before The Job</p>
+                <h3>Service Prep Planner</h3>
+                <p class="section-copy">
+                  Pick a common job, check what is staged, then copy a short prep list before you walk to the truck or parts counter.
+                </p>
+              </div>
+              <a class="utility-link" href="garage.html#notes">Open Garage Notes</a>
+            </div>
+            <div class="service-prep-grid">
+              <article class="service-prep-job" data-service-prep-card data-service-prep-title="Oil Change Prep">
+                <div class="service-prep-job-head">
+                  <h4>Oil Change</h4>
+                  <a href="#oil-service">Specs</a>
+                </div>
+                <label><input type="checkbox" data-service-prep-item value="0W-20 oil and final dipstick level check" />0W-20 oil staged</label>
+                <label><input type="checkbox" data-service-prep-item value="Oil filter and 14 mm crush washer" />Filter + 14 mm washer</label>
+                <label><input type="checkbox" data-service-prep-item value="Drain bolt torque reminder: 29 lb-ft" />29 lb-ft drain reminder</label>
+                <label><input type="checkbox" data-service-prep-item value="Funnel, drain pan, towels, and mileage note" />Pan, funnel, towels, mileage</label>
+                <div class="service-prep-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-copy-service-prep>Copy</button>
+                  <button class="utility-link" type="button" data-reset-service-prep>Reset</button>
+                </div>
+                <p class="small-note" aria-live="polite" data-service-prep-status></p>
+              </article>
+
+              <article class="service-prep-job" data-service-prep-card data-service-prep-title="Wheel And Tire Prep">
+                <div class="service-prep-job-head">
+                  <h4>Wheel / Tire</h4>
+                  <a href="#brake-tire">Brakes</a>
+                </div>
+                <label><input type="checkbox" data-service-prep-item value="Cold tire pressure check against the door placard" />Cold pressure check</label>
+                <label><input type="checkbox" data-service-prep-item value="Wheel-nut torque reminder: 94 lb-ft in a star pattern" />94 lb-ft star pattern</label>
+                <label><input type="checkbox" data-service-prep-item value="Jack point or 3D jack map opened before lifting" />Jack point confirmed</label>
+                <label><input type="checkbox" data-service-prep-item value="Rotation or wheel work logged with mileage" />Log rotation / wheel work</label>
+                <div class="service-prep-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-copy-service-prep>Copy</button>
+                  <button class="utility-link" type="button" data-reset-service-prep>Reset</button>
+                </div>
+                <p class="small-note" aria-live="polite" data-service-prep-status></p>
+              </article>
+
+              <article class="service-prep-job" data-service-prep-card data-service-prep-title="Battery Service Prep">
+                <div class="service-prep-job-head">
+                  <h4>Battery</h4>
+                  <a href="hood.html#battery-service">Battery Info</a>
+                </div>
+                <label><input type="checkbox" data-service-prep-item value="Installed battery label photographed before removal" />Photo current label</label>
+                <label><input type="checkbox" data-service-prep-item value="Terminals inspected, cleaned, and protected" />Clean terminals</label>
+                <label><input type="checkbox" data-service-prep-item value="Jump/ground point reference opened if roadside power is involved" />Ground point reference</label>
+                <label><input type="checkbox" data-service-prep-item value="New battery date, size, and warranty saved in Garage" />Save new battery details</label>
+                <div class="service-prep-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-copy-service-prep>Copy</button>
+                  <button class="utility-link" type="button" data-reset-service-prep>Reset</button>
+                </div>
+                <p class="small-note" aria-live="polite" data-service-prep-status></p>
+              </article>
+
+              <article class="service-prep-job" data-service-prep-card data-service-prep-title="Filter Service Prep">
+                <div class="service-prep-job-head">
+                  <h4>Filters</h4>
+                  <a href="#filter-cross">Cross Ref</a>
+                </div>
+                <label><input type="checkbox" data-service-prep-item value="Engine air filter part number verified before ordering" />Engine filter verified</label>
+                <label><input type="checkbox" data-service-prep-item value="Cabin filter part number verified before ordering" />Cabin filter verified</label>
+                <label><input type="checkbox" data-service-prep-item value="Glove-box access area cleared before cabin filter service" />Glove box cleared</label>
+                <label><input type="checkbox" data-service-prep-item value="Part numbers and mileage saved in Garage notes" />Save part numbers</label>
+                <div class="service-prep-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-copy-service-prep>Copy</button>
+                  <button class="utility-link" type="button" data-reset-service-prep>Reset</button>
+                </div>
+                <p class="small-note" aria-live="polite" data-service-prep-status></p>
+              </article>
+            </div>
+            <p class="source-note">
+              Prep items route back to the existing maintenance, hood, and Garage references on this site. Verify the real truck labels and parts before ordering or tightening anything.
+            </p>
           </article>
 
           <article class="tech-card span-2" id="oil-service">
@@ -686,6 +768,7 @@
       </main>
       <nav class="section-dock" aria-label="Quick return">
         <a href="#maintenance-updater">Update</a>
+        <a href="#service-prep">Prep</a>
         <a href="#minder">Codes</a>
         <a href="#drain-hardware">Washers</a>
         <a href="#fluids">Fluids</a>

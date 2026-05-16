@@ -50,6 +50,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage Recent Diagnostic Activity filters the full derived activity list before applying the six-item display cap so category filters do not hide older matching records.
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
+- Maintenance includes a Service Prep Planner with four mobile checklist cards, copy/reset controls, Garage routing, search coverage, and browser-smoke coverage for oil, wheel/tire, battery, and filter prep without adding new vehicle facts.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -207,3 +208,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Replaced the legacy Edge `--dump-dom` browser smoke implementation with a Playwright/Chrome runner that directly opens the local `file://` pages and preserves the existing interaction assertions.
 - `Invoke-BrowserSmoke.ps1` passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, `garage.html`, and `quick-sheet.html`.
 - `Invoke-SiteAudit.ps1 -Tag audit-v275-playwright-smoke -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and Playwright browser smoke all completed.
+- Added `maintenance.html#service-prep`, a Service Prep Planner with oil, wheel/tire, battery, and filter checklist cards, copy/reset controls, and Garage routing; added `service prep` search coverage and browser-smoke assertions.
+- Static internal link/anchor audit passed for 16 HTML files.
+- `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html','garage.html')` passed for the targeted Maintenance/Garage flow.
+- `Invoke-SiteAudit.ps1 -Tag audit-v272-service-prep -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
+- `Capture-Screenshots.ps1` failed to create the first Maintenance screenshot in this shell, so direct Playwright screenshots were captured instead under `debug-screenshots/audit-v272-service-prep-*-maintenance.png`.

@@ -40,6 +40,7 @@ SEARCH_EXPECTATIONS = {
     "diagnostic activity json": "Recent Diagnostic Activity",
     "restore garage backup": "Recent Diagnostic Activity",
     "workflow index": "Diagnostics Workflow Index",
+    "service prep": "Service Prep Planner",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
 }
@@ -275,6 +276,41 @@ async def assert_quick_sheet(page, page_name):
         assert_true("noreferrer" in link["rel"], f"source link should use noreferrer {link['href']}")
 
 
+async def assert_maintenance_features(page, page_name):
+    if page_name != "maintenance.html":
+        return
+    state = await page.evaluate(
+        """() => {
+            const prep = document.querySelector("#service-prep");
+            const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
+            const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
+            return {
+                hasPrep: Boolean(prep),
+                cardCount: cards.length,
+                checkboxCount: checkboxLabels.length,
+                hasGarageRoute: Boolean(prep?.querySelector('a[href="garage.html#notes"]')),
+                hasCopyButtons: cards.every((card) => Boolean(card.querySelector("[data-copy-service-prep]"))),
+                hasResetButtons: cards.every((card) => Boolean(card.querySelector("[data-reset-service-prep]")))
+            };
+        }"""
+    )
+    assert_true(state["hasPrep"], "maintenance page is missing the service prep planner")
+    assert_true(state["cardCount"] == 4, "service prep planner should expose four job cards")
+    assert_true(state["checkboxCount"] >= 16, "service prep planner should expose labeled checkbox items")
+    assert_true(state["hasGarageRoute"], "service prep planner is missing the Garage notes route")
+    assert_true(state["hasCopyButtons"], "service prep planner is missing copy buttons")
+    assert_true(state["hasResetButtons"], "service prep planner is missing reset buttons")
+    await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
+    await page.locator("#service-prep [data-copy-service-prep]").first.click()
+    await page.wait_for_timeout(100)
+    status = await page.locator("#service-prep [data-service-prep-status]").first.inner_text()
+    assert_true("Prep copied" in status, "service prep copy did not report success")
+    await page.locator("#service-prep [data-reset-service-prep]").first.click()
+    unchecked = await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.is_checked()
+    assert_true(not unchecked, "service prep reset did not uncheck the item")
+    await assert_scroll_unlocked(page, "service prep planner")
+
+
 async def assert_garage_features(page, page_name):
     if page_name != "garage.html":
         return
@@ -481,6 +517,7 @@ async def smoke_page(context, root, page_name):
     await assert_current_page_navigation(page, page_name)
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
+    await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
     await assert_garage_features(page, page_name)
     await run_overlay_checks(page, page_name)

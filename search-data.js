@@ -300,6 +300,13 @@ export const searchIndex = [
     keywords: ["quick jobs", "service quick", "oil", "atf", "coolant", "towing", "tire size"]
   },
   {
+    title: "Service Prep Planner",
+    url: "maintenance.html#service-prep",
+    category: "Maintenance",
+    excerpt: "Mobile checklist cards for staging oil, wheel/tire, battery, and filter service supplies before logging the work.",
+    keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter"]
+  },
+  {
     title: "Recorded Timing Belt Service",
     url: "maintenance.html#major-service-log",
     category: "Maintenance",
