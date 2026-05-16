@@ -24,6 +24,7 @@ Last updated: 2026-05-16
 - Garage Dashboard now surfaces a Diagnostic Notes card that summarizes the structured warning-light fields and routes back to the Warning Light Note template; Garage notes form saves now merge into existing notes so dynamic quick-capture note keys are preserved.
 - Garage Dashboard now includes a Recent Diagnostic Activity panel that groups existing warning-light fields, diagnostic Quick Capture/NFC notes, matching maintenance log entries, and area-journal notes without changing Garage storage schema.
 - Garage Recent Diagnostic Activity now has a local derived activity filter and Copy Summary action for warning notes, quick captures, service logs, and area-journal notes without changing Garage storage schema.
+- Garage Recent Diagnostic Activity now has a Download Backup action that creates a local Garage JSON backup from the existing syncable storage keys, including notes, tracker, maintenance log, favorites, profile, area journal, and photo metadata while leaving local-only image bytes in the browser.
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Diagnostics now has a mobile density pass: the page is scoped with `diagnostics-page`, the workflow index and diagnostic cards are shorter at iPhone widths, Quick Checks stacks into card-like rows, source notes are visually lighter on mobile, and the bottom action bar routes to the canonical workflow index.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
@@ -107,6 +108,7 @@ Last updated: 2026-05-16
 - Added search coverage and browser-smoke assertions for `recent diagnostic activity`, refreshed Garage after on-page Quick Capture saves, and bumped the service-worker cache to `ridgeline-console-v263`.
 - Tightened Diagnostics on iPhone without changing diagnostic content or vehicle facts: compacted workflow cards, symptom cards, hero shortcuts, Quick Checks rows, and source notes; pointed the mobile bottom action to `#workflow-index`; wrapped Quick Checks in `.table-scroll`; bumped the service-worker cache to `ridgeline-console-v264`.
 - Added derived filters and a Copy Summary action to `garage.html#diagnostic-activity`, added search keywords and smoke assertions for the controls, and bumped the service-worker cache to `ridgeline-console-v265`.
+- Added a Garage Download Backup action to `garage.html#diagnostic-activity`, exported the existing Garage backup payload builder from `garage-data.js`, added backup search keywords and browser-smoke selector coverage, and bumped the service-worker cache to `ridgeline-console-v266`.
 
 ## Known Cautions
 
@@ -116,7 +118,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, warning-light garage-note template, Garage diagnostic dashboard card, Recent Diagnostic Activity panel/filter/copy tools, and Diagnostics mobile density pass are present; the remaining fuse work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a real-device review of the new Diagnostics and Garage dashboard density, then a Garage export/download or import/backup slice if the copied activity summary is useful.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, warning-light garage-note template, Garage diagnostic dashboard card, Recent Diagnostic Activity panel/filter/copy tools, Garage backup download, and Diagnostics mobile density pass are present; the remaining fuse work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a real-device review of the new Diagnostics and Garage dashboard density, then a filtered diagnostic-activity JSON export or Garage import/restore slice if backup downloads prove useful.
 
 ## Next Verification Target
 
@@ -223,3 +225,7 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `garage.html`; Edge still rendered without the main landmark before interaction checks.
 - Ran Playwright/Chrome fallback verification for `garage.html#diagnostic-activity`; verified iPhone and desktop rendering, no horizontal overflow, populated diagnostic activity from warning-light notes/Quick Capture/service log/area journal data, filter changes for service and area categories, Copy Summary status, and screenshots.
 - Captured screenshots under `debug-screenshots/audit-v265-garage-diagnostic-activity-mobile.png` and `debug-screenshots/audit-v265-garage-diagnostic-activity-desktop.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `garage.html`; Edge still rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `garage.html#diagnostic-activity`; verified iPhone and desktop rendering, no horizontal overflow, Download Backup visibility, JSON download creation, required Garage backup keys, exclusion of local photo data URLs from the JSON payload, `garage backup` search coverage, and Search Escape cleanup.
+- Captured screenshots under `debug-screenshots/audit-v266-garage-backup-mobile.png`, `debug-screenshots/audit-v266-search-garage-backup-mobile.png`, and `debug-screenshots/audit-v266-garage-backup-desktop.png`; verified the downloaded JSON at `debug-screenshots/audit-v266-downloads/ridgeline-garage-backup-2026-05-16.json`.

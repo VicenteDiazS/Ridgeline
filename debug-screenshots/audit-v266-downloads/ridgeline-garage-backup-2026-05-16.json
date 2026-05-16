@@ -1,0 +1,41 @@
+{
+  "kind": "ridgeline-garage-backup",
+  "deviceId": "device-mp8h3h1t-d8dl2zxx",
+  "generatedAt": "2026-05-16T15:00:14.411Z",
+  "payload": {
+    "ridgeline-notes": {
+      "warning_light_indicator": "Check engine light",
+      "warning_light_date_mileage": "May 16, 2026 / 166000 mi",
+      "quick_capture_test": "Battery voltage and warning light note from quick capture"
+    },
+    "ridgeline-tracker": {
+      "oil_change": "May 2026 / 166000 miles"
+    },
+    "ridgeline-maintenance-log": [
+      {
+        "service": "battery_install",
+        "title": "Battery diagnostic check",
+        "note": "Voltage drop during crank",
+        "mileage": 166000
+      }
+    ],
+    "ridgeline-photos": [
+      {
+        "label": "dash warning",
+        "storagePath": null,
+        "uploadedAt": "2026-05-16T10:00:00.000Z"
+      }
+    ],
+    "ridgeline-favorites": [
+      {
+        "page": "hood.html",
+        "label": "Battery fuse check"
+      }
+    ],
+    "ridgeline-area-journal": {},
+    "ridgeline-truck-profile": {
+      "vehicle": "2019 Honda Ridgeline",
+      "current_mileage": "166000"
+    }
+  }
+}

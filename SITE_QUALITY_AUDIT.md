@@ -38,6 +38,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage Dashboard includes a Diagnostic Notes card that summarizes populated warning-light template fields, routes back to the template, and preserves dynamic quick-capture notes when Garage form fields are saved.
 - Garage Dashboard includes a Recent Diagnostic Activity panel that groups existing warning-light fields, diagnostic Quick Capture/NFC notes, matching maintenance log entries, and area-journal notes without changing the Garage data schema.
 - Garage Recent Diagnostic Activity includes derived category filters and a Copy Summary action so diagnostic notes can be narrowed or shared without changing the Garage data schema.
+- Garage Recent Diagnostic Activity includes a Download Backup action that writes a local JSON backup of the existing Garage storage keys, including photo metadata but not browser-local image data URLs.
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
@@ -162,3 +163,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `node --check garage.js` could not run because `node` is not installed in this shell.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `garage.html`; Playwright/Chrome fallback passed for iPhone and desktop Garage rendering, no horizontal overflow, populated activity grouping, service/area filter behavior, and Copy Summary status.
 - Screenshots captured under `debug-screenshots/audit-v265-garage-diagnostic-activity-mobile.png` and `debug-screenshots/audit-v265-garage-diagnostic-activity-desktop.png`.
+- Added a Garage Download Backup action, search keywords for garage backup queries, browser-smoke selector assertions, and bumped the service-worker cache to `ridgeline-console-v266`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `garage.html`; Playwright/Chrome fallback passed for iPhone and desktop Garage rendering, no horizontal overflow, backup download creation, required JSON payload keys, photo metadata behavior, `garage backup` search coverage, and Search Escape cleanup.
+- Screenshots captured under `debug-screenshots/audit-v266-garage-backup-mobile.png`, `debug-screenshots/audit-v266-search-garage-backup-mobile.png`, and `debug-screenshots/audit-v266-garage-backup-desktop.png`; the downloaded JSON was checked at `debug-screenshots/audit-v266-downloads/ridgeline-garage-backup-2026-05-16.json`.

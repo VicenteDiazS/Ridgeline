@@ -192,6 +192,10 @@ function fullBackupPayload() {
   };
 }
 
+export function buildGarageBackupPayload() {
+  return fullBackupPayload();
+}
+
 function mergeBackupBundle(bundle) {
   const payload = bundle?.payload && typeof bundle.payload === "object" ? bundle.payload : bundle;
   if (!payload || typeof payload !== "object") {

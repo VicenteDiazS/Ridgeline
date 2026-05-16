@@ -30,6 +30,7 @@ Current focus areas:
 - A Garage dashboard diagnostic-note surface that summarizes populated warning-light fields and routes back to the warning-light template. Completed 2026-05-16 as a `garage.html#dashboard` card.
 - A Garage Recent Diagnostic Activity surface that groups existing warning-light fields, diagnostic Quick Capture/NFC notes, maintenance log entries, and area-journal notes without a storage migration. Completed 2026-05-16 as `garage.html#diagnostic-activity`.
 - Derived Garage Recent Diagnostic Activity filtering and copy-summary export for warning notes, quick captures, service logs, and area journals without a storage migration. Completed 2026-05-16 on `garage.html#diagnostic-activity`.
+- Garage backup download from the diagnostic activity panel using the existing syncable Garage storage keys, completed 2026-05-16. The JSON includes Garage fields and photo metadata but intentionally excludes local-only image data URLs.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
@@ -99,7 +100,7 @@ Candidate slices:
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
-- Future Garage download/export or import/backup after the copied diagnostic summary proves useful, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces.
+- Future filtered diagnostic-activity JSON export or Garage import/restore after the backup download proves useful, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces.
 
 ## Research Queue
 

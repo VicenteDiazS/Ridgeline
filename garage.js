@@ -1,4 +1,5 @@
 import {
+  buildGarageBackupPayload,
   filesToPhotoEntries,
   formPayload,
   getGarageCloudState,
@@ -24,6 +25,7 @@ const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
+const garageBackupDownloadButton = document.querySelector("[data-download-garage-backup]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
 const cloudSyncRetryButton = document.querySelector("[data-cloud-sync-retry]");
@@ -300,6 +302,32 @@ function setDiagnosticActivityStatus(text = "") {
   }
 }
 
+function downloadGarageBackup() {
+  if (!garageBackupDownloadButton) {
+    return;
+  }
+
+  try {
+    const payload = buildGarageBackupPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ridgeline-garage-backup-${stamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setDiagnosticActivityStatus("Garage backup JSON downloaded.");
+  } catch (error) {
+    console.warn("Garage backup download failed.", error);
+    setDiagnosticActivityStatus("Could not create a Garage backup download.");
+  }
+}
+
 function logQuickServiceEntry() {
   if (!trackerForm || !quickMileageInput || !quickServiceSelect || !quickLogStatus) {
     return;
@@ -564,6 +592,8 @@ diagnosticActivityCopyButton?.addEventListener("click", () => {
       setDiagnosticActivityStatus("Could not copy automatically. Select the activity text and copy it manually.");
     });
 });
+
+garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
 
 async function renderGaragePage() {
   hydrateGarageForms();
