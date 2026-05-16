@@ -5529,6 +5529,23 @@ kbd {
   line-height: 1.6;
 }
 
+.dashboard-card-action {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.dashboard-card-action p {
+  margin-bottom: 2px;
+}
+
+.dashboard-diagnostic-card {
+  border-color: rgba(255, 145, 94, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(255, 145, 94, 0.11), transparent 38%),
+    rgba(8, 16, 28, 0.86);
+}
+
 .truck-dashboard-card {
   min-height: 160px;
   justify-content: start;

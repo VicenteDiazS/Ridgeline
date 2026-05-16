@@ -275,6 +275,13 @@ function Invoke-InteractionSmoke {
         return;
       }
 
+      const dashboard = doc.querySelector("[data-garage-dashboard]");
+      assert(dashboard, "garage page is missing the garage dashboard");
+      const diagnosticCard = [...dashboard.querySelectorAll(".dashboard-card")]
+        .find((card) => card.textContent.includes("Diagnostic Notes"));
+      assert(diagnosticCard, "garage dashboard is missing the diagnostic notes card");
+      assert(diagnosticCard.querySelector('a[href="#warning-light-template"]'), "diagnostic notes card is missing the warning-light note route");
+
       const template = doc.querySelector("#warning-light-template");
       assert(template, "garage page is missing warning-light note template");
       [

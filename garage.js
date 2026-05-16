@@ -60,7 +60,11 @@ function hydrateGarageForms() {
 
 if (notesForm) {
   notesForm.addEventListener("input", () => {
-    saveJson(STORAGE.notes, formPayload(notesForm));
+    saveJson(STORAGE.notes, {
+      ...loadJson(STORAGE.notes, {}),
+      ...formPayload(notesForm)
+    });
+    renderDashboard();
   });
 }
 
@@ -122,6 +126,38 @@ function formatMileage(value) {
   }
 
   return `${Math.round(mileage).toLocaleString("en-US")} miles`;
+}
+
+function escapeHtml(value = "") {
+  return `${value}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function getWarningLightSummary(notes = {}) {
+  const warningFields = [
+    "warning_light_date_mileage",
+    "warning_light_indicator",
+    "warning_light_behavior",
+    "warning_light_context",
+    "warning_light_mid_message",
+    "warning_light_next_action"
+  ];
+  const filledFields = warningFields.filter((key) => `${notes[key] || ""}`.trim());
+  const title = `${notes.warning_light_indicator || ""}`.trim() || "No warning-light incident saved";
+  const detail =
+    `${notes.warning_light_date_mileage || ""}`.trim() ||
+    `${notes.warning_light_behavior || ""}`.trim() ||
+    `${notes.warning_light_mid_message || ""}`.trim() ||
+    "Use the template to capture the exact light, message, context, and next action.";
+
+  return {
+    count: filledFields.length,
+    title,
+    detail
+  };
 }
 
 function logQuickServiceEntry() {
@@ -298,10 +334,19 @@ function renderDashboard() {
     (sum, area) => sum + Object.values(area.notes || {}).filter(Boolean).length,
     0
   );
+  const warningLightSummary = getWarningLightSummary(notes);
 
   const cards = [
     ["Truck Profile", profile.vin || "VIN not set", `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`],
     ["Saved Notes", `${noteFields} fields`, "Installed parts and general truck memory"],
+    [
+      "Diagnostic Notes",
+      warningLightSummary.count ? `${warningLightSummary.count} warning-light fields` : "Ready to capture",
+      warningLightSummary.count
+        ? `${warningLightSummary.title} - ${warningLightSummary.detail}`
+        : "Open the warning-light template before codes are cleared or parts are replaced.",
+      "#warning-light-template"
+    ],
     ["Service Tracker", `${trackerFields} entries`, "Mileage and last-service checkpoints"],
     ["Quick Updates", `${maintenanceLog.length} entries`, "Fast maintenance notes saved from the Maintenance page"],
     ["Fuse Saves", `${favorites.length} favorites`, "Frequently checked circuits saved locally"],
@@ -311,11 +356,12 @@ function renderDashboard() {
 
   dashboardGrid.innerHTML = cards
     .map(
-      ([label, value, note]) => `
-        <article class="dashboard-card">
+      ([label, value, note, href]) => `
+        <article class="dashboard-card${href ? " dashboard-card-action dashboard-diagnostic-card" : ""}">
           <span>${label}</span>
-          <strong>${value}</strong>
-          <p>${note}</p>
+          <strong>${escapeHtml(value)}</strong>
+          <p>${escapeHtml(note)}</p>
+          ${href ? `<a class="utility-link" href="${href}">Open Warning Light Note</a>` : ""}
         </article>
       `
     )

@@ -21,6 +21,7 @@ Last updated: 2026-05-16
 - Diagnostics now has a compact Workflow Index immediately after the hero, keeping no-start, accessory power, audio/display, trailer-light, warning-light, fuse-symptom, and quick-check flows reachable without crowding the hero controls.
 - Diagnostics now has a Warning Light Triage flow that routes red/amber dash lights, MID messages, multiple warning lights, and recent battery/service history into official-manual, emergency-card, battery, and garage-note paths without adding repair procedures.
 - Garage Log now has a structured Warning Light Note template linked from Diagnostics and search, capturing date/mileage, exact indicator/MID text, light behavior, recent context, symptoms, photos/next action, and saving through the existing Garage notes form without a storage migration.
+- Garage Dashboard now surfaces a Diagnostic Notes card that summarizes the structured warning-light fields and routes back to the Warning Light Note template; Garage notes form saves now merge into existing notes so dynamic quick-capture note keys are preserved.
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
@@ -97,6 +98,8 @@ Last updated: 2026-05-16
 - Added `diagnostics.html#warning-light-workflow` with red-light, amber-light, multiple-light, and MID-message routing cards backed by Honda's 2019 Ridgeline Dashboard Details guide.
 - Added search coverage for `warning light` and related owner phrases, updated Diagnostics Workflow Index smoke coverage from six to seven cards, and bumped the service-worker cache to `ridgeline-console-v260`.
 - Added `garage.html#warning-light-template` as a structured warning-light incident note inside the existing Garage notes form, linked the Diagnostics warning-light flow to it, added search coverage for `warning light note`, extended browser-smoke assertions, and bumped the service-worker cache to `ridgeline-console-v261`.
+- Added a Garage Dashboard Diagnostic Notes card that reflects populated warning-light template fields, links directly to `#warning-light-template`, refreshes live as note fields change, and preserves dynamic quick-capture notes when the Garage notes form saves.
+- Extended Garage browser-smoke assertions for the Diagnostic Notes dashboard route and bumped the service-worker cache to `ridgeline-console-v262`.
 
 ## Known Cautions
 
@@ -106,7 +109,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, and warning-light garage-note template are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile density pass on the growing Diagnostics page or a stronger Garage dashboard surface for recent diagnostic notes.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, warning-light garage-note template, and first Garage diagnostic dashboard card are present; the remaining fuse work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile density pass on the growing Diagnostics page or a broader Garage recent-notes surface after checking how quick-capture notes should be grouped.
 
 ## Next Verification Target
 
@@ -196,3 +199,7 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `garage.html` and `diagnostics.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
 - Ran Playwright/Chrome fallback verification for `garage.html#warning-light-template` and `diagnostics.html#warning-light-workflow`; verified desktop and iPhone-width Garage template rendering, required note fields, template back-link to Diagnostics, Diagnostics route into the template, no horizontal overflow, `warning light note` search coverage, and Search Escape cleanup.
 - Captured screenshots under `debug-screenshots/audit-v261-garage-warning-template-desktop.png`, `debug-screenshots/audit-v261-garage-warning-template-mobile.png`, `debug-screenshots/audit-v261-garage-warning-template-mobile-viewport.png`, `debug-screenshots/audit-v261-diagnostics-warning-template-route-mobile.png`, and `debug-screenshots/audit-v261-search-warning-light-note-mobile.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `garage.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `garage.html#dashboard`; verified the Diagnostic Notes dashboard card on iPhone and desktop, the route to `#warning-light-template`, no horizontal overflow, live dashboard refresh after warning-light field edits, preservation of an existing dynamic quick-capture note key during Garage notes form save, `warning light note` search coverage, and Search Escape cleanup.
+- Captured screenshots under `debug-screenshots/audit-v262-garage-dashboard-mobile.png`, `debug-screenshots/audit-v262-garage-dashboard-mobile-live-update.png`, and `debug-screenshots/audit-v262-garage-dashboard-desktop.png`.
