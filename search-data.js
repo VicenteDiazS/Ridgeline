@@ -401,14 +401,14 @@ export const searchIndex = [
     title: "Diagnostics Workflow Index",
     url: "diagnostics.html#workflow-index",
     category: "Diagnostics",
-    excerpt: "Compact routing index for no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check workflows.",
+    excerpt: "Compact routing index for no-start, accessory power, audio/display, trailer-light, warning-light, fuse-symptom, and quick-check workflows.",
     keywords: ["workflow index", "diagnostics index", "symptom index", "diagnostic workflows", "start diagnostics"]
   },
   {
     title: "Diagnostic Quick Checks",
     url: "diagnostics.html#quick-checks",
     category: "Diagnostics",
-    keywords: ["no crank", "accessory socket", "tailgate", "trailer lights", "first check"]
+    keywords: ["no crank", "accessory socket", "tailgate", "trailer lights", "warning light", "first check"]
   },
   {
     title: "No-Start Workflow",
@@ -456,6 +456,36 @@ export const searchIndex = [
       "no sound",
       "backup camera",
       "reverse lights"
+    ]
+  },
+  {
+    title: "Warning Light Triage",
+    url: "diagnostics.html#warning-light-workflow",
+    category: "Diagnostics",
+    excerpt: "Owner-language routing for red or amber dash lights, MID system messages, check-engine lights, TPMS, ABS, AWD, and multiple warning lights.",
+    keywords: [
+      "warning light",
+      "warning lights",
+      "dash warning",
+      "dashboard warning",
+      "indicator light",
+      "indicator lights",
+      "check engine light",
+      "malfunction indicator",
+      "mid message",
+      "system message",
+      "multiple warning lights",
+      "all warning lights",
+      "abs light",
+      "tpms light",
+      "vsa light",
+      "awd light",
+      "brake light",
+      "oil pressure light",
+      "charging system light",
+      "battery light",
+      "red warning light",
+      "amber warning light"
     ]
   },
   {

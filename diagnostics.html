@@ -72,6 +72,11 @@
                 <strong>Brake, turn, running, reverse, adapter, or connector issue</strong>
                 <small>Connector type, pinout, trailer fuse paths, garage notes</small>
               </a>
+              <a class="workflow-index-card" href="#warning-light-workflow">
+                <span>Warning lights</span>
+                <strong>Red or amber dash light, system message, or several lights at once</strong>
+                <small>Owner-manual categories, roadside card, battery history</small>
+              </a>
               <a class="workflow-index-card" href="#fuse-symptom-finder">
                 <span>Fuse symptoms</span>
                 <strong>Start from owner words and route to the existing fuse tables</strong>
@@ -123,6 +128,7 @@
               <tr><td>Accessory socket dead</td><td>Power mode, device/load, and outlet-specific circuit</td><td><a href="#accessory-power-workflow">Accessory power flow</a></td></tr>
               <tr><td>Radio or screen dead</td><td>Power mode, volume/mute, source, and audio/display fuse paths</td><td><a href="#audio-display-workflow">Audio display flow</a></td></tr>
               <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
+              <tr><td>Warning light on</td><td>Color, exact MID message, recent battery/service work, and whether multiple systems are lit</td><td><a href="#warning-light-workflow">Warning light flow</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
             </table>
@@ -269,6 +275,54 @@
             </div>
             <p class="source-note">
               <strong>Source note:</strong> Honda's 2019 Ridgeline audio references describe 5-inch Color LCD, Display Audio, USB, Bluetooth audio, Apple CarPlay, Android Auto, and navigation-related interfaces; the 2019 owner manual says the audio system operates in ACCESSORY or ON. This workflow routes owner-language symptoms to existing site fuse, cabin, and garage-note references without adding fuse ratings, fuse positions, reset procedures, or repair specifications.
+            </p>
+          </article>
+          <article class="tech-card span-2" id="warning-light-workflow">
+            <h3>Warning Light Triage</h3>
+            <p>
+              Use this when the dash shows a red or amber indicator, a multi-information display message, or several alerts at once.
+              Capture the exact light/message first, then route to the official manual, roadside card, battery history, or garage notes without guessing at a repair.
+            </p>
+            <div class="fuse-finder-grid" aria-label="Warning light diagnostic routing">
+              <article class="fuse-finder-card">
+                <span>Red light</span>
+                <strong>Brake, oil pressure, charging, or temperature-type warning</strong>
+                <p>Treat red warnings as manual-first situations. Use the quick sheet for roadside-safe references, then compare the exact indicator against Honda's guide.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="quick-sheet.html#emergency-card">Emergency Card</a>
+                  <a class="utility-link" href="quick-sheet.html#source-confidence">Source Confidence</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Amber light</span>
+                <strong>Check engine, ABS, TPMS, VSA, AWD, or driver-assist message</strong>
+                <p>Record the exact indicator name and whether the light is steady or blinking before you clear codes or replace parts.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+                  <a class="utility-link" href="maintenance.html#minder">Maintenance Minder</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Multiple lights</span>
+                <strong>Several unrelated systems light up together</strong>
+                <p>Start with recent battery, jump-start, accessory, trailer, or fuse work, then log voltage/history before chasing each system separately.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
+                  <a class="utility-link" href="hood.html#battery-service">Battery Service</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>System message</span>
+                <strong>The MID shows text along with an indicator</strong>
+                <p>Use the message text as the search phrase, save a note or photo, and route back to the matching symptom workflow if one exists.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="#workflow-index">Workflow Index</a>
+                  <a class="utility-link" href="garage.html#photos">Garage Photos</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 Ridgeline Dashboard Details guide separates red/amber critical indicators from blue/green informational indicators, lists malfunction and condition indicators, and says MID messages provide more information when a condition or malfunction indicator appears. This workflow routes the owner to existing references and note-taking paths without adding diagnostic procedures or repair specifications.
             </p>
           </article>
           <article class="tech-card span-2" id="fuse-symptom-finder">

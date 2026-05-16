@@ -18,13 +18,14 @@ Last updated: 2026-05-16
 - Diagnostics now has a Trailer-Light Issue Flow that routes trailer brake/turn/running/reverse light and connector-adapter symptoms into existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts, fuse ratings, or pin assignments.
 - Diagnostics now has an Accessory Power Issue Flow that routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms into existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
 - Diagnostics now has an Audio Display Issue Flow that routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work into existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
-- Diagnostics now has a compact Workflow Index immediately after the hero, keeping no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check flows reachable without crowding the hero controls.
+- Diagnostics now has a compact Workflow Index immediately after the hero, keeping no-start, accessory power, audio/display, trailer-light, warning-light, fuse-symptom, and quick-check flows reachable without crowding the hero controls.
+- Diagnostics now has a Warning Light Triage flow that routes red/amber dash lights, MID messages, multiple warning lights, and recent battery/service history into official-manual, emergency-card, battery, and garage-note paths without adding repair procedures.
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
-- Browser smoke checks now include explicit Diagnostics Workflow Index coverage: six cards, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search result coverage.
+- Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
 - Browser smoke checks now include Quick Sheet Fuse Triage and Source Confidence coverage: four routing cards, required destination links, a print/save button, four source-confidence cards, external source-link attributes, and `fuse quick sheet` / `quick sheet sources` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -92,6 +93,8 @@ Last updated: 2026-05-16
 - Bumped the service worker cache to `ridgeline-console-v258`.
 - Added `quick-sheet.html#source-confidence` with visible source-confidence notes and links for the emergency card, marked battery size/CCA as common replacement references, marked bolt pattern/center bore as fitment-reference values, and added search/smoke coverage for `quick sheet sources`.
 - Bumped the service worker cache to `ridgeline-console-v259`.
+- Added `diagnostics.html#warning-light-workflow` with red-light, amber-light, multiple-light, and MID-message routing cards backed by Honda's 2019 Ridgeline Dashboard Details guide.
+- Added search coverage for `warning light` and related owner phrases, updated Diagnostics Workflow Index smoke coverage from six to seven cards, and bumped the service-worker cache to `ridgeline-console-v260`.
 
 ## Known Cautions
 
@@ -101,7 +104,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, and quick-sheet Source Confidence section are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile/print density pass after real-device review.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, and warning-light routing are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile density pass on the growing Diagnostics page or a garage-note template for warning-light incidents.
 
 ## Next Verification Target
 
@@ -182,3 +185,8 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `quick-sheet.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
 - Ran Playwright/Chrome fallback verification for `quick-sheet.html#source-confidence`; verified desktop and iPhone-width rendering, four source-confidence cards, external source links with `target="_blank"` and `rel="noreferrer"`, no horizontal overflow, `quick sheet sources` search coverage, Search Escape cleanup, and print media preserving `#source-confidence` while hiding header/actions.
 - Captured screenshots under `debug-screenshots/audit-v259-quick-sheet-desktop-source-confidence.png`, `debug-screenshots/audit-v259-quick-sheet-mobile-source-confidence.png`, `debug-screenshots/audit-v259-search-quick-sheet-sources-mobile.png`, and `debug-screenshots/audit-v259-quick-sheet-print-source-confidence.png`.
+- Used Honda's 2019 Ridgeline Dashboard Details guide, accessed 2026-05-16, for the warning-light triage source note: https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Dashboard_Details.pdf.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `diagnostics.html#warning-light-workflow`; verified desktop and iPhone-width rendering, seven Workflow Index cards, the new quick-check row, no horizontal overflow, mobile card navigation to the warning-light workflow after smooth scroll settled, `warning light` search coverage, and Search Escape cleanup.
+- Captured screenshots under `debug-screenshots/audit-v260-diagnostics-desktop-warning-light.png`, `debug-screenshots/audit-v260-diagnostics-mobile-warning-light.png`, and `debug-screenshots/audit-v260-search-warning-light-mobile.png`.

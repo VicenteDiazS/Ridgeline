@@ -19,6 +19,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
+- Warning-light triage completed 2026-05-16; future work should add a garage-note template for capturing exact indicator/MID text and photos rather than adding repair procedures.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -33,6 +34,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - 2026-05-16: Added the Audio Display Issue Flow using Honda 2019 Ridgeline audio source support, accessed 2026-05-16: https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Interior-Features/Audio-System/, https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Interior-Features/Display-Audio-with-HondaLink---RTL-T-and-above/, https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Audio_and_Connectivity.pdf, and https://techinfo.honda.com/rjanisis/pubs/OM/AH/AT6Z1919OM/enu/AT6Z1919OMEN.PDF. The workflow routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work to existing Hood/Cabin fuse, cabin journal, and garage-note references; no fuse ratings, fuse positions, reset procedures, or repair specifications were changed.
 - 2026-05-16: Added Quick Sheet Fuse Triage and print styling using MDN print-CSS guidance, accessed 2026-05-16: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing. This affected layout/print behavior only and routes to existing site workflows/glossaries; no fuse ratings, positions, or repair procedures were changed.
 - 2026-05-16: Added Quick Sheet Source Confidence using Honda owner/spec/towing references and Honda accessory wheel instructions, accessed 2026-05-16: https://techinfo.honda.com/rjanisis/pubs/OM/AH/ATHR1919OM/enu/ATHR1919OM.PDF, https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/, https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/, and https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf. This pass added visible source links/cautions, marked battery size/CCA as common replacement references, and marked bolt pattern/center bore as fitment-reference values; no vehicle specs were changed.
+- 2026-05-16: Added Diagnostics Warning Light Triage using Honda's 2019 Ridgeline Dashboard Details guide, accessed 2026-05-16: https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Dashboard_Details.pdf. The workflow routes red/amber dash lights, MID messages, multiple warning lights, and recent battery/service context to existing official-manual, emergency-card, battery, and garage-note paths; no diagnostic procedures, warning-light definitions, or repair specifications were added beyond the Honda-backed categorization note.
 
 ## Navigation And UX
 
@@ -55,7 +57,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, explicit workflow-index browser-smoke coverage, and trimmed lower-page Diagnostics routing are complete; next safe slice is clearer fuse-circuit acronym definitions or another mobile density pass after real-device review.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, and trimmed lower-page Diagnostics routing are complete; next safe slice is a mobile density pass on Diagnostics or a garage-note template for warning-light incidents.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 

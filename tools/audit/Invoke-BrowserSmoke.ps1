@@ -216,9 +216,11 @@ function Invoke-InteractionSmoke {
       const workflowIndex = doc.querySelector("#workflow-index");
       assert(workflowIndex, "diagnostics page is missing workflow index");
       const workflowCards = [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")];
-      assert(workflowCards.length === 6, "workflow index should expose six workflow cards");
+      assert(workflowCards.length === 7, "workflow index should expose seven workflow cards");
       const trailerCard = workflowCards.find((card) => card.hash === "#trailer-light-workflow");
       assert(trailerCard, "workflow index is missing trailer-light workflow card");
+      const warningCard = workflowCards.find((card) => card.hash === "#warning-light-workflow");
+      assert(warningCard, "workflow index is missing warning-light workflow card");
       trailerCard.click();
       await sleep(700);
       assert(win.location.hash === "#trailer-light-workflow", "workflow index card did not update hash");
@@ -303,6 +305,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("radio not working")).includes("Audio Display Issue Flow"), "radio not working did not surface the audio display workflow");
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
+    assert((await setSearchQuery("warning light")).includes("Warning Light Triage"), "warning light did not surface the warning-light workflow");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");
