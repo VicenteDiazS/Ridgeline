@@ -31,6 +31,7 @@ Current focus areas:
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
+- Fuse-label glossary visibility for Hood and Cabin pages, completed 2026-05-16. The pages now expose plain-English shorthand definitions generated from existing fuse-table labels without changing fuse positions, ratings, or source-conflict notes.
 
 Definition of done:
 
@@ -82,6 +83,7 @@ Candidate slices:
 - Header/menu/search density tuning.
 - Current-page indicators. Completed 2026-05-16 with a sticky-header page chip, full-menu Current badge, `aria-current`, and browser-check coverage.
 - Diagnostics workflow index. Completed 2026-05-16 with a six-card mobile-first index, leaner hero shortcuts, search coverage, reusable browser-smoke assertions, and desktop/mobile screenshots.
+- Fuse-label glossary visibility. Completed 2026-05-16 with Hood/Cabin page sections, mobile search coverage, and screenshots.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.

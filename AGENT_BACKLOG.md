@@ -7,13 +7,14 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Treat iPhone/mobile Safari as the main user environment for all navigation, layout, and interaction decisions.
 - Use `ANTON_ROADMAP.md` to keep improving the site through multi-day initiatives instead of isolated one-off changes.
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
+- Visible first-pass fuse-label glossaries completed 2026-05-16 for Hood and Cabin; future work should deepen only non-factual label help unless reliable sources support data changes.
 - Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.
 - Build from owner workflows the user is likely to value: quick diagnostics, maintenance planning, fuse finding, parts tracking, offline checklists, garage records, and mobile-first reference tools.
 
 ## Fuse And Electrical
 
 - Deepen source notes with exact owner-manual/page or cover-label references as reliable sources are captured.
-- Add clearer acronym definitions for fuse circuits.
+- Add clearer acronym definitions for fuse circuits. First visible glossary slice completed 2026-05-16; remaining work is additional search aliases or print-friendly glossary placement after real-device review.
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.

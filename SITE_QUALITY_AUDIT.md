@@ -20,6 +20,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - The service worker cache version is bumped when site structure changes so installed/offline copies refresh.
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
+- Hood and Cabin fuse pages include visible Fuse Label Glossary sections generated from existing fuse-table labels so common shorthand is easier to understand without changing fuse data.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
 - The sticky header includes a compact current-page chip, and the full-site menu marks the matching page with `aria-current` and a visible Current badge.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
@@ -114,3 +115,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `diagnostics.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Diagnostics rendering, six Workflow Index cards, six Other Quick Routes cards, no horizontal overflow, deep links to the seven Diagnostics anchors, `no crank` and `trailer lights` search coverage, duplicate alias removal, and Search Escape cleanup.
 - Screenshots captured under `debug-screenshots/audit-v256-diagnostics-desktop.png`, `debug-screenshots/audit-v256-diagnostics-mobile.png`, `debug-screenshots/audit-v256-search-no-crank-mobile.png`, and `debug-screenshots/audit-v256-search-trailer-lights-mobile.png`.
+- Added Hood and Cabin Fuse Label Glossary sections generated from the existing fuse-table labels, expanded non-factual shorthand definitions, corrected glossary matching so `AC outlet` is not treated as A/C, added search coverage for fuse-acronym questions, and bumped the service worker cache to `ridgeline-console-v257`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `hood.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Hood/Cabin glossary rendering, no horizontal overflow, expected DBW/ACG definitions, `AC outlet` matching behavior, fuse-acronym search coverage, and Search Escape cleanup.
+- Screenshots captured under `debug-screenshots/audit-v257-hood-desktop-glossary.png`, `debug-screenshots/audit-v257-hood-mobile-glossary.png`, `debug-screenshots/audit-v257-cabin-desktop-glossary.png`, `debug-screenshots/audit-v257-cabin-mobile-glossary.png`, and `debug-screenshots/audit-v257-search-fuse-acronyms-mobile.png`.

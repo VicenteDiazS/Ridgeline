@@ -22,6 +22,7 @@ Last updated: 2026-05-16
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
+- Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: six cards, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -79,6 +80,10 @@ Last updated: 2026-05-16
 - Trimmed duplicate lower-page Diagnostics routing by replacing repeated no-start, accessory-power, trailer-light, and audio/display cards with a focused "Other quick routes" section.
 - Consolidated duplicate static search aliases for no-start and trailer-light symptoms into their canonical workflow entries.
 - Bumped the service worker cache to `ridgeline-console-v256`.
+- Added Hood and Cabin Fuse Label Glossary sections generated from each page's fuse-table circuit labels.
+- Reused the inspector acronym definitions for full-page glossaries, expanded non-factual label help for terms like ST CUT1, F/B, +B, SMART, MISS SOL, trailer small, trailer charge, and audio amp, and corrected matching so `AC outlet` does not get treated as A/C air conditioning.
+- Added search coverage for `fuse acronyms`, `what does dbw mean`, and related fuse-label questions.
+- Bumped the service worker cache to `ridgeline-console-v257`.
 
 ## Known Cautions
 
@@ -88,7 +93,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to add clearer acronym definitions for fuse circuits without changing fuse positions or ratings.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes and first-pass visible acronym glossaries are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to add a print-friendly fuse quick sheet or improve glossary/search coverage for additional label terms after real-device review.
 
 ## Next Verification Target
 
@@ -154,3 +159,8 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
 - Ran a Playwright/Chrome fallback for `diagnostics.html` at desktop and iPhone width; verified the Workflow Index still exposes six cards, the new Other Quick Routes section exposes six non-main cards, removed duplicate lower-page no-start/trailer cards, no horizontal overflow, deep links to the seven Diagnostics anchors, `no crank` returns the No-Start Workflow without the old duplicate alias, `trailer lights` returns the Trailer-Light Issue Flow without the old duplicate alias, and Search closes without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v256-diagnostics-desktop.png`, `debug-screenshots/audit-v256-diagnostics-mobile.png`, `debug-screenshots/audit-v256-search-no-crank-mobile.png`, and `debug-screenshots/audit-v256-search-trailer-lights-mobile.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `hood.html` and `cabin.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `hood.html#hood-fuse-glossary` and `cabin.html#cabin-fuse-glossary` at desktop and iPhone width; verified each glossary renders, has at least four acronym items, has no horizontal overflow, includes expected DBW/ACG definitions, and does not mis-map `AC outlet` as A/C.
+- Ran Playwright/Chrome fallback mobile search checks for `fuse acronyms`, `what does dbw mean`, and `what does miss sol mean`; each surfaced the Fuse Label Glossary and Search closed without leaving `modal-open`.
+- Captured screenshots under `debug-screenshots/audit-v257-hood-desktop-glossary.png`, `debug-screenshots/audit-v257-hood-mobile-glossary.png`, `debug-screenshots/audit-v257-cabin-desktop-glossary.png`, `debug-screenshots/audit-v257-cabin-mobile-glossary.png`, and `debug-screenshots/audit-v257-search-fuse-acronyms-mobile.png`.

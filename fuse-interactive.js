@@ -10,7 +10,7 @@ const acronymDefinitions = {
   TCU: "Transmission Control Unit",
   TCM: "Transmission Control Module",
   MICU: "Multiplex Integrated Control Unit",
-  DBW: "Drive-By-Wire throttle control",
+  DBW: "Drive-by-wire throttle control",
   ACM: "Active Control Engine Mount system",
   BMS: "Battery Management System",
   DRL: "Daytime Running Lights",
@@ -30,13 +30,13 @@ const acronymDefinitions = {
   RT: "Right-side shorthand",
   LH: "Left-hand side",
   RH: "Right-hand side",
-  AC: "Air conditioning",
   RLY: "Relay",
   METER: "Gauge cluster / instrument cluster circuit",
   AUDIO: "Audio head unit or amplifier circuit"
 };
 
 const phraseDefinitions = [
+  ["A/C", "Air conditioning"],
   ["DR P/W", "Driver power window"],
   ["AS P/W", "Passenger-side power window"],
   ["P/W", "Power window"],
@@ -58,12 +58,31 @@ const phraseDefinitions = [
   ["TRL", "Trailer"],
   ["E-BRAKE", "Electric brake"],
   ["F/B", "Fuse block / fuse box main feed"],
+  ["+B", "Battery-positive feed shorthand used on Honda fuse labels"],
   ["CTR", "Center"],
   ["RLY", "Relay"],
   ["IG COIL", "Ignition coil"],
   ["IG MAIN", "Ignition main feed"],
+  ["IG2_MAIN", "Ignition-switched main feed shorthand"],
+  ["ST CUT1", "Starter cut circuit label"],
+  ["SMART", "Smart entry / keyless access control label"],
+  ["OPTION", "Optional equipment branch label"],
+  ["SMALL", "Small-light / parking-light circuit label"],
+  ["STOP", "Brake-light circuit label"],
+  ["BACK UP", "Backup power or reverse-light related label, depending on the row"],
+  ["MAIN RELAY", "Main relay control label"],
+  ["SUB FAN", "Secondary cooling-fan label"],
+  ["FRONT DE-ICER", "Windshield de-icer / wiper-area heater label"],
+  ["TRAILER SMALL", "Trailer running-light branch label"],
+  ["TRAILER CHARGE", "Trailer battery-charge branch label"],
+  ["AUDIO AMP", "Audio amplifier branch label"],
   ["DBW", "Drive-by-wire throttle control"],
   ["FI", "Fuel injection"]
+];
+
+const definitionEntries = [
+  ...phraseDefinitions.map(([key, definition]) => ({ key, definition, type: "phrase" })),
+  ...Object.entries(acronymDefinitions).map(([key, definition]) => ({ key, definition, type: "acronym" }))
 ];
 
 const fuseLayouts = {
@@ -248,6 +267,38 @@ function buildTableMap(table) {
   return entries;
 }
 
+function findDefinitions(text) {
+  const normalizedText = text.toUpperCase();
+  const found = new Map();
+
+  definitionEntries.forEach(({ key, definition, type }) => {
+    if (type === "phrase" && normalizedText.includes(key)) {
+      found.set(key, definition);
+      return;
+    }
+
+    if (type === "acronym") {
+      const pattern = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
+      if (pattern.test(normalizedText)) {
+        found.set(key, definition);
+      }
+    }
+  });
+
+  return found;
+}
+
+function renderDefinitionItems(container, definitions) {
+  container.innerHTML = "";
+
+  definitions.forEach((definition, key) => {
+    const item = document.createElement("div");
+    item.className = "acronym-item";
+    item.innerHTML = `<strong>${key}</strong><span>${definition}</span>`;
+    container.appendChild(item);
+  });
+}
+
 function distanceBetween(a, b) {
   const ax = a.x + a.width / 2;
   const ay = a.y + a.height / 2;
@@ -359,31 +410,9 @@ function bindDiagram(diagramEl) {
       return;
     }
 
-    const text = `${entry.circuit} ${entry.type}`.toUpperCase();
-    const found = new Map();
-
-    phraseDefinitions.forEach(([key, definition]) => {
-      if (text.includes(key)) {
-        found.set(key, definition);
-      }
-    });
-
-    Object.entries(acronymDefinitions).forEach(([key, definition]) => {
-      const pattern = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`);
-      if (pattern.test(text)) {
-        found.set(key, definition);
-      }
-    });
-
-    acronymList.innerHTML = "";
+    const found = findDefinitions(`${entry.circuit} ${entry.type}`);
     acronymPanel.hidden = !found.size;
-
-    found.forEach((definition, key) => {
-      const item = document.createElement("div");
-      item.className = "acronym-item";
-      item.innerHTML = `<strong>${key}</strong><span>${definition}</span>`;
-      acronymList.appendChild(item);
-    });
+    renderDefinitionItems(acronymList, found);
   }
 
   function setActive(position) {
@@ -475,4 +504,30 @@ function bindDiagram(diagramEl) {
 
 diagramEls.forEach(renderFuseDiagram);
 diagramEls.forEach(bindDiagram);
+
+document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
+  const listEl = glossaryEl.querySelector("[data-fuse-glossary-list]");
+  if (!listEl) {
+    return;
+  }
+
+  const panelKeys = (glossaryEl.dataset.fuseGlossaryPanels || "").split(/\s+/).filter(Boolean);
+  const text = panelKeys
+    .map((panelKey) => {
+      const table = document.querySelector(`[data-fuse-table="${panelKey}"]`);
+      if (!table) {
+        return "";
+      }
+
+      return [...table.querySelectorAll("tr")]
+        .slice(1)
+        .map((row) => row.querySelector("td:nth-child(5)")?.textContent || "")
+        .join(" ");
+    })
+    .join(" ");
+
+  const found = findDefinitions(text);
+  glossaryEl.hidden = !found.size;
+  renderDefinitionItems(listEl, found);
+});
 initGarageCloudSync();

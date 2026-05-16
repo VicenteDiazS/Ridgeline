@@ -593,6 +593,30 @@ export const searchIndex = [
     keywords: ["cabin notes", "driver-left fuse notes", "interior photos", "cabin journal"]
   },
   {
+    title: "Fuse Label Glossary",
+    url: "cabin.html#cabin-fuse-glossary",
+    category: "Glossary",
+    excerpt: "Plain-English fuse label and acronym help for cabin and under-hood fuse-table shorthand.",
+    keywords: [
+      "fuse label glossary",
+      "fuse acronym",
+      "fuse acronyms",
+      "what does acg mean",
+      "what does acc mean",
+      "what does vsa mean",
+      "what does dbw mean",
+      "what does micu mean",
+      "what does st cut1 mean",
+      "what does fb main mean",
+      "what does +b mean",
+      "what does miss sol mean",
+      "what does strld mean",
+      "what does smart mean",
+      "fuse abbreviation",
+      "fuse abbreviations"
+    ]
+  },
+  {
     title: "Acronym: ABS",
     url: "cabin.html#fuses",
     category: "Glossary",
