@@ -39,6 +39,7 @@
             <a class="utility-link utility-link-strong" href="#service-prep">Prep Planner</a>
             <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
             <a class="utility-link" href="#minder">Service Codes</a>
+            <a class="utility-link" href="#minder-pocket-planner">Minder Planner</a>
             <a class="utility-link utility-link-strong" href="#fluids">Open Fluids</a>
             <a class="utility-link utility-link-strong" href="#tire-wheel-lab">Tire Lab</a>
             <a class="utility-link" href="#brake-tire">Brakes</a>
@@ -449,6 +450,48 @@
             </div>
           </article>
 
+          <article class="tech-card span-2 minder-pocket-card" id="minder-pocket-planner">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Code To Checklist</p>
+                <h3>Maintenance Minder Pocket Planner</h3>
+                <p class="section-copy">
+                  Type the code from the dash and build a compact checklist from the Honda-backed A/B and sub-item 1-6 rows above.
+                </p>
+              </div>
+              <a class="utility-link" href="#maintenance-updater">Log After Service</a>
+            </div>
+            <div class="minder-pocket-tool">
+              <label class="minder-code-field">
+                <span>Dash code</span>
+                <input type="text" inputmode="text" autocomplete="off" placeholder="B12" aria-label="Maintenance Minder code" data-minder-code-input />
+              </label>
+              <div class="minder-pocket-actions">
+                <button class="utility-link utility-link-strong" type="button" data-build-minder-plan>Build Checklist</button>
+                <button class="utility-link" type="button" data-copy-minder-plan>Copy</button>
+                <button class="utility-link" type="button" data-reset-minder-plan>Reset</button>
+              </div>
+            </div>
+            <div class="minder-samples" aria-label="Example Maintenance Minder codes">
+              <button type="button" data-minder-sample="A1">A1</button>
+              <button type="button" data-minder-sample="B1">B1</button>
+              <button type="button" data-minder-sample="B12">B12</button>
+              <button type="button" data-minder-sample="B4">B4</button>
+            </div>
+            <div class="minder-pocket-output" data-minder-plan-output aria-live="polite">
+              Enter A, B, or a combined code like B12. Sub-items are limited to 1-6 for this Ridgeline.
+            </div>
+            <p class="small-note" data-minder-plan-status aria-live="polite"></p>
+            <div class="quick-update-actions">
+              <a class="utility-link utility-link-strong" href="#maintenance-updater">Open Quick Maintenance Update</a>
+              <a class="utility-link" href="garage.html#notes">Open Garage Notes</a>
+              <a class="utility-link" href="#minder">Review Code Guide</a>
+            </div>
+            <p class="source-note">
+              This planner only assembles the Maintenance Minder main items and sub-items already shown in the code guide. Brake fluid remains a separate 3-year calendar item, not a sub-code.
+            </p>
+          </article>
+
           <article class="tech-card diagram-card">
             <h3>Maintenance Reference Map</h3>
             <div class="diagram-frame">
@@ -770,6 +813,7 @@
         <a href="#maintenance-updater">Update</a>
         <a href="#service-prep">Prep</a>
         <a href="#minder">Codes</a>
+        <a href="#minder-pocket-planner">Planner</a>
         <a href="#drain-hardware">Washers</a>
         <a href="#fluids">Fluids</a>
         <a href="#tire-wheel-lab">Tires</a>

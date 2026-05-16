@@ -307,6 +307,13 @@ export const searchIndex = [
     keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter"]
   },
   {
+    title: "Maintenance Minder Pocket Planner",
+    url: "maintenance.html#minder-pocket-planner",
+    category: "Maintenance",
+    excerpt: "Enter a dash code like A1, B12, or B4 and build a compact checklist from the existing A/B and sub-item 1-6 Maintenance Minder rows.",
+    keywords: ["minder planner", "maintenance minder planner", "pocket planner", "dash code checklist", "b12 checklist", "a1 checklist", "maintenance code checklist", "code b12", "code a1"]
+  },
+  {
     title: "Recorded Timing Belt Service",
     url: "maintenance.html#major-service-log",
     category: "Maintenance",

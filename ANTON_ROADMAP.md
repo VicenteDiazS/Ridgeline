@@ -40,7 +40,8 @@ Current focus areas:
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Service prep planning that turns existing maintenance facts into user-friendly job checklists without adding new specifications. Completed 2026-05-16 as `maintenance.html#service-prep`, with oil, wheel/tire, battery, and filter prep cards, copy/reset controls, Garage routing, search coverage, and browser-smoke assertions.
-- Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders. Next safe slice: a Maintenance Minder Pocket Planner near `maintenance.html#minder` that assembles A/B plus sub-item 1-6 checklist text from the existing Honda-sourced tables only, with no mileage prediction and no brake-fluid sub-code.
+- Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders. Maintenance Minder Pocket Planner completed 2026-05-16 near `maintenance.html#minder`; it assembles A/B plus sub-item 1-6 checklist text from the existing Honda-sourced tables only, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, and has no mileage prediction or brake-fluid sub-code.
+- Next safe maintenance-planning slice: review Maintenance page iPhone density with both planners present, then decide whether to add a Garage note handoff for the built Minder checklist or keep the planner copy-only.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
@@ -85,7 +86,7 @@ Help the user prepare for service tasks without mixing vendor suggestions into f
 Candidate slices:
 
 - Parts list templates by job.
-- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`; future work can turn checked prep items into Garage notes after the Pocket Planner is reviewed.
+- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`; Maintenance Minder Pocket Planner completed 2026-05-16 on `maintenance.html#minder-pocket-planner`. Future work can turn checked prep items or built Minder checklist text into Garage notes after real-device review.
 - Source-date notes for vendor/catalog references.
 - Garage inventory and “need to buy” views.
 - Print-friendly job prep sheets.
@@ -106,6 +107,7 @@ Candidate slices:
 - Fuse-label glossary visibility. Completed 2026-05-16 with Hood/Cabin page sections, mobile search coverage, and screenshots.
 - Quick Sheet Fuse Triage and Source Confidence. Completed 2026-05-16 with iPhone-width rendering, search coverage, source-link checks, print-media checks, and screenshots.
 - Service Prep Planner. Completed 2026-05-16 with four mobile checklist cards, copy/reset behavior, `service prep` search coverage, browser-smoke assertions, and desktop/mobile Playwright screenshots.
+- Maintenance Minder Pocket Planner. Completed 2026-05-16 with A/B and sub-item 1-6 code parsing, unsupported sub-code 7 rejection, copy/reset behavior, Quick Update and Garage Notes routing, `minder planner` search coverage, browser-smoke assertions, and direct Playwright desktop/mobile screenshots.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.

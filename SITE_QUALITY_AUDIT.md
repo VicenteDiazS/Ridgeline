@@ -51,6 +51,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Maintenance includes a Service Prep Planner with four mobile checklist cards, copy/reset controls, Garage routing, search coverage, and browser-smoke coverage for oil, wheel/tire, battery, and filter prep without adding new vehicle facts.
+- Maintenance includes a Maintenance Minder Pocket Planner that turns entered dash codes like A1, B12, or B4 into copyable checklists from the existing A/B and sub-item 1-6 guide, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, and avoids mileage prediction or brake-fluid sub-code wording.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -213,3 +214,9 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html','garage.html')` passed for the targeted Maintenance/Garage flow.
 - `Invoke-SiteAudit.ps1 -Tag audit-v272-service-prep -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
 - `Capture-Screenshots.ps1` failed to create the first Maintenance screenshot in this shell, so direct Playwright screenshots were captured instead under `debug-screenshots/audit-v272-service-prep-*-maintenance.png`.
+- Added `maintenance.html#minder-pocket-planner`, a Maintenance Minder Pocket Planner that parses A/B plus sub-items 1-6, rejects unsupported sub-code 7, copies the generated checklist, and routes to Quick Maintenance Update and Garage Notes without adding new vehicle facts.
+- Added static search coverage for `minder planner`, extended `Invoke-BrowserSmoke.ps1` with Pocket Planner assertions and interaction checks, and bumped the service worker cache to `ridgeline-console-v273`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')` passed for the targeted Maintenance flow.
+- `Invoke-SiteAudit.ps1 -Tag audit-v273-minder-planner -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
+- `Capture-Screenshots.ps1` again failed to create the first Maintenance screenshot in this shell. Direct Playwright screenshots were captured with the browser-smoke file-access flags under `debug-screenshots/audit-v273-minder-planner-mobile-maintenance.png` and `debug-screenshots/audit-v273-minder-planner-desktop-maintenance.png`; a separate direct mobile/desktop check confirmed no horizontal overflow and expected B127/unsupported-7 output.

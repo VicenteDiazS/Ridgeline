@@ -41,6 +41,7 @@ SEARCH_EXPECTATIONS = {
     "restore garage backup": "Recent Diagnostic Activity",
     "workflow index": "Diagnostics Workflow Index",
     "service prep": "Service Prep Planner",
+    "minder planner": "Maintenance Minder Pocket Planner",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
 }
@@ -284,13 +285,21 @@ async def assert_maintenance_features(page, page_name):
             const prep = document.querySelector("#service-prep");
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
             const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
+            const minder = document.querySelector("#minder-pocket-planner");
             return {
                 hasPrep: Boolean(prep),
                 cardCount: cards.length,
                 checkboxCount: checkboxLabels.length,
                 hasGarageRoute: Boolean(prep?.querySelector('a[href="garage.html#notes"]')),
                 hasCopyButtons: cards.every((card) => Boolean(card.querySelector("[data-copy-service-prep]"))),
-                hasResetButtons: cards.every((card) => Boolean(card.querySelector("[data-reset-service-prep]")))
+                hasResetButtons: cards.every((card) => Boolean(card.querySelector("[data-reset-service-prep]"))),
+                hasMinder: Boolean(minder),
+                hasMinderInput: Boolean(minder?.querySelector("[data-minder-code-input]")),
+                hasMinderCopy: Boolean(minder?.querySelector("[data-copy-minder-plan]")),
+                hasMinderReset: Boolean(minder?.querySelector("[data-reset-minder-plan]")),
+                hasMinderUpdaterRoute: Boolean(minder?.querySelector('a[href="#maintenance-updater"]')),
+                hasMinderGarageRoute: Boolean(minder?.querySelector('a[href="garage.html#notes"]')),
+                minderText: minder?.innerText || ""
             };
         }"""
     )
@@ -300,6 +309,13 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["hasGarageRoute"], "service prep planner is missing the Garage notes route")
     assert_true(state["hasCopyButtons"], "service prep planner is missing copy buttons")
     assert_true(state["hasResetButtons"], "service prep planner is missing reset buttons")
+    assert_true(state["hasMinder"], "maintenance page is missing the Maintenance Minder Pocket Planner")
+    assert_true(state["hasMinderInput"], "Maintenance Minder Pocket Planner is missing its code input")
+    assert_true(state["hasMinderCopy"], "Maintenance Minder Pocket Planner is missing copy action")
+    assert_true(state["hasMinderReset"], "Maintenance Minder Pocket Planner is missing reset action")
+    assert_true(state["hasMinderUpdaterRoute"], "Maintenance Minder Pocket Planner is missing the Quick Maintenance Update route")
+    assert_true(state["hasMinderGarageRoute"], "Maintenance Minder Pocket Planner is missing the Garage notes route")
+    assert_true("sub-item 1-6" in state["minderText"], "Maintenance Minder Pocket Planner should state the 1-6 sub-item limit")
     await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
     await page.locator("#service-prep [data-copy-service-prep]").first.click()
     await page.wait_for_timeout(100)
@@ -308,6 +324,22 @@ async def assert_maintenance_features(page, page_name):
     await page.locator("#service-prep [data-reset-service-prep]").first.click()
     unchecked = await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.is_checked()
     assert_true(not unchecked, "service prep reset did not uncheck the item")
+    await page.locator("#minder-pocket-planner [data-minder-code-input]").fill("B127")
+    await page.locator("#minder-pocket-planner [data-build-minder-plan]").click()
+    await page.wait_for_timeout(100)
+    minder_text = await page.locator("#minder-pocket-planner [data-minder-plan-output]").inner_text()
+    assert_true("B: Replace engine oil and oil filter" in minder_text, "minder planner did not include B service")
+    assert_true("1: Rotate tires." in minder_text, "minder planner did not include sub-item 1")
+    assert_true("2: Replace engine air filter" in minder_text, "minder planner did not include sub-item 2")
+    assert_true("Unsupported sub-code ignored: 7" in minder_text, "minder planner did not reject unsupported sub-code 7")
+    await page.locator("#minder-pocket-planner [data-copy-minder-plan]").click()
+    await page.wait_for_timeout(100)
+    minder_status = await page.locator("#minder-pocket-planner [data-minder-plan-status]").inner_text()
+    assert_true("Checklist copied" in minder_status, "minder planner copy did not report success")
+    await page.locator("#minder-pocket-planner [data-reset-minder-plan]").click()
+    await page.wait_for_timeout(100)
+    minder_value = await page.locator("#minder-pocket-planner [data-minder-code-input]").input_value()
+    assert_true(minder_value == "", "minder planner reset did not clear the code input")
     await assert_scroll_unlocked(page, "service prep planner")
 
 

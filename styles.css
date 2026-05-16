@@ -5020,6 +5020,84 @@ kbd {
   flex: 1 1 92px;
 }
 
+.minder-pocket-card {
+  display: grid;
+  gap: 14px;
+  scroll-margin-top: 92px;
+  border-color: rgba(111, 255, 180, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(111, 255, 180, 0.11), transparent 34%),
+    rgba(6, 12, 20, 0.78);
+}
+
+.minder-pocket-tool {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.7fr) minmax(260px, 1.3fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.minder-code-field {
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+}
+
+.minder-code-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(111, 255, 180, 0.22);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+  font: inherit;
+  text-transform: uppercase;
+}
+
+.minder-pocket-actions,
+.minder-samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.minder-pocket-actions .utility-link {
+  min-height: 40px;
+  flex: 1 1 118px;
+}
+
+.minder-samples button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(111, 255, 180, 0.2);
+  background: rgba(111, 255, 180, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.minder-pocket-output {
+  min-height: 104px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 8, 14, 0.42);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.minder-pocket-output strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.minder-pocket-output .highlight-list {
+  margin: 0;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8366,6 +8444,14 @@ kbd {
   }
 
   .quick-update-actions .utility-link {
+    width: 100%;
+  }
+
+  .minder-pocket-tool {
+    grid-template-columns: 1fr;
+  }
+
+  .minder-pocket-actions .utility-link {
     width: 100%;
   }
 

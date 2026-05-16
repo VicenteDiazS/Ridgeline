@@ -9,6 +9,10 @@ const updateForm = document.querySelector("[data-maintenance-update-form]");
 const updateStatus = document.querySelector("[data-maintenance-update-status]");
 const updateList = document.querySelector("[data-maintenance-update-list]");
 const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]")];
+const minderPlanner = document.querySelector("#minder-pocket-planner");
+const minderInput = document.querySelector("[data-minder-code-input]");
+const minderOutput = document.querySelector("[data-minder-plan-output]");
+const minderStatus = document.querySelector("[data-minder-plan-status]");
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -21,6 +25,22 @@ const serviceLabels = {
   trailer_wiring: "Trailer wiring check",
   general_note: "General note"
 };
+
+const minderMainItems = {
+  A: "Replace engine oil.",
+  B: "Replace engine oil and oil filter; inspect brakes, parking brake adjustment, steering, suspension, driveshaft boots, brake hoses and lines including ABS/VSA, fluid levels and condition, exhaust system, and fuel lines and connections."
+};
+
+const minderSubItems = {
+  1: "Rotate tires.",
+  2: "Replace engine air filter, replace cabin dust/pollen filter, and inspect drive belt.",
+  3: "Replace transmission fluid. Transfer fluid is listed by Honda, but does not apply to your 2WD truck.",
+  4: "Replace spark plugs, replace timing belt and inspect water pump, and inspect valve clearance.",
+  5: "Replace engine coolant.",
+  6: "Replace rear differential fluid. This does not apply to your 2WD truck."
+};
+
+let lastMinderPlanText = "";
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -94,6 +114,74 @@ function copyText(value = "") {
   return copyTextFallback(value);
 }
 
+function parseMinderCode(value = "") {
+  const normalized = `${value}`.toUpperCase().replace(/[^AB1-9]/g, "");
+  const main = normalized.match(/[AB]/)?.[0] || "";
+  const subItems = [...new Set([...normalized].filter((char) => /[1-9]/.test(char)))];
+  const invalid = subItems.filter((char) => !minderSubItems[char]);
+  return {
+    original: normalized,
+    main,
+    subItems: subItems.filter((char) => minderSubItems[char]),
+    invalid
+  };
+}
+
+function renderMinderPlan(codeValue = "") {
+  if (!minderOutput) {
+    return;
+  }
+
+  const parsed = parseMinderCode(codeValue);
+  minderOutput.innerHTML = "";
+  if (minderStatus) {
+    minderStatus.textContent = "";
+  }
+
+  if (!parsed.main && !parsed.subItems.length) {
+    lastMinderPlanText = "";
+    minderOutput.textContent = "Enter A, B, or a combined code like B12. Sub-items are limited to 1-6 for this Ridgeline.";
+    return;
+  }
+
+  const title = document.createElement("strong");
+  title.textContent = `Maintenance Minder ${parsed.original || codeValue}`;
+  const list = document.createElement("ul");
+  list.className = "highlight-list";
+  const lines = [`Maintenance Minder ${parsed.original || codeValue}:`];
+
+  if (parsed.main) {
+    const item = document.createElement("li");
+    item.textContent = `${parsed.main}: ${minderMainItems[parsed.main]}`;
+    list.appendChild(item);
+    lines.push(`- ${parsed.main}: ${minderMainItems[parsed.main]}`);
+  }
+
+  parsed.subItems.forEach((code) => {
+    const item = document.createElement("li");
+    item.textContent = `${code}: ${minderSubItems[code]}`;
+    list.appendChild(item);
+    lines.push(`- ${code}: ${minderSubItems[code]}`);
+  });
+
+  if (parsed.invalid.length) {
+    const invalid = document.createElement("p");
+    invalid.className = "source-note";
+    invalid.textContent = `Unsupported sub-code ignored: ${parsed.invalid.join(", ")}. This 2019 Ridgeline guide lists Maintenance Minder sub-items 1-6 only; brake fluid stays separate as a 3-year calendar item.`;
+    minderOutput.append(title, list, invalid);
+    lines.push(`- Ignored unsupported sub-code(s): ${parsed.invalid.join(", ")}.`);
+  } else {
+    minderOutput.append(title, list);
+  }
+
+  const note = document.createElement("p");
+  note.className = "field-hint";
+  note.textContent = "Use the Quick Maintenance Update after the work is complete; this planner does not predict mileage or add brake-fluid sub-codes.";
+  minderOutput.appendChild(note);
+  lines.push("Brake fluid: separate 3-year calendar item, not a Maintenance Minder sub-code.");
+  lastMinderPlanText = lines.join("\n");
+}
+
 function servicePrepText(card) {
   const title = card.dataset.servicePrepTitle || "Service Prep";
   const items = [...card.querySelectorAll("[data-service-prep-item]")];
@@ -123,6 +211,56 @@ function initServicePrepCards() {
         item.checked = false;
       });
       setServicePrepStatus(card, "Checklist reset.");
+    });
+  });
+}
+
+function initMinderPlanner() {
+  if (!minderPlanner || !minderInput) {
+    return;
+  }
+
+  minderPlanner.querySelector("[data-build-minder-plan]")?.addEventListener("click", () => {
+    renderMinderPlan(minderInput.value);
+  });
+
+  minderInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      renderMinderPlan(minderInput.value);
+    }
+  });
+
+  minderPlanner.querySelector("[data-copy-minder-plan]")?.addEventListener("click", () => {
+    if (!lastMinderPlanText) {
+      renderMinderPlan(minderInput.value);
+    }
+    copyText(lastMinderPlanText || "No Maintenance Minder checklist built yet.")
+      .then(() => {
+        if (minderStatus) {
+          minderStatus.textContent = "Checklist copied.";
+        }
+      })
+      .catch(() => {
+        if (minderStatus) {
+          minderStatus.textContent = "Could not copy automatically.";
+        }
+      });
+  });
+
+  minderPlanner.querySelector("[data-reset-minder-plan]")?.addEventListener("click", () => {
+    minderInput.value = "";
+    renderMinderPlan("");
+    minderInput.focus();
+    if (minderStatus) {
+      minderStatus.textContent = "Planner reset.";
+    }
+  });
+
+  minderPlanner.querySelectorAll("[data-minder-sample]").forEach((button) => {
+    button.addEventListener("click", () => {
+      minderInput.value = button.dataset.minderSample || "";
+      renderMinderPlan(minderInput.value);
     });
   });
 }
@@ -167,6 +305,7 @@ function saveQuickUpdate(event) {
 
 updateForm?.addEventListener("submit", saveQuickUpdate);
 initServicePrepCards();
+initMinderPlanner();
 
 window.addEventListener("ridgeline:storage-hydrated", renderRecentUpdates);
 renderRecentUpdates();

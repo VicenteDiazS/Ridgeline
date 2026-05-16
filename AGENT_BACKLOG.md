@@ -11,7 +11,8 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Quick-sheet fuse triage, print/save-PDF treatment, and source-confidence pass completed 2026-05-16; future work should tune printed-page density after real-device review, not add fuse facts without sources.
 - Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.
 - Build from owner workflows the user is likely to value: quick diagnostics, maintenance planning, fuse finding, parts tracking, offline checklists, garage records, and mobile-first reference tools.
-- Service Prep Planner completed 2026-05-16 for oil, wheel/tire, battery, and filter staging checklists; next maintenance-planning slice should be the Maintenance Minder Pocket Planner using only the existing Honda-sourced A/B and sub-item 1-6 tables.
+- Service Prep Planner completed 2026-05-16 for oil, wheel/tire, battery, and filter staging checklists.
+- Maintenance Minder Pocket Planner completed 2026-05-16 near `maintenance.html#minder`; it builds copyable checklists from the existing A/B and sub-item 1-6 rows, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, and avoids mileage prediction or brake-fluid sub-code wording.
 
 ## Fuse And Electrical
 
@@ -59,7 +60,8 @@ This backlog is ordered by practical value. The agent should work from the top u
 ## Content
 
 - Add maintenance interval views by mileage and job type.
-- Add a Maintenance Minder Pocket Planner near the current code guide: accept codes like A1/B12/B4, assemble a checklist from already-sourced code rows, route to Quick Maintenance Update and Garage notes, and avoid mileage predictions or treating brake fluid as sub-code 7.
+- Maintenance Minder Pocket Planner completed 2026-05-16: accepts codes like A1/B12/B4, assembles a checklist from already-sourced code rows, routes to Quick Maintenance Update and Garage notes, and avoids mileage predictions or treating brake fluid as sub-code 7.
+- Review Maintenance page iPhone density after the Service Prep Planner and Pocket Planner live together; tune section spacing or bottom-dock behavior only if real-device use feels crowded.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
 - Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, guarded local Garage restore, backup-shape validation, reusable restore audit coverage in the main wrapper, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density and Garage restore wording before adding conflict resolution choices.
