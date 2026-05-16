@@ -15,7 +15,7 @@
     <title>Ridgeline Emergency Quick Sheet</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body data-no-hero-actions data-no-related-strip data-no-section-rail>
+  <body class="quick-sheet-page" data-no-hero-actions data-no-related-strip data-no-section-rail>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -41,8 +41,13 @@
             <a class="utility-link" href="#battery">Battery</a>
             <a class="utility-link" href="#tires">Tires / Jack</a>
             <a class="utility-link" href="#fuses">Fuses</a>
+            <a class="utility-link" href="#fuse-triage">Fuse Triage</a>
             <a class="utility-link" href="#towing">Towing</a>
             <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
+          </div>
+          <div class="inspector-actions quick-sheet-actions">
+            <button class="secondary-button" type="button" data-print-page>Print / Save PDF</button>
+            <a class="utility-link" href="diagnostics.html#workflow-index">Open Diagnostics Index</a>
           </div>
         </section>
 
@@ -85,6 +90,45 @@
           <div class="section-callout">
             This page is meant to be the fastest route back to the numbers and locations you use repeatedly:
             oil, jump-starting, tires, fuse locations, and trailer connector functions.
+          </div>
+        </section>
+
+        <section class="section-page-stack" id="fuse-triage">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Fuse Triage</p>
+              <h2>Start With The Symptom</h2>
+            </div>
+            <a class="utility-link" href="diagnostics.html#workflow-index">All Diagnostic Flows</a>
+          </div>
+          <div class="dashboard-grid truck-dashboard-grid quick-sheet-triage-grid">
+            <article class="dashboard-card">
+              <span>Phone Charger / 12V Socket</span>
+              <strong>Accessory Power Flow</strong>
+              <p>Use this when one outlet, every outlet, or a plug-in device stops working.</p>
+              <a class="utility-link" href="diagnostics.html#accessory-power-workflow">Open Flow</a>
+            </article>
+            <article class="dashboard-card">
+              <span>Trailer Lights</span>
+              <strong>Trailer-Light Flow</strong>
+              <p>Route running, brake, turn, reverse, connector, and adapter symptoms first.</p>
+              <a class="utility-link" href="diagnostics.html#trailer-light-workflow">Open Flow</a>
+            </article>
+            <article class="dashboard-card">
+              <span>Radio / Display / No Sound</span>
+              <strong>Audio Display Flow</strong>
+              <p>Check power mode, screen-only symptoms, no-sound symptoms, and recent work.</p>
+              <a class="utility-link" href="diagnostics.html#audio-display-workflow">Open Flow</a>
+            </article>
+            <article class="dashboard-card">
+              <span>Fuse Label Looks Cryptic</span>
+              <strong>Fuse Label Glossary</strong>
+              <p>Decode common shorthand like ACG, DBW, MICU, VSA, SRS, ST CUT, and +B.</p>
+              <a class="utility-link" href="cabin.html#cabin-fuse-glossary">Open Glossary</a>
+            </article>
+          </div>
+          <div class="section-callout">
+            Fuse locations are shown on the truck's fuse-box covers. Use the cover label on the actual truck as final authority before replacing a fuse, and compare against the Hood/Cabin pages before changing anything.
           </div>
         </section>
 
@@ -184,6 +228,7 @@
         <a href="#oil">Oil</a>
         <a href="#battery">Battery</a>
         <a href="#tires">Tires</a>
+        <a href="#fuse-triage">Fuses</a>
         <a href="#top">Top</a>
       </nav>
     </div>

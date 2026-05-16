@@ -1,5 +1,5 @@
 param(
-    [string[]]$Pages = @("index.html", "hood.html", "cabin.html", "maintenance.html", "garage.html"),
+    [string[]]$Pages = @("index.html", "hood.html", "cabin.html", "maintenance.html", "garage.html", "quick-sheet.html"),
     [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path,
     [string]$BrowserPath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 )
@@ -226,11 +226,32 @@ function Invoke-InteractionSmoke {
       assert(trailerTarget && trailerTarget.getBoundingClientRect().height > 0, "workflow index target is missing or collapsed");
       await assertScrollUnlocked("workflow index navigation");
     };
+    const assertQuickSheetFuseTriage = () => {
+      if (pageName !== "quick-sheet.html") {
+        return;
+      }
+
+      const triage = doc.querySelector("#fuse-triage");
+      assert(triage, "quick sheet is missing fuse triage section");
+      const triageCards = [...triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card")];
+      assert(triageCards.length === 4, "fuse triage should expose four routing cards");
+      const requiredTargets = [
+        "diagnostics.html#accessory-power-workflow",
+        "diagnostics.html#trailer-light-workflow",
+        "diagnostics.html#audio-display-workflow",
+        "cabin.html#cabin-fuse-glossary"
+      ];
+      requiredTargets.forEach((href) => {
+        assert(triage.querySelector(`a[href="${href}"]`), "fuse triage is missing route " + href);
+      });
+      assert(doc.querySelector("[data-print-page]"), "quick sheet is missing print/save button");
+    };
 
     assertPageReady();
     assertCurrentPageNavigation();
     await assertScrollUnlocked("initial load");
     await assertDiagnosticsWorkflowIndex();
+    assertQuickSheetFuseTriage();
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
@@ -263,6 +284,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
+    assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     pressEscape();
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");

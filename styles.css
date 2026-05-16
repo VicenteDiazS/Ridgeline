@@ -11325,3 +11325,155 @@ select:focus {
     flex-direction: column;
   }
 }
+
+.quick-sheet-actions {
+  margin-top: 18px;
+}
+
+.quick-sheet-triage-grid .dashboard-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.quick-sheet-triage-grid .utility-link {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+@media print {
+  @page {
+    margin: 0.45in;
+  }
+
+  body.quick-sheet-page *,
+  body.quick-sheet-page *::before,
+  body.quick-sheet-page *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body.quick-sheet-page {
+    background: #fff !important;
+    color: #111 !important;
+    font-size: 10.5pt;
+  }
+
+  body.quick-sheet-page .topbar,
+  body.quick-sheet-page .subpage-support-panel,
+  body.quick-sheet-page .subpage-intro-tool,
+  body.quick-sheet-page .view-mode-rail,
+  body.quick-sheet-page .mobile-nav-accordion,
+  body.quick-sheet-page .breadcrumb-trail,
+  body.quick-sheet-page .recent-strip,
+  body.quick-sheet-page .sync-status-badges,
+  body.quick-sheet-page .page-action-bar,
+  body.quick-sheet-page .need-launcher,
+  body.quick-sheet-page .favorite-pins,
+  body.quick-sheet-page .visual-site-map,
+  body.quick-sheet-page .section-stepper,
+  body.quick-sheet-page .context-action-bar,
+  body.quick-sheet-page .section-dock,
+  body.quick-sheet-page .quick-capture-fab,
+  body.quick-sheet-page .quick-sheet-actions,
+  body.quick-sheet-page .toast-stack,
+  body.quick-sheet-page .search-modal,
+  body.quick-sheet-page .site-menu-panel,
+  body.quick-sheet-page .command-palette,
+  body.quick-sheet-page .quick-capture-modal,
+  body.quick-sheet-page .sync-settings-modal,
+  body.quick-sheet-page .mini-tools-drawer {
+    display: none !important;
+  }
+
+  body.quick-sheet-page main section[hidden],
+  body.quick-sheet-page main article[hidden] {
+    display: block !important;
+  }
+
+  body.quick-sheet-page .app-shell,
+  body.quick-sheet-page .section-page-main {
+    display: block;
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+  }
+
+  body.quick-sheet-page .section-page-hero,
+  body.quick-sheet-page .section-page-stack,
+  body.quick-sheet-page .section-page-grid,
+  body.quick-sheet-page .tech-card,
+  body.quick-sheet-page .dashboard-card,
+  body.quick-sheet-page .section-callout {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #c9c9c9;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body.quick-sheet-page .section-page-hero,
+  body.quick-sheet-page .section-page-stack {
+    margin: 0 0 0.16in;
+    padding: 0.12in;
+  }
+
+  body.quick-sheet-page .section-page-grid,
+  body.quick-sheet-page .dashboard-grid,
+  body.quick-sheet-page .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.12in;
+  }
+
+  body.quick-sheet-page .dashboard-card,
+  body.quick-sheet-page .tech-card,
+  body.quick-sheet-page .section-callout {
+    padding: 0.1in;
+  }
+
+  body.quick-sheet-page h1,
+  body.quick-sheet-page h2,
+  body.quick-sheet-page h3,
+  body.quick-sheet-page strong,
+  body.quick-sheet-page dt,
+  body.quick-sheet-page dd,
+  body.quick-sheet-page li,
+  body.quick-sheet-page p,
+  body.quick-sheet-page span,
+  body.quick-sheet-page a {
+    color: #111 !important;
+  }
+
+  body.quick-sheet-page h1 {
+    font-size: 20pt;
+  }
+
+  body.quick-sheet-page h2 {
+    font-size: 15pt;
+  }
+
+  body.quick-sheet-page h3,
+  body.quick-sheet-page .dashboard-card strong {
+    font-size: 12pt;
+  }
+
+  body.quick-sheet-page .section-copy,
+  body.quick-sheet-page .dashboard-card p,
+  body.quick-sheet-page .section-callout,
+  body.quick-sheet-page .highlight-list,
+  body.quick-sheet-page .spec-list dd {
+    line-height: 1.35;
+  }
+
+  body.quick-sheet-page .section-utility-nav,
+  body.quick-sheet-page .inspector-actions {
+    display: none;
+  }
+
+  body.quick-sheet-page .utility-link::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    font-weight: 400;
+  }
+}

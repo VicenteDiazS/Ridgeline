@@ -23,7 +23,9 @@ Last updated: 2026-05-16
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
+- Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action and print-specific styling.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: six cards, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search result coverage.
+- Browser smoke checks now include Quick Sheet Fuse Triage coverage: four routing cards, required destination links, a print/save button, and `fuse quick sheet` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
@@ -84,6 +86,10 @@ Last updated: 2026-05-16
 - Reused the inspector acronym definitions for full-page glossaries, expanded non-factual label help for terms like ST CUT1, F/B, +B, SMART, MISS SOL, trailer small, trailer charge, and audio amp, and corrected matching so `AC outlet` does not get treated as A/C air conditioning.
 - Added search coverage for `fuse acronyms`, `what does dbw mean`, and related fuse-label questions.
 - Bumped the service worker cache to `ridgeline-console-v257`.
+- Added `quick-sheet.html#fuse-triage` with practical routes into the existing Diagnostics workflows and Cabin fuse glossary without adding or changing fuse facts.
+- Added a Quick Sheet print/save-PDF button, print-specific CSS that hides injected navigation/support controls and keeps quick-sheet content readable on paper/PDF, and a reusable `print-page` shared UI action.
+- Added search coverage for `fuse quick sheet` / printable fuse quick-sheet phrases and extended `Invoke-BrowserSmoke.ps1` with durable Quick Sheet Fuse Triage assertions.
+- Bumped the service worker cache to `ridgeline-console-v258`.
 
 ## Known Cautions
 
@@ -93,7 +99,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes and first-pass visible acronym glossaries are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to add a print-friendly fuse quick sheet or improve glossary/search coverage for additional label terms after real-device review.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, and quick-sheet fuse triage route are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile density pass on the printed quick sheet or a stronger source-citation pass for the existing quick-sheet facts.
 
 ## Next Verification Target
 
@@ -164,3 +170,8 @@ After the next UI change:
 - Ran Playwright/Chrome fallback verification for `hood.html#hood-fuse-glossary` and `cabin.html#cabin-fuse-glossary` at desktop and iPhone width; verified each glossary renders, has at least four acronym items, has no horizontal overflow, includes expected DBW/ACG definitions, and does not mis-map `AC outlet` as A/C.
 - Ran Playwright/Chrome fallback mobile search checks for `fuse acronyms`, `what does dbw mean`, and `what does miss sol mean`; each surfaced the Fuse Label Glossary and Search closed without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v257-hood-desktop-glossary.png`, `debug-screenshots/audit-v257-hood-mobile-glossary.png`, `debug-screenshots/audit-v257-cabin-desktop-glossary.png`, `debug-screenshots/audit-v257-cabin-mobile-glossary.png`, and `debug-screenshots/audit-v257-search-fuse-acronyms-mobile.png`.
+- Used MDN printing guidance, accessed 2026-05-16, to keep the quick-sheet print treatment in CSS with `@media print` / `@page`: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `quick-sheet.html`, `diagnostics.html`, and `cabin.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `quick-sheet.html`; verified the Fuse Triage section renders, exposes four routing cards, links to the expected Diagnostics/Cabin targets, has no desktop or iPhone-width horizontal overflow, `fuse quick sheet` returns the Fuse Triage Quick Sheet search result, Search closes without leaving `modal-open`, and print media hides injected navigation/support controls while keeping `#fuse-triage` visible.
+- Captured screenshots under `debug-screenshots/audit-v258-quick-sheet-desktop.png`, `debug-screenshots/audit-v258-quick-sheet-mobile-fuse-triage.png`, `debug-screenshots/audit-v258-search-fuse-quick-sheet-mobile.png`, and `debug-screenshots/audit-v258-quick-sheet-print-preview.png`.

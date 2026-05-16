@@ -21,6 +21,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Hood and Cabin fuse pages include visible Fuse Label Glossary sections generated from existing fuse-table labels so common shorthand is easier to understand without changing fuse data.
+- Quick Sheet includes a Fuse Triage section that routes common fuse/electrical symptoms to existing Diagnostics workflows and Cabin glossary references without changing fuse data.
+- Quick Sheet has print-specific CSS for paper/PDF use, hiding injected navigation/support controls and preserving the emergency card plus fuse-triage content.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
 - The sticky header includes a compact current-page chip, and the full-site menu marks the matching page with `aria-current` and a visible Current badge.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
@@ -119,3 +121,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `hood.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Hood/Cabin glossary rendering, no horizontal overflow, expected DBW/ACG definitions, `AC outlet` matching behavior, fuse-acronym search coverage, and Search Escape cleanup.
 - Screenshots captured under `debug-screenshots/audit-v257-hood-desktop-glossary.png`, `debug-screenshots/audit-v257-hood-mobile-glossary.png`, `debug-screenshots/audit-v257-cabin-desktop-glossary.png`, `debug-screenshots/audit-v257-cabin-mobile-glossary.png`, and `debug-screenshots/audit-v257-search-fuse-acronyms-mobile.png`.
+- Added Quick Sheet Fuse Triage, a print/save-PDF action, print-specific quick-sheet CSS based on MDN print guidance, search coverage for `fuse quick sheet`, durable browser-smoke assertions for the quick-sheet triage routes, and bumped the service worker cache to `ridgeline-console-v258`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `quick-sheet.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Quick Sheet rendering, no horizontal overflow, search result coverage, Search Escape cleanup, and print-media visibility/hiding checks.
+- Screenshots captured under `debug-screenshots/audit-v258-quick-sheet-desktop.png`, `debug-screenshots/audit-v258-quick-sheet-mobile-fuse-triage.png`, `debug-screenshots/audit-v258-search-fuse-quick-sheet-mobile.png`, and `debug-screenshots/audit-v258-quick-sheet-print-preview.png`.

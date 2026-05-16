@@ -32,6 +32,7 @@ Current focus areas:
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
 - Fuse-label glossary visibility for Hood and Cabin pages, completed 2026-05-16. The pages now expose plain-English shorthand definitions generated from existing fuse-table labels without changing fuse positions, ratings, or source-conflict notes.
+- Quick Sheet Fuse Triage, completed 2026-05-16. The emergency quick sheet now routes common fuse/electrical symptoms into the existing accessory-power, trailer-light, audio/display, and fuse-label glossary references, with print/save-PDF styling and search coverage.
 
 Definition of done:
 
@@ -50,7 +51,7 @@ Candidate slices:
 
 - Service-worker cache audit and update strategy.
 - Clear offline status and stale-content messaging.
-- Printable or saved quick sheets for fuses, maintenance, and emergency references.
+- Printable or saved quick sheets for fuses, maintenance, and emergency references. First fuse-triage routing slice completed 2026-05-16 on `quick-sheet.html#fuse-triage`; next work should improve density/source citations or wait for deeper fuse validation before adding factual tables.
 - Local garage-log export/import checks.
 
 ### Guided Diagnostics
@@ -84,6 +85,7 @@ Candidate slices:
 - Current-page indicators. Completed 2026-05-16 with a sticky-header page chip, full-menu Current badge, `aria-current`, and browser-check coverage.
 - Diagnostics workflow index. Completed 2026-05-16 with a six-card mobile-first index, leaner hero shortcuts, search coverage, reusable browser-smoke assertions, and desktop/mobile screenshots.
 - Fuse-label glossary visibility. Completed 2026-05-16 with Hood/Cabin page sections, mobile search coverage, and screenshots.
+- Quick Sheet Fuse Triage. Completed 2026-05-16 with iPhone-width rendering, search coverage, print-media checks, and screenshots.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.

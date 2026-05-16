@@ -551,6 +551,28 @@ export const searchIndex = [
     keywords: ["quick sheet", "emergency", "battery", "oil", "tires", "jack", "fuses", "towing"]
   },
   {
+    title: "Fuse Triage Quick Sheet",
+    url: "quick-sheet.html#fuse-triage",
+    category: "Electrical",
+    excerpt: "Fast quick-sheet routing from common fuse symptoms to accessory power, trailer-light, audio/display, and fuse-label glossary references.",
+    keywords: [
+      "fuse triage",
+      "quick fuse",
+      "fuse quick sheet",
+      "fuse cheat sheet",
+      "which fuse",
+      "what fuse",
+      "fuse help",
+      "fuse symptom quick sheet",
+      "print fuse quick sheet",
+      "printable fuse quick sheet",
+      "outlet fuse quick sheet",
+      "trailer fuse quick sheet",
+      "radio fuse quick sheet",
+      "fuse label help"
+    ]
+  },
+  {
     title: "Rear Hitch Journal",
     url: "rear-hitch.html#area-journal",
     category: "Personal",

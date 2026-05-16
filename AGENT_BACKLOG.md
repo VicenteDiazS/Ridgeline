@@ -8,6 +8,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Use `ANTON_ROADMAP.md` to keep improving the site through multi-day initiatives instead of isolated one-off changes.
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.
 - Visible first-pass fuse-label glossaries completed 2026-05-16 for Hood and Cabin; future work should deepen only non-factual label help unless reliable sources support data changes.
+- Quick-sheet fuse triage and print/save-PDF treatment completed 2026-05-16; future work should tune printed-page density or cite existing quick-sheet facts, not add fuse facts without sources.
 - Run periodic web research for practical Ridgeline-owner feature ideas, then add sourced, non-safety-critical ideas to this backlog.
 - Build from owner workflows the user is likely to value: quick diagnostics, maintenance planning, fuse finding, parts tracking, offline checklists, garage records, and mobile-first reference tools.
 
@@ -19,7 +20,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
-- Add print-friendly fuse reference sheets.
+- Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
 ## Research Notes
 
@@ -30,6 +31,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - 2026-05-16: Added the Trailer-Light Issue Flow using Honda 2019 Ridgeline feature-guide source support, accessed 2026-05-16: https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/. The workflow routes trailer brake/turn/running/reverse light, 7-way connector, adapter, and repeat-setup owner language to existing hitch, pinout, hood fuse, and garage-note references; no trailer wiring facts, fuse ratings, pin assignments, or repair specifications were changed.
 - 2026-05-16: Added the Accessory Power Issue Flow using Honda 2019 Ridgeline owner-manual source support, accessed 2026-05-16: https://cdn.dealereprocess.org/cdn/servicemanuals/honda/2019-ridgeline.pdf. The workflow routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power owner language to existing Cabin/Hood fuse, battery, quick-check, and garage-note references; no fuse ratings, fuse positions, inverter facts, or repair specifications were changed.
 - 2026-05-16: Added the Audio Display Issue Flow using Honda 2019 Ridgeline audio source support, accessed 2026-05-16: https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Interior-Features/Audio-System/, https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Interior-Features/Display-Audio-with-HondaLink---RTL-T-and-above/, https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Audio_and_Connectivity.pdf, and https://techinfo.honda.com/rjanisis/pubs/OM/AH/AT6Z1919OM/enu/AT6Z1919OMEN.PDF. The workflow routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work to existing Hood/Cabin fuse, cabin journal, and garage-note references; no fuse ratings, fuse positions, reset procedures, or repair specifications were changed.
+- 2026-05-16: Added Quick Sheet Fuse Triage and print styling using MDN print-CSS guidance, accessed 2026-05-16: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing. This affected layout/print behavior only and routes to existing site workflows/glossaries; no fuse ratings, positions, or repair procedures were changed.
 
 ## Navigation And UX
 
@@ -61,5 +63,5 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add an "Ideas from research" panel or note stream where Anton can summarize sourced feature candidates before implementing them.
 - Add a local Windows truck-computer mode later.
 - Add export/import for garage notes.
-- Add printable quick sheets.
+- Add more printable quick sheets after source validation; Quick Sheet Fuse Triage print route completed 2026-05-16.
 - Add QR/NFC landing flows for specific fuse diagrams and maintenance tasks.

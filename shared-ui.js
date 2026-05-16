@@ -1867,6 +1867,10 @@ function actionForPage(page) {
 }
 
 function performUiAction(action) {
+  if (action === "print-page") {
+    window.print();
+    return;
+  }
   if (action === "command") {
     openCommandPalette();
     return;
@@ -4269,6 +4273,9 @@ function closeSearch() {
 
 document.querySelectorAll("[data-open-search]").forEach((button) => {
   button.addEventListener("click", openSearch);
+});
+document.querySelectorAll("[data-print-page]").forEach((button) => {
+  button.addEventListener("click", () => performUiAction("print-page"));
 });
 searchModal.querySelectorAll("[data-search-suggestion]").forEach((button) => {
   button.addEventListener("click", () => {
