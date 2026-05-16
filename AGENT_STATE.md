@@ -17,6 +17,7 @@ Last updated: 2026-05-16
 - Diagnostics now has a No-Start Workflow that routes no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios into existing battery, fuse, garage, and emergency references without changing repair specifications.
 - Diagnostics now has a Trailer-Light Issue Flow that routes trailer brake/turn/running/reverse light and connector-adapter symptoms into existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts, fuse ratings, or pin assignments.
 - Diagnostics now has an Accessory Power Issue Flow that routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms into existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
+- Diagnostics now has an Audio Display Issue Flow that routes dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical work into existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -60,6 +61,10 @@ Last updated: 2026-05-16
 - Added search coverage for `accessory socket not working`, `power outlet not working`, `12v outlet not working`, `phone charger dead`, `cigarette lighter not working`, `front outlet dead`, `console outlet dead`, and related accessory-power owner phrases.
 - Extended `tools/audit/Invoke-BrowserSmoke.ps1` with a future search assertion for `accessory socket not working` surfacing the Accessory Power Issue Flow.
 - Bumped the service worker cache to `ridgeline-console-v251`.
+- Added `diagnostics.html#audio-display-workflow` with power-mode, no-sound, screen-only, and recent-work routing cards that point into existing Hood/Cabin fuse, cabin journal, quick-check, and garage-note references.
+- Added search coverage for `radio not working`, `radio dead`, `audio not working`, `no sound`, `speakers not working`, `display audio dead`, `screen not working`, `hondalink not working`, `carplay not working`, `android auto not working`, `usb audio not working`, `bluetooth audio not working`, `amp fuse`, and related audio/display owner phrases.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` with a future search assertion for `radio not working` surfacing the Audio Display Issue Flow.
+- Bumped the service worker cache to `ridgeline-console-v252`.
 
 ## Known Cautions
 
@@ -69,7 +74,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is an audio/radio/display mini-flow only where it can route to existing Cabin/Hood fuse, garage-note, and quick-check references without inventing fuse facts.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is improving iPhone navigation clarity with a current-page indicator in the universal header/menu, because the diagnostics workflow set now has enough deep sections that orientation matters.
 
 ## Next Verification Target
 
@@ -117,3 +122,7 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran a Playwright/Chrome fallback for `diagnostics.html#accessory-power-workflow`; verified the Accessory Power Issue Flow renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `accessory socket not working` returns the Accessory Power Issue Flow search result, and Escape closes Search without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v251-diagnostics-accessory-desktop.png`, `debug-screenshots/audit-v251-diagnostics-accessory-mobile.png`, and `debug-screenshots/audit-v251-search-accessory-socket-not-working.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again returned an empty DOM before checking the main landmark.
+- Ran a Playwright/Chrome fallback for `diagnostics.html#audio-display-workflow`; verified the Audio Display Issue Flow renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `radio not working` returns the Audio Display Issue Flow search result, and Escape closes Search without leaving `modal-open`.
+- Captured screenshots under `debug-screenshots/audit-v252-diagnostics-audio-desktop.png`, `debug-screenshots/audit-v252-diagnostics-audio-mobile.png`, and `debug-screenshots/audit-v252-search-radio-not-working.png`.

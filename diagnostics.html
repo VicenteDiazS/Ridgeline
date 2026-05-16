@@ -38,6 +38,7 @@
             <a class="utility-link" href="#no-start-workflow">No-Start Workflow</a>
             <a class="utility-link" href="#trailer-light-workflow">Trailer Light Flow</a>
             <a class="utility-link" href="#accessory-power-workflow">Accessory Power Flow</a>
+            <a class="utility-link" href="#audio-display-workflow">Audio Display Flow</a>
             <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptom Finder</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -83,6 +84,7 @@
               <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
               <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
               <tr><td>Accessory socket dead</td><td>Power mode, device/load, and outlet-specific circuit</td><td><a href="#accessory-power-workflow">Accessory power flow</a></td></tr>
+              <tr><td>Radio or screen dead</td><td>Power mode, volume/mute, source, and audio/display fuse paths</td><td><a href="#audio-display-workflow">Audio display flow</a></td></tr>
               <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
@@ -184,6 +186,54 @@
               <strong>Source note:</strong> Honda's 2019 Ridgeline owner manual says the accessory power sockets can be used in ACCESSORY or ON, are designed for 12-volt DC accessories, and warns against overloading or using them in a way that drains the battery. This workflow routes to existing site references and does not change fuse ratings, fuse positions, or repair specifications.
             </p>
           </article>
+          <article class="tech-card span-2" id="audio-display-workflow">
+            <h3>Audio Display Issue Flow</h3>
+            <p>
+              Use this when the radio, speakers, display audio screen, Bluetooth audio, or navigation display is blank, silent, or not responding.
+              It separates power-mode and source checks from fuse-table routing before you assume the head unit or amplifier failed.
+            </p>
+            <div class="fuse-finder-grid" aria-label="Audio and display diagnostic routing">
+              <article class="fuse-finder-card">
+                <span>Power mode</span>
+                <strong>Audio controls stay dark or will not wake up</strong>
+                <p>Honda says the audio system operates in ACCESSORY or ON. Retest in the proper power mode before opening the fuse tables.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="cabin.html#cabin-fuse-box-b">Cabin Audio / ACC</a>
+                  <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>No sound</span>
+                <strong>Screen works but speakers are silent</strong>
+                <p>Check volume, mute, audio source, and paired device behavior first, then route amplifier or audio-power wording into the existing fuse tables.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#fuses">Audio Fuses</a>
+                  <a class="utility-link" href="cabin.html#area-journal">Cabin Journal</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Screen issue</span>
+                <strong>Display audio, dash screen, or camera display acts up</strong>
+                <p>Separate a screen-only symptom from a full audio-power loss, then compare display, backup, and cabin-power wording in the existing references.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptoms</a>
+                  <a class="utility-link" href="cabin.html#cabin-fuse-box-b">Cabin Audio / ACC</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>After work</span>
+                <strong>Battery, fuse, accessory, or audio work happened recently</strong>
+                <p>Record what changed, the power mode, and whether the symptom is screen-only, sound-only, or full audio loss before replacing parts.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+                  <a class="utility-link" href="#quick-checks">Quick Checks</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 Ridgeline audio references describe 5-inch Color LCD, Display Audio, USB, Bluetooth audio, Apple CarPlay, Android Auto, and navigation-related interfaces; the 2019 owner manual says the audio system operates in ACCESSORY or ON. This workflow routes owner-language symptoms to existing site fuse, cabin, and garage-note references without adding fuse ratings, fuse positions, reset procedures, or repair specifications.
+            </p>
+          </article>
           <article class="tech-card span-2" id="fuse-symptom-finder">
             <h3>Fuse Symptom Finder</h3>
             <p>
@@ -212,8 +262,9 @@
               <article class="fuse-finder-card">
                 <span>Audio and screen</span>
                 <strong>Radio, display audio, or amp will not power up</strong>
-                <p>Use the search shortcut for audio terms, then compare both the hood and cabin fuse tables before chasing the head unit.</p>
+                <p>Start with the audio display flow, then compare both the hood and cabin fuse tables before chasing the head unit.</p>
                 <div class="inspector-actions">
+                  <a class="utility-link" href="#audio-display-workflow">Audio Flow</a>
                   <a class="utility-link" href="hood.html#fuses">Hood Audio</a>
                   <a class="utility-link" href="cabin.html#fuses">Cabin Power</a>
                 </div>
@@ -306,6 +357,15 @@
               <a class="utility-link" href="#trailer-light-workflow">Trailer Light Flow</a>
               <a class="utility-link" href="rear-hitch.html">Trailer Wiring</a>
               <a class="utility-link" href="hood.html#fuses">Trailer Fuses</a>
+            </div>
+          </article>
+          <article class="system-card">
+            <h3>Radio / Display Audio Dead</h3>
+            <p>Separate power mode, no-sound, and screen-only symptoms before opening the audio and cabin fuse references.</p>
+            <div class="inspector-actions">
+              <a class="utility-link" href="#audio-display-workflow">Audio Display Flow</a>
+              <a class="utility-link" href="hood.html#fuses">Audio Fuses</a>
+              <a class="utility-link" href="cabin.html#cabin-fuse-box-b">Cabin Audio / ACC</a>
             </div>
           </article>
           <article class="system-card">

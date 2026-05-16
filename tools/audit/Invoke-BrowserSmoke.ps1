@@ -226,6 +226,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("backup camera")).includes("Backup / Reverse Light Fuse Search"), "backup camera alias did not surface the fuse shortcut");
     assert((await setSearchQuery("outlet not working")).includes("Fuse Symptom Finder"), "outlet not working did not surface the fuse symptom finder");
     assert((await setSearchQuery("accessory socket not working")).includes("Accessory Power Issue Flow"), "accessory socket not working did not surface the accessory power workflow");
+    assert((await setSearchQuery("radio not working")).includes("Audio Display Issue Flow"), "radio not working did not surface the audio display workflow");
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     pressEscape();

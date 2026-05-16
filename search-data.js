@@ -219,6 +219,39 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Audio Display Issue Flow",
+    url: "diagnostics.html#audio-display-workflow",
+    category: "Diagnostics",
+    excerpt: "Owner-language routing for dead radio, no sound, blank display audio screen, Bluetooth audio, and recent audio/electrical work using existing fuse, cabin, and garage-note references.",
+    keywords: [
+      "audio display issue",
+      "audio display flow",
+      "radio not working",
+      "radio dead",
+      "stereo not working",
+      "audio not working",
+      "no sound",
+      "speakers not working",
+      "display audio dead",
+      "display audio not working",
+      "infotainment not working",
+      "screen not working",
+      "dash screen dead",
+      "navigation screen dead",
+      "touch screen not working",
+      "hondalink not working",
+      "carplay not working",
+      "apple carplay not working",
+      "android auto not working",
+      "usb audio not working",
+      "bluetooth audio not working",
+      "audio amp",
+      "amp fuse",
+      "amp not working",
+      "head unit not working"
+    ]
+  },
+  {
     title: "Backup / Reverse Light Fuse Search",
     url: "hood.html#fuses",
     category: "Electrical",
@@ -412,6 +445,7 @@ export const searchIndex = [
       "trailer turn signals",
       "radio not working",
       "display audio dead",
+      "no sound",
       "backup camera",
       "reverse lights"
     ]
