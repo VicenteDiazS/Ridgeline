@@ -51,7 +51,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, and explicit workflow-index browser-smoke coverage are complete; next safe slice is trimming duplicated lower-page Diagnostics routing.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, explicit workflow-index browser-smoke coverage, and trimmed lower-page Diagnostics routing are complete; next safe slice is clearer fuse-circuit acronym definitions or another mobile density pass after real-device review.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 

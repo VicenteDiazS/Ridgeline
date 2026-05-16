@@ -429,6 +429,7 @@ export const searchIndex = [
       "starter",
       "weak battery",
       "dead battery",
+      "jump",
       "jump start",
       "normal crank",
       "cranks but wont start",
@@ -473,6 +474,10 @@ export const searchIndex = [
       "7 way connector no lights",
       "7-way connector no lights",
       "hitch lights not working",
+      "trailer lights",
+      "connector",
+      "adapter",
+      "hitch wiring",
       "trailer adapter",
       "trailer plug adapter",
       "ridgeline trailer light fuse",
@@ -480,22 +485,10 @@ export const searchIndex = [
     ]
   },
   {
-    title: "No Crank / No Start",
-    url: "diagnostics.html#no-start-workflow",
-    category: "Diagnostics",
-    keywords: ["no crank", "no start", "weak battery", "jump", "starter", "clicking", "wont start", "won't start"]
-  },
-  {
     title: "Battery Drain / Weak Battery",
     url: "diagnostics.html",
     category: "Diagnostics",
     keywords: ["battery drain", "parasitic draw", "weak battery", "charging issue"]
-  },
-  {
-    title: "Trailer Lights Not Working",
-    url: "diagnostics.html#trailer-light-workflow",
-    category: "Diagnostics",
-    keywords: ["trailer lights", "connector", "adapter", "hitch wiring", "trailer lights not working"]
   },
   {
     title: "Cargo / Bed",

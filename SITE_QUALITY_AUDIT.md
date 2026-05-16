@@ -28,6 +28,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Diagnostics includes an Accessory Power Issue Flow for dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power symptoms, routing users to existing Cabin/Hood fuse, battery, quick-check, and garage-note references without changing fuse facts.
 - Diagnostics includes an Audio Display Issue Flow for dead radio, no sound, blank display audio screen, Bluetooth/phone audio, and recent audio/electrical-work symptoms, routing users to existing Hood/Cabin fuse, cabin journal, and garage-note references without changing fuse facts or repair procedures.
 - Diagnostics includes a compact Workflow Index after the hero so the deep no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check flows are reachable on iPhone without turning the hero into a dense button list.
+- Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
@@ -108,3 +109,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Added reusable browser-smoke assertions for Diagnostics Workflow Index card count, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search coverage.
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `diagnostics.html`; Playwright/Chrome fallback at iPhone width passed for the same Workflow Index behavior and Search close cleanup.
+- Trimmed duplicate lower-page Diagnostics routing and consolidated duplicate no-start/trailer-light search aliases into their canonical workflow entries.
+- Bumped the service worker cache to `ridgeline-console-v256`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `diagnostics.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Diagnostics rendering, six Workflow Index cards, six Other Quick Routes cards, no horizontal overflow, deep links to the seven Diagnostics anchors, `no crank` and `trailer lights` search coverage, duplicate alias removal, and Search Escape cleanup.
+- Screenshots captured under `debug-screenshots/audit-v256-diagnostics-desktop.png`, `debug-screenshots/audit-v256-diagnostics-mobile.png`, `debug-screenshots/audit-v256-search-no-crank-mobile.png`, and `debug-screenshots/audit-v256-search-trailer-lights-mobile.png`.

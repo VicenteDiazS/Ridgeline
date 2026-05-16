@@ -26,6 +26,7 @@ Current focus areas:
 - Accessory-power workflows that start from power mode, device/load, and which outlet failed before routing to existing fuse and garage-log references.
 - Audio/display workflows that start from power mode, no-sound, screen-only, and recent-work symptoms before routing to existing fuse, cabin, and garage-log references.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
+- Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
