@@ -208,10 +208,29 @@ function Invoke-InteractionSmoke {
         assert(scroller.scrollHeight - scroller.clientHeight > 120, label + " scroll range collapsed unexpectedly");
       }
     };
+    const assertDiagnosticsWorkflowIndex = async () => {
+      if (pageName !== "diagnostics.html") {
+        return;
+      }
+
+      const workflowIndex = doc.querySelector("#workflow-index");
+      assert(workflowIndex, "diagnostics page is missing workflow index");
+      const workflowCards = [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")];
+      assert(workflowCards.length === 6, "workflow index should expose six workflow cards");
+      const trailerCard = workflowCards.find((card) => card.hash === "#trailer-light-workflow");
+      assert(trailerCard, "workflow index is missing trailer-light workflow card");
+      trailerCard.click();
+      await sleep(700);
+      assert(win.location.hash === "#trailer-light-workflow", "workflow index card did not update hash");
+      const trailerTarget = doc.querySelector("#trailer-light-workflow");
+      assert(trailerTarget && trailerTarget.getBoundingClientRect().height > 0, "workflow index target is missing or collapsed");
+      await assertScrollUnlocked("workflow index navigation");
+    };
 
     assertPageReady();
     assertCurrentPageNavigation();
     await assertScrollUnlocked("initial load");
+    await assertDiagnosticsWorkflowIndex();
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
@@ -243,6 +262,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("radio not working")).includes("Audio Display Issue Flow"), "radio not working did not surface the audio display workflow");
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
+    assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     pressEscape();
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");

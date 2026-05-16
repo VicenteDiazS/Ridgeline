@@ -28,7 +28,7 @@ Current focus areas:
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
 - iPhone-first garage workflows for quick use beside the truck.
-- Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable.
+- Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
 
 Definition of done:
@@ -80,7 +80,7 @@ Candidate slices:
 
 - Header/menu/search density tuning.
 - Current-page indicators. Completed 2026-05-16 with a sticky-header page chip, full-menu Current badge, `aria-current`, and browser-check coverage.
-- Diagnostics workflow index. Completed 2026-05-16 with a six-card mobile-first index, leaner hero shortcuts, search coverage, and desktop/mobile screenshots.
+- Diagnostics workflow index. Completed 2026-05-16 with a six-card mobile-first index, leaner hero shortcuts, search coverage, reusable browser-smoke assertions, and desktop/mobile screenshots.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.

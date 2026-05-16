@@ -13,7 +13,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Internal anchor links are checked so buttons and section links do not point to missing pages or missing sections.
 - Repeatable local audit scripts live under `tools/audit/`:
   - `Test-InternalLinks.ps1` checks local HTML links and anchors.
-  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, verifies main content and visible sections load, confirms in-page section links resolve, checks page scrolling after load and after overlays close, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, and clicks a sample section link.
+  - `Invoke-BrowserSmoke.ps1` renders selected pages in headless Edge, checks landmarks/header controls, verifies main content and visible sections load, confirms in-page section links resolve, checks page scrolling after load and after overlays close, opens Search, verifies Search focus, focus trapping, and Escape close/return behavior, opens More, verifies menu focus, focus trapping, and Escape close/return behavior, verifies Command Palette, Quick Capture, and Sync Settings modal focus trapping, checks Diagnostics Workflow Index card/search behavior, and clicks a sample section link.
   - `Capture-Screenshots.ps1` captures desktop and mobile screenshots.
   - `Invoke-SiteAudit.ps1` runs the checklist together.
 - Motion is adaptive: richer transitions are reserved for capable connections, while reduced motion, save-data, and weak connections use lighter behavior.
@@ -105,3 +105,6 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Playwright/Chrome fallback verification passed for desktop and iPhone-width Workflow Index rendering, no horizontal overflow, smooth-scrolled card navigation to `#trailer-light-workflow`, Search result coverage for `workflow index`, and Search Escape close/scroll-lock cleanup.
 - Screenshots captured under `debug-screenshots/audit-v255-diagnostics-desktop.png`, `debug-screenshots/audit-v255-diagnostics-mobile.png`, and `debug-screenshots/audit-v255-search-workflow-index-mobile.png`.
+- Added reusable browser-smoke assertions for Diagnostics Workflow Index card count, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search coverage.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `diagnostics.html`; Playwright/Chrome fallback at iPhone width passed for the same Workflow Index behavior and Search close cleanup.

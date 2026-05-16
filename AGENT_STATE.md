@@ -21,6 +21,7 @@ Last updated: 2026-05-16
 - Diagnostics now has a compact Workflow Index immediately after the hero, keeping no-start, accessory power, audio/display, trailer-light, fuse-symptom, and quick-check flows reachable without crowding the hero controls.
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
+- Browser smoke checks now include explicit Diagnostics Workflow Index coverage: six cards, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
@@ -73,6 +74,7 @@ Last updated: 2026-05-16
 - Bumped the service worker cache to `ridgeline-console-v253`.
 - Added `diagnostics.html#workflow-index` as a compact, mobile-first routing index for the existing Diagnostics workflows and trimmed the hero shortcut list so it points to the index instead of listing every deep flow.
 - Added search coverage for `workflow index` / diagnostics-index language and bumped the service worker cache to `ridgeline-console-v255`.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` with durable Workflow Index assertions for Diagnostics card count, trailer-light card navigation, scroll-lock cleanup, and `workflow index` search coverage.
 
 ## Known Cautions
 
@@ -82,7 +84,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to reduce duplicated Diagnostics routing farther down the page now that `diagnostics.html#workflow-index` exists, or add explicit workflow-index coverage to the reusable browser smoke script.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is to reduce duplicated Diagnostics routing farther down the page now that `diagnostics.html#workflow-index` exists.
 
 ## Next Verification Target
 
@@ -141,3 +143,6 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran a Playwright/Chrome fallback for `diagnostics.html`; verified the Workflow Index renders after the hero on desktop and iPhone-width mobile, exposes six workflow cards, has no horizontal overflow, deep card navigation reaches `#trailer-light-workflow` after smooth scroll settles, `workflow index` search returns `diagnostics.html#workflow-index`, and Escape closes Search without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v255-diagnostics-desktop.png`, `debug-screenshots/audit-v255-diagnostics-mobile.png`, and `debug-screenshots/audit-v255-search-workflow-index-mobile.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran a Playwright/Chrome fallback for `diagnostics.html` at iPhone width; verified the Workflow Index still exposes six cards, has no horizontal overflow, the trailer-light card reaches `#trailer-light-workflow`, `workflow index` returns the Diagnostics Workflow Index search result, and Search closes without leaving `modal-open`.
