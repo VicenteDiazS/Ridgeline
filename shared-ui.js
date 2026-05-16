@@ -1845,7 +1845,7 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "diagnostics.html": [
-      { label: "Checks", href: "#quick-checks", icon: "diag" },
+      { label: "Flows", href: "#workflow-index", icon: "diag" },
       { label: "Fuses", href: "hood.html#fuses", icon: "bolt" },
       { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }

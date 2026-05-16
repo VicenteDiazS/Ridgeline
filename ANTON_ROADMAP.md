@@ -37,6 +37,7 @@ Current focus areas:
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
 - Fuse-label glossary visibility for Hood and Cabin pages, completed 2026-05-16. The pages now expose plain-English shorthand definitions generated from existing fuse-table labels without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet Fuse Triage and Source Confidence, completed 2026-05-16. The emergency quick sheet now routes common fuse/electrical symptoms into the existing accessory-power, trailer-light, audio/display, and fuse-label glossary references, with print/save-PDF styling, visible source-confidence notes, and search coverage.
+- Diagnostics mobile density pass, completed 2026-05-16. The page now uses scoped mobile rules to keep the workflow index, Quick Checks, source notes, and diagnostic routing cards more compact on iPhone without removing content or changing vehicle facts.
 
 Definition of done:
 
@@ -97,7 +98,7 @@ Candidate slices:
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
-- A mobile density pass on Diagnostics now that the workflow surface is larger, plus future Garage filtering/export only after real diagnostic data accumulates.
+- Future Garage filtering/export after real diagnostic data accumulates, plus real-device review of the Diagnostics mobile density before adding more workflow surfaces.
 
 ## Research Queue
 

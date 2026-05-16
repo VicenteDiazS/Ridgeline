@@ -15,7 +15,7 @@
     <title>Ridgeline Diagnostics</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="diagnostics-page">
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -122,16 +122,18 @@
           </article>
           <article class="tech-card" id="quick-checks">
             <h3>Quick Checks Before You Chase The Wrong Problem</h3>
-            <table class="fuse-table quick-table" aria-label="Diagnostic quick checks">
-              <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
-              <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
-              <tr><td>Accessory socket dead</td><td>Power mode, device/load, and outlet-specific circuit</td><td><a href="#accessory-power-workflow">Accessory power flow</a></td></tr>
-              <tr><td>Radio or screen dead</td><td>Power mode, volume/mute, source, and audio/display fuse paths</td><td><a href="#audio-display-workflow">Audio display flow</a></td></tr>
-              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
-              <tr><td>Warning light on</td><td>Color, exact MID message, recent battery/service work, and whether multiple systems are lit</td><td><a href="#warning-light-workflow">Warning light flow</a></td></tr>
-              <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
-              <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
-            </table>
+            <div class="table-scroll">
+              <table class="fuse-table quick-table" aria-label="Diagnostic quick checks">
+                <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
+                <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
+                <tr><td>Accessory socket dead</td><td>Power mode, device/load, and outlet-specific circuit</td><td><a href="#accessory-power-workflow">Accessory power flow</a></td></tr>
+                <tr><td>Radio or screen dead</td><td>Power mode, volume/mute, source, and audio/display fuse paths</td><td><a href="#audio-display-workflow">Audio display flow</a></td></tr>
+                <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
+                <tr><td>Warning light on</td><td>Color, exact MID message, recent battery/service work, and whether multiple systems are lit</td><td><a href="#warning-light-workflow">Warning light flow</a></td></tr>
+                <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
+                <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
+              </table>
+            </div>
           </article>
           <article class="tech-card span-2" id="no-start-workflow">
             <h3>No-Start Workflow</h3>
