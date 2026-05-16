@@ -284,6 +284,8 @@ function Invoke-InteractionSmoke {
       const diagnosticActivity = doc.querySelector("#diagnostic-activity [data-diagnostic-activity]");
       assert(diagnosticActivity, "garage dashboard is missing recent diagnostic activity list");
       assert(diagnosticActivity.textContent.includes("No diagnostic activity saved yet.") || diagnosticActivity.querySelector(".diagnostic-activity-item"), "diagnostic activity list is not rendering an empty or populated state");
+      assert(doc.querySelector("#diagnostic-activity [data-diagnostic-activity-filter]"), "diagnostic activity filter is missing");
+      assert(doc.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]"), "diagnostic activity copy summary button is missing");
 
       const template = doc.querySelector("#warning-light-template");
       assert(template, "garage page is missing warning-light note template");

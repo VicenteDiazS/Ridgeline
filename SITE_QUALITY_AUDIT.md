@@ -37,6 +37,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage Log includes a Warning Light Note template linked from Diagnostics and search, using the existing Garage notes autosave path to capture exact indicator/MID text, light behavior, recent context, symptoms, photos/next action, and date/mileage without adding repair procedures.
 - Garage Dashboard includes a Diagnostic Notes card that summarizes populated warning-light template fields, routes back to the template, and preserves dynamic quick-capture notes when Garage form fields are saved.
 - Garage Dashboard includes a Recent Diagnostic Activity panel that groups existing warning-light fields, diagnostic Quick Capture/NFC notes, matching maintenance log entries, and area-journal notes without changing the Garage data schema.
+- Garage Recent Diagnostic Activity includes derived category filters and a Copy Summary action so diagnostic notes can be narrowed or shared without changing the Garage data schema.
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
@@ -156,3 +157,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `diagnostics.html`; Playwright/Chrome fallback passed for iPhone and desktop Diagnostics rendering, no horizontal overflow, seven Workflow Index cards, stacked Quick Checks rows, mobile source-note sizing, warning-light anchor settling, `workflow index` search coverage, and Search Escape cleanup.
 - Screenshots captured under `debug-screenshots/audit-v264-diagnostics-mobile-density.png`, `debug-screenshots/audit-v264-diagnostics-mobile-warning-anchor.png`, and `debug-screenshots/audit-v264-diagnostics-desktop-density.png`.
+- Added Recent Diagnostic Activity filter and Copy Summary controls, search keywords, browser-smoke control assertions, and bumped the service-worker cache to `ridgeline-console-v265`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- `node --check garage.js` could not run because `node` is not installed in this shell.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `garage.html`; Playwright/Chrome fallback passed for iPhone and desktop Garage rendering, no horizontal overflow, populated activity grouping, service/area filter behavior, and Copy Summary status.
+- Screenshots captured under `debug-screenshots/audit-v265-garage-diagnostic-activity-mobile.png` and `debug-screenshots/audit-v265-garage-diagnostic-activity-desktop.png`.

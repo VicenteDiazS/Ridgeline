@@ -69,6 +69,20 @@
                 </div>
                 <a class="utility-link" href="#warning-light-template">Add Warning Note</a>
               </div>
+              <div class="diagnostic-activity-tools" aria-label="Diagnostic activity tools">
+                <label>
+                  <span>Show</span>
+                  <select data-diagnostic-activity-filter>
+                    <option value="all">All activity</option>
+                    <option value="warning">Warning notes</option>
+                    <option value="capture">Quick captures</option>
+                    <option value="service">Service logs</option>
+                    <option value="area">Area journals</option>
+                  </select>
+                </label>
+                <button class="ghost-button" type="button" data-copy-diagnostic-activity>Copy Summary</button>
+              </div>
+              <p class="small-note diagnostic-activity-status" data-diagnostic-activity-status aria-live="polite"></p>
               <div class="diagnostic-activity-list" data-diagnostic-activity></div>
             </div>
           </article>

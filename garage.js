@@ -22,6 +22,9 @@ const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
+const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
+const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
+const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
 const cloudSyncRetryButton = document.querySelector("[data-cloud-sync-retry]");
 const quickMileageInput = document.querySelector("[data-quick-mileage]");
@@ -45,6 +48,7 @@ const defaultProfile = {
   wheel_torque: "94 lb-ft",
   parts_notes: "Timing belt service completed 4/25/2026 at 165,980 miles using AISIN TKH-002."
 };
+let currentDiagnosticActivityFilter = "all";
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -137,6 +141,23 @@ function escapeHtml(value = "") {
     .replace(/"/g, "&quot;");
 }
 
+function copyText(value = "") {
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(value);
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
+  return Promise.resolve();
+}
+
 function shortText(value = "", maxLength = 150) {
   const text = `${value}`.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) {
@@ -190,6 +211,7 @@ function getDiagnosticActivityItems() {
 
   if (warningLightSummary.count) {
     items.push({
+      type: "warning",
       source: "Warning light note",
       title: warningLightSummary.title,
       detail: warningLightSummary.detail,
@@ -204,6 +226,7 @@ function getDiagnosticActivityItems() {
     .slice(0, 4)
     .forEach(([key, value], index) => {
       items.push({
+        type: "capture",
         source: key.startsWith("nfc_task_") ? "NFC task" : "Quick capture",
         title: shortText(value, 78),
         detail: "Saved from Quick Capture into Garage notes.",
@@ -219,6 +242,7 @@ function getDiagnosticActivityItems() {
       const label = entry.title || serviceLabelFromKey(entry.service);
       const mileage = entry.mileageText || (entry.mileage ? formatMileage(entry.mileage) : "");
       items.push({
+        type: "service",
         source: "Service log",
         title: label || "Maintenance update",
         detail: shortText([entry.date, mileage, entry.note || entry.details].filter(Boolean).join(" / "), 140),
@@ -234,6 +258,7 @@ function getDiagnosticActivityItems() {
       .slice(0, 2)
       .forEach(([noteKey, value], noteIndex) => {
         items.push({
+          type: "area",
           source: `${label} journal`,
           title: noteKey.replace(/[_-]+/g, " "),
           detail: shortText(value, 140),
@@ -244,6 +269,35 @@ function getDiagnosticActivityItems() {
   });
 
   return items.sort((a, b) => a.rank - b.rank).slice(0, 6);
+}
+
+function filterDiagnosticActivityItems(items = getDiagnosticActivityItems()) {
+  if (currentDiagnosticActivityFilter === "all") {
+    return items;
+  }
+
+  return items.filter((item) => item.type === currentDiagnosticActivityFilter);
+}
+
+function diagnosticActivityExportText(items = filterDiagnosticActivityItems()) {
+  if (!items.length) {
+    return currentDiagnosticActivityFilter === "all" ? "No diagnostic activity saved yet." : "No matching diagnostic activity.";
+  }
+
+  return [
+    "Ridgeline Diagnostic Activity",
+    `Filter: ${diagnosticActivityFilter?.selectedOptions?.[0]?.textContent || "All activity"}`,
+    "",
+    ...items.map((item, index) => {
+      return `${index + 1}. ${item.source}: ${item.title}\n   ${item.detail}\n   ${new URL(item.href, location.href).href}`;
+    })
+  ].join("\n");
+}
+
+function setDiagnosticActivityStatus(text = "") {
+  if (diagnosticActivityStatus) {
+    diagnosticActivityStatus.textContent = text;
+  }
 }
 
 function logQuickServiceEntry() {
@@ -461,14 +515,17 @@ function renderDiagnosticActivity() {
     return;
   }
 
-  const items = getDiagnosticActivityItems();
+  const allItems = getDiagnosticActivityItems();
+  const items = filterDiagnosticActivityItems(allItems);
   diagnosticActivityList.innerHTML = "";
+  setDiagnosticActivityStatus("");
 
   if (!items.length) {
+    const isFiltered = currentDiagnosticActivityFilter !== "all" && allItems.length;
     diagnosticActivityList.innerHTML = `
       <article class="diagnostic-activity-empty">
-        <strong>No diagnostic activity saved yet.</strong>
-        <p>Use Warning Light Note or Quick Capture to save symptoms, exact dash messages, fuse checks, and follow-up actions.</p>
+        <strong>${isFiltered ? "No matching diagnostic activity." : "No diagnostic activity saved yet."}</strong>
+        <p>${isFiltered ? "Switch the filter back to All activity or save a note in this category." : "Use Warning Light Note or Quick Capture to save symptoms, exact dash messages, fuse checks, and follow-up actions."}</p>
         <div class="inspector-actions">
           <a class="utility-link" href="#warning-light-template">Open Warning Light Note</a>
           <a class="utility-link" href="diagnostics.html#workflow-index">Open Diagnostics</a>
@@ -491,6 +548,22 @@ function renderDiagnosticActivity() {
     )
     .join("");
 }
+
+diagnosticActivityFilter?.addEventListener("change", () => {
+  currentDiagnosticActivityFilter = diagnosticActivityFilter.value || "all";
+  renderDiagnosticActivity();
+});
+
+diagnosticActivityCopyButton?.addEventListener("click", () => {
+  const text = diagnosticActivityExportText();
+  copyText(text)
+    .then(() => {
+      setDiagnosticActivityStatus("Diagnostic activity summary copied.");
+    })
+    .catch(() => {
+      setDiagnosticActivityStatus("Could not copy automatically. Select the activity text and copy it manually.");
+    });
+});
 
 async function renderGaragePage() {
   hydrateGarageForms();
