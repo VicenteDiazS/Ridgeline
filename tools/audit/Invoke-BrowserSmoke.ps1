@@ -299,7 +299,8 @@ async def assert_maintenance_features(page, page_name):
                 hasMinderReset: Boolean(minder?.querySelector("[data-reset-minder-plan]")),
                 hasMinderUpdaterRoute: Boolean(minder?.querySelector('a[href="#maintenance-updater"]')),
                 hasMinderGarageRoute: Boolean(minder?.querySelector('a[href="garage.html#notes"]')),
-                minderText: minder?.innerText || ""
+                minderText: minder?.innerText || "",
+                hasMaintenanceScope: document.body.classList.contains("maintenance-page")
             };
         }"""
     )
@@ -316,6 +317,53 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["hasMinderUpdaterRoute"], "Maintenance Minder Pocket Planner is missing the Quick Maintenance Update route")
     assert_true(state["hasMinderGarageRoute"], "Maintenance Minder Pocket Planner is missing the Garage notes route")
     assert_true("sub-item 1-6" in state["minderText"], "Maintenance Minder Pocket Planner should state the 1-6 sub-item limit")
+    assert_true(state["hasMaintenanceScope"], "maintenance page is missing its page-scoped styling class")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const prepGrid = document.querySelector("#service-prep .service-prep-grid");
+            const firstPrepAction = document.querySelector("#service-prep [data-service-prep-card] .service-prep-actions");
+            const minderActions = document.querySelector("#minder-pocket-planner .minder-pocket-actions");
+            const visibleMaintenanceHeroLinks = [...document.querySelectorAll(".maintenance-page .section-page-hero .section-utility-nav .utility-link")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return style.display !== "none" && rect.width > 0 && rect.height > 0;
+                }).length;
+            const visibleMaintenanceDockLinks = [...document.querySelectorAll(".maintenance-page .context-action-bar a")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return style.display !== "none" && rect.width > 0 && rect.height > 0;
+                })
+                .map((link) => link.textContent.trim());
+            const prepColumns = prepGrid ? getComputedStyle(prepGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const prepActionRows = firstPrepAction
+                ? new Set([...firstPrepAction.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                : 0;
+            const minderActionRows = minderActions
+                ? new Set([...minderActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                : 0;
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visibleMaintenanceHeroLinks,
+                visibleMaintenanceDockLinks,
+                prepColumns,
+                prepActionRows,
+                minderActionRows,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
+    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Planner", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Planner, and More")
+    assert_true(mobile_state["prepColumns"] == 2, "service prep planner should keep two compact columns at iPhone width")
+    assert_true(mobile_state["prepActionRows"] == 1, "service prep action buttons should stay on one compact row at iPhone width")
+    assert_true(mobile_state["minderActionRows"] <= 2, "minder planner actions should not stack into three separate rows at iPhone width")
+    assert_true(not mobile_state["overflow"], "maintenance planner mobile density introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
     await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
     await page.locator("#service-prep [data-copy-service-prep]").first.click()
     await page.wait_for_timeout(100)

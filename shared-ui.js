@@ -1832,8 +1832,8 @@ function actionForPage(page) {
     ],
     "maintenance.html": [
       { label: "Update", href: "#maintenance-updater", icon: "wrench" },
-      { label: "Oil", href: "#oil-service", icon: "bolt" },
-      { label: "Jobs", href: "#job-mode", icon: "map" },
+      { label: "Prep", href: "#service-prep", icon: "check" },
+      { label: "Planner", href: "#minder-pocket-planner", icon: "map" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "tires.html": [

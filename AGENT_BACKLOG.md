@@ -61,7 +61,8 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 - Add maintenance interval views by mileage and job type.
 - Maintenance Minder Pocket Planner completed 2026-05-16: accepts codes like A1/B12/B4, assembles a checklist from already-sourced code rows, routes to Quick Maintenance Update and Garage notes, and avoids mileage predictions or treating brake fluid as sub-code 7.
-- Review Maintenance page iPhone density after the Service Prep Planner and Pocket Planner live together; tune section spacing or bottom-dock behavior only if real-device use feels crowded.
+- Maintenance page iPhone density pass completed 2026-05-16 after the Service Prep Planner and Pocket Planner landed: mobile hero task links are trimmed, bottom actions prioritize Update/Prep/Planner/More, and planner cards/actions are more compact with browser-smoke coverage. Future tuning should wait for real-device review.
+- Consider a guarded Garage Notes handoff for the Maintenance Minder Pocket Planner checklist text after real-device review; copy-only remains the current behavior.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
 - Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, a warning-light Garage note template, a Garage dashboard diagnostic-note card, Recent Diagnostic Activity grouping/filter/copy/download tools, Garage backup download, guarded local Garage restore, backup-shape validation, reusable restore audit coverage in the main wrapper, and a first Diagnostics mobile density pass are complete; next safe slice is a real-device review of the new Diagnostics/Garage density and Garage restore wording before adding conflict resolution choices.
