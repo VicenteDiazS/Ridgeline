@@ -15,6 +15,7 @@ Last updated: 2026-05-16
 - Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
 - Diagnostics now has a Fuse Symptom Finder that routes common owner electrical symptoms into the existing Hood/Cabin/Hitch references without adding new fuse ratings or positions.
 - Diagnostics now has a No-Start Workflow that routes no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios into existing battery, fuse, garage, and emergency references without changing repair specifications.
+- Diagnostics now has a Trailer-Light Issue Flow that routes trailer brake/turn/running/reverse light and connector-adapter symptoms into existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts, fuse ratings, or pin assignments.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -50,6 +51,10 @@ Last updated: 2026-05-16
 - Added `diagnostics.html#no-start-workflow` with no-crank/slow-crank/normal-crank routing cards that point into existing battery, fuse, garage-note, and emergency-card references.
 - Added static search coverage and query expansion for owner phrases like `truck wont start`, `clicking`, `slow crank`, and `cranks but wont start`, with a future browser-smoke assertion for the no-start workflow.
 - Bumped the service worker cache to `ridgeline-console-v249`.
+- Added `diagnostics.html#trailer-light-workflow` with trailer connector, adapter, single-function, all-lights-out, and repeat-setup routing cards that point into existing hitch, pinout, hood fuse, and garage-note references.
+- Added search coverage for `trailer lights not working`, `trailer brake lights not working`, `7 pin trailer lights`, `7 way connector no lights`, `hitch lights not working`, `trailer adapter`, and `ridgeline trailer light fuse`.
+- Extended `tools/audit/Invoke-BrowserSmoke.ps1` with a future search assertion for `trailer lights not working` surfacing the Trailer-Light Issue Flow.
+- Bumped the service worker cache to `ridgeline-console-v250`.
 
 ## Known Cautions
 
@@ -59,7 +64,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is expanding guided diagnostics with a trailer-light or accessory-power mini-flow only where it can route to existing references without inventing fuse facts.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is an accessory-power / 12V outlet mini-flow only where it can route to existing Cabin/Hood fuse, garage-note, and quick-check references without inventing fuse facts.
 
 ## Next Verification Target
 
@@ -101,3 +106,6 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again returned an empty DOM and failed before the interaction probe.
 - Ran a Playwright/Chrome fallback for `diagnostics.html`; verified `#no-start-workflow` renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `truck wont start` returns the No-Start Workflow search result, and Escape closes Search without leaving `modal-open`.
 - Captured screenshots under `debug-screenshots/audit-v249-diagnostics-desktop.png`, `debug-screenshots/audit-v249-diagnostics-mobile.png`, and `debug-screenshots/audit-v249-search-truck-wont-start.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran a Playwright/Chrome fallback for `diagnostics.html#trailer-light-workflow`; verified the Trailer-Light Issue Flow renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `trailer lights not working` returns the Trailer-Light Issue Flow search result, and Escape closes Search without leaving `modal-open`.
+- Captured screenshots under `debug-screenshots/audit-v250-diagnostics-trailer-desktop.png`, `debug-screenshots/audit-v250-diagnostics-trailer-mobile.png`, and `debug-screenshots/audit-v250-search-trailer-lights-not-working.png`.

@@ -23,6 +23,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
 - Diagnostics includes a No-Start Workflow for no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios, routing users to existing references without changing repair specifications.
+- Diagnostics includes a Trailer-Light Issue Flow for trailer brake/turn/running/reverse light and connector-adapter symptoms, routing users to existing hitch, pinout, fuse, and garage-note references without changing trailer wiring facts.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
@@ -77,3 +78,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still returned an empty DOM for `diagnostics.html`; Playwright/Chrome fallback verification passed for desktop and iPhone-width rendering, no horizontal overflow, new search result coverage, and Search Escape close/scroll-lock cleanup.
 - Screenshots captured under `debug-screenshots/audit-v249-diagnostics-desktop.png`, `debug-screenshots/audit-v249-diagnostics-mobile.png`, and `debug-screenshots/audit-v249-search-truck-wont-start.png`.
+- Added `diagnostics.html#trailer-light-workflow` and search coverage for `trailer lights not working`, backed by Honda 2019 Ridgeline feature-guide source support recorded in `AGENT_BACKLOG.md`.
+- Bumped the service-worker cache to `ridgeline-console-v250`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Playwright/Chrome fallback verification passed for desktop and iPhone-width rendering, no horizontal overflow, new search result coverage, and Search Escape close/scroll-lock cleanup.
+- Screenshots captured under `debug-screenshots/audit-v250-diagnostics-trailer-desktop.png`, `debug-screenshots/audit-v250-diagnostics-trailer-mobile.png`, and `debug-screenshots/audit-v250-search-trailer-lights-not-working.png`.

@@ -36,6 +36,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
             <a class="utility-link" href="#no-start-workflow">No-Start Workflow</a>
+            <a class="utility-link" href="#trailer-light-workflow">Trailer Light Flow</a>
             <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptom Finder</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -81,7 +82,7 @@
               <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
               <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
               <tr><td>Accessory socket dead</td><td>Interior accessory fuse and outlet-specific circuit</td><td><a href="cabin.html#fuses">Cabin fuses</a></td></tr>
-              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#fuse-symptom-finder">Fuse symptom finder</a></td></tr>
+              <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
             </table>
@@ -182,6 +183,54 @@
               <strong>Source note:</strong> Honda's 2019 owner manual says electrical devices should be checked against the applicable fuse and that fuse locations are on the covers/side-panel label. The owner-wording shortcuts here were cross-checked against the existing site tables and common 2017-2019 Ridgeline fuse reference wording. Sources recorded in the agent backlog; no fuse ratings or positions were changed.
             </p>
           </article>
+          <article class="tech-card span-2" id="trailer-light-workflow">
+            <h3>Trailer-Light Issue Flow</h3>
+            <p>
+              Use this when trailer brake lights, turn signals, running lights, reverse lights, or the 7-way connector do not behave as expected.
+              It separates adapter and trailer-side checks from truck-side fuse checks before you start changing parts.
+            </p>
+            <div class="fuse-finder-grid" aria-label="Trailer light diagnostic routing">
+              <article class="fuse-finder-card">
+                <span>Match the plug</span>
+                <strong>Confirm the connector and adapter first</strong>
+                <p>Open the hitch page to compare 4-flat, 5-flat, 6-pole, and 7-way adapter paths before blaming the truck harness.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="rear-hitch.html#connector">Connector</a>
+                  <a class="utility-link" href="rear-hitch.html#adapter-types">Adapters</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>One function out</span>
+                <strong>Only brake, turn, running, or reverse lights fail</strong>
+                <p>Use the 7-way pinout to name the failed function, then compare that wording against the existing trailer fuse entries.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="rear-hitch.html#pinout">7-Way Pinout</a>
+                  <a class="utility-link" href="hood.html#fuses">Trailer Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>All trailer lights out</span>
+                <strong>Trailer is dark but truck lights still work</strong>
+                <p>Start at the connector, adapter, trailer ground, and quick towing checklist, then use the hood fuse page for truck-side power paths.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="rear-hitch.html#tow-checklist">Tow Checklist</a>
+                  <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Repeat setup</span>
+                <strong>You use the same trailer or adapter often</strong>
+                <p>Record the adapter, tester result, and what changed so the next light check starts from known truck-and-trailer history.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+                  <a class="utility-link" href="rear-hitch.html#area-journal">Hitch Journal</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 Ridgeline feature guide says AWD models have a standard 7-pin connector and refers owners to the manual for towing information. This workflow uses that source for feature context and routes into existing site connector, pinout, fuse, and garage-note references without adding fuse ratings, pin assignments, or repair specifications.
+            </p>
+          </article>
         </section>
         <section class="system-grid">
           <article class="system-card">
@@ -204,6 +253,7 @@
             <h3>Trailer Lights Not Working</h3>
             <p>Move through connector type, trailer-specific fuse positions, and the hitch reference page.</p>
             <div class="inspector-actions">
+              <a class="utility-link" href="#trailer-light-workflow">Trailer Light Flow</a>
               <a class="utility-link" href="rear-hitch.html">Trailer Wiring</a>
               <a class="utility-link" href="hood.html#fuses">Trailer Fuses</a>
             </div>

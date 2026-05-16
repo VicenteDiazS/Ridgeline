@@ -157,16 +157,22 @@ export const searchIndex = [
     excerpt: "Shortcut for trailer running lights, brake lights, turn signals, reverse lights, and 7-pin connector fuse checks. Verify the cover diagram before replacing anything.",
     keywords: [
       "trailer lights",
+      "trailer lights not working",
       "trailer running lights",
       "trailer brake lights",
+      "trailer brake lights not working",
       "trailer turn signals",
       "trailer reverse lights",
       "trailer backup",
       "trailer small",
       "7 pin lights",
+      "7 pin trailer lights",
       "7-way lights",
+      "7 way connector no lights",
       "hitch lights",
-      "tow lights"
+      "hitch lights not working",
+      "tow lights",
+      "ridgeline trailer light fuse"
     ]
   },
   {
@@ -388,6 +394,28 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Trailer-Light Issue Flow",
+    url: "diagnostics.html#trailer-light-workflow",
+    category: "Diagnostics",
+    excerpt: "Owner-language routing for trailer brake, turn, running, reverse, adapter, and 7-way connector light checks using existing hitch, pinout, fuse, and garage-note references.",
+    keywords: [
+      "trailer lights not working",
+      "trailer lights dead",
+      "trailer brake lights not working",
+      "trailer running lights",
+      "trailer turn signals",
+      "trailer reverse lights",
+      "7 pin trailer lights",
+      "7 way connector no lights",
+      "7-way connector no lights",
+      "hitch lights not working",
+      "trailer adapter",
+      "trailer plug adapter",
+      "ridgeline trailer light fuse",
+      "trailer wiring check"
+    ]
+  },
+  {
     title: "No Crank / No Start",
     url: "diagnostics.html#no-start-workflow",
     category: "Diagnostics",
@@ -401,9 +429,9 @@ export const searchIndex = [
   },
   {
     title: "Trailer Lights Not Working",
-    url: "diagnostics.html",
+    url: "diagnostics.html#trailer-light-workflow",
     category: "Diagnostics",
-    keywords: ["trailer lights", "connector", "adapter", "hitch wiring"]
+    keywords: ["trailer lights", "connector", "adapter", "hitch wiring", "trailer lights not working"]
   },
   {
     title: "Cargo / Bed",

@@ -226,6 +226,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("backup camera")).includes("Backup / Reverse Light Fuse Search"), "backup camera alias did not surface the fuse shortcut");
     assert((await setSearchQuery("outlet not working")).includes("Fuse Symptom Finder"), "outlet not working did not surface the fuse symptom finder");
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
+    assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     pressEscape();
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");
