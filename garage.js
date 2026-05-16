@@ -21,6 +21,7 @@ const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
+const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
 const cloudSyncRetryButton = document.querySelector("[data-cloud-sync-retry]");
 const quickMileageInput = document.querySelector("[data-quick-mileage]");
@@ -136,6 +137,21 @@ function escapeHtml(value = "") {
     .replace(/"/g, "&quot;");
 }
 
+function shortText(value = "", maxLength = 150) {
+  const text = `${value}`.replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 1).trim()}...`;
+}
+
+function isDiagnosticText(value = "") {
+  return /\b(warning|check engine|dash|mid|code|dtc|fuse|battery|voltage|start|crank|trailer|light|radio|audio|display|outlet|socket|electrical|alternator|starter|tpms|abs|awd|brake)\b/i.test(
+    `${value}`
+  );
+}
+
 function getWarningLightSummary(notes = {}) {
   const warningFields = [
     "warning_light_date_mileage",
@@ -158,6 +174,76 @@ function getWarningLightSummary(notes = {}) {
     title,
     detail
   };
+}
+
+function getDiagnosticActivityItems() {
+  const notes = loadJson(STORAGE.notes, {});
+  const maintenanceLog = loadJson(STORAGE.maintenanceLog, []);
+  const areas = [
+    ["Hood", "hood", "hood.html#area-journal"],
+    ["Cabin", "cabin", "cabin.html#area-journal"],
+    ["Cargo", "cargo", "cargo.html#area-journal"],
+    ["Rear Hitch", "rear-hitch", "rear-hitch.html#area-journal"]
+  ];
+  const items = [];
+  const warningLightSummary = getWarningLightSummary(notes);
+
+  if (warningLightSummary.count) {
+    items.push({
+      source: "Warning light note",
+      title: warningLightSummary.title,
+      detail: warningLightSummary.detail,
+      href: "#warning-light-template",
+      rank: 0
+    });
+  }
+
+  Object.entries(notes)
+    .filter(([key, value]) => (key.startsWith("quick_capture_") || key.startsWith("nfc_task_")) && isDiagnosticText(value))
+    .sort(([a], [b]) => b.localeCompare(a))
+    .slice(0, 4)
+    .forEach(([key, value], index) => {
+      items.push({
+        source: key.startsWith("nfc_task_") ? "NFC task" : "Quick capture",
+        title: shortText(value, 78),
+        detail: "Saved from Quick Capture into Garage notes.",
+        href: "#notes",
+        rank: 10 + index
+      });
+    });
+
+  maintenanceLog
+    .filter((entry) => isDiagnosticText(`${entry.title || ""} ${entry.details || ""} ${entry.note || ""} ${entry.service || ""}`))
+    .slice(0, 4)
+    .forEach((entry, index) => {
+      const label = entry.title || serviceLabelFromKey(entry.service);
+      const mileage = entry.mileageText || (entry.mileage ? formatMileage(entry.mileage) : "");
+      items.push({
+        source: "Service log",
+        title: label || "Maintenance update",
+        detail: shortText([entry.date, mileage, entry.note || entry.details].filter(Boolean).join(" / "), 140),
+        href: "maintenance.html#maintenance-updater",
+        rank: 20 + index
+      });
+    });
+
+  areas.forEach(([label, key, href], areaIndex) => {
+    const journal = loadAreaJournal(key);
+    Object.entries(journal.notes || {})
+      .filter(([, value]) => isDiagnosticText(value))
+      .slice(0, 2)
+      .forEach(([noteKey, value], noteIndex) => {
+        items.push({
+          source: `${label} journal`,
+          title: noteKey.replace(/[_-]+/g, " "),
+          detail: shortText(value, 140),
+          href,
+          rank: 30 + areaIndex * 5 + noteIndex
+        });
+      });
+  });
+
+  return items.sort((a, b) => a.rank - b.rank).slice(0, 6);
 }
 
 function logQuickServiceEntry() {
@@ -366,6 +452,44 @@ function renderDashboard() {
       `
     )
     .join("");
+
+  renderDiagnosticActivity();
+}
+
+function renderDiagnosticActivity() {
+  if (!diagnosticActivityList) {
+    return;
+  }
+
+  const items = getDiagnosticActivityItems();
+  diagnosticActivityList.innerHTML = "";
+
+  if (!items.length) {
+    diagnosticActivityList.innerHTML = `
+      <article class="diagnostic-activity-empty">
+        <strong>No diagnostic activity saved yet.</strong>
+        <p>Use Warning Light Note or Quick Capture to save symptoms, exact dash messages, fuse checks, and follow-up actions.</p>
+        <div class="inspector-actions">
+          <a class="utility-link" href="#warning-light-template">Open Warning Light Note</a>
+          <a class="utility-link" href="diagnostics.html#workflow-index">Open Diagnostics</a>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  diagnosticActivityList.innerHTML = items
+    .map(
+      (item) => `
+        <article class="diagnostic-activity-item">
+          <span>${escapeHtml(item.source)}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.detail)}</p>
+          <a class="utility-link" href="${item.href}">Open Source</a>
+        </article>
+      `
+    )
+    .join("");
 }
 
 async function renderGaragePage() {
@@ -433,6 +557,10 @@ cloudSyncRetryButton?.addEventListener("click", () => {
 });
 
 window.addEventListener("ridgeline:storage-hydrated", () => {
+  renderGaragePage();
+});
+
+window.addEventListener("ridgeline:quick-capture-saved", () => {
   renderGaragePage();
 });
 

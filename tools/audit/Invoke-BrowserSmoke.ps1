@@ -281,6 +281,9 @@ function Invoke-InteractionSmoke {
         .find((card) => card.textContent.includes("Diagnostic Notes"));
       assert(diagnosticCard, "garage dashboard is missing the diagnostic notes card");
       assert(diagnosticCard.querySelector('a[href="#warning-light-template"]'), "diagnostic notes card is missing the warning-light note route");
+      const diagnosticActivity = doc.querySelector("#diagnostic-activity [data-diagnostic-activity]");
+      assert(diagnosticActivity, "garage dashboard is missing recent diagnostic activity list");
+      assert(diagnosticActivity.textContent.includes("No diagnostic activity saved yet.") || diagnosticActivity.querySelector(".diagnostic-activity-item"), "diagnostic activity list is not rendering an empty or populated state");
 
       const template = doc.querySelector("#warning-light-template");
       assert(template, "garage page is missing warning-light note template");
@@ -336,6 +339,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     assert((await setSearchQuery("warning light")).includes("Warning Light Triage"), "warning light did not surface the warning-light workflow");
     assert((await setSearchQuery("warning light note")).includes("Warning Light Note Template"), "warning light note did not surface the garage note template");
+    assert((await setSearchQuery("recent diagnostic activity")).includes("Recent Diagnostic Activity"), "recent diagnostic activity did not surface the garage activity list");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");

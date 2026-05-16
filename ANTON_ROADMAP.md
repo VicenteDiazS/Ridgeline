@@ -28,6 +28,7 @@ Current focus areas:
 - Warning-light workflows that start from red/amber indicators, exact MID messages, multiple-light events, and recent battery/service context before routing to official-manual, emergency-card, battery, and garage-note references. Completed 2026-05-16 as `diagnostics.html#warning-light-workflow`.
 - A Garage warning-light incident template that captures exact indicator/MID text, light behavior, recent context, and next action from the warning-light workflow. Completed 2026-05-16 as `garage.html#warning-light-template`.
 - A Garage dashboard diagnostic-note surface that summarizes populated warning-light fields and routes back to the warning-light template. Completed 2026-05-16 as a `garage.html#dashboard` card.
+- A Garage Recent Diagnostic Activity surface that groups existing warning-light fields, diagnostic Quick Capture/NFC notes, maintenance log entries, and area-journal notes without a storage migration. Completed 2026-05-16 as `garage.html#diagnostic-activity`.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
@@ -90,12 +91,13 @@ Candidate slices:
 - Warning Light Triage. Completed 2026-05-16 with a seventh Diagnostics Workflow Index card, iPhone-width rendering, search coverage, official Honda source note, and screenshots.
 - Warning Light Note Template. Completed 2026-05-16 with structured Garage fields, Diagnostics route links, mobile rendering, search coverage, browser-smoke assertions, and screenshots.
 - Garage Diagnostic Notes Dashboard. Completed 2026-05-16 with a warning-light summary card, quick route back to the template, dynamic quick-capture note preservation, browser assertion coverage, and iPhone/desktop screenshots.
+- Garage Recent Diagnostic Activity. Completed 2026-05-16 with empty/populated iPhone states, search coverage, browser-smoke assertions, dynamic Quick Capture refresh, and iPhone/desktop screenshots.
 - Fuse-label glossary visibility. Completed 2026-05-16 with Hood/Cabin page sections, mobile search coverage, and screenshots.
 - Quick Sheet Fuse Triage and Source Confidence. Completed 2026-05-16 with iPhone-width rendering, search coverage, source-link checks, print-media checks, and screenshots.
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
-- A mobile density pass on Diagnostics and Garage now that the workflow/template/dashboard surface is larger.
+- A mobile density pass on Diagnostics now that the workflow surface is larger, plus future Garage filtering/export only after real diagnostic data accumulates.
 
 ## Research Queue
 

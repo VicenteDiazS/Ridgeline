@@ -661,6 +661,24 @@ export const searchIndex = [
     keywords: ["dashboard", "garage dashboard", "truck profile", "photo count", "service status"]
   },
   {
+    title: "Recent Diagnostic Activity",
+    url: "garage.html#diagnostic-activity",
+    category: "Personal",
+    excerpt: "Garage dashboard list that groups saved warning-light notes, diagnostic quick captures, service logs, and area-journal notes.",
+    keywords: [
+      "recent diagnostic activity",
+      "diagnostic activity",
+      "diagnostic notes",
+      "recent diagnostics",
+      "quick capture diagnostics",
+      "garage diagnostic notes",
+      "saved warning lights",
+      "saved dash messages",
+      "fuse check notes",
+      "battery diagnostic notes"
+    ]
+  },
+  {
     title: "Area Journals",
     url: "garage.html#areas",
     category: "Personal",
