@@ -22,6 +22,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
+- Diagnostics includes a No-Start Workflow for no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios, routing users to existing references without changing repair specifications.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
@@ -71,3 +72,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Corrected the Maintenance Minder code guide against Honda owner PDFs: removed unsupported code 7/B127 brake-fluid wording and kept brake fluid as a separate 3-year calendar item.
 - Static internal link/anchor audit passed for 16 HTML files.
 - Playwright/Chrome verification passed for Diagnostics, search, and the Maintenance Minder section. Screenshots captured under `debug-screenshots/audit-v247-diagnostics-desktop.png`, `debug-screenshots/audit-v247-diagnostics-mobile.png`, `debug-screenshots/audit-v247-search-outlet-not-working.png`, and `debug-screenshots/audit-v247-maintenance-minder-desktop.png`.
+- Added `diagnostics.html#no-start-workflow` and search coverage for `truck wont start`, backed by official Honda 2019 Ridgeline owner-manual and Owner's Guide sources recorded in `AGENT_BACKLOG.md`.
+- Bumped the service-worker cache to `ridgeline-console-v249`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still returned an empty DOM for `diagnostics.html`; Playwright/Chrome fallback verification passed for desktop and iPhone-width rendering, no horizontal overflow, new search result coverage, and Search Escape close/scroll-lock cleanup.
+- Screenshots captured under `debug-screenshots/audit-v249-diagnostics-desktop.png`, `debug-screenshots/audit-v249-diagnostics-mobile.png`, and `debug-screenshots/audit-v249-search-truck-wont-start.png`.

@@ -35,6 +35,7 @@
           <p class="section-copy">These are fast entry points for the problems most likely to send you back to the site in the middle of a repair.</p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
+            <a class="utility-link" href="#no-start-workflow">No-Start Workflow</a>
             <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptom Finder</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -78,12 +79,60 @@
             <h3>Quick Checks Before You Chase The Wrong Problem</h3>
             <table class="fuse-table quick-table" aria-label="Diagnostic quick checks">
               <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
-              <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="hood.html#wiring">Hood wiring</a></td></tr>
+              <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
               <tr><td>Accessory socket dead</td><td>Interior accessory fuse and outlet-specific circuit</td><td><a href="cabin.html#fuses">Cabin fuses</a></td></tr>
               <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#fuse-symptom-finder">Fuse symptom finder</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
             </table>
+          </article>
+          <article class="tech-card span-2" id="no-start-workflow">
+            <h3>No-Start Workflow</h3>
+            <p>
+              Use this when the truck will not crank, cranks slowly, or cranks normally but does not start.
+              It keeps the first pass focused on observable symptoms before you open the hood fuse and battery pages.
+            </p>
+            <div class="fuse-finder-grid" aria-label="No-start diagnostic routing">
+              <article class="fuse-finder-card">
+                <span>Slow or no crank</span>
+                <strong>Dash lights dim, clicks, or starter turns slowly</strong>
+                <p>Start with battery condition, terminal contact, and the jump-point reference before chasing a relay or starter fault.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
+                  <a class="utility-link" href="hood.html#battery-service">Battery Service</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Normal crank</span>
+                <strong>Starter turns but the engine still will not fire</strong>
+                <p>Check the start procedure, immobilizer indication, fuel level, and applicable fuses before assuming a fuel or ignition repair.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
+                  <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Recent work</span>
+                <strong>Battery, accessory, audio, or trailer work happened recently</strong>
+                <p>Use garage notes to record what changed, then inspect the related fuse table or connector path for that work area.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+                  <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptoms</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Roadside mode</span>
+                <strong>You need the fastest safe reference path</strong>
+                <p>Open the emergency card for battery, tire, fuse, towing, and service links, then come back here if the truck is stable.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="quick-sheet.html#emergency-card">Emergency Card</a>
+                  <a class="utility-link" href="hood.html#wiring">Hood Wiring</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 Ridgeline owner manual lists Engine Does Not Start, Jump Starting, Fuses, and Emergency Towing under Handling the Unexpected. Honda's 2019 Ridgeline Owner's Guide jump-starting page also emphasizes turning off electrical devices and using a 12-volt booster battery. This workflow only routes to existing site references and does not change repair specifications.
+            </p>
           </article>
           <article class="tech-card span-2" id="fuse-symptom-finder">
             <h3>Fuse Symptom Finder</h3>
@@ -139,8 +188,8 @@
             <h3>No Crank / No Start</h3>
             <p>Start with battery condition, jump-point setup, and the engine-bay fuse pages.</p>
             <div class="inspector-actions">
+              <a class="utility-link" href="#no-start-workflow">No-Start Workflow</a>
               <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
-              <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             </div>
           </article>
           <article class="system-card">

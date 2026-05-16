@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Current Site Status
 
@@ -14,6 +14,7 @@ Last updated: 2026-05-15
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
 - Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
 - Diagnostics now has a Fuse Symptom Finder that routes common owner electrical symptoms into the existing Hood/Cabin/Hitch references without adding new fuse ratings or positions.
+- Diagnostics now has a No-Start Workflow that routes no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios into existing battery, fuse, garage, and emergency references without changing repair specifications.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -46,6 +47,9 @@ Last updated: 2026-05-15
 - Added search and browser-smoke coverage for `outlet not working` surfacing the Fuse Symptom Finder.
 - Corrected the Maintenance Minder guide by removing the unsupported 2019 Ridgeline sub-item 7/B127 brake-fluid example and replacing it with a separate 3-year brake-fluid note from Honda owner PDFs.
 - Bumped the service worker cache to `ridgeline-console-v247`.
+- Added `diagnostics.html#no-start-workflow` with no-crank/slow-crank/normal-crank routing cards that point into existing battery, fuse, garage-note, and emergency-card references.
+- Added static search coverage and query expansion for owner phrases like `truck wont start`, `clicking`, `slow crank`, and `cranks but wont start`, with a future browser-smoke assertion for the no-start workflow.
+- Bumped the service worker cache to `ridgeline-console-v249`.
 
 ## Known Cautions
 
@@ -55,7 +59,7 @@ Last updated: 2026-05-15
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is expanding the Fuse Symptom Finder with more symptoms only where it can route to existing references without inventing fuse facts.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is expanding guided diagnostics with a trailer-light or accessory-power mini-flow only where it can route to existing references without inventing fuse facts.
 
 ## Next Verification Target
 
@@ -67,6 +71,7 @@ After the next content/data change:
 After the next UI change:
 
 - Run the same audit command without `-SkipScreenshots` so fresh desktop/mobile screenshots are captured.
+- If Edge `--dump-dom` still returns an empty DOM, use the Playwright/Chrome fallback and record the screenshots under `debug-screenshots/`.
 
 ## Latest Verification
 
@@ -92,3 +97,7 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran a Playwright/Chrome browser probe for `diagnostics.html`, search, and `maintenance.html#minder`; verified the Fuse Symptom Finder renders, mobile cards do not overflow, `outlet not working` returns the Fuse Symptom Finder, search closes without leaving `modal-open`, and the Maintenance Minder section no longer shows B127 or the old brake-fluid sub-code wording.
 - Captured screenshots under `debug-screenshots/audit-v247-diagnostics-desktop.png`, `debug-screenshots/audit-v247-diagnostics-mobile.png`, `debug-screenshots/audit-v247-search-outlet-not-working.png`, and `debug-screenshots/audit-v247-maintenance-minder-desktop.png`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `diagnostics.html`; Edge `--dump-dom` again returned an empty DOM and failed before the interaction probe.
+- Ran a Playwright/Chrome fallback for `diagnostics.html`; verified `#no-start-workflow` renders on desktop and iPhone-width mobile, mobile has no horizontal overflow, `truck wont start` returns the No-Start Workflow search result, and Escape closes Search without leaving `modal-open`.
+- Captured screenshots under `debug-screenshots/audit-v249-diagnostics-desktop.png`, `debug-screenshots/audit-v249-diagnostics-mobile.png`, and `debug-screenshots/audit-v249-search-truck-wont-start.png`.

@@ -343,6 +343,33 @@ export const searchIndex = [
     keywords: ["no crank", "accessory socket", "tailgate", "trailer lights", "first check"]
   },
   {
+    title: "No-Start Workflow",
+    url: "diagnostics.html#no-start-workflow",
+    category: "Diagnostics",
+    excerpt: "Routing board for no crank, slow crank, clicking, weak battery, normal crank/no start, recent electrical work, and roadside battery reference paths.",
+    keywords: [
+      "no start",
+      "no-start",
+      "no crank",
+      "slow crank",
+      "wont start",
+      "won't start",
+      "truck wont start",
+      "truck won't start",
+      "clicking",
+      "dash lights dim",
+      "starter",
+      "weak battery",
+      "dead battery",
+      "jump start",
+      "normal crank",
+      "cranks but wont start",
+      "cranks but won't start",
+      "immobilizer",
+      "roadside"
+    ]
+  },
+  {
     title: "Fuse Symptom Finder",
     url: "diagnostics.html#fuse-symptom-finder",
     category: "Diagnostics",
@@ -362,9 +389,9 @@ export const searchIndex = [
   },
   {
     title: "No Crank / No Start",
-    url: "diagnostics.html",
+    url: "diagnostics.html#no-start-workflow",
     category: "Diagnostics",
-    keywords: ["no crank", "no start", "weak battery", "jump", "starter"]
+    keywords: ["no crank", "no start", "weak battery", "jump", "starter", "clicking", "wont start", "won't start"]
   },
   {
     title: "Battery Drain / Weak Battery",

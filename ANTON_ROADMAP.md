@@ -21,6 +21,7 @@ Goal: turn the site from a reference collection into a practical garage companio
 Current focus areas:
 
 - Fuse and electrical symptom workflows that guide from common words to existing sourced tables.
+- No-start and roadside diagnostic workflows that start from owner-visible symptoms and route into existing battery, fuse, emergency, and garage-log references.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable.
@@ -51,8 +52,7 @@ Create non-safety-critical guided paths for common owner problems.
 
 Candidate slices:
 
-- No-start / no-crank triage using existing battery, fuse, and maintenance content.
-- Trailer-light issue flow using existing fuse-table references.
+- Trailer-light issue flow using existing fuse-table, hitch connector, and adapter references.
 - Accessory power / 12V outlet issue flow.
 - Audio/radio/display symptom path.
 

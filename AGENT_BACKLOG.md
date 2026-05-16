@@ -23,6 +23,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - 2026-05-15: Owner-search terms worth supporting include power outlet / cigarette lighter / accessory socket, trailer running/brake/reverse lights, radio/audio/display screen, and backup camera. Sources used for idea support and table-term cross-checking: https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses and https://techinfo.honda.com/rjanisis/pubs/QS/AH/AT6Z1717OG/enu/AT6Z1717OG.pdf. These were used to guide search aliases only; no fuse ratings or positions were changed.
 - 2026-05-15: Added the Fuse Symptom Finder using the existing site tables plus source support from the 2019 owner-manual fuse guidance and common 2017-2019 Ridgeline fuse reference wording. Source URLs used for support, accessed 2026-05-15: https://cdn.dealereprocess.org/cdn/servicemanuals/honda/2019-ridgeline.pdf and https://fuse-box.info/honda/honda-ridgeline-2017-2019-fuses. No fuse ratings or positions were changed.
 - 2026-05-15: Corrected Maintenance Minder code content against official Honda owner PDFs, accessed 2026-05-15: https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Maintenance_Minder_System.pdf, https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2020%2FRidgeline%2FMY20_Ridgeline_Maintenance_Minder_System.pdf, and https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2017%2FRidgeline%2F2017_Ridgeline_Maintenance_Minder_System.pdf. The durable rule is: 2017-2020 Ridgeline Maintenance Minder sub-items are 1-6 in these Honda PDFs; brake fluid is tracked separately as a 3-year calendar item, not as site code 7/B127.
+- 2026-05-16: Added the No-Start Workflow using official Honda source support, accessed 2026-05-16: https://techinfo.honda.com/rjanisis/pubs/OM/AH/AT6Z1919OM/enu/AT6Z1919OMEN.PDF and https://techinfo.honda.com/rjanisis/pubs/QS/AH/BTJB1919GW/enu/GUID-C68F4997-76C9-42F4-9101-6ACD79C71899.html. The workflow routes no-crank/slow-crank/normal-crank owner language to existing battery, fuse, garage-note, and emergency-card references; no repair specifications, fuse ratings, or fuse positions were changed.
 
 ## Navigation And UX
 
@@ -45,6 +46,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
+- Expand guided diagnostics with trailer-light and accessory-power mini-flows that reuse existing Hitch/Hood/Cabin references.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 
