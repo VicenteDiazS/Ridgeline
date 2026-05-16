@@ -286,7 +286,9 @@ function Invoke-InteractionSmoke {
       assert(diagnosticActivity.textContent.includes("No diagnostic activity saved yet.") || diagnosticActivity.querySelector(".diagnostic-activity-item"), "diagnostic activity list is not rendering an empty or populated state");
       assert(doc.querySelector("#diagnostic-activity [data-diagnostic-activity-filter]"), "diagnostic activity filter is missing");
       assert(doc.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]"), "diagnostic activity copy summary button is missing");
+      assert(doc.querySelector("#diagnostic-activity [data-download-diagnostic-activity]"), "diagnostic activity download button is missing");
       assert(doc.querySelector("#diagnostic-activity [data-download-garage-backup]"), "garage backup download button is missing");
+      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("small JSON handoff"), "diagnostic activity JSON handoff note is missing");
       assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("photo metadata"), "garage backup photo-metadata note is missing");
 
       const template = doc.querySelector("#warning-light-template");
@@ -344,6 +346,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("warning light")).includes("Warning Light Triage"), "warning light did not surface the warning-light workflow");
     assert((await setSearchQuery("warning light note")).includes("Warning Light Note Template"), "warning light note did not surface the garage note template");
     assert((await setSearchQuery("recent diagnostic activity")).includes("Recent Diagnostic Activity"), "recent diagnostic activity did not surface the garage activity list");
+    assert((await setSearchQuery("diagnostic activity json")).includes("Recent Diagnostic Activity"), "diagnostic activity json did not surface the garage activity list");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");

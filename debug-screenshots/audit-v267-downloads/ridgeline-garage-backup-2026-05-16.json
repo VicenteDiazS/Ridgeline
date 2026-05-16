@@ -1,0 +1,34 @@
+{
+  "kind": "ridgeline-garage-backup",
+  "deviceId": "device-mp8i8qef-7b4rwpzt",
+  "generatedAt": "2026-05-16T15:32:19.333Z",
+  "payload": {
+    "ridgeline-notes": {
+      "warning_light_indicator": "Check engine",
+      "warning_light_date_mileage": "5/16/2026 / 166,240 miles",
+      "warning_light_mid_message": "Emission system problem after battery service",
+      "quick_capture_diag": "Radio display flickered after fuse check"
+    },
+    "ridgeline-tracker": {},
+    "ridgeline-maintenance-log": [
+      {
+        "service": "battery_install",
+        "title": "Battery voltage check",
+        "date": "2026-05-16",
+        "mileage": 166240,
+        "note": "Checked warning lights after slow crank"
+      }
+    ],
+    "ridgeline-photos": [],
+    "ridgeline-favorites": [],
+    "ridgeline-area-journal": {
+      "cabin": {
+        "notes": {
+          "dash_note": "ABS warning light appeared after startup"
+        },
+        "photos": []
+      }
+    },
+    "ridgeline-truck-profile": {}
+  }
+}

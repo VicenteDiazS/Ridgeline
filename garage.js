@@ -25,6 +25,7 @@ const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
+const diagnosticActivityDownloadButton = document.querySelector("[data-download-diagnostic-activity]");
 const garageBackupDownloadButton = document.querySelector("[data-download-garage-backup]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
@@ -296,9 +297,63 @@ function diagnosticActivityExportText(items = filterDiagnosticActivityItems()) {
   ].join("\n");
 }
 
+function diagnosticActivityExportPayload(items = filterDiagnosticActivityItems()) {
+  const filterLabel = diagnosticActivityFilter?.selectedOptions?.[0]?.textContent || "All activity";
+
+  return {
+    kind: "ridgeline-diagnostic-activity-export",
+    generatedAt: new Date().toISOString(),
+    filter: currentDiagnosticActivityFilter,
+    filterLabel,
+    count: items.length,
+    items: items.map((item) => ({
+      type: item.type,
+      source: item.source,
+      title: item.title,
+      detail: item.detail,
+      href: new URL(item.href, location.href).href
+    }))
+  };
+}
+
 function setDiagnosticActivityStatus(text = "") {
   if (diagnosticActivityStatus) {
     diagnosticActivityStatus.textContent = text;
+  }
+}
+
+function downloadJsonFile(payload, fileName) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function downloadDiagnosticActivity() {
+  if (!diagnosticActivityDownloadButton) {
+    return;
+  }
+
+  try {
+    const payload = diagnosticActivityExportPayload();
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filterSlug = (currentDiagnosticActivityFilter || "all").replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
+    downloadJsonFile(payload, `ridgeline-diagnostic-activity-${filterSlug}-${stamp}.json`);
+    setDiagnosticActivityStatus(
+      payload.count
+        ? `Diagnostic activity JSON downloaded (${payload.count} item${payload.count === 1 ? "" : "s"}).`
+        : "Diagnostic activity JSON downloaded with no saved items."
+    );
+  } catch (error) {
+    console.warn("Diagnostic activity download failed.", error);
+    setDiagnosticActivityStatus("Could not create a diagnostic activity download.");
   }
 }
 
@@ -309,18 +364,8 @@ function downloadGarageBackup() {
 
   try {
     const payload = buildGarageBackupPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json"
-    });
-    const url = URL.createObjectURL(blob);
     const stamp = new Date().toISOString().slice(0, 10);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `ridgeline-garage-backup-${stamp}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadJsonFile(payload, `ridgeline-garage-backup-${stamp}.json`);
     setDiagnosticActivityStatus("Garage backup JSON downloaded.");
   } catch (error) {
     console.warn("Garage backup download failed.", error);
@@ -593,6 +638,7 @@ diagnosticActivityCopyButton?.addEventListener("click", () => {
     });
 });
 
+diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticActivity);
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
 
 async function renderGaragePage() {
