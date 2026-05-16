@@ -52,6 +52,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
 - Maintenance includes a Service Prep Planner with four mobile checklist cards, copy/reset controls, Garage routing, search coverage, and browser-smoke coverage for oil, wheel/tire, battery, and filter prep without adding new vehicle facts.
 - Maintenance includes a Maintenance Minder Pocket Planner that turns entered dash codes like A1, B12, or B4 into copyable checklists from the existing A/B and sub-item 1-6 guide, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, and avoids mileage prediction or brake-fluid sub-code wording.
+- Maintenance Minder Pocket Planner includes a guarded Save Note action that saves the generated checklist into local Garage Notes after rebuilding from the current input, preserving the brake-fluid calendar-service caution and avoiding a Garage schema change.
 - Maintenance has page-scoped iPhone density rules for its planning tools: six primary hero task links, Update/Prep/Planner/More bottom actions, compact two-column Service Prep cards at common iPhone width, and browser-smoke assertions for the mobile layout.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
@@ -226,3 +227,6 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')` passed for the targeted Maintenance flow.
 - `Invoke-SiteAudit.ps1 -Tag audit-v274-maintenance-density -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
 - Direct Playwright hash-route screenshots were captured under `debug-screenshots/audit-v274-maintenance-density-*.png`.
+- Added the Maintenance Minder Pocket Planner Save Note action, search metadata for Garage-note handoff queries, and browser-smoke coverage that verifies `B127` checklist text is saved into `ridgeline-notes.general_notes` with the brake-fluid caution intact.
+- `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')`, `Test-InternalLinks.ps1`, and `Invoke-SiteAudit.ps1 -Tag audit-v275-minder-note-final -SkipScreenshots` passed after the Save Note slice.
+- `Capture-Screenshots.ps1` still failed to create the first Maintenance screenshot, so direct Playwright fallback screenshots were captured under `debug-screenshots/audit-v275-minder-note-final-*.png`.

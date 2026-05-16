@@ -41,6 +41,7 @@ const minderSubItems = {
 };
 
 let lastMinderPlanText = "";
+let lastMinderPlanCode = "";
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -85,9 +86,13 @@ function renderRecentUpdates() {
 }
 
 function appendGarageNote(entry) {
-  const notes = loadJson(STORAGE.notes, {});
   const label = serviceLabels[entry.service] || "Maintenance update";
   const line = `[${entry.date} / ${entry.mileageText} - ${label}]${entry.note ? ` ${entry.note}` : ""}`;
+  prependGarageGeneralNote(line);
+}
+
+function prependGarageGeneralNote(line) {
+  const notes = loadJson(STORAGE.notes, {});
   const existing = notes.general_notes || "";
   notes.general_notes = existing ? `${line}\n${existing}` : line;
   saveJson(STORAGE.notes, notes);
@@ -140,6 +145,7 @@ function renderMinderPlan(codeValue = "") {
 
   if (!parsed.main && !parsed.subItems.length) {
     lastMinderPlanText = "";
+    lastMinderPlanCode = "";
     minderOutput.textContent = "Enter A, B, or a combined code like B12. Sub-items are limited to 1-6 for this Ridgeline.";
     return;
   }
@@ -180,6 +186,15 @@ function renderMinderPlan(codeValue = "") {
   minderOutput.appendChild(note);
   lines.push("Brake fluid: separate 3-year calendar item, not a Maintenance Minder sub-code.");
   lastMinderPlanText = lines.join("\n");
+  lastMinderPlanCode = parsed.original || `${codeValue}`;
+}
+
+function currentMinderCode() {
+  return parseMinderCode(minderInput?.value || "").original;
+}
+
+function minderPlanNeedsRefresh() {
+  return !lastMinderPlanText || currentMinderCode() !== lastMinderPlanCode;
 }
 
 function servicePrepText(card) {
@@ -232,7 +247,7 @@ function initMinderPlanner() {
   });
 
   minderPlanner.querySelector("[data-copy-minder-plan]")?.addEventListener("click", () => {
-    if (!lastMinderPlanText) {
+    if (minderPlanNeedsRefresh()) {
       renderMinderPlan(minderInput.value);
     }
     copyText(lastMinderPlanText || "No Maintenance Minder checklist built yet.")
@@ -246,6 +261,26 @@ function initMinderPlanner() {
           minderStatus.textContent = "Could not copy automatically.";
         }
       });
+  });
+
+  minderPlanner.querySelector("[data-save-minder-note]")?.addEventListener("click", () => {
+    if (minderPlanNeedsRefresh()) {
+      renderMinderPlan(minderInput.value);
+    }
+
+    if (!lastMinderPlanText) {
+      if (minderStatus) {
+        minderStatus.textContent = "Build a checklist before saving a Garage note.";
+      }
+      return;
+    }
+
+    const code = lastMinderPlanCode || "code";
+    const date = new Date().toLocaleDateString("en-US");
+    prependGarageGeneralNote(`[${date} - Maintenance Minder ${code} planner]\n${lastMinderPlanText}`);
+    if (minderStatus) {
+      minderStatus.textContent = "Checklist saved to Garage Notes.";
+    }
   });
 
   minderPlanner.querySelector("[data-reset-minder-plan]")?.addEventListener("click", () => {

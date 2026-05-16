@@ -296,6 +296,7 @@ async def assert_maintenance_features(page, page_name):
                 hasMinder: Boolean(minder),
                 hasMinderInput: Boolean(minder?.querySelector("[data-minder-code-input]")),
                 hasMinderCopy: Boolean(minder?.querySelector("[data-copy-minder-plan]")),
+                hasMinderSaveNote: Boolean(minder?.querySelector("[data-save-minder-note]")),
                 hasMinderReset: Boolean(minder?.querySelector("[data-reset-minder-plan]")),
                 hasMinderUpdaterRoute: Boolean(minder?.querySelector('a[href="#maintenance-updater"]')),
                 hasMinderGarageRoute: Boolean(minder?.querySelector('a[href="garage.html#notes"]')),
@@ -313,6 +314,7 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["hasMinder"], "maintenance page is missing the Maintenance Minder Pocket Planner")
     assert_true(state["hasMinderInput"], "Maintenance Minder Pocket Planner is missing its code input")
     assert_true(state["hasMinderCopy"], "Maintenance Minder Pocket Planner is missing copy action")
+    assert_true(state["hasMinderSaveNote"], "Maintenance Minder Pocket Planner is missing its Garage note save action")
     assert_true(state["hasMinderReset"], "Maintenance Minder Pocket Planner is missing reset action")
     assert_true(state["hasMinderUpdaterRoute"], "Maintenance Minder Pocket Planner is missing the Quick Maintenance Update route")
     assert_true(state["hasMinderGarageRoute"], "Maintenance Minder Pocket Planner is missing the Garage notes route")
@@ -384,6 +386,18 @@ async def assert_maintenance_features(page, page_name):
     await page.wait_for_timeout(100)
     minder_status = await page.locator("#minder-pocket-planner [data-minder-plan-status]").inner_text()
     assert_true("Checklist copied" in minder_status, "minder planner copy did not report success")
+    await page.locator("#minder-pocket-planner [data-save-minder-note]").click()
+    await page.wait_for_timeout(100)
+    saved_status = await page.locator("#minder-pocket-planner [data-minder-plan-status]").inner_text()
+    assert_true("saved to Garage Notes" in saved_status, "minder planner Garage note save did not report success")
+    saved_notes = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').general_notes || ''""")
+    assert_true("Maintenance Minder B127 planner" in saved_notes, "minder planner did not save the checklist to Garage notes")
+    assert_true("Brake fluid: separate 3-year calendar item" in saved_notes, "minder planner Garage note dropped the brake-fluid caution")
+    await page.locator("#minder-pocket-planner [data-minder-code-input]").fill("A1")
+    await page.locator("#minder-pocket-planner [data-save-minder-note]").click()
+    await page.wait_for_timeout(100)
+    refreshed_notes = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').general_notes || ''""")
+    assert_true("Maintenance Minder A1 planner" in refreshed_notes, "minder planner Save Note did not rebuild from the current code input")
     await page.locator("#minder-pocket-planner [data-reset-minder-plan]").click()
     await page.wait_for_timeout(100)
     minder_value = await page.locator("#minder-pocket-planner [data-minder-code-input]").input_value()
