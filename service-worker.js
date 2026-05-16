@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v253";
+const CACHE_NAME = "ridgeline-console-v254";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -39,7 +39,6 @@ const CORE_ASSETS = [
   "./section-tools.js",
   "./agent-status.js",
   "./anton-console.js",
-  "./agent-last-run.json",
   "./manifest.json",
   "./favicon.svg",
   "./favicon-32x32.png",
@@ -94,6 +93,9 @@ function shouldBypassCache(request) {
 
   return (
     request.cache === "reload" ||
+    request.cache === "no-store" ||
+    request.cache === "no-cache" ||
+    url.pathname.endsWith("/agent-last-run.json") ||
     url.searchParams.has("__live") ||
     url.searchParams.has("__nocache")
   );

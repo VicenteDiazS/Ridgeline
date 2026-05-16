@@ -301,7 +301,7 @@ function renderAgentStatus(data) {
 }
 
 if (statusRoot) {
-  fetch("agent-last-run.json", { cache: "no-store" })
+  fetch(`agent-last-run.json?__live=${Date.now()}`, { cache: "no-store" })
     .then((response) => {
       if (!response.ok) {
         throw new Error(`Status request failed: ${response.status}`);
