@@ -489,6 +489,28 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Warning Light Note Template",
+    url: "garage.html#warning-light-template",
+    category: "Personal",
+    excerpt: "Garage note template for recording exact warning-light indicator text, MID messages, light behavior, recent context, photos, and next action.",
+    keywords: [
+      "warning light note",
+      "warning light template",
+      "warning light log",
+      "dash light note",
+      "dashboard warning note",
+      "mid message note",
+      "check engine note",
+      "tpms note",
+      "abs light note",
+      "awd light note",
+      "multiple warning lights note",
+      "record warning light",
+      "save warning light",
+      "garage warning light"
+    ]
+  },
+  {
     title: "Trailer-Light Issue Flow",
     url: "diagnostics.html#trailer-light-workflow",
     category: "Diagnostics",

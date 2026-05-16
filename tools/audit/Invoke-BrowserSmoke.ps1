@@ -221,6 +221,8 @@ function Invoke-InteractionSmoke {
       assert(trailerCard, "workflow index is missing trailer-light workflow card");
       const warningCard = workflowCards.find((card) => card.hash === "#warning-light-workflow");
       assert(warningCard, "workflow index is missing warning-light workflow card");
+      const warningTemplateLink = doc.querySelector('#warning-light-workflow a[href="garage.html#warning-light-template"]');
+      assert(warningTemplateLink, "warning-light workflow is missing the garage note-template route");
       trailerCard.click();
       await sleep(700);
       assert(win.location.hash === "#trailer-light-workflow", "workflow index card did not update hash");
@@ -268,12 +270,32 @@ function Invoke-InteractionSmoke {
         assert((link.rel || "").includes("noreferrer"), "source link should use noreferrer " + href);
       });
     };
+    const assertGarageWarningLightTemplate = () => {
+      if (pageName !== "garage.html") {
+        return;
+      }
+
+      const template = doc.querySelector("#warning-light-template");
+      assert(template, "garage page is missing warning-light note template");
+      [
+        "warning_light_date_mileage",
+        "warning_light_indicator",
+        "warning_light_behavior",
+        "warning_light_context",
+        "warning_light_mid_message",
+        "warning_light_next_action"
+      ].forEach((name) => {
+        assert(template.querySelector(`[name="${name}"]`), "warning-light template is missing field " + name);
+      });
+      assert(template.querySelector('a[href="diagnostics.html#warning-light-workflow"]'), "warning-light template is missing diagnostics route");
+    };
 
     assertPageReady();
     assertCurrentPageNavigation();
     await assertScrollUnlocked("initial load");
     await assertDiagnosticsWorkflowIndex();
     assertQuickSheetFuseTriage();
+    assertGarageWarningLightTemplate();
 
     const searchButton = doc.querySelector("[data-open-search]");
     assert(searchButton, "missing search button");
@@ -306,6 +328,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     assert((await setSearchQuery("warning light")).includes("Warning Light Triage"), "warning light did not surface the warning-light workflow");
+    assert((await setSearchQuery("warning light note")).includes("Warning Light Note Template"), "warning light note did not surface the garage note template");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
     assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");

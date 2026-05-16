@@ -7224,6 +7224,26 @@ kbd {
   line-height: 1.55;
 }
 
+.note-template-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.08), rgba(111, 255, 180, 0.045)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.note-template-panel h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.note-template-panel .compact-section-head {
+  margin-bottom: 0;
+}
+
 @media (max-width: 1024px) {
   .front-menu-grid,
   .viewer-layout,

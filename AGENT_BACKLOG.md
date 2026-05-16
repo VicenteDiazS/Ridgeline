@@ -19,7 +19,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
-- Warning-light triage completed 2026-05-16; future work should add a garage-note template for capturing exact indicator/MID text and photos rather than adding repair procedures.
+- Warning-light triage and Garage note template completed 2026-05-16; future work should surface recent diagnostic notes more clearly on the Garage dashboard rather than adding repair procedures.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -57,7 +57,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, and trimmed lower-page Diagnostics routing are complete; next safe slice is a mobile density pass on Diagnostics or a garage-note template for warning-light incidents.
+- Improve iPhone orientation now that diagnostics has several deep workflows: current-page indicators, clearer active menu state, compact workflow index, warning-light routing, explicit workflow-index browser-smoke coverage, trimmed lower-page Diagnostics routing, and a warning-light Garage note template are complete; next safe slice is a mobile density pass on Diagnostics or a stronger Garage dashboard surface for recent diagnostic notes.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 

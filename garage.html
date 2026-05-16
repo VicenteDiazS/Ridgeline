@@ -164,6 +164,26 @@
               <label><span>Timing service</span><input name="timing_service" type="text" placeholder="Timing belt, water pump, tensioner, pulleys, seals, date / mileage" /></label>
               <label><span>Trailer setup</span><input name="trailer_setup" type="text" placeholder="Adapter, ball mount, hitch pin, tester" /></label>
               <label><span>General notes</span><textarea name="general_notes" rows="6" placeholder="Anything you want to remember about the truck"></textarea></label>
+              <div class="note-template-panel" id="warning-light-template">
+                <div class="compact-section-head">
+                  <div>
+                    <p class="eyebrow">Incident template</p>
+                    <h4>Warning Light Note</h4>
+                  </div>
+                  <a class="utility-link" href="diagnostics.html#warning-light-workflow">Open Flow</a>
+                </div>
+                <p class="small-note">
+                  Capture what the dash actually showed before clearing codes, disconnecting the battery, or replacing parts.
+                </p>
+                <div class="form-grid">
+                  <label><span>Date / mileage</span><input name="warning_light_date_mileage" type="text" placeholder="5/16/2026 / 166,240 miles" /></label>
+                  <label><span>Light or system</span><input name="warning_light_indicator" type="text" placeholder="Check engine, TPMS, ABS, AWD, brake..." /></label>
+                  <label><span>Light behavior</span><input name="warning_light_behavior" type="text" placeholder="Steady, blinking, came on after restart, cleared..." /></label>
+                  <label><span>Recent context</span><input name="warning_light_context" type="text" placeholder="Battery/jump, service, accessory, trailer, weather..." /></label>
+                </div>
+                <label><span>Exact MID message / symptoms</span><textarea name="warning_light_mid_message" rows="4" placeholder="Write the exact message text, when it appeared, driving conditions, and any other lights that came on."></textarea></label>
+                <label><span>Next action / result</span><textarea name="warning_light_next_action" rows="3" placeholder="Photo taken, code read, manual checked, battery voltage noted, appointment made, resolved..."></textarea></label>
+              </div>
             </form>
           </article>
 
