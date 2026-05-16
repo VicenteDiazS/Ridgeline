@@ -7,509 +7,521 @@ param(
 $ErrorActionPreference = "Stop"
 
 if (-not (Test-Path -LiteralPath $BrowserPath -PathType Leaf)) {
-    throw "Microsoft Edge was not found at '$BrowserPath'. Pass -BrowserPath with a Chromium-compatible browser."
+    throw "Chromium-compatible browser was not found at '$BrowserPath'. Pass -BrowserPath."
 }
 
-function ConvertTo-JsString {
-    param([string]$Value)
-
-    $escaped = $Value.Replace("\", "\\").Replace("""", "\""").Replace("`r", "\r").Replace("`n", "\n")
-    return """$escaped"""
+$python = Get-Command python -ErrorAction SilentlyContinue
+if (-not $python) {
+    throw "Python was not found. Install Python with Playwright or pass through an environment where python is available."
 }
 
-function Join-ProcessArguments {
-    param([string[]]$Arguments)
+$scriptPath = Join-Path ([System.IO.Path]::GetTempPath()) ("ridgeline-browser-smoke-" + [System.Guid]::NewGuid().ToString("N") + ".py")
+$pythonScript = @'
+import argparse
+import asyncio
+from pathlib import Path
 
-    ($Arguments | ForEach-Object {
-        if ($_ -match '[\s"]') {
-            '"' + ($_.Replace('"', '\"')) + '"'
-        } else {
-            $_
-        }
-    }) -join " "
+from playwright.async_api import async_playwright
+
+
+SEARCH_EXPECTATIONS = {
+    "power outlet": "Power Outlet / 12V Socket Fuses",
+    "trailer brake lights": "Trailer Light Fuse Search",
+    "radio": "Audio / Radio Fuse Search",
+    "backup camera": "Backup / Reverse Light Fuse Search",
+    "outlet not working": "Fuse Symptom Finder",
+    "accessory socket not working": "Accessory Power Issue Flow",
+    "radio not working": "Audio Display Issue Flow",
+    "truck wont start": "No-Start Workflow",
+    "trailer lights not working": "Trailer-Light Issue Flow",
+    "warning light": "Warning Light Triage",
+    "warning light note": "Warning Light Note Template",
+    "recent diagnostic activity": "Recent Diagnostic Activity",
+    "diagnostic activity json": "Recent Diagnostic Activity",
+    "restore garage backup": "Recent Diagnostic Activity",
+    "workflow index": "Diagnostics Workflow Index",
+    "fuse quick sheet": "Fuse Triage Quick Sheet",
+    "quick sheet sources": "Quick Sheet Source Confidence",
 }
 
-function Invoke-EdgeDumpDom {
-    param(
-        [string]$BrowserPath,
-        [string]$PageUri,
-        [string]$OutputPath,
-        [string]$ErrorPath,
-        [string]$ProfilePath,
-        [int]$VirtualTimeBudget = 3500
+
+def assert_true(condition, message):
+    if not condition:
+        raise AssertionError(message)
+
+
+async def assert_page_ready(page, page_name):
+    await page.wait_for_selector("main", state="attached", timeout=7000)
+    state = await page.evaluate(
+        """(pageName) => {
+            const main = document.querySelector("main");
+            const visibleSections = main ? [...main.querySelectorAll("section, article")].filter((element) => {
+                const rect = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+            }).length : 0;
+            const brokenHashLinks = [...document.querySelectorAll("a[href^='#']")]
+                .filter((link) => link.hash && link.hash !== "#" && !document.querySelector(link.hash))
+                .map((link) => link.getAttribute("href"));
+            const errorText = document.body?.innerText || "";
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasMain: Boolean(main),
+                mainLength: main ? main.innerText.trim().length : 0,
+                title: document.title || "",
+                hasTopbar: Boolean(document.querySelector(".topbar")),
+                hasSearch: Boolean(document.querySelector("[data-open-search]")),
+                hasMenu: Boolean(document.querySelector("[data-open-site-menu]")),
+                hasSubpageIntro: Boolean(document.querySelector(".subpage-intro-tool")),
+                visibleSections,
+                brokenHashLinks,
+                renderedError: /ERR_FILE_NOT_FOUND|This site can't be reached|404 Not Found/.test(errorText),
+                overflow: width > document.documentElement.clientWidth + 1,
+                pageName
+            };
+        }""",
+        page_name,
     )
+    assert_true(state["hasMain"], f"{page_name} is missing main content after browser render")
+    assert_true(state["mainLength"] > 250, f"{page_name} main content looks empty after browser render")
+    assert_true(state["title"], f"{page_name} is missing page title after browser render")
+    assert_true(state["hasTopbar"], f"{page_name} is missing site header after browser render")
+    assert_true(state["hasSearch"], f"{page_name} is missing site search control after browser render")
+    assert_true(state["hasMenu"], f"{page_name} is missing site menu control after browser render")
+    assert_true(state["visibleSections"] > 0, f"{page_name} has no visible content sections after load")
+    assert_true(not state["brokenHashLinks"], f"{page_name} has broken in-page section links: {state['brokenHashLinks'][:5]}")
+    assert_true(not state["renderedError"], f"{page_name} rendered a browser error page")
+    assert_true(not state["overflow"], f"{page_name} has horizontal overflow after browser render")
+    if page_name != "index.html":
+        assert_true(state["hasSubpageIntro"], f"{page_name} is missing the injected subpage support controls")
 
-    $args = @(
-        "--headless=new",
-        "--disable-gpu",
-        "--disable-software-rasterizer",
-        "--disable-dev-shm-usage",
-        "--no-sandbox",
-        "--disable-background-networking",
-        "--disable-component-update",
-        "--disable-sync",
-        "--metrics-recording-only",
-        "--disable-extensions",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--allow-file-access-from-files",
-        "--user-data-dir=$ProfilePath",
-        "--window-size=1280,900",
-        "--virtual-time-budget=$VirtualTimeBudget",
-        "--dump-dom",
-        $PageUri
+
+async def assert_current_page_navigation(page, page_name):
+    state = await page.evaluate(
+        """() => {
+            const currentMenuLink = document.querySelector(".site-menu-link[aria-current='page']");
+            const visibleCurrentLinks = [...document.querySelectorAll(".topnav a.is-current-link, .route-strip a.is-current-link, .header-quick-nav a.is-current-link, .header-current-page.is-current-link, .header-nav-button.is-current-link, .mobile-nav-link.is-current-link, .context-action.is-current-link")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+                });
+            return {
+                hasCurrentMenuLink: Boolean(currentMenuLink),
+                hasCurrentBadge: Boolean(currentMenuLink?.querySelector("em")?.textContent.includes("Current")),
+                visibleCurrentLinks: visibleCurrentLinks.length
+            };
+        }"""
     )
+    assert_true(state["hasCurrentMenuLink"], f"{page_name} site menu is missing a current-page link")
+    assert_true(state["hasCurrentBadge"], f"{page_name} site menu current-page link is missing its badge")
+    assert_true(state["visibleCurrentLinks"] > 0, f"{page_name} has no visible current navigation indicator")
 
-    $processInfo = [System.Diagnostics.ProcessStartInfo]::new()
-    $processInfo.FileName = $BrowserPath
-    $processInfo.UseShellExecute = $false
-    $processInfo.CreateNoWindow = $true
-    $processInfo.RedirectStandardOutput = $true
-    $processInfo.RedirectStandardError = $true
-    $processInfo.Arguments = Join-ProcessArguments $args
 
-    $process = [System.Diagnostics.Process]::new()
-    $process.StartInfo = $processInfo
-    [void]$process.Start()
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    $process.WaitForExit()
-    Set-Content -LiteralPath $OutputPath -Value $stdout -Encoding UTF8
-    Set-Content -LiteralPath $ErrorPath -Value $stderr -Encoding UTF8
-
-    if ($process.ExitCode -ne 0) {
-        throw "Browser render failed for $PageUri with exit code $($process.ExitCode). $stderr"
-    }
-}
-
-function Invoke-InteractionSmoke {
-    param(
-        [string]$Page,
-        [string]$PageUri,
-        [string]$Root,
-        [string]$BrowserPath,
-        [string]$TempDir
+async def assert_scroll_unlocked(page, label):
+    state = await page.evaluate(
+        """() => {
+            const maxScroll = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) - window.innerHeight;
+            const scroller = document.scrollingElement || document.documentElement || document.body;
+            return {
+                bodyModalOpen: document.body.classList.contains("modal-open"),
+                bodyOverflowY: getComputedStyle(document.body).overflowY,
+                htmlOverflowY: getComputedStyle(document.documentElement).overflowY,
+                maxScroll,
+                scrollRange: scroller.scrollHeight - scroller.clientHeight
+            };
+        }"""
     )
+    assert_true(not state["bodyModalOpen"], f"{label} left body marked modal-open")
+    assert_true(state["bodyOverflowY"] != "hidden" and state["htmlOverflowY"] != "hidden", f"{label} left page scroll locked")
+    if state["maxScroll"] > 120:
+        assert_true(state["scrollRange"] > 120, f"{label} scroll range collapsed unexpectedly")
 
-    $probeName = ".ridgeline-browser-probe-$([System.Guid]::NewGuid().ToString("N")).html"
-    $probePath = Join-Path $Root $probeName
-    $probeUri = [System.Uri]::new($probePath).AbsoluteUri
-    $resultPath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe.html")
-    $errPath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe.err")
-    $profilePath = Join-Path $TempDir ([System.IO.Path]::GetFileNameWithoutExtension($Page) + "-probe-profile")
 
-    $pageLiteral = ConvertTo-JsString $Page
-    $uriLiteral = ConvertTo-JsString $PageUri
-    $probeHtml = @"
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Ridgeline browser interaction probe</title></head>
-<body>
-<pre id="result">PENDING</pre>
-<script>
-(async () => {
-  const pageName = $pageLiteral;
-  const pageUri = $uriLiteral;
-  const result = document.querySelector("#result");
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const assert = (condition, message) => {
-    if (!condition) {
-      throw new Error(message);
-    }
-  };
-  try {
-    const frame = document.createElement("iframe");
-    frame.style.width = "1280px";
-    frame.style.height = "900px";
-    const frameLoad = new Promise((resolve, reject) => {
-      frame.addEventListener("load", resolve, { once: true });
-      frame.addEventListener("error", () => reject(new Error("iframe failed to load")), { once: true });
-      setTimeout(() => reject(new Error("iframe load timed out")), 5000);
-    });
-    frame.src = pageUri;
-    document.body.appendChild(frame);
-    await frameLoad;
-    await sleep(1200);
+async def assert_focus_trap(page, selector, label):
+    state = await page.evaluate(
+        """({ selector, label }) => {
+            const container = document.querySelector(selector);
+            if (!container) {
+                throw new Error(label + " container missing");
+            }
+            const getFocusable = (root) => [...root.querySelectorAll([
+                "a[href]",
+                "button:not([disabled])",
+                "input:not([disabled])",
+                "select:not([disabled])",
+                "textarea:not([disabled])",
+                "[tabindex]:not([tabindex='-1'])"
+            ].join(","))].filter((element) => {
+                const style = getComputedStyle(element);
+                return !element.hidden && !element.closest("[hidden]") && element.tabIndex >= 0 && style.display !== "none" && style.visibility !== "hidden";
+            });
+            const pressTabFromActiveElement = (shiftKey = false) => {
+                const target = document.activeElement || document;
+                target.dispatchEvent(new KeyboardEvent("keydown", {
+                    key: "Tab",
+                    bubbles: true,
+                    cancelable: true,
+                    shiftKey
+                }));
+            };
+            const focusable = getFocusable(container);
+            if (focusable.length < 2) {
+                throw new Error(label + " needs at least two focusable controls for trap coverage");
+            }
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            last.focus();
+            pressTabFromActiveElement(false);
+            const tabWrapped = document.activeElement === first;
+            first.focus();
+            pressTabFromActiveElement(true);
+            const shiftWrapped = document.activeElement === last;
+            return { tabWrapped, shiftWrapped };
+        }""",
+        {"selector": selector, "label": label},
+    )
+    assert_true(state["tabWrapped"], f"{label} Tab from last control did not wrap to first control")
+    assert_true(state["shiftWrapped"], f"{label} Shift+Tab from first control did not wrap to last control")
 
-    const doc = frame.contentDocument;
-    const win = frame.contentWindow;
-    assert(doc, "cannot inspect rendered page");
-    const pressEscape = () => {
-      doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    };
-    const getFocusable = (container) => [...container.querySelectorAll([
-      "a[href]",
-      "button:not([disabled])",
-      "input:not([disabled])",
-      "select:not([disabled])",
-      "textarea:not([disabled])",
-      "[tabindex]:not([tabindex='-1'])"
-    ].join(","))].filter((element) => {
-      const style = win.getComputedStyle(element);
-      return !element.hidden && !element.closest("[hidden]") && element.tabIndex >= 0 && style.display !== "none" && style.visibility !== "hidden";
-    });
-    const pressTabFromActiveElement = (shiftKey = false) => {
-      const target = doc.activeElement || doc;
-      target.dispatchEvent(new win.KeyboardEvent("keydown", {
-        key: "Tab",
-        bubbles: true,
-        cancelable: true,
-        shiftKey
-      }));
-    };
-    const assertFocusTrap = (container, label) => {
-      const focusable = getFocusable(container);
-      assert(focusable.length >= 2, label + " needs at least two focusable controls for trap coverage");
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      last.focus();
-      pressTabFromActiveElement(false);
-      assert(doc.activeElement === first, label + " Tab from last control did not wrap to first control");
-      first.focus();
-      pressTabFromActiveElement(true);
-      assert(doc.activeElement === last, label + " Shift+Tab from first control did not wrap to last control");
-    };
-    const assertPageReady = () => {
-      const main = doc.querySelector("main");
-      assert(main, "missing main content after load");
-      assert(main.textContent.trim().length > 250, "main content looks empty after load");
-      const visibleSections = [...main.querySelectorAll("section, article")].filter((element) => {
-        const rect = element.getBoundingClientRect();
-        const style = win.getComputedStyle(element);
-        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
-      });
-      assert(visibleSections.length > 0, "no visible content sections after load");
-      const brokenHashLinks = [...doc.querySelectorAll("a[href^='#']")]
-        .filter((link) => link.hash && link.hash !== "#" && !doc.querySelector(link.hash))
-        .map((link) => link.getAttribute("href"));
-      assert(brokenHashLinks.length === 0, "broken in-page section links: " + brokenHashLinks.slice(0, 5).join(", "));
-    };
-    const assertCurrentPageNavigation = () => {
-      const currentMenuLink = doc.querySelector(".site-menu-link[aria-current='page']");
-      assert(currentMenuLink, "site menu is missing a current-page link");
-      assert(currentMenuLink.querySelector("em")?.textContent.includes("Current"), "site menu current-page link is missing its badge");
 
-      const visibleCurrentLinks = [...doc.querySelectorAll(".topnav a.is-current-link, .route-strip a.is-current-link, .header-quick-nav a.is-current-link, .header-current-page.is-current-link, .header-nav-button.is-current-link, .mobile-nav-link.is-current-link, .context-action.is-current-link")]
-        .filter((link) => {
-          const style = win.getComputedStyle(link);
-          const rect = link.getBoundingClientRect();
-          return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
-        });
-      assert(visibleCurrentLinks.length > 0, "page has no visible current navigation indicator");
-    };
-    const assertScrollUnlocked = async (label) => {
-      assert(!doc.body.classList.contains("modal-open"), label + " left body marked modal-open");
-      const bodyOverflowY = win.getComputedStyle(doc.body).overflowY;
-      const htmlOverflowY = win.getComputedStyle(doc.documentElement).overflowY;
-      assert(bodyOverflowY !== "hidden" && htmlOverflowY !== "hidden", label + " left page scroll locked");
-      const maxScroll = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight) - win.innerHeight;
-      if (maxScroll > 120) {
-        const scroller = doc.scrollingElement || doc.documentElement || doc.body;
-        assert(scroller.scrollHeight - scroller.clientHeight > 120, label + " scroll range collapsed unexpectedly");
-      }
-    };
-    const assertDiagnosticsWorkflowIndex = async () => {
-      if (pageName !== "diagnostics.html") {
-        return;
-      }
+async def assert_diagnostics_workflow_index(page, page_name):
+    if page_name != "diagnostics.html":
+        return
+    state = await page.evaluate(
+        """() => {
+            const workflowIndex = document.querySelector("#workflow-index");
+            const workflowCards = workflowIndex ? [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")] : [];
+            return {
+                hasWorkflowIndex: Boolean(workflowIndex),
+                cardCount: workflowCards.length,
+                hasTrailerCard: workflowCards.some((card) => card.hash === "#trailer-light-workflow"),
+                hasWarningCard: workflowCards.some((card) => card.hash === "#warning-light-workflow"),
+                hasWarningTemplateRoute: Boolean(document.querySelector('#warning-light-workflow a[href="garage.html#warning-light-template"]'))
+            };
+        }"""
+    )
+    assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
+    assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
+    assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
+    assert_true(state["hasWarningCard"], "workflow index is missing warning-light workflow card")
+    assert_true(state["hasWarningTemplateRoute"], "warning-light workflow is missing the garage note-template route")
+    await page.evaluate("""() => document.querySelector('#workflow-index .workflow-index-card[href="#trailer-light-workflow"]').click()""")
+    await page.wait_for_timeout(800)
+    nav_state = await page.evaluate(
+        """() => {
+            const target = document.querySelector("#trailer-light-workflow");
+            return {
+                hash: window.location.hash,
+                targetHeight: target ? target.getBoundingClientRect().height : 0
+            };
+        }"""
+    )
+    assert_true(nav_state["hash"] == "#trailer-light-workflow", "workflow index card did not update hash")
+    assert_true(nav_state["targetHeight"] > 0, "workflow index target is missing or collapsed")
+    await assert_scroll_unlocked(page, "workflow index navigation")
 
-      const workflowIndex = doc.querySelector("#workflow-index");
-      assert(workflowIndex, "diagnostics page is missing workflow index");
-      const workflowCards = [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")];
-      assert(workflowCards.length === 7, "workflow index should expose seven workflow cards");
-      const trailerCard = workflowCards.find((card) => card.hash === "#trailer-light-workflow");
-      assert(trailerCard, "workflow index is missing trailer-light workflow card");
-      const warningCard = workflowCards.find((card) => card.hash === "#warning-light-workflow");
-      assert(warningCard, "workflow index is missing warning-light workflow card");
-      const warningTemplateLink = doc.querySelector('#warning-light-workflow a[href="garage.html#warning-light-template"]');
-      assert(warningTemplateLink, "warning-light workflow is missing the garage note-template route");
-      trailerCard.click();
-      await sleep(700);
-      assert(win.location.hash === "#trailer-light-workflow", "workflow index card did not update hash");
-      const trailerTarget = doc.querySelector("#trailer-light-workflow");
-      assert(trailerTarget && trailerTarget.getBoundingClientRect().height > 0, "workflow index target is missing or collapsed");
-      await assertScrollUnlocked("workflow index navigation");
-    };
-    const assertQuickSheetFuseTriage = () => {
-      if (pageName !== "quick-sheet.html") {
-        return;
-      }
 
-      const triage = doc.querySelector("#fuse-triage");
-      assert(triage, "quick sheet is missing fuse triage section");
-      const triageCards = [...triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card")];
-      assert(triageCards.length === 4, "fuse triage should expose four routing cards");
-      const requiredTargets = [
-        "diagnostics.html#accessory-power-workflow",
-        "diagnostics.html#trailer-light-workflow",
-        "diagnostics.html#audio-display-workflow",
-        "cabin.html#cabin-fuse-glossary"
-      ];
-      requiredTargets.forEach((href) => {
-        assert(triage.querySelector(`a[href="${href}"]`), "fuse triage is missing route " + href);
-      });
-      assert(doc.querySelector("[data-print-page]"), "quick sheet is missing print/save button");
-      const sources = doc.querySelector("#source-confidence");
-      assert(sources, "quick sheet is missing source confidence section");
-      const sourceCards = [...sources.querySelectorAll(".quick-sheet-source-grid .dashboard-card")];
-      assert(sourceCards.length === 4, "source confidence should expose four confidence cards");
-      const sourceText = sources.textContent || "";
-      ["door placard", "owner's manual", "accessory wheel instructions", "installed battery label"].forEach((phrase) => {
-        assert(sourceText.includes(phrase), "source confidence is missing note: " + phrase);
-      });
-      const requiredSourceLinks = [
-        "https://techinfo.honda.com/rjanisis/pubs/OM/AH/ATHR1919OM/enu/ATHR1919OM.PDF",
-        "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/",
-        "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/",
-        "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
-      ];
-      requiredSourceLinks.forEach((href) => {
-        const link = sources.querySelector(`a[href="${href}"]`);
-        assert(link, "source confidence is missing external link " + href);
-        assert(link.target === "_blank", "source link should open in a new tab " + href);
-        assert((link.rel || "").includes("noreferrer"), "source link should use noreferrer " + href);
-      });
-    };
-    const assertGarageWarningLightTemplate = () => {
-      if (pageName !== "garage.html") {
-        return;
-      }
+async def assert_quick_sheet(page, page_name):
+    if page_name != "quick-sheet.html":
+        return
+    state = await page.evaluate(
+        """() => {
+            const triage = document.querySelector("#fuse-triage");
+            const sources = document.querySelector("#source-confidence");
+            const requiredTargets = [
+                "diagnostics.html#accessory-power-workflow",
+                "diagnostics.html#trailer-light-workflow",
+                "diagnostics.html#audio-display-workflow",
+                "cabin.html#cabin-fuse-glossary"
+            ];
+            const requiredSourceLinks = [
+                "https://techinfo.honda.com/rjanisis/pubs/OM/AH/ATHR1919OM/enu/ATHR1919OM.PDF",
+                "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/",
+                "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/",
+                "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
+            ];
+            return {
+                hasTriage: Boolean(triage),
+                triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
+                missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
+                hasPrint: Boolean(document.querySelector("[data-print-page]")),
+                hasSources: Boolean(sources),
+                sourceCards: sources ? sources.querySelectorAll(".quick-sheet-source-grid .dashboard-card").length : 0,
+                sourceText: sources ? sources.innerText : "",
+                sourceLinks: requiredSourceLinks.map((href) => {
+                    const link = sources?.querySelector(`a[href="${href}"]`);
+                    return {
+                        href,
+                        found: Boolean(link),
+                        target: link?.target || "",
+                        rel: link?.rel || ""
+                    };
+                })
+            };
+        }"""
+    )
+    assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
+    assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
+    assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
+    assert_true(state["hasPrint"], "quick sheet is missing print/save button")
+    assert_true(state["hasSources"], "quick sheet is missing source confidence section")
+    assert_true(state["sourceCards"] == 4, "source confidence should expose four confidence cards")
+    for phrase in ["door placard", "owner's manual", "accessory wheel instructions", "installed battery label"]:
+        assert_true(phrase in state["sourceText"], f"source confidence is missing note: {phrase}")
+    for link in state["sourceLinks"]:
+        assert_true(link["found"], f"source confidence is missing external link {link['href']}")
+        assert_true(link["target"] == "_blank", f"source link should open in a new tab {link['href']}")
+        assert_true("noreferrer" in link["rel"], f"source link should use noreferrer {link['href']}")
 
-      const dashboard = doc.querySelector("[data-garage-dashboard]");
-      assert(dashboard, "garage page is missing the garage dashboard");
-      const diagnosticCard = [...dashboard.querySelectorAll(".dashboard-card")]
-        .find((card) => card.textContent.includes("Diagnostic Notes"));
-      assert(diagnosticCard, "garage dashboard is missing the diagnostic notes card");
-      assert(diagnosticCard.querySelector('a[href="#warning-light-template"]'), "diagnostic notes card is missing the warning-light note route");
-      const diagnosticActivity = doc.querySelector("#diagnostic-activity [data-diagnostic-activity]");
-      assert(diagnosticActivity, "garage dashboard is missing recent diagnostic activity list");
-      assert(diagnosticActivity.textContent.includes("No diagnostic activity saved yet.") || diagnosticActivity.querySelector(".diagnostic-activity-item"), "diagnostic activity list is not rendering an empty or populated state");
-      assert(doc.querySelector("#diagnostic-activity [data-diagnostic-activity-filter]"), "diagnostic activity filter is missing");
-      assert(doc.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]"), "diagnostic activity copy summary button is missing");
-      assert(doc.querySelector("#diagnostic-activity [data-download-diagnostic-activity]"), "diagnostic activity download button is missing");
-      assert(doc.querySelector("#diagnostic-activity [data-download-garage-backup]"), "garage backup download button is missing");
-      assert(doc.querySelector("#diagnostic-activity [data-import-garage-backup]"), "garage backup import input is missing");
-      assert(doc.querySelector("#diagnostic-activity [data-choose-garage-backup]"), "garage backup choose button is missing");
-      const restoreButton = doc.querySelector("#diagnostic-activity [data-restore-garage-backup]");
-      assert(restoreButton, "garage backup restore button is missing");
-      assert(restoreButton.disabled === true, "garage backup restore button should start disabled");
-      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Activity JSON"), "diagnostic activity JSON handoff note is missing");
-      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("photo metadata"), "garage backup photo-metadata note is missing");
-      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Restore Backup imports"), "garage backup restore note is missing");
-      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("Use Download Backup first"), "garage backup pre-restore safety note is missing");
-      assert((doc.querySelector("#diagnostic-activity")?.textContent || "").includes("browser-local image bytes are not included"), "garage backup local-image-byte note is missing");
-      const backupPreview = doc.querySelector("#diagnostic-activity [data-garage-backup-preview]");
-      assert(backupPreview, "garage backup preview surface is missing");
-      assert(backupPreview.hidden === true, "garage backup preview should start hidden");
 
-      const template = doc.querySelector("#warning-light-template");
-      assert(template, "garage page is missing warning-light note template");
-      [
-        "warning_light_date_mileage",
-        "warning_light_indicator",
-        "warning_light_behavior",
-        "warning_light_context",
-        "warning_light_mid_message",
-        "warning_light_next_action"
-      ].forEach((name) => {
-        assert(template.querySelector(`[name="${name}"]`), "warning-light template is missing field " + name);
-      });
-      assert(template.querySelector('a[href="diagnostics.html#warning-light-workflow"]'), "warning-light template is missing diagnostics route");
-    };
+async def assert_garage_features(page, page_name):
+    if page_name != "garage.html":
+        return
+    state = await page.evaluate(
+        """() => {
+            const dashboard = document.querySelector("[data-garage-dashboard]");
+            const diagnosticCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
+                .find((card) => card.textContent.includes("Diagnostic Notes")) : null;
+            const activity = document.querySelector("#diagnostic-activity [data-diagnostic-activity]");
+            const activityText = document.querySelector("#diagnostic-activity")?.innerText || "";
+            const template = document.querySelector("#warning-light-template");
+            const requiredFields = [
+                "warning_light_date_mileage",
+                "warning_light_indicator",
+                "warning_light_behavior",
+                "warning_light_context",
+                "warning_light_mid_message",
+                "warning_light_next_action"
+            ];
+            return {
+                hasDashboard: Boolean(dashboard),
+                hasDiagnosticCard: Boolean(diagnosticCard),
+                hasDiagnosticCardRoute: Boolean(diagnosticCard?.querySelector('a[href="#warning-light-template"]')),
+                hasActivity: Boolean(activity),
+                activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
+                hasFilter: Boolean(document.querySelector("#diagnostic-activity [data-diagnostic-activity-filter]")),
+                hasCopy: Boolean(document.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]")),
+                hasActivityDownload: Boolean(document.querySelector("#diagnostic-activity [data-download-diagnostic-activity]")),
+                hasBackupDownload: Boolean(document.querySelector("#diagnostic-activity [data-download-garage-backup]")),
+                hasImport: Boolean(document.querySelector("#diagnostic-activity [data-import-garage-backup]")),
+                hasChoose: Boolean(document.querySelector("#diagnostic-activity [data-choose-garage-backup]")),
+                hasRestore: Boolean(document.querySelector("#diagnostic-activity [data-restore-garage-backup]")),
+                restoreDisabled: document.querySelector("#diagnostic-activity [data-restore-garage-backup]")?.disabled === true,
+                textHasActivityJson: activityText.includes("Activity JSON"),
+                textHasPhotoMetadata: activityText.includes("photo metadata"),
+                textHasRestoreNote: activityText.includes("Restore Backup imports"),
+                textHasSafetyNote: activityText.includes("Use Download Backup first"),
+                textHasImageByteNote: activityText.includes("browser-local image bytes are not included"),
+                hasPreview: Boolean(document.querySelector("#diagnostic-activity [data-garage-backup-preview]")),
+                previewHidden: document.querySelector("#diagnostic-activity [data-garage-backup-preview]")?.hidden === true,
+                hasTemplate: Boolean(template),
+                missingFields: requiredFields.filter((name) => !template?.querySelector(`[name="${name}"]`)),
+                hasTemplateRoute: Boolean(template?.querySelector('a[href="diagnostics.html#warning-light-workflow"]'))
+            };
+        }"""
+    )
+    assert_true(state["hasDashboard"], "garage page is missing the garage dashboard")
+    assert_true(state["hasDiagnosticCard"], "garage dashboard is missing the diagnostic notes card")
+    assert_true(state["hasDiagnosticCardRoute"], "diagnostic notes card is missing the warning-light note route")
+    assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
+    assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
+    for key, message in [
+        ("hasFilter", "diagnostic activity filter is missing"),
+        ("hasCopy", "diagnostic activity copy summary button is missing"),
+        ("hasActivityDownload", "diagnostic activity download button is missing"),
+        ("hasBackupDownload", "garage backup download button is missing"),
+        ("hasImport", "garage backup import input is missing"),
+        ("hasChoose", "garage backup choose button is missing"),
+        ("hasRestore", "garage backup restore button is missing"),
+        ("restoreDisabled", "garage backup restore button should start disabled"),
+        ("textHasActivityJson", "diagnostic activity JSON handoff note is missing"),
+        ("textHasPhotoMetadata", "garage backup photo-metadata note is missing"),
+        ("textHasRestoreNote", "garage backup restore note is missing"),
+        ("textHasSafetyNote", "garage backup pre-restore safety note is missing"),
+        ("textHasImageByteNote", "garage backup local-image-byte note is missing"),
+        ("hasPreview", "garage backup preview surface is missing"),
+        ("previewHidden", "garage backup preview should start hidden"),
+        ("hasTemplate", "garage page is missing warning-light note template"),
+        ("hasTemplateRoute", "warning-light template is missing diagnostics route"),
+    ]:
+        assert_true(state[key], message)
+    assert_true(not state["missingFields"], f"warning-light template is missing fields: {state['missingFields']}")
 
-    assertPageReady();
-    assertCurrentPageNavigation();
-    await assertScrollUnlocked("initial load");
-    await assertDiagnosticsWorkflowIndex();
-    assertQuickSheetFuseTriage();
-    assertGarageWarningLightTemplate();
 
-    const searchButton = doc.querySelector("[data-open-search]");
-    assert(searchButton, "missing search button");
-    searchButton.focus();
-    searchButton.click();
-    await sleep(300);
-    const searchModal = doc.querySelector(".search-modal");
-    const searchInput = doc.querySelector("#site-search-input");
-    assert(searchModal && searchModal.hidden === false, "search modal did not open");
-    assert(searchInput, "missing search input");
-    assert(doc.activeElement === searchInput, "search input did not receive focus");
-    assertFocusTrap(searchModal, "search modal");
-    searchInput.value = "fuse";
-    searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-    await sleep(900);
-    assert(doc.querySelector("#site-search-results").children.length > 0, "search returned no results for fuse");
-    const setSearchQuery = async (query) => {
-      searchInput.value = query;
-      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-      await sleep(900);
-      return doc.querySelector("#site-search-results").textContent || "";
-    };
-    assert((await setSearchQuery("power outlet")).includes("Power Outlet / 12V Socket Fuses"), "power outlet alias did not surface the fuse shortcut");
-    assert((await setSearchQuery("trailer brake lights")).includes("Trailer Light Fuse Search"), "trailer brake lights alias did not surface the fuse shortcut");
-    assert((await setSearchQuery("radio")).includes("Audio / Radio Fuse Search"), "radio alias did not surface the fuse shortcut");
-    assert((await setSearchQuery("backup camera")).includes("Backup / Reverse Light Fuse Search"), "backup camera alias did not surface the fuse shortcut");
-    assert((await setSearchQuery("outlet not working")).includes("Fuse Symptom Finder"), "outlet not working did not surface the fuse symptom finder");
-    assert((await setSearchQuery("accessory socket not working")).includes("Accessory Power Issue Flow"), "accessory socket not working did not surface the accessory power workflow");
-    assert((await setSearchQuery("radio not working")).includes("Audio Display Issue Flow"), "radio not working did not surface the audio display workflow");
-    assert((await setSearchQuery("truck wont start")).includes("No-Start Workflow"), "truck wont start did not surface the no-start workflow");
-    assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
-    assert((await setSearchQuery("warning light")).includes("Warning Light Triage"), "warning light did not surface the warning-light workflow");
-    assert((await setSearchQuery("warning light note")).includes("Warning Light Note Template"), "warning light note did not surface the garage note template");
-    assert((await setSearchQuery("recent diagnostic activity")).includes("Recent Diagnostic Activity"), "recent diagnostic activity did not surface the garage activity list");
-    assert((await setSearchQuery("diagnostic activity json")).includes("Recent Diagnostic Activity"), "diagnostic activity json did not surface the garage activity list");
-    assert((await setSearchQuery("restore garage backup")).includes("Recent Diagnostic Activity"), "restore garage backup did not surface the garage backup tools");
-    assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
-    assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
-    assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");
-    pressEscape();
-    await sleep(150);
-    assert(searchModal.hidden === true, "Escape did not close search modal");
-    assert(doc.activeElement === searchButton, "search focus did not return to opener");
-    await assertScrollUnlocked("search close");
+async def set_search_query(page, query):
+    await page.evaluate(
+        """(query) => {
+            const input = document.querySelector("#site-search-input");
+            input.value = query;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        }""",
+        query,
+    )
+    await page.wait_for_timeout(900)
+    return await page.locator("#site-search-results").inner_text()
 
-    const menuButton = doc.querySelector("[data-open-site-menu]");
-    assert(menuButton, "missing More menu button");
-    menuButton.focus();
-    menuButton.click();
-    await sleep(300);
-    const menu = doc.querySelector("#site-menu");
-    assert(menu && menu.hidden === false, "site menu did not open");
-    assert(doc.querySelectorAll(".site-menu-link").length >= 5, "site menu has too few links");
-    assert(menu.contains(doc.activeElement), "site menu did not receive focus");
-    assertFocusTrap(menu, "site menu");
-    pressEscape();
-    await sleep(150);
-    assert(menu.hidden === true, "Escape did not close site menu");
-    assert(doc.activeElement === menuButton, "site menu focus did not return to opener");
-    await assertScrollUnlocked("site menu close");
 
-    menuButton.focus();
-    doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "K", ctrlKey: true, shiftKey: true, bubbles: true }));
-    await sleep(250);
-    const commandModal = doc.querySelector(".command-palette");
-    const commandInput = doc.querySelector(".command-input");
-    assert(commandModal && commandModal.hidden === false, "command palette did not open");
-    assert(doc.activeElement === commandInput, "command palette input did not receive focus");
-    assertFocusTrap(commandModal, "command palette");
-    pressEscape();
-    await sleep(150);
-    assert(commandModal.hidden === true, "Escape did not close command palette");
-    assert(doc.activeElement === menuButton, "command palette focus did not return to opener");
-    await assertScrollUnlocked("command palette close");
+async def run_overlay_checks(page, page_name):
+    await page.locator("[data-open-search]").first.focus()
+    await page.locator("[data-open-search]").first.click()
+    await page.wait_for_timeout(300)
+    assert_true(not await page.locator(".search-modal").first.evaluate("node => node.hidden"), "search modal did not open")
+    active_id = await page.evaluate("() => document.activeElement?.id || ''")
+    assert_true(active_id == "site-search-input", "search input did not receive focus")
+    await assert_focus_trap(page, ".search-modal", "search modal")
+    await set_search_query(page, "fuse")
+    result_count = await page.locator("#site-search-results > *").count()
+    assert_true(result_count > 0, "search returned no results for fuse")
+    for query, expected in SEARCH_EXPECTATIONS.items():
+        text = await set_search_query(page, query)
+        assert_true(expected in text, f"{query} did not surface {expected}")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator(".search-modal").first.evaluate("node => node.hidden"), "Escape did not close search modal")
+    opener_focused = await page.evaluate("() => document.activeElement?.matches('[data-open-search]') || false")
+    assert_true(opener_focused, "search focus did not return to opener")
+    await assert_scroll_unlocked(page, "search close")
 
-    const quickButton = doc.querySelector(".quick-capture-fab");
-    assert(quickButton, "missing quick capture button");
-    quickButton.focus();
-    quickButton.click();
-    await sleep(250);
-    const quickModal = doc.querySelector(".quick-capture-modal");
-    const quickTitle = doc.querySelector(".quick-capture-modal input[name='title']");
-    assert(quickModal && quickModal.hidden === false, "quick capture modal did not open");
-    assert(doc.activeElement === quickTitle, "quick capture title input did not receive focus");
-    assertFocusTrap(quickModal, "quick capture modal");
-    pressEscape();
-    await sleep(150);
-    assert(quickModal.hidden === true, "Escape did not close quick capture modal");
-    assert(doc.activeElement === quickButton, "quick capture focus did not return to opener");
-    await assertScrollUnlocked("quick capture close");
+    await page.locator("[data-open-site-menu]").first.focus()
+    await page.locator("[data-open-site-menu]").first.click()
+    await page.wait_for_timeout(300)
+    assert_true(not await page.locator("#site-menu").evaluate("node => node.hidden"), "site menu did not open")
+    assert_true(await page.locator(".site-menu-link").count() >= 5, "site menu has too few links")
+    menu_contains_focus = await page.evaluate("() => document.querySelector('#site-menu')?.contains(document.activeElement) || false")
+    assert_true(menu_contains_focus, "site menu did not receive focus")
+    await assert_focus_trap(page, "#site-menu", "site menu")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator("#site-menu").evaluate("node => node.hidden"), "Escape did not close site menu")
+    menu_opener_focused = await page.evaluate("() => document.activeElement?.matches('[data-open-site-menu]') || false")
+    assert_true(menu_opener_focused, "site menu focus did not return to opener")
+    await assert_scroll_unlocked(page, "site menu close")
 
-    const syncButton = doc.querySelector("[data-page-action='sync-settings'], [data-context-action='sync-settings']");
-    assert(syncButton, "missing sync settings opener");
-    syncButton.focus();
-    syncButton.click();
-    await sleep(650);
-    const syncModal = doc.querySelector(".sync-settings-modal");
-    assert(syncModal && syncModal.hidden === false, "sync settings modal did not open");
-    assert(syncModal.contains(doc.activeElement), "sync settings did not receive focus");
-    assertFocusTrap(syncModal, "sync settings modal");
-    pressEscape();
-    await sleep(150);
-    assert(syncModal.hidden === true, "Escape did not close sync settings modal");
-    assert(doc.activeElement === syncButton, "sync settings focus did not return to opener");
-    await assertScrollUnlocked("sync settings close");
+    await page.locator("[data-open-site-menu]").first.focus()
+    await page.keyboard.press("Control+Shift+K")
+    await page.wait_for_timeout(250)
+    assert_true(not await page.locator(".command-palette").evaluate("node => node.hidden"), "command palette did not open")
+    command_focused = await page.evaluate("() => document.activeElement?.matches('.command-input') || false")
+    assert_true(command_focused, "command palette input did not receive focus")
+    await assert_focus_trap(page, ".command-palette", "command palette")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator(".command-palette").evaluate("node => node.hidden"), "Escape did not close command palette")
+    await assert_scroll_unlocked(page, "command palette close")
 
-    const sectionLink = [...doc.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
-      .find((link) => link.hash && doc.querySelector(link.hash));
-    assert(sectionLink, "missing usable in-page section link");
-    const expectedHash = sectionLink.hash;
-    sectionLink.click();
-    await sleep(300);
-    assert(win.location.hash === expectedHash, "section link did not update the hash");
-    const sectionTarget = doc.querySelector(expectedHash);
-    assert(sectionTarget && sectionTarget.getBoundingClientRect().height > 0, "section target is missing or collapsed after navigation");
-    await assertScrollUnlocked("section navigation");
+    await page.locator(".quick-capture-fab").focus()
+    await page.locator(".quick-capture-fab").click()
+    await page.wait_for_timeout(250)
+    assert_true(not await page.locator(".quick-capture-modal").evaluate("node => node.hidden"), "quick capture modal did not open")
+    quick_focused = await page.evaluate("() => document.activeElement?.matches('.quick-capture-modal input[name=\"title\"]') || false")
+    assert_true(quick_focused, "quick capture title input did not receive focus")
+    await assert_focus_trap(page, ".quick-capture-modal", "quick capture modal")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator(".quick-capture-modal").evaluate("node => node.hidden"), "Escape did not close quick capture modal")
+    quick_opener_focused = await page.evaluate("() => document.activeElement?.matches('.quick-capture-fab') || false")
+    assert_true(quick_opener_focused, "quick capture focus did not return to opener")
+    await assert_scroll_unlocked(page, "quick capture close")
 
-    result.textContent = "PASS " + pageName;
-  } catch (error) {
-    result.textContent = "FAIL " + pageName + ": " + error.message;
-  }
-})();
-</script>
-</body>
-</html>
-"@
+    sync_selector = "[data-page-action='sync-settings'], [data-context-action='sync-settings']"
+    await page.locator(sync_selector).first.focus()
+    await page.locator(sync_selector).first.click()
+    await page.wait_for_timeout(650)
+    assert_true(not await page.locator(".sync-settings-modal").evaluate("node => node.hidden"), "sync settings modal did not open")
+    sync_contains_focus = await page.evaluate("() => document.querySelector('.sync-settings-modal')?.contains(document.activeElement) || false")
+    assert_true(sync_contains_focus, "sync settings did not receive focus")
+    await assert_focus_trap(page, ".sync-settings-modal", "sync settings modal")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator(".sync-settings-modal").evaluate("node => node.hidden"), "Escape did not close sync settings modal")
+    await assert_scroll_unlocked(page, "sync settings close")
 
-    try {
-        Set-Content -LiteralPath $probePath -Value $probeHtml -Encoding UTF8
-        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $probeUri -OutputPath $resultPath -ErrorPath $errPath -ProfilePath $profilePath -VirtualTimeBudget 16000
-        $probeDom = Get-Content -Raw -LiteralPath $resultPath
-        if ($probeDom -notmatch "PASS\s+$([regex]::Escape($Page))") {
-            $statusMatch = [regex]::Match($probeDom, "(?s)<pre id=""result"">(.*?)</pre>")
-            $status = if ($statusMatch.Success) { [System.Net.WebUtility]::HtmlDecode($statusMatch.Groups[1].Value).Trim() } else { "No probe result was rendered." }
-            throw "Interaction smoke failed for ${Page}: $status"
-        }
-    }
-    finally {
-        Remove-Item -LiteralPath $probePath -Force -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath $profilePath -Recurse -Force -ErrorAction SilentlyContinue
-    }
-}
 
-$tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("ridgeline-browser-smoke-" + [System.Guid]::NewGuid().ToString("N"))
-New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+async def assert_section_navigation(page):
+    state = await page.evaluate(
+        """() => {
+            const link = [...document.querySelectorAll(".section-utility-nav a[href^='#'], .topnav a[href^='#']")]
+                .find((candidate) => candidate.hash && document.querySelector(candidate.hash));
+            if (!link) {
+                return { found: false };
+            }
+            const expectedHash = link.hash;
+            link.click();
+            return { found: true, expectedHash };
+        }"""
+    )
+    assert_true(state["found"], "missing usable in-page section link")
+    await page.wait_for_timeout(700)
+    nav_state = await page.evaluate(
+        """(expectedHash) => {
+            const target = document.querySelector(expectedHash);
+            return {
+                hash: window.location.hash,
+                targetHeight: target ? target.getBoundingClientRect().height : 0
+            };
+        }""",
+        state["expectedHash"],
+    )
+    assert_true(nav_state["hash"] == state["expectedHash"], "section link did not update the hash")
+    assert_true(nav_state["targetHeight"] > 0, "section target is missing or collapsed after navigation")
+    await assert_scroll_unlocked(page, "section navigation")
+
+
+async def smoke_page(context, root, page_name):
+    page_path = (Path(root) / page_name).resolve()
+    assert_true(page_path.is_file(), f"Cannot smoke-test missing page '{page_name}'.")
+
+    page = await context.new_page()
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.goto(page_path.as_uri(), wait_until="load")
+    await page.wait_for_timeout(1200)
+
+    await assert_page_ready(page, page_name)
+    await assert_current_page_navigation(page, page_name)
+    await assert_scroll_unlocked(page, "initial load")
+    await assert_diagnostics_workflow_index(page, page_name)
+    await assert_quick_sheet(page, page_name)
+    await assert_garage_features(page, page_name)
+    await run_overlay_checks(page, page_name)
+    await assert_section_navigation(page)
+    await page.close()
+    print(f"Browser smoke and interactions passed for {page_name}")
+
+
+async def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", required=True)
+    parser.add_argument("--browser-path", required=True)
+    parser.add_argument("--pages", nargs="+", required=True)
+    args = parser.parse_args()
+
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(
+            executable_path=args.browser_path,
+            headless=True,
+            args=["--allow-file-access-from-files", "--disable-web-security"],
+        )
+        context = await browser.new_context()
+        try:
+            for page_name in args.pages:
+                await smoke_page(context, args.root, page_name)
+        finally:
+            await browser.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+'@
 
 try {
-    foreach ($page in $Pages) {
-        $pagePath = Join-Path $Root $page
-        if (-not (Test-Path -LiteralPath $pagePath -PathType Leaf)) {
-            throw "Cannot smoke-test missing page '$page'."
-        }
-
-        $pageUri = [System.Uri]::new((Resolve-Path -LiteralPath $pagePath).Path).AbsoluteUri
-        $domPath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + ".html")
-        $errPath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + ".err")
-        $profilePath = Join-Path $tempDir ([System.IO.Path]::GetFileNameWithoutExtension($page) + "-profile")
-        Invoke-EdgeDumpDom -BrowserPath $BrowserPath -PageUri $pageUri -OutputPath $domPath -ErrorPath $errPath -ProfilePath $profilePath
-
-        $dom = Get-Content -Raw -LiteralPath $domPath
-        $checks = @(
-            @{ Name = "main landmark"; Pattern = "(?is)<main[\s>]" },
-            @{ Name = "site header"; Pattern = "topbar" },
-            @{ Name = "site search control"; Pattern = "data-open-search" },
-            @{ Name = "site menu control"; Pattern = "data-open-site-menu" },
-            @{ Name = "page title"; Pattern = "(?is)<title>.+?</title>" }
-        )
-
-        foreach ($check in $checks) {
-            if ($dom -notmatch $check.Pattern) {
-                throw "$page is missing $($check.Name) after browser render."
-            }
-        }
-
-        if ($dom -match "ERR_FILE_NOT_FOUND|This site can't be reached|404 Not Found") {
-            throw "$page rendered a browser error page."
-        }
-
-        if ($page -ne "index.html" -and $dom -notmatch "subpage-intro") {
-            throw "$page is missing the injected subpage support controls."
-        }
-
-        Invoke-InteractionSmoke -Page $page -PageUri $pageUri -Root $Root -BrowserPath $BrowserPath -TempDir $tempDir
-
-        Write-Host "Browser smoke and interactions passed for $page"
+    Set-Content -LiteralPath $scriptPath -Value $pythonScript -Encoding UTF8
+    $pythonArgs = @($scriptPath, "--root", $Root, "--browser-path", $BrowserPath, "--pages") + $Pages
+    & $python.Source $pythonArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "Browser smoke Playwright audit failed with exit code $LASTEXITCODE."
     }
 }
 finally {
-    Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $scriptPath -Force -ErrorAction SilentlyContinue
 }

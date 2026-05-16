@@ -7,8 +7,8 @@ Last updated: 2026-05-16
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
 - Universal header navigation has been added across pages.
 - Subpage helper controls now sit after the page hero so the main title is visible sooner on mobile and desktop.
-- Reusable audit scripts now live in `tools/audit/` for internal link checks, rendered browser smoke checks, Garage restore Playwright checks, and desktop/mobile screenshot capture; `Invoke-SiteAudit.ps1` now runs the Garage restore audit by default unless `-SkipGarageRestoreAudit` is passed.
-- Browser smoke checks now include scoped interactions and keyboard focus behavior for Search, More, and sample in-page section links.
+- Reusable audit scripts now live in `tools/audit/` for internal link checks, Playwright rendered browser smoke checks, Garage restore Playwright checks, and desktop/mobile screenshot capture; `Invoke-SiteAudit.ps1` now runs the Garage restore audit by default unless `-SkipGarageRestoreAudit` is passed.
+- Browser smoke checks now use Python Playwright with the configured Chromium-compatible browser instead of the flaky Edge `--dump-dom` path, and include scoped interactions and keyboard focus behavior for Search, More, and sample in-page section links.
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
@@ -30,7 +30,7 @@ Last updated: 2026-05-16
 - Garage Restore Backup now has a visible mobile-friendly preview card showing the backup date and recognized data areas before restore; imported photo entries are sanitized so browser-local `dataUrl` image bytes are stripped from top-level and area-journal photo metadata before merge.
 - Garage Restore Backup now validates recognized backup sections by expected shape before enabling restore, skips invalid recognized sections with a visible preview/status note, and shows replace-vs-merge impact text before import.
 - Garage Recent Diagnostic Activity now filters the full derived activity list before applying the six-item display cap, so category filters can still reveal older matching area/service/capture records.
-- Garage restore validation now has reusable Playwright/Chrome audit coverage in `tools/audit/Invoke-GarageRestoreAudit.ps1` instead of relying on one-off fallback scripts, and the main site audit wrapper runs it before the legacy Edge dump-DOM browser smoke phase.
+- Garage restore validation now has reusable Playwright/Chrome audit coverage in `tools/audit/Invoke-GarageRestoreAudit.ps1` instead of relying on one-off fallback scripts, and the main site audit wrapper runs it before the Playwright browser smoke phase.
 - Garage restore preview now compares each valid backup section against the current local Garage count before import, and hash navigation now reveals every animated ancestor so deep targets like `garage.html#diagnostic-activity` do not land on an invisible section.
 - Diagnostics lower-page routing is now trimmed to non-main "Other quick routes" so the workflow index remains the canonical entry point and the page is shorter on iPhone.
 - Diagnostics now has a mobile density pass: the page is scoped with `diagnostics-page`, the workflow index and diagnostic cards are shorter at iPhone widths, Quick Checks stacks into card-like rows, source notes are visually lighter on mobile, and the bottom action bar routes to the canonical workflow index.
@@ -129,19 +129,19 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, warning-light garage-note template, Garage diagnostic dashboard card, Recent Diagnostic Activity panel/filter/copy/download tools, Garage backup download, filtered diagnostic-activity JSON export, guarded local Garage restore with visible preview, imported-photo-byte sanitization, Diagnostics mobile density pass, and integrated Garage restore audit wrapper are present; the remaining fuse work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is replacing or bypassing the flaky Edge dump-DOM smoke path with the Playwright/Chrome approach already proven by the Garage restore audit.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, quick-sheet Source Confidence section, warning-light routing, warning-light garage-note template, Garage diagnostic dashboard card, Recent Diagnostic Activity panel/filter/copy/download tools, Garage backup download, filtered diagnostic-activity JSON export, guarded local Garage restore with visible preview, imported-photo-byte sanitization, Diagnostics mobile density pass, integrated Garage restore audit wrapper, and Playwright browser smoke runner are present; the remaining fuse work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a real-device review of the Diagnostics/Garage density and Garage restore wording.
 
 ## Next Verification Target
 
 After the next content/data change:
 
-- Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v275`.
+- Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v276`.
 - If fuse/source notes change, record the source and review the affected Hood/Cabin diagrams in the browser.
 
 After the next UI change:
 
 - Run the same audit command without `-SkipScreenshots` so fresh desktop/mobile screenshots are captured.
-- If Edge `--dump-dom` still returns an empty DOM, use the Playwright/Chrome fallback and record the screenshots under `debug-screenshots/`.
+- If Playwright smoke fails, inspect the reported assertion first; the old empty-DOM dump path is no longer in use.
 
 ## Latest Verification
 
@@ -266,7 +266,10 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-GarageRestoreAudit.ps1 -Tag audit-v273`; Garage restore Playwright audit passed and captured `debug-screenshots/audit-v273-garage-restore-audit-mobile.png` and `debug-screenshots/audit-v273-garage-restore-audit-desktop.png`.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Folded `Invoke-GarageRestoreAudit.ps1` into `Invoke-SiteAudit.ps1`, added wrapper-level `-BrowserPath`, `-SkipBrowserSmoke`, and `-SkipGarageRestoreAudit` switches, synced the wrapper default page list with `quick-sheet.html`, and passed `-SkipScreenshots` through to the restore audit.
+- Replaced `Invoke-BrowserSmoke.ps1`'s legacy Edge `--dump-dom`/probe-iframe implementation with a Playwright/Chrome implementation that directly opens each local `file://` page while preserving the existing page readiness, current navigation, focus-trap, search-alias, Diagnostics, Quick Sheet, Garage, scroll-lock, and section-navigation assertions.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-GarageRestoreAudit.ps1 -Tag audit-v274 -SkipScreenshots`; Garage restore Playwright audit passed.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v274-wrapper -SkipScreenshots -SkipBrowserSmoke`; the integrated wrapper passed link checks plus Garage restore validation.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v274-wrapper-full -SkipScreenshots`; the integrated wrapper ran link checks and Garage restore validation, then hit the pre-existing Edge dump-DOM failure: `garage.html is missing main landmark after browser render`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-BrowserSmoke.ps1`; Playwright browser smoke passed for `index.html`, `hood.html`, `cabin.html`, `maintenance.html`, `garage.html`, and `quick-sheet.html`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v275-playwright-smoke -SkipScreenshots`; internal links passed for 16 HTML files, Garage restore Playwright audit passed, Playwright browser smoke passed for all default pages, and the wrapper completed without the old dump-DOM blocker.

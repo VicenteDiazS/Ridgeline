@@ -20,7 +20,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Audio/radio/display mini-flow completed 2026-05-16; deepen it only if stronger sources, real-truck symptoms, or user needs appear.
 - Warning-light triage, Garage note template, first Garage dashboard diagnostic card, Recent Diagnostic Activity grouping, derived filters, Copy Summary, Garage backup download, filtered diagnostic-activity JSON export, guarded local Garage restore, mobile restore preview, imported-photo-byte sanitization, restore section-shape validation, replace/merge preview wording, filter-before-cap activity rendering, and reusable Playwright restore audit coverage completed 2026-05-16; future work should review restore behavior with a real user backup before adding conflict resolution or overwrite/merge choices.
-- Garage Restore Backup preview now shows Backup/Current counts, the restore audit catches hidden reveal ancestors on deep links, and `Invoke-SiteAudit.ps1` runs `Invoke-GarageRestoreAudit.ps1` by default; next tooling slice should replace or bypass the flaky Edge dump-DOM smoke path with the Playwright/Chrome approach already proven by the restore audit.
+- Garage Restore Backup preview now shows Backup/Current counts, the restore audit catches hidden reveal ancestors on deep links, and `Invoke-SiteAudit.ps1` runs `Invoke-GarageRestoreAudit.ps1` by default. The flaky Edge dump-DOM smoke path was replaced on 2026-05-16 with a Playwright/Chrome smoke runner that preserves the prior interaction coverage.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets after deeper source validation; first quick-sheet triage routing slice is complete.
 
@@ -40,6 +40,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 ## Navigation And UX
 
 - Keep expanding browser smoke coverage for real user glitches: blank pages, collapsed sections, stuck scroll locks after modals/drawers, broken anchor jumps, stale service-worker loads, and mobile-only navigation failures.
+- Browser smoke now runs through Playwright/Chrome instead of `--dump-dom`; future coverage should be added to that path.
 - Make the header, bottom bar, site menu, and search feel consistent on small screens.
 - Reduce duplicated navigation surfaces where they compete for attention.
 - Current-page indicator in the universal header/menu completed 2026-05-16; keep it visible during future header density tuning.
