@@ -573,6 +573,24 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Quick Sheet Source Confidence",
+    url: "quick-sheet.html#source-confidence",
+    category: "Reference",
+    excerpt: "Source-confidence notes for the emergency quick sheet, including truck-label priority, Honda references, accessory wheel instructions, and weaker replacement-battery or fitment-reference cautions.",
+    keywords: [
+      "quick sheet sources",
+      "source confidence",
+      "quick sheet citation",
+      "emergency card sources",
+      "ridgeline quick sheet sources",
+      "door placard",
+      "owner manual quick sheet",
+      "battery label verify",
+      "wheel fitment reference",
+      "fuse cover final authority"
+    ]
+  },
+  {
     title: "Rear Hitch Journal",
     url: "rear-hitch.html#area-journal",
     category: "Personal",

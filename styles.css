@@ -11341,6 +11341,38 @@ select:focus {
   margin-top: 6px;
 }
 
+.quick-sheet-source-section {
+  border-color: rgba(111, 255, 180, 0.18);
+}
+
+.quick-sheet-source-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quick-sheet-source-grid .dashboard-card {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.quick-sheet-reference-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 860px) {
+  .quick-sheet-source-grid,
+  .quick-sheet-reference-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .quick-sheet-source-grid,
+  .quick-sheet-reference-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media print {
   @page {
     margin: 0.45in;

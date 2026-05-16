@@ -23,9 +23,9 @@ Last updated: 2026-05-16
 - Universal navigation now shows the current page in the sticky header and marks the matching full-menu entry with `aria-current` plus a visible Current badge.
 - Maintenance Minder content now reflects Honda Ridgeline sub-items 1-6 and treats brake fluid as a separate 3-year calendar item instead of a code 7/B127 example.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
-- Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action and print-specific styling.
+- Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: six cards, trailer-light card hash navigation, scroll-lock cleanup, and `workflow index` search result coverage.
-- Browser smoke checks now include Quick Sheet Fuse Triage coverage: four routing cards, required destination links, a print/save button, and `fuse quick sheet` search result coverage.
+- Browser smoke checks now include Quick Sheet Fuse Triage and Source Confidence coverage: four routing cards, required destination links, a print/save button, four source-confidence cards, external source-link attributes, and `fuse quick sheet` / `quick sheet sources` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
@@ -90,6 +90,8 @@ Last updated: 2026-05-16
 - Added a Quick Sheet print/save-PDF button, print-specific CSS that hides injected navigation/support controls and keeps quick-sheet content readable on paper/PDF, and a reusable `print-page` shared UI action.
 - Added search coverage for `fuse quick sheet` / printable fuse quick-sheet phrases and extended `Invoke-BrowserSmoke.ps1` with durable Quick Sheet Fuse Triage assertions.
 - Bumped the service worker cache to `ridgeline-console-v258`.
+- Added `quick-sheet.html#source-confidence` with visible source-confidence notes and links for the emergency card, marked battery size/CCA as common replacement references, marked bolt pattern/center bore as fitment-reference values, and added search/smoke coverage for `quick sheet sources`.
+- Bumped the service worker cache to `ridgeline-console-v259`.
 
 ## Known Cautions
 
@@ -99,7 +101,7 @@ Last updated: 2026-05-16
 
 ## Best Next Task
 
-Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, and quick-sheet fuse triage route are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile density pass on the printed quick sheet or a stronger source-citation pass for the existing quick-sheet facts.
+Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources. The per-box source-status notes, first-pass visible acronym glossaries, quick-sheet fuse triage route, and quick-sheet Source Confidence section are present; the remaining work is deeper position/rating confirmation and conflict resolution where sources disagree. A good non-data follow-up is a mobile/print density pass after real-device review.
 
 ## Next Verification Target
 
@@ -175,3 +177,8 @@ After the next UI change:
 - Attempted `Invoke-BrowserSmoke.ps1` for `quick-sheet.html`, `diagnostics.html`, and `cabin.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
 - Ran Playwright/Chrome fallback verification for `quick-sheet.html`; verified the Fuse Triage section renders, exposes four routing cards, links to the expected Diagnostics/Cabin targets, has no desktop or iPhone-width horizontal overflow, `fuse quick sheet` returns the Fuse Triage Quick Sheet search result, Search closes without leaving `modal-open`, and print media hides injected navigation/support controls while keeping `#fuse-triage` visible.
 - Captured screenshots under `debug-screenshots/audit-v258-quick-sheet-desktop.png`, `debug-screenshots/audit-v258-quick-sheet-mobile-fuse-triage.png`, `debug-screenshots/audit-v258-search-fuse-quick-sheet-mobile.png`, and `debug-screenshots/audit-v258-quick-sheet-print-preview.png`.
+- Used Honda Info Center towing/specification pages, the Honda 2019 Ridgeline owner-manual PDF, and Honda accessory wheel instructions, accessed 2026-05-16, for the quick-sheet source-confidence pass: https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/, https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/, https://techinfo.honda.com/rjanisis/pubs/OM/AH/ATHR1919OM/enu/ATHR1919OM.PDF, and https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Attempted `Invoke-BrowserSmoke.ps1` for `quick-sheet.html`; Edge `--dump-dom` again rendered without the main landmark before interaction checks.
+- Ran Playwright/Chrome fallback verification for `quick-sheet.html#source-confidence`; verified desktop and iPhone-width rendering, four source-confidence cards, external source links with `target="_blank"` and `rel="noreferrer"`, no horizontal overflow, `quick sheet sources` search coverage, Search Escape cleanup, and print media preserving `#source-confidence` while hiding header/actions.
+- Captured screenshots under `debug-screenshots/audit-v259-quick-sheet-desktop-source-confidence.png`, `debug-screenshots/audit-v259-quick-sheet-mobile-source-confidence.png`, `debug-screenshots/audit-v259-search-quick-sheet-sources-mobile.png`, and `debug-screenshots/audit-v259-quick-sheet-print-source-confidence.png`.

@@ -245,6 +245,26 @@ function Invoke-InteractionSmoke {
         assert(triage.querySelector(`a[href="${href}"]`), "fuse triage is missing route " + href);
       });
       assert(doc.querySelector("[data-print-page]"), "quick sheet is missing print/save button");
+      const sources = doc.querySelector("#source-confidence");
+      assert(sources, "quick sheet is missing source confidence section");
+      const sourceCards = [...sources.querySelectorAll(".quick-sheet-source-grid .dashboard-card")];
+      assert(sourceCards.length === 4, "source confidence should expose four confidence cards");
+      const sourceText = sources.textContent || "";
+      ["door placard", "owner's manual", "accessory wheel instructions", "installed battery label"].forEach((phrase) => {
+        assert(sourceText.includes(phrase), "source confidence is missing note: " + phrase);
+      });
+      const requiredSourceLinks = [
+        "https://techinfo.honda.com/rjanisis/pubs/OM/AH/ATHR1919OM/enu/ATHR1919OM.PDF",
+        "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/",
+        "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/",
+        "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
+      ];
+      requiredSourceLinks.forEach((href) => {
+        const link = sources.querySelector(`a[href="${href}"]`);
+        assert(link, "source confidence is missing external link " + href);
+        assert(link.target === "_blank", "source link should open in a new tab " + href);
+        assert((link.rel || "").includes("noreferrer"), "source link should use noreferrer " + href);
+      });
     };
 
     assertPageReady();
@@ -285,6 +305,7 @@ function Invoke-InteractionSmoke {
     assert((await setSearchQuery("trailer lights not working")).includes("Trailer-Light Issue Flow"), "trailer lights not working did not surface the trailer-light workflow");
     assert((await setSearchQuery("workflow index")).includes("Diagnostics Workflow Index"), "workflow index did not surface the diagnostics workflow index");
     assert((await setSearchQuery("fuse quick sheet")).includes("Fuse Triage Quick Sheet"), "fuse quick sheet did not surface the quick-sheet triage entry");
+    assert((await setSearchQuery("quick sheet sources")).includes("Quick Sheet Source Confidence"), "quick sheet sources did not surface the source confidence entry");
     pressEscape();
     await sleep(150);
     assert(searchModal.hidden === true, "Escape did not close search modal");

@@ -22,7 +22,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Hood and Cabin fuse pages include visible Fuse Label Glossary sections generated from existing fuse-table labels so common shorthand is easier to understand without changing fuse data.
 - Quick Sheet includes a Fuse Triage section that routes common fuse/electrical symptoms to existing Diagnostics workflows and Cabin glossary references without changing fuse data.
-- Quick Sheet has print-specific CSS for paper/PDF use, hiding injected navigation/support controls and preserving the emergency card plus fuse-triage content.
+- Quick Sheet includes a Source Confidence section that exposes truck-label priority, Honda references, accessory wheel instructions, and weaker replacement-battery / fitment-reference cautions.
+- Quick Sheet has print-specific CSS for paper/PDF use, hiding injected navigation/support controls and preserving the emergency card, fuse-triage content, and source-confidence notes.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
 - The sticky header includes a compact current-page chip, and the full-site menu marks the matching page with `aria-current` and a visible Current badge.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
@@ -125,3 +126,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Static internal link/anchor audit passed for 16 HTML files.
 - Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `quick-sheet.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Quick Sheet rendering, no horizontal overflow, search result coverage, Search Escape cleanup, and print-media visibility/hiding checks.
 - Screenshots captured under `debug-screenshots/audit-v258-quick-sheet-desktop.png`, `debug-screenshots/audit-v258-quick-sheet-mobile-fuse-triage.png`, `debug-screenshots/audit-v258-search-fuse-quick-sheet-mobile.png`, and `debug-screenshots/audit-v258-quick-sheet-print-preview.png`.
+- Added Quick Sheet Source Confidence, source-link/search browser-smoke assertions, visible common-replacement/fitment-reference cautions for weaker quick-sheet facts, and bumped the service worker cache to `ridgeline-console-v259`.
+- Static internal link/anchor audit passed for 16 HTML files.
+- Edge `--dump-dom` still failed before interaction checks by rendering without the main landmark for `quick-sheet.html`; Playwright/Chrome fallback passed for desktop and iPhone-width Source Confidence rendering, no horizontal overflow, external source-link attributes, `quick sheet sources` search coverage, Search Escape cleanup, and print-media visibility/hiding checks.
+- Screenshots captured under `debug-screenshots/audit-v259-quick-sheet-desktop-source-confidence.png`, `debug-screenshots/audit-v259-quick-sheet-mobile-source-confidence.png`, `debug-screenshots/audit-v259-search-quick-sheet-sources-mobile.png`, and `debug-screenshots/audit-v259-quick-sheet-print-source-confidence.png`.
