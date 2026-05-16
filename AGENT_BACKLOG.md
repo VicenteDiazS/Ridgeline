@@ -15,7 +15,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Deepen source notes with exact owner-manual/page or cover-label references as reliable sources are captured.
 - Add clearer acronym definitions for fuse circuits.
 - Expand the Fuse Symptom Finder with more symptoms only when the route can point to existing references or reliable sources without inventing fuse facts.
-- Add a focused accessory-power / 12V outlet mini-flow that routes dead charger/socket symptoms into existing Cabin/Hood fuse, garage-note, and quick-check references without changing fuse facts.
+- Accessory-power / 12V outlet mini-flow completed 2026-05-16; deepen it only if stronger sources or user needs appear.
 - Add print-friendly symptom-to-fuse quick sheets after the underlying fuse-source validation is deeper.
 - Add print-friendly fuse reference sheets.
 
@@ -26,6 +26,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - 2026-05-15: Corrected Maintenance Minder code content against official Honda owner PDFs, accessed 2026-05-15: https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Maintenance_Minder_System.pdf, https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2020%2FRidgeline%2FMY20_Ridgeline_Maintenance_Minder_System.pdf, and https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2017%2FRidgeline%2F2017_Ridgeline_Maintenance_Minder_System.pdf. The durable rule is: 2017-2020 Ridgeline Maintenance Minder sub-items are 1-6 in these Honda PDFs; brake fluid is tracked separately as a 3-year calendar item, not as site code 7/B127.
 - 2026-05-16: Added the No-Start Workflow using official Honda source support, accessed 2026-05-16: https://techinfo.honda.com/rjanisis/pubs/OM/AH/AT6Z1919OM/enu/AT6Z1919OMEN.PDF and https://techinfo.honda.com/rjanisis/pubs/QS/AH/BTJB1919GW/enu/GUID-C68F4997-76C9-42F4-9101-6ACD79C71899.html. The workflow routes no-crank/slow-crank/normal-crank owner language to existing battery, fuse, garage-note, and emergency-card references; no repair specifications, fuse ratings, or fuse positions were changed.
 - 2026-05-16: Added the Trailer-Light Issue Flow using Honda 2019 Ridgeline feature-guide source support, accessed 2026-05-16: https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Engine-Chassis-Features/Towing-Capacity/. The workflow routes trailer brake/turn/running/reverse light, 7-way connector, adapter, and repeat-setup owner language to existing hitch, pinout, hood fuse, and garage-note references; no trailer wiring facts, fuse ratings, pin assignments, or repair specifications were changed.
+- 2026-05-16: Added the Accessory Power Issue Flow using Honda 2019 Ridgeline owner-manual source support, accessed 2026-05-16: https://cdn.dealereprocess.org/cdn/servicemanuals/honda/2019-ridgeline.pdf. The workflow routes dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power owner language to existing Cabin/Hood fuse, battery, quick-check, and garage-note references; no fuse ratings, fuse positions, inverter facts, or repair specifications were changed.
 
 ## Navigation And UX
 
@@ -48,7 +49,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Add maintenance interval views by mileage and job type.
 - Expand garage log templates for common Ridgeline jobs.
 - Add common problem diagnosis paths with confidence/source notes.
-- Expand guided diagnostics with an accessory-power mini-flow that reuses existing Cabin/Hood references.
+- Expand guided diagnostics with an audio/radio/display mini-flow that reuses existing Cabin/Hood references.
 - Add parts cross-reference tables with source dates.
 - Add mobile-friendly emergency/roadside mode.
 

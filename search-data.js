@@ -151,6 +151,28 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Accessory Power Issue Flow",
+    url: "diagnostics.html#accessory-power-workflow",
+    category: "Diagnostics",
+    excerpt: "Owner-language routing for dead phone charger, 12V socket, front accessory socket, console socket, overload, and repeat accessory-power checks.",
+    keywords: [
+      "accessory power issue",
+      "accessory power flow",
+      "accessory socket not working",
+      "power outlet not working",
+      "12v outlet not working",
+      "12 volt outlet not working",
+      "charger not working",
+      "phone charger dead",
+      "cigarette lighter not working",
+      "front outlet dead",
+      "console outlet dead",
+      "inverter not working",
+      "socket overload",
+      "outlet fuse"
+    ]
+  },
+  {
     title: "Trailer Light Fuse Search",
     url: "hood.html#fuses",
     category: "Electrical",
@@ -384,6 +406,7 @@ export const searchIndex = [
       "fuse symptom",
       "electrical symptom",
       "outlet not working",
+      "accessory socket not working",
       "charger dead",
       "trailer brake lights",
       "trailer turn signals",

@@ -23,6 +23,7 @@ Current focus areas:
 - Fuse and electrical symptom workflows that guide from common words to existing sourced tables.
 - No-start and roadside diagnostic workflows that start from owner-visible symptoms and route into existing battery, fuse, emergency, and garage-log references.
 - Trailer-light workflows that start from connector, adapter, and owner-visible light symptoms before routing to existing hitch, pinout, fuse, and garage-log references.
+- Accessory-power workflows that start from power mode, device/load, and which outlet failed before routing to existing fuse and garage-log references.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable.
@@ -54,7 +55,7 @@ Create non-safety-critical guided paths for common owner problems.
 Candidate slices:
 
 - Trailer-light issue flow using existing fuse-table, hitch connector, and adapter references. Completed 2026-05-16 as `diagnostics.html#trailer-light-workflow`; future work should deepen it only if stronger sources or user needs appear.
-- Accessory power / 12V outlet issue flow.
+- Accessory power / 12V outlet issue flow. Completed 2026-05-16 as `diagnostics.html#accessory-power-workflow`; future work should deepen it only if stronger sources or user needs appear.
 - Audio/radio/display symptom path.
 
 ### Parts And Supplies Companion

@@ -37,6 +37,7 @@
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
             <a class="utility-link" href="#no-start-workflow">No-Start Workflow</a>
             <a class="utility-link" href="#trailer-light-workflow">Trailer Light Flow</a>
+            <a class="utility-link" href="#accessory-power-workflow">Accessory Power Flow</a>
             <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptom Finder</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -81,7 +82,7 @@
             <table class="fuse-table quick-table" aria-label="Diagnostic quick checks">
               <tr><th>Symptom</th><th>First check</th><th>Best page</th></tr>
               <tr><td>No crank</td><td>Battery condition, terminal tightness, jump setup</td><td><a href="#no-start-workflow">No-start workflow</a></td></tr>
-              <tr><td>Accessory socket dead</td><td>Interior accessory fuse and outlet-specific circuit</td><td><a href="cabin.html#fuses">Cabin fuses</a></td></tr>
+              <tr><td>Accessory socket dead</td><td>Power mode, device/load, and outlet-specific circuit</td><td><a href="#accessory-power-workflow">Accessory power flow</a></td></tr>
               <tr><td>Trailer lights dead</td><td>Connector type, adapter, trailer-light fuse paths</td><td><a href="#trailer-light-workflow">Trailer light flow</a></td></tr>
               <tr><td>Tailgate issue</td><td>Tailgate-related fuses, latch behavior, battery voltage</td><td><a href="hood.html#fuses">Engine fuses</a></td></tr>
               <tr><td>Need service number fast</td><td>Torque, fluids, bulbs, maintenance rhythm</td><td><a href="maintenance.html">Maintenance</a></td></tr>
@@ -135,6 +136,54 @@
               <strong>Source note:</strong> Honda's 2019 Ridgeline owner manual lists Engine Does Not Start, Jump Starting, Fuses, and Emergency Towing under Handling the Unexpected. Honda's 2019 Ridgeline Owner's Guide jump-starting page also emphasizes turning off electrical devices and using a 12-volt booster battery. This workflow only routes to existing site references and does not change repair specifications.
             </p>
           </article>
+          <article class="tech-card span-2" id="accessory-power-workflow">
+            <h3>Accessory Power Issue Flow</h3>
+            <p>
+              Use this when a phone charger, 12V plug, front accessory socket, console socket, or small inverter is not working.
+              It keeps the first pass focused on power mode, device load, and which outlet failed before you open the fuse tables.
+            </p>
+            <div class="fuse-finder-grid" aria-label="Accessory power diagnostic routing">
+              <article class="fuse-finder-card">
+                <span>Power mode</span>
+                <strong>Confirm when the socket should be alive</strong>
+                <p>Honda says the accessory power sockets work in ACCESSORY or ON. If the truck is off, retest with the proper power mode before chasing a fuse.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+                  <a class="utility-link" href="hood.html#wiring">Battery / Jump</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>One socket</span>
+                <strong>Only the front or console socket is dead</strong>
+                <p>Try a known-good low-load charger, inspect the socket for debris, then use cabin accessory-socket entries for the outlet-specific path.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+                  <a class="utility-link" href="cabin.html#area-journal">Cabin Journal</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>All sockets</span>
+                <strong>Every 12V outlet or charger path is dead</strong>
+                <p>Compare cabin and under-hood accessory-power entries, then record whether other cabin electronics are acting normal.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
+                  <a class="utility-link" href="#fuse-symptom-finder">Fuse Symptoms</a>
+                </div>
+              </article>
+              <article class="fuse-finder-card">
+                <span>Repeat issue</span>
+                <strong>The same charger, adapter, or inverter keeps failing</strong>
+                <p>Log the device, rated load, socket used, and fuse result so future accessory problems start from known history.</p>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+                  <a class="utility-link" href="#quick-checks">Quick Checks</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              <strong>Source note:</strong> Honda's 2019 Ridgeline owner manual says the accessory power sockets can be used in ACCESSORY or ON, are designed for 12-volt DC accessories, and warns against overloading or using them in a way that drains the battery. This workflow routes to existing site references and does not change fuse ratings, fuse positions, or repair specifications.
+            </p>
+          </article>
           <article class="tech-card span-2" id="fuse-symptom-finder">
             <h3>Fuse Symptom Finder</h3>
             <p>
@@ -147,8 +196,8 @@
                 <strong>12V socket or phone charger is dead</strong>
                 <p>Check cabin accessory-socket entries first, then under-hood accessory power if the symptom spans more than one outlet.</p>
                 <div class="inspector-actions">
+                  <a class="utility-link" href="#accessory-power-workflow">Accessory Flow</a>
                   <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
-                  <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
                 </div>
               </article>
               <article class="fuse-finder-card">
@@ -243,8 +292,9 @@
           </article>
           <article class="system-card">
             <h3>Accessory Socket Dead</h3>
-            <p>Check the center accessory socket fuse and the cabin / under-hood related accessory circuits.</p>
+            <p>Confirm power mode and device load first, then check the cabin / under-hood related accessory circuits.</p>
             <div class="inspector-actions">
+              <a class="utility-link" href="#accessory-power-workflow">Accessory Power Flow</a>
               <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
               <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             </div>
