@@ -34,6 +34,7 @@ Current focus areas:
 - Filtered diagnostic-activity JSON download from the diagnostic activity panel, completed 2026-05-16. This is a derived handoff export for the current filter, separate from the restorable full Garage backup and without a storage migration.
 - Guarded local Garage restore from a downloaded backup, completed 2026-05-16 and tightened through audit-v270. The restore flow validates `ridgeline-garage-backup` JSON, previews recognized data areas in a visible mobile-friendly card, rejects diagnostic-activity handoffs, validates recognized section shapes, skips invalid recognized sections with visible status text, shows replace-vs-merge impact before import, enables restore only after at least one valid backup section is selected, and strips imported `dataUrl` image bytes from photo metadata before merge.
 - Reusable Garage restore audit coverage, completed 2026-05-16 as `tools/audit/Invoke-GarageRestoreAudit.ps1`. The Playwright/Chrome script covers file import validation, mixed valid/invalid backup preview, valid-section-only restore, imported-photo-byte stripping, restored area activity filtering, screenshots, and mobile/desktop overflow checks.
+- Garage restore preview clarity and nested hash-target reveal fix, completed 2026-05-16. Restore preview chips now show backup counts beside current local Garage counts, and `shared-ui.js` reveals all animated ancestors of a deep-link target so `garage.html#diagnostic-activity` does not land on invisible content.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders.
@@ -103,7 +104,7 @@ Candidate slices:
 - Better empty states.
 - More regression checks for drawers, modals, anchor jumps, and scrolling.
 - Thumb-reachable primary actions and no horizontal overflow at common iPhone widths.
-- Review Garage restore with a real user backup file before adding overwrite/merge conflict choices, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces. Reusable Playwright restore-validation coverage now exists; the next safe slice is reviewing Garage restore wording and mobile density against an actual user backup/export before adding conflict-resolution choices.
+- Review Garage restore with a real user backup file before adding overwrite/merge conflict choices, plus real-device review of the Diagnostics and Garage mobile density before adding more workflow surfaces. Reusable Playwright restore-validation coverage now exists and now checks hidden reveal ancestors plus backup/current preview labels; the next safe slice is folding this restore audit into the main site-audit wrapper or reviewing restore wording against an actual user backup/export before conflict-resolution choices.
 
 ## Research Queue
 

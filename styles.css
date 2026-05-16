@@ -5677,6 +5677,12 @@ kbd {
   font-size: 0.72rem;
 }
 
+.garage-backup-preview-chip small b {
+  margin-right: 3px;
+  color: var(--text);
+  font-weight: 700;
+}
+
 .diagnostic-activity-item,
 .diagnostic-activity-empty {
   display: grid;

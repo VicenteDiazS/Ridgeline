@@ -107,6 +107,43 @@ async def assert_no_overflow(page, label):
     assert_true(max_width <= overflow["clientWidth"] + 1, f"{label} has horizontal overflow: {overflow}")
 
 
+async def assert_restore_target_painted(page, label):
+    state = await page.evaluate(
+        """() => {
+            const target = document.querySelector("#diagnostic-activity");
+            if (!target) {
+                return { found: false };
+            }
+            const hiddenAncestor = [];
+            let node = target;
+            while (node) {
+                if (node.classList?.contains("section-reveal")) {
+                    const style = getComputedStyle(node);
+                    hiddenAncestor.push({
+                        id: node.id || "",
+                        className: node.className || "",
+                        opacity: Number(style.opacity)
+                    });
+                }
+                node = node.parentElement;
+            }
+            const rect = target.getBoundingClientRect();
+            return {
+                found: true,
+                top: rect.top,
+                bottom: rect.bottom,
+                hiddenAncestor,
+                text: target.innerText.slice(0, 160)
+            };
+        }"""
+    )
+    assert_true(state.get("found"), f"{label} target was not found")
+    assert_true(0 <= state["top"] <= 240, f"{label} target did not settle near top: {state}")
+    assert_true("RECENT DIAGNOSTICS" in state["text"], f"{label} target text missing: {state}")
+    hidden = [item for item in state["hiddenAncestor"] if item["opacity"] < 0.99]
+    assert_true(not hidden, f"{label} has hidden reveal ancestor: {hidden}")
+
+
 async def run_restore_audit(args):
     root = Path(args.root).resolve()
     screenshot_dir = root / "debug-screenshots"
@@ -189,6 +226,7 @@ async def run_restore_audit(args):
             preview = page.locator("#diagnostic-activity [data-garage-backup-preview]")
             assert_true(await restore_button.is_disabled(), "restore button should start disabled")
             assert_true(await preview.evaluate("node => node.hidden"), "backup preview should start hidden")
+            await assert_restore_target_painted(page, "initial mobile Garage restore")
             await assert_no_overflow(page, "initial mobile Garage restore")
 
             await set_backup_file(page, diagnostic_handoff)
@@ -206,6 +244,7 @@ async def run_restore_audit(args):
             text = await preview_text(page)
             assert_true("Backup ready to restore" in text, "valid backup preview title missing")
             assert_true("notes" in text and "truck profile" in text and "photo metadata" in text, "valid sections missing from preview")
+            assert_true("Backup" in text and "Current" in text, "backup/current count comparison missing from preview")
             assert_true("Skipped invalid" in text and "service log" in text, "invalid section skip message missing")
             assert_true("Will replace" in text and "Will merge" in text, "replace/merge impact text missing")
             assert_true("Download a fresh Garage backup first" in text, "pre-restore reminder missing from preview")

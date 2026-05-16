@@ -44,7 +44,9 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage Recent Diagnostic Activity includes a guarded Restore Backup flow that validates local `ridgeline-garage-backup` JSON, previews the recognized Garage data areas, rejects malformed JSON and diagnostic-activity handoffs, and keeps restore disabled until a valid backup is selected.
 - Garage Restore Backup includes a visible preview card for recognized backup areas and sanitizes imported photo metadata so browser-local `dataUrl` image bytes are stripped before restoring top-level and area-journal photos.
 - Garage Restore Backup validates recognized backup sections by expected shape, skips invalid recognized sections, previews replace-vs-merge impact, and reminds the user to download a fresh backup before restoring.
+- Garage Restore Backup preview chips compare incoming backup counts with current local Garage counts so the user can see the rough import impact before restoring.
 - Garage Restore Backup has reusable Playwright audit coverage through `tools/audit/Invoke-GarageRestoreAudit.ps1`.
+- Deep-link navigation reveals every animated `.section-reveal` ancestor of the target, preventing nested hash targets from scrolling into an invisible parent container.
 - Garage Recent Diagnostic Activity filters the full derived activity list before applying the six-item display cap so category filters do not hide older matching records.
 - Diagnostics lower-page routing now only carries non-main "Other quick routes"; repeated no-start, accessory-power, trailer-light, and audio/display cards were removed from the bottom of the page after the Workflow Index became canonical.
 - Maintenance Minder guidance uses Honda Ridgeline sub-items 1-6 and records brake fluid as a separate 3-year calendar item rather than a code 7/B127 example.
@@ -192,3 +194,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Screenshots captured under `debug-screenshots/audit-v270-garage-restore-validation-mobile.png`, `debug-screenshots/audit-v270-garage-restore-complete-mobile.png`, and `debug-screenshots/audit-v270-garage-restore-desktop.png`.
 - Added `tools/audit/Invoke-GarageRestoreAudit.ps1` to make the Garage restore Playwright fallback reusable. It passed with `-Tag audit-v271`, covering handoff rejection, invalid-only rejection, mixed backup preview, valid-section-only restore, photo `dataUrl` stripping, restored area filter rendering, and mobile/desktop no-overflow checks.
 - Static internal link/anchor audit passed for 16 HTML files after the tooling addition.
+- Added Backup/Current count labels to the Garage Restore Backup preview and fixed nested hash-target reveal handling so `garage.html#diagnostic-activity` cannot remain hidden behind an opacity-0 parent section.
+- Extended `Invoke-GarageRestoreAudit.ps1` to verify the restore target has no hidden reveal ancestors and that the backup preview includes Backup/Current count comparison labels.
+- Bumped the service-worker cache to `ridgeline-console-v271`.
+- `Invoke-GarageRestoreAudit.ps1 -Tag audit-v273` passed, capturing `debug-screenshots/audit-v273-garage-restore-audit-mobile.png` and `debug-screenshots/audit-v273-garage-restore-audit-desktop.png`.
+- Static internal link/anchor audit passed for 16 HTML files after the restore preview and reveal fix.

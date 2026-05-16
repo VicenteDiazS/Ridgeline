@@ -76,6 +76,15 @@ const GARAGE_BACKUP_SHAPES = {
   [STORAGE.areaJournal]: "object",
   [STORAGE.profile]: "object"
 };
+const GARAGE_BACKUP_FALLBACKS = {
+  [STORAGE.notes]: {},
+  [STORAGE.tracker]: {},
+  [STORAGE.maintenanceLog]: [],
+  [STORAGE.photos]: [],
+  [STORAGE.favorites]: [],
+  [STORAGE.areaJournal]: {},
+  [STORAGE.profile]: {}
+};
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -490,6 +499,10 @@ function garageBackupValueCount(value) {
   return value ? "1 field" : "0 fields";
 }
 
+function currentGarageBackupCount(key) {
+  return garageBackupValueCount(loadJson(key, GARAGE_BACKUP_FALLBACKS[key]));
+}
+
 function garageBackupImpact(summary) {
   const replaceLabels = [];
   const mergeLabels = [];
@@ -560,7 +573,8 @@ function renderGarageBackupPreview(summary) {
           (entry) => `
             <span class="garage-backup-preview-chip">
               <b>${escapeHtml(entry.label)}</b>
-              <small>${escapeHtml(entry.count)}</small>
+              <small><b>Backup</b> ${escapeHtml(entry.count)}</small>
+              <small><b>Current</b> ${escapeHtml(currentGarageBackupCount(entry.key))}</small>
             </span>
           `
         )

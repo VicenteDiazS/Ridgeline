@@ -1079,7 +1079,11 @@ function revealNavigationTarget(target) {
   }
 
   target.classList?.add("is-visible");
-  target.closest(".section-reveal")?.classList.add("is-visible");
+  let revealParent = target.closest(".section-reveal");
+  while (revealParent) {
+    revealParent.classList.add("is-visible");
+    revealParent = revealParent.parentElement?.closest(".section-reveal");
+  }
   return true;
 }
 
