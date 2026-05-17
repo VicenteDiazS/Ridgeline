@@ -635,6 +635,12 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
           <button
             class="ghost-button"
             type="button"
+            data-copy-maintenance-needed-inline
+            ${summary.need ? "" : "disabled"}
+          >Copy Buy List</button>
+          <button
+            class="ghost-button"
+            type="button"
             data-maintenance-staging-bulk="stage-needed"
             ${summary.need ? "" : "disabled"}
           >Mark Need Staged</button>
@@ -1518,6 +1524,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const bulkButton = event.target.closest("[data-maintenance-staging-bulk]");
   if (bulkButton) {
     updateMaintenanceStagingBulk(bulkButton.dataset.maintenanceStagingBulk || "");
+    return;
+  }
+
+  const inlineNeededButton = event.target.closest("[data-copy-maintenance-needed-inline]");
+  if (inlineNeededButton) {
+    copyMaintenanceNeedList();
     return;
   }
 

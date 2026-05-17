@@ -551,10 +551,12 @@ async def assert_garage_features(page, page_name):
             const bulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-bulk]")] : [];
             const groupBulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-group-bulk]")] : [];
             const stagingRun = panel?.querySelector(".maintenance-staging-run");
+            const inlineBuyButton = panel?.querySelector("[data-copy-maintenance-needed-inline]");
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
                 copyStagingEnabled: copyStaging?.disabled === false,
                 copyNeededEnabled: copyNeeded?.disabled === false,
+                inlineBuyEnabled: inlineBuyButton?.disabled === false,
                 itemButtonCount: itemButtons.length,
                 stagingButtonCount: stagingButtons.length,
                 stagingToggleCount: stagingToggles.length,
@@ -579,6 +581,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["copyLatestEnabled"], "saved maintenance notes Copy Latest should enable after notes are present")
     assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
     assert_true(populated_state["copyNeededEnabled"], "saved maintenance notes Copy Buy List should enable after staging items are present")
+    assert_true(populated_state["inlineBuyEnabled"], "saved maintenance notes store-run summary should expose an enabled Copy Buy List")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
     assert_true(populated_state["stagingButtonCount"] >= 2, "saved maintenance notes preview should expose staging copy actions")
     assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
@@ -608,6 +611,10 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied maintenance staging list" in staging_status, "saved maintenance notes Copy Staging List did not report success")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-needed-inline]").click()
+    await page.wait_for_timeout(150)
+    inline_need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied need-to-buy list with 3 items" in inline_need_status, "inline store-run Copy Buy List did not report the initial need-to-buy count")
     await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.click()
     await page.wait_for_timeout(150)
     toggled_state = await page.evaluate(
@@ -686,6 +693,7 @@ async def assert_garage_features(page, page_name):
             return {
                 status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 runText: panel?.querySelector(".maintenance-staging-run")?.innerText || "",
+                inlineBuyDisabled: panel?.querySelector("[data-copy-maintenance-needed-inline]")?.disabled === true,
                 stageNeededDisabled: panel?.querySelector("[data-maintenance-staging-bulk='stage-needed']")?.disabled === true,
                 resetEnabled: panel?.querySelector("[data-maintenance-staging-bulk='reset-staged']")?.disabled === false,
                 dashboardUpdated: stagingCardText.includes("0 need / 3 staged")
@@ -694,6 +702,7 @@ async def assert_garage_features(page, page_name):
     )
     assert_true("Marked 2 need-to-buy items as staged" in bulk_stage_state["status"], "bulk stage-needed control did not report the changed count")
     assert_true("0 need to buy" in bulk_stage_state["runText"], "bulk stage-needed control should update the run summary")
+    assert_true(bulk_stage_state["inlineBuyDisabled"], "inline Copy Buy List should disable when no need-to-buy items remain")
     assert_true(bulk_stage_state["stageNeededDisabled"], "bulk stage-needed control should disable when no need-to-buy items remain")
     assert_true(bulk_stage_state["resetEnabled"], "bulk reset control should enable when staged items exist")
     assert_true(bulk_stage_state["dashboardUpdated"], "garage dashboard parts staging card should update after bulk staging")
@@ -707,6 +716,7 @@ async def assert_garage_features(page, page_name):
             return {
                 status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 runText: panel?.querySelector(".maintenance-staging-run")?.innerText || "",
+                inlineBuyEnabled: panel?.querySelector("[data-copy-maintenance-needed-inline]")?.disabled === false,
                 needEnabled: panel?.querySelector("[data-maintenance-staging-bulk='stage-needed']")?.disabled === false,
                 resetDisabled: panel?.querySelector("[data-maintenance-staging-bulk='reset-staged']")?.disabled === true,
                 dashboardUpdated: stagingCardText.includes("3 need / 0 staged")
@@ -715,6 +725,7 @@ async def assert_garage_features(page, page_name):
     )
     assert_true("Reset 3 staged items to need to buy" in bulk_reset_state["status"], "bulk reset control did not report the changed count")
     assert_true("3 need to buy" in bulk_reset_state["runText"], "bulk reset control should update the run summary")
+    assert_true(bulk_reset_state["inlineBuyEnabled"], "inline Copy Buy List should re-enable after reset")
     assert_true(bulk_reset_state["needEnabled"], "bulk stage-needed control should re-enable after reset")
     assert_true(bulk_reset_state["resetDisabled"], "bulk reset control should disable after all items return to need-to-buy")
     assert_true(bulk_reset_state["dashboardUpdated"], "garage dashboard parts staging card should update after bulk reset")
