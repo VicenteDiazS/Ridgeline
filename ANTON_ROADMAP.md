@@ -45,7 +45,8 @@ Current focus areas:
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders. Maintenance Minder Pocket Planner completed 2026-05-16 near `maintenance.html#minder`; it assembles A/B plus sub-item 1-6 checklist text from the existing Honda-sourced tables only, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, can save the generated checklist into local Garage Notes, and has no mileage prediction or brake-fluid sub-code.
 - Maintenance page iPhone density with both planners present, completed 2026-05-16. The page now has scoped mobile density rules, trimmed hero task chips, Update/Prep/Planner/More bottom actions, compact Service Prep cards, and browser-smoke coverage for the mobile layout.
 - Garage Recent Maintenance Notes preview, completed 2026-05-17 as `garage.html#maintenance-note-preview`. Garage now surfaces recent Service Prep and Maintenance Minder planner notes already saved in `ridgeline-notes.general_notes`, with search coverage and empty/populated browser-smoke checks, without changing Garage storage shape.
-- Next safe maintenance-planning slice: review the Garage Recent Maintenance Notes preview on the real iPhone/Garage Notes path before adding larger job templates, parts/inventory handoffs, or remote-sync conflict behavior.
+- Garage Recent Maintenance Notes handoff actions, completed 2026-05-17. The Garage preview now has Copy Latest, per-note Copy Note, Service Prep vs Maintenance Minder source-planner routes, Open Full Note links, and live copy status while still reading only existing `general_notes`.
+- Next safe maintenance-planning slice: review the Garage Recent Maintenance Notes copy/source actions on the real iPhone/Garage Notes path before adding larger job templates, parts/inventory handoffs, or remote-sync conflict behavior.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
@@ -91,7 +92,7 @@ Help the user prepare for service tasks without mixing vendor suggestions into f
 Candidate slices:
 
 - Parts list templates by job.
-- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`, including guarded local Garage Notes save for checked prep items; Maintenance Minder Pocket Planner completed 2026-05-16 on `maintenance.html#minder-pocket-planner`, including a guarded local Garage Notes save for built checklist text; Garage Recent Maintenance Notes preview completed 2026-05-17. Future work should review the saved-note confirmation path on the user's iPhone before adding larger parts or inventory flows.
+- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`, including guarded local Garage Notes save for checked prep items; Maintenance Minder Pocket Planner completed 2026-05-16 on `maintenance.html#minder-pocket-planner`, including a guarded local Garage Notes save for built checklist text; Garage Recent Maintenance Notes preview plus copy/source actions completed 2026-05-17. Future work should review the saved-note confirmation path on the user's iPhone before adding larger parts or inventory flows.
 - Source-date notes for vendor/catalog references.
 - Garage inventory and “need to buy” views.
 - Print-friendly job prep sheets.

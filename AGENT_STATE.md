@@ -50,7 +50,7 @@ Last updated: 2026-05-17
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
 - Manual full-access startup script exists at `tools/agent-loop/Start-AntonManual.ps1`.
-- Recent verification produced desktop/mobile screenshots in `debug-screenshots/` with the `audit-v241` tag.
+- Recent verification produced desktop/mobile screenshots in `debug-screenshots/` with the `audit-v280-maintenance-note-actions` tag.
 
 ## Last Completed Work
 
@@ -312,4 +312,8 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Garage/Maintenance smoke passed.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v279-maintenance-notes-final -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
 - Captured direct Playwright screenshots at `debug-screenshots/audit-v279-maintenance-notes-mobile-garage.png` and `debug-screenshots/audit-v279-maintenance-notes-desktop-garage.png`.
-- Next safe slice: real-device review of the new Garage Recent Maintenance Notes preview on the user's iPhone before adding larger job templates, inventory/parts handoffs, or remote-sync conflict behavior.
+- Added Garage Recent Maintenance Notes handoff actions: Copy Latest, per-note Copy Note, source-planner links for Service Prep vs Maintenance Minder notes, Open Full Note routes, live copy/status text, search metadata, and browser-smoke coverage. The flow still reads existing `ridgeline-notes.general_notes` and does not change Garage storage schema.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Garage/Maintenance smoke passed after fixing the note-card index render bug.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v280-maintenance-note-actions -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
+- Captured direct Playwright screenshots at `debug-screenshots/audit-v280-maintenance-note-actions-mobile-garage.png` and `debug-screenshots/audit-v280-maintenance-note-actions-desktop-garage.png`.
+- Next safe slice: review the Garage Recent Maintenance Notes copy actions on the real iPhone path, then add a parts/supplies staging handoff only if the saved-note action panel feels clear enough beside the truck.

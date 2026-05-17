@@ -448,6 +448,10 @@ async def assert_garage_features(page, page_name):
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
                 hasMaintenanceNotes: Boolean(maintenanceNotes),
+                hasMaintenanceNoteCopy: Boolean(document.querySelector("#maintenance-note-preview [data-copy-maintenance-note]")),
+                maintenanceNotesEmpty: Boolean(maintenanceNotes?.textContent.includes("No saved maintenance planner notes yet.")),
+                maintenanceNotesPopulated: Boolean(maintenanceNotes?.querySelector(".maintenance-note-item")),
+                maintenanceNoteCopyDisabled: document.querySelector("#maintenance-note-preview [data-copy-maintenance-note]")?.disabled === true,
                 maintenanceNotesRender: Boolean(maintenanceNotes?.textContent.includes("No saved maintenance planner notes yet.") || maintenanceNotes?.querySelector(".maintenance-note-item")),
                 maintenanceNoteHasRoutes: Boolean(document.querySelector('#maintenance-note-preview a[href="maintenance.html#service-prep"]')) &&
                     (maintenanceNoteText.includes("Open Minder Planner") || Boolean(maintenanceNotes?.querySelector('.maintenance-note-item a[href="#notes"]'))),
@@ -478,6 +482,11 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
     assert_true(state["hasMaintenanceNotes"], "garage dashboard is missing saved maintenance notes preview")
+    assert_true(state["hasMaintenanceNoteCopy"], "saved maintenance notes preview is missing Copy Latest")
+    if state["maintenanceNotesEmpty"]:
+        assert_true(state["maintenanceNoteCopyDisabled"], "saved maintenance notes Copy Latest should start disabled when no planner notes exist")
+    if state["maintenanceNotesPopulated"]:
+        assert_true(not state["maintenanceNoteCopyDisabled"], "saved maintenance notes Copy Latest should enable when planner notes exist")
     assert_true(state["maintenanceNotesRender"], "saved maintenance notes preview is not rendering an empty or populated state")
     assert_true(state["maintenanceNoteHasRoutes"], "saved maintenance notes preview is missing planner routes")
     for key, message in [
@@ -510,6 +519,33 @@ async def assert_garage_features(page, page_name):
     note_preview = await page.locator("#maintenance-note-preview [data-maintenance-note-preview]").inner_text()
     assert_true("Maintenance Minder A1 planner" in note_preview, "saved maintenance notes preview did not show Minder planner note")
     assert_true("Oil Change Prep" in note_preview, "saved maintenance notes preview did not show Service Prep note")
+    populated_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const copyLatest = panel?.querySelector("[data-copy-maintenance-note]");
+            const itemButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-note-index]")] : [];
+            return {
+                copyLatestEnabled: copyLatest?.disabled === false,
+                itemButtonCount: itemButtons.length,
+                hasPrepRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="maintenance.html#service-prep"]')),
+                hasMinderRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="maintenance.html#minder-pocket-planner"]')),
+                hasFullNoteRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="#notes"]'))
+            };
+        }"""
+    )
+    assert_true(populated_state["copyLatestEnabled"], "saved maintenance notes Copy Latest should enable after notes are present")
+    assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
+    assert_true(populated_state["hasPrepRoute"], "saved maintenance notes preview is missing Service Prep planner route on populated notes")
+    assert_true(populated_state["hasMinderRoute"], "saved maintenance notes preview is missing Minder planner route on populated notes")
+    assert_true(populated_state["hasFullNoteRoute"], "saved maintenance notes preview is missing the full notes route on populated notes")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-note]").click()
+    await page.wait_for_timeout(150)
+    latest_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied Maintenance Minder A1 planner" in latest_status, "saved maintenance notes Copy Latest did not report the copied latest note")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-note-index='1']").click()
+    await page.wait_for_timeout(150)
+    second_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied Oil Change Prep" in second_status, "saved maintenance note item copy did not report the copied note")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     garage_mobile_state = await page.evaluate(

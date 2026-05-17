@@ -5892,6 +5892,11 @@ kbd {
   margin: 0 0 10px;
 }
 
+.maintenance-note-status {
+  min-height: 1.2em;
+  margin: 0 0 10px;
+}
+
 .garage-backup-help {
   display: grid;
   gap: 4px;
@@ -6015,6 +6020,12 @@ kbd {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
+}
+
+.maintenance-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .truck-dashboard-card {
@@ -8631,6 +8642,10 @@ kbd {
   }
 
   .diagnostic-activity-tools .ghost-button {
+    width: 100%;
+  }
+
+  .maintenance-note-actions .utility-link {
     width: 100%;
   }
 

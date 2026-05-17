@@ -102,11 +102,15 @@
                   <p class="eyebrow">Recent maintenance notes</p>
                   <h4>Prep And Minder Checklists Saved From Maintenance</h4>
                 </div>
-                <a class="utility-link" href="maintenance.html#service-prep">Open Prep Planner</a>
+                <div class="inspector-actions">
+                  <button class="utility-link" type="button" data-copy-maintenance-note>Copy Latest</button>
+                  <a class="utility-link" href="maintenance.html#service-prep">Open Prep Planner</a>
+                </div>
               </div>
               <p class="small-note">
-                Quick confirmation that saved Service Prep and Maintenance Minder planner notes landed in Garage.
+                Quick confirmation and handoff actions for saved Service Prep and Maintenance Minder planner notes.
               </p>
+              <p class="small-note maintenance-note-status" data-maintenance-note-status aria-live="polite"></p>
               <div class="maintenance-note-list" data-maintenance-note-preview></div>
             </div>
           </article>

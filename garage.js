@@ -25,6 +25,8 @@ const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
+const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
+const maintenanceNoteStatus = document.querySelector("[data-maintenance-note-status]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
 const diagnosticActivityDownloadButton = document.querySelector("[data-download-diagnostic-activity]");
@@ -318,6 +320,14 @@ function isMaintenanceNoteTitle(value = "") {
   );
 }
 
+function maintenanceNotePlannerLink(title = "") {
+  return /\bmaintenance minder\b/i.test(`${title}`) ? "maintenance.html#minder-pocket-planner" : "maintenance.html#service-prep";
+}
+
+function maintenanceNotePlannerLabel(title = "") {
+  return /\bmaintenance minder\b/i.test(`${title}`) ? "Open Minder Planner" : "Open Prep Planner";
+}
+
 function getMaintenanceNoteItems() {
   const notes = loadJson(STORAGE.notes, {});
   const generalNotes = `${notes.general_notes || ""}`.trim();
@@ -339,11 +349,20 @@ function getMaintenanceNoteItems() {
     blocks.push({
       title,
       meta: heading,
-      detail: shortText(body || title, 180)
+      detail: shortText(body || title, 180),
+      copyText: `[${heading}]\n${body || title}`,
+      href: maintenanceNotePlannerLink(title),
+      hrefLabel: maintenanceNotePlannerLabel(title)
     });
   }
 
   return blocks.slice(0, 4);
+}
+
+function setMaintenanceNoteStatus(message = "") {
+  if (maintenanceNoteStatus) {
+    maintenanceNoteStatus.textContent = message;
+  }
 }
 
 function filterDiagnosticActivityItems(items = getDiagnosticActivityItems()) {
@@ -963,6 +982,10 @@ function renderMaintenanceNotePreview() {
   }
 
   const items = getMaintenanceNoteItems();
+  setMaintenanceNoteStatus(items.length ? `Showing ${items.length} recent saved planner note${items.length === 1 ? "" : "s"}.` : "");
+  if (maintenanceNoteCopyButton) {
+    maintenanceNoteCopyButton.disabled = !items.length;
+  }
   if (!items.length) {
     maintenanceNotePreview.innerHTML = `
       <article class="maintenance-note-empty">
@@ -979,16 +1002,37 @@ function renderMaintenanceNotePreview() {
 
   maintenanceNotePreview.innerHTML = items
     .map(
-      (item) => `
+      (item, index) => `
         <article class="maintenance-note-item">
           <span>${escapeHtml(item.meta)}</span>
           <strong>${escapeHtml(item.title)}</strong>
           <p>${escapeHtml(item.detail)}</p>
-          <a class="utility-link" href="#notes">Open Full Note</a>
+          <div class="maintenance-note-actions">
+            <button class="utility-link" type="button" data-copy-maintenance-note-index="${index}">Copy Note</button>
+            <a class="utility-link" href="${item.href}">${item.hrefLabel}</a>
+            <a class="utility-link" href="#notes">Open Full Note</a>
+          </div>
         </article>
       `
     )
     .join("");
+}
+
+function copyMaintenanceNote(index = 0) {
+  const items = getMaintenanceNoteItems();
+  const item = items[index];
+  if (!item) {
+    setMaintenanceNoteStatus("No saved maintenance planner notes to copy yet.");
+    return;
+  }
+
+  copyText(item.copyText)
+    .then(() => {
+      setMaintenanceNoteStatus(`Copied ${item.title}.`);
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not copy automatically. Open the full note and copy it manually.");
+    });
 }
 
 diagnosticActivityFilter?.addEventListener("change", () => {
@@ -1009,6 +1053,15 @@ diagnosticActivityCopyButton?.addEventListener("click", () => {
 
 diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticActivity);
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
+maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));
+maintenanceNotePreview?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copy-maintenance-note-index]");
+  if (!button) {
+    return;
+  }
+
+  copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
+});
 
 async function renderGaragePage() {
   hydrateGarageForms();

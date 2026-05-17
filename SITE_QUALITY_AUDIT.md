@@ -54,7 +54,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Maintenance includes a Maintenance Minder Pocket Planner that turns entered dash codes like A1, B12, or B4 into copyable checklists from the existing A/B and sub-item 1-6 guide, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, and avoids mileage prediction or brake-fluid sub-code wording.
 - Maintenance Minder Pocket Planner includes a guarded Save Note action that saves the generated checklist into local Garage Notes after rebuilding from the current input, preserving the brake-fluid calendar-service caution and avoiding a Garage schema change.
 - Maintenance has page-scoped iPhone density rules for its planning tools: six primary hero task links, Update/Prep/Planner/More bottom actions, compact two-column Service Prep cards at common iPhone width, and browser-smoke assertions for the mobile layout.
-- Garage Dashboard includes a Recent Maintenance Notes preview that surfaces Service Prep and Maintenance Minder planner notes already saved into `ridgeline-notes.general_notes`, with empty/populated states and no Garage schema change.
+- Garage Dashboard includes a Recent Maintenance Notes preview that surfaces Service Prep and Maintenance Minder planner notes already saved into `ridgeline-notes.general_notes`, with empty/populated states, Copy Latest, per-note Copy Note, source-planner routes, Open Full Note links, live status text, and no Garage schema change.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -238,3 +238,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')` passed after the preview slice.
 - `Invoke-SiteAudit.ps1 -Tag audit-v279-maintenance-notes-final -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
 - Direct Playwright screenshots were captured under `debug-screenshots/audit-v279-maintenance-notes-mobile-garage.png` and `debug-screenshots/audit-v279-maintenance-notes-desktop-garage.png`.
+- Added Garage maintenance-note handoff actions: Copy Latest, per-note Copy Note, source-planner links, Open Full Note routes, and live copy status while continuing to parse existing `general_notes`.
+- `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')` passed after the action slice.
+- `Invoke-SiteAudit.ps1 -Tag audit-v280-maintenance-note-actions -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
+- Direct Playwright screenshots were captured under `debug-screenshots/audit-v280-maintenance-note-actions-mobile-garage.png` and `debug-screenshots/audit-v280-maintenance-note-actions-desktop-garage.png`.
