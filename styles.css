@@ -5900,6 +5900,27 @@ kbd {
   margin: 0;
 }
 
+.maintenance-staging-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.maintenance-staging-guide span {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(8, 16, 28, 0.46);
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.maintenance-staging-guide strong {
+  color: var(--text);
+}
+
 .maintenance-staging-filter {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -8850,6 +8871,10 @@ kbd {
 
   .maintenance-parts-card {
     padding: 12px;
+  }
+
+  .maintenance-staging-guide {
+    grid-template-columns: 1fr;
   }
 
   .maintenance-staging-run {

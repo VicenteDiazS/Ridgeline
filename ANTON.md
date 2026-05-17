@@ -199,3 +199,4 @@ Anton may add a short "Learned" or "User Note" entry when:
 - For Garage staging workflows used at a parts counter, prefer fast local-only bulk actions at both whole-list and per-note scope before adding durable inventory schema.
 - For high-use iPhone Garage handoffs, keep the primary action near the working context as well as in the section header; for example, staging copy actions should be reachable beside the need/staged summary without scrolling back up.
 - For planner-to-Garage workflows, prefer a direct save-and-open destination action when the user naturally wants to continue the task elsewhere; keep the regular save action too so the route is optional.
+- When a derived Garage tool stores helper state outside Garage backup/sync, explain that boundary directly in the working panel and also explain why some source notes may be visible but skipped by the derived parser.

@@ -513,6 +513,23 @@ function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
   return { groups: groups.length, total, staged, need };
 }
 
+function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
+  const summary = getMaintenanceStagingSummary(items);
+  const skipped = Math.max(items.length - summary.groups, 0);
+  const skippedText =
+    skipped > 0
+      ? `${skipped} saved note${skipped === 1 ? "" : "s"} visible below did not include detected parts, tools, or supplies.`
+      : "Every detected saved planner note has staging lines.";
+
+  return `
+    <div class="maintenance-staging-guide" data-maintenance-staging-guide>
+      <span><strong>${summary.total}</strong> staging line${summary.total === 1 ? "" : "s"} from saved notes</span>
+      <span>Need/Staged toggles stay on this iPhone in local browser storage, outside Garage backup and sync.</span>
+      <span>${escapeHtml(skippedText)}</span>
+    </div>
+  `;
+}
+
 function updateMaintenanceStagingBulk(action = "") {
   const items = getMaintenanceNoteItems();
   const groups = items
@@ -601,8 +618,9 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
     maintenancePartsPreview.innerHTML = items.length
       ? `
         <article class="maintenance-parts-card maintenance-parts-empty">
+          ${maintenanceStagingGuideMarkup(items)}
           <strong>No staging items detected yet.</strong>
-          <p>Saved notes are visible below. Add checked Service Prep items when you want this panel to build a parts-counter list.</p>
+          <p>Saved notes are visible below. Add checked Service Prep items or a built Minder checklist when you want this panel to build a parts-counter list.</p>
         </article>
       `
       : "";
@@ -620,6 +638,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
         </div>
         <a class="utility-link" href="#rockauto-parts">Open Parts Sources</a>
       </div>
+      ${maintenanceStagingGuideMarkup(items)}
       <div class="maintenance-staging-filter" role="group" aria-label="Filter staging items">
         ${["all", "need", "staged"]
           .map((filter) => {

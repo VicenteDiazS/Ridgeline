@@ -542,7 +542,7 @@ async def assert_garage_features(page, page_name):
         assert_true(state[key], message)
     assert_true(not state["missingFields"], f"warning-light template is missing fields: {state['missingFields']}")
     await page.evaluate("""() => localStorage.setItem('ridgeline-notes', JSON.stringify({
-        general_notes: '[5/16/2026 - Maintenance Minder A1 planner]\\nMaintenance Minder A1:\\n- A: Replace engine oil.\\n- 1: Rotate tires.\\n[5/16/2026 - Oil Change Prep]\\nOil Change Prep:\\n- 0W-20 oil and final dipstick level check'
+        general_notes: '[5/16/2026 - Maintenance Minder A1 planner]\\nMaintenance Minder A1:\\n- A: Replace engine oil.\\n- 1: Rotate tires.\\n[5/16/2026 - Oil Change Prep]\\nOil Change Prep:\\n- 0W-20 oil and final dipstick level check\\n[5/16/2026 - Battery Install Prep]\\nBattery Install Prep:\\n- Call shop before buying'
     }))""")
     await page.reload()
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-note-preview]", state="attached")
@@ -565,6 +565,7 @@ async def assert_garage_features(page, page_name):
             const bulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-bulk]")] : [];
             const groupBulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-group-bulk]")] : [];
             const stagingRun = panel?.querySelector(".maintenance-staging-run");
+            const stagingGuide = panel?.querySelector("[data-maintenance-staging-guide]");
             const inlineBuyButton = panel?.querySelector("[data-copy-maintenance-needed-inline]");
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
@@ -580,6 +581,8 @@ async def assert_garage_features(page, page_name):
                 stagingGroupBulkButtonCount: groupBulkButtons.length,
                 hasStagingRun: Boolean(stagingRun),
                 stagingRunText: stagingRun?.innerText || "",
+                hasStagingGuide: Boolean(stagingGuide),
+                stagingGuideText: stagingGuide?.innerText || "",
                 stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
                 dashboardStagingText: stagingCard?.innerText || "",
                 hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
@@ -604,7 +607,11 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingBulkButtonCount"] == 2, "saved maintenance notes staging preview should expose bulk store-run controls")
     assert_true(populated_state["stagingGroupBulkButtonCount"] >= 4, "saved maintenance notes staging preview should expose per-note bulk controls")
     assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
+    assert_true(populated_state["hasStagingGuide"], "saved maintenance notes staging preview is missing the local-only staging guide")
     assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
+    assert_true("3 staging lines from saved notes" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should show derived line count")
+    assert_true("outside Garage backup and sync" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should clarify local-only state")
+    assert_true("1 saved note visible below did not include detected parts, tools, or supplies" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should explain skipped notes")
     assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
     assert_true("3 need / 0 staged" in populated_state["dashboardStagingText"], "garage dashboard parts staging card should summarize need/staged counts")
     assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
