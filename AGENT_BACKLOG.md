@@ -4,6 +4,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 
 ## High Priority
 
+- Raise Anton's default bar from small polish to visible iPhone-useful workflow improvements; reserve tiny changes for urgent bugs, verification failures, or reliability fixes.
 - Treat iPhone/mobile Safari as the main user environment for all navigation, layout, and interaction decisions.
 - Use `ANTON_ROADMAP.md` to keep improving the site through multi-day initiatives instead of isolated one-off changes.
 - Continue validating fuse diagram accuracy against reliable owner-manual or cover-label sources; per-box source-status notes are now present.

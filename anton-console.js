@@ -19,6 +19,11 @@ const els = {
   agentCard: document.querySelector("[data-anton-agent-card]"),
   agentState: document.querySelector("[data-anton-agent-state]"),
   agentDetail: document.querySelector("[data-anton-agent-detail]"),
+  publicLastChange: document.querySelector("[data-anton-last-change]"),
+  publicNext: document.querySelector("[data-anton-public-next]"),
+  publicGithub: document.querySelector("[data-anton-public-github]"),
+  publicSummary: document.querySelector("[data-anton-run-summary]"),
+  publicFiles: document.querySelector("[data-anton-public-files]"),
   serverState: document.querySelector("[data-anton-server-state]"),
   serverDetail: document.querySelector("[data-anton-server-detail]"),
   liveCard: document.querySelector("[data-anton-live-card]"),
@@ -98,6 +103,18 @@ function describeNextRun(value) {
 function requestHeaders() {
   const token = getControlToken();
   return token ? { "X-Anton-Token": token } : {};
+}
+
+function summarizeText(value = "") {
+  return `${value}`.trim() || "No summary recorded yet.";
+}
+
+function firstSummaryLine(value = "") {
+  const text = summarizeText(value);
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[-*]\s*/, "").trim())
+    .find((line) => line && !/^changed:?$/i.test(line) && !/^verified:?$/i.test(line)) || text;
 }
 
 async function controlFetch(path, options = {}) {
@@ -230,6 +247,24 @@ async function loadAgentRunStatus() {
     if (els.agentDetail) {
       els.agentDetail.textContent = `${detail} Last heartbeat ${formatDate(status.lastHeartbeatAt)}; ${next}.`;
     }
+    if (els.publicLastChange) {
+      els.publicLastChange.textContent = firstSummaryLine(status.summary);
+    }
+    if (els.publicNext) {
+      els.publicNext.textContent = next;
+    }
+    if (els.publicGithub) {
+      els.publicGithub.textContent = status.pushed ? `Pushed ${status.commit || ""}`.trim() : "Not pushed yet";
+    }
+    if (els.publicSummary) {
+      els.publicSummary.textContent = summarizeText(status.summary);
+    }
+    if (els.publicFiles) {
+      const files = Array.isArray(status.changedFiles) ? status.changedFiles.filter(Boolean).slice(0, 10) : [];
+      els.publicFiles.innerHTML = files.length
+        ? files.map((file) => `<li>${file}</li>`).join("")
+        : "<li>No changed files recorded.</li>";
+    }
   } catch (error) {
     els.agentCard?.setAttribute("data-anton-server", "offline");
     if (els.agentState) {
@@ -237,6 +272,12 @@ async function loadAgentRunStatus() {
     }
     if (els.agentDetail) {
       els.agentDetail.textContent = `Could not load the pushed Anton status. ${error.message}`;
+    }
+    if (els.publicLastChange) {
+      els.publicLastChange.textContent = "Status unavailable";
+    }
+    if (els.publicSummary) {
+      els.publicSummary.textContent = `Could not load Anton's pushed status. ${error.message}`;
     }
   }
 }

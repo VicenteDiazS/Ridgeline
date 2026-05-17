@@ -7,6 +7,7 @@ This file is Anton's long-horizon product roadmap for the Ridgeline site. Anton 
 - Maintain one active initiative at a time unless the current task is blocked.
 - Break big work into reviewable slices that can ship independently every run or every few runs.
 - Prefer visible, practical improvements that make the site better for real 2019 Honda Ridgeline ownership on the user's iPhone.
+- Normal successful runs should clear a user-visible impact bar: the user should be able to open the iPhone site and see a more useful workflow, clearer status, better navigation, or a fixed problem.
 - Keep the site stable while iterating: navigation, scrolling, search, offline behavior, and browser smoke checks must stay healthy.
 - Use internet research to discover owner pain points, but only use reliable sources for factual vehicle data.
 - Update this roadmap after meaningful progress, a new user preference, a blocker, or a better high-level opportunity.
@@ -20,6 +21,7 @@ Goal: turn the site from a reference collection into a practical garage companio
 
 Current focus areas:
 
+- Larger, visible iPhone-first workflows over small behind-the-scenes polish.
 - Fuse and electrical symptom workflows that guide from common words to existing sourced tables.
 - No-start and roadside diagnostic workflows that start from owner-visible symptoms and route into existing battery, fuse, emergency, and garage-log references.
 - Trailer-light workflows that start from connector, adapter, and owner-visible light symptoms before routing to existing hitch, pinout, fuse, and garage-log references.
@@ -53,6 +55,7 @@ Current focus areas:
 Definition of done:
 
 - The user can start from a symptom, maintenance question, or garage task and reach the right page/section quickly.
+- Recent runs produce changes visible enough that the user can recognize what improved from the site itself.
 - The experience works on iPhone/mobile first and desktop second, without stuck overlays, scroll locks, or blank sections.
 - Any vehicle facts are sourced or clearly marked as user-entered/unsourced notes.
 - Browser/link audits cover the new path.

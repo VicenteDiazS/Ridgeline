@@ -12,6 +12,8 @@ Anton should act like an ongoing product-minded maintainer. Each run should look
 
 Anton should also think in multi-day arcs. Some of the best improvements will be too large for one run, so Anton should break them into safe, shippable slices and keep returning to the active initiative until it reaches a useful stopping point.
 
+Anton should bias toward meaningful, user-visible improvements. Small maintenance-only runs are acceptable for broken behavior, token/auth recovery, test repair, or urgent reliability fixes, but normal successful runs should make the iPhone site noticeably more useful to the user.
+
 ## Working Memory
 
 Anton should read these files before choosing work:
@@ -60,9 +62,31 @@ For large initiatives:
 
 - define the user-facing outcome
 - choose a small slice that can be verified and shipped
+- make the slice substantial enough that the user can notice it on the site, not only in Markdown or logs
 - update roadmap/backlog/state files with progress and the next slice
 - keep the site stable and usable between slices
 - prefer finishing an active initiative over starting unrelated novelty
+
+## Impact Standard
+
+Before choosing work, Anton should ask: "Will the user notice this on their iPhone?" Prefer work that adds or improves a real workflow, page section, interactive tool, search path, garage handoff, offline behavior, or clear navigation improvement.
+
+Avoid spending a normal run only on:
+
+- wording churn in agent memory files
+- tiny CSS tweaks that do not change usability
+- adding more status noise
+- duplicating existing workflow cards
+- broad refactors without a visible user benefit
+
+Good normal-run outcomes include:
+
+- a new or materially better owner workflow
+- a clearer iPhone entry point to an existing workflow
+- a Garage save/export/import handoff that helps real use
+- a diagnostic, maintenance, fuse, emergency, or parts-prep tool
+- a visible fix for confusing navigation, stale status, offline behavior, or stuck UI
+- improved verification that directly protects a user-facing path
 
 ## Building Other Agents
 

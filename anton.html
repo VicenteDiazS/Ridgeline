@@ -52,25 +52,63 @@
       <main id="top">
         <section class="anton-console-hero">
           <div>
-            <p class="eyebrow">Anton Console</p>
-            <h1>Agent Desk</h1>
+            <p class="eyebrow">Anton</p>
+            <h1>Site Progress</h1>
             <p class="section-copy">
-              Check Anton's public run status from your iPhone, then use local controls when this device can reach the laptop helper.
+              See whether Anton is running, what changed most recently, and what it plans to improve next.
             </p>
           </div>
           <div class="anton-live-card" data-anton-agent-card>
-            <span>Anton Agent</span>
+            <span>Current Status</span>
             <strong data-anton-agent-state>Checking...</strong>
             <p data-anton-agent-detail>Loading the latest pushed run status.</p>
           </div>
-          <div class="anton-live-card" data-anton-live-card>
-            <span>Local Controls</span>
-            <strong data-anton-server-state>Checking...</strong>
-            <p data-anton-server-detail>Looking for the laptop helper.</p>
+        </section>
+
+        <section class="anton-panel anton-progress-panel" id="anton-progress">
+          <div class="compact-section-head">
+            <div>
+              <p class="eyebrow">Latest Run</p>
+              <h2>What Anton Changed</h2>
+            </div>
+            <a class="agent-control-button agent-control-button-secondary" href="index.html#agent-status">Home Monitor</a>
+          </div>
+          <div class="anton-progress-grid">
+            <article>
+              <span>Last Change</span>
+              <strong data-anton-last-change>Loading...</strong>
+            </article>
+            <article>
+              <span>Next Run</span>
+              <strong data-anton-public-next>Loading...</strong>
+            </article>
+            <article>
+              <span>GitHub</span>
+              <strong data-anton-public-github>Loading...</strong>
+            </article>
+          </div>
+          <div class="anton-summary-card">
+            <span>Run Summary</span>
+            <p data-anton-run-summary>Loading Anton's latest summary...</p>
+          </div>
+          <div class="anton-summary-card">
+            <span>Changed Files</span>
+            <ul class="agent-status-files" data-anton-public-files>
+              <li>Loading...</li>
+            </ul>
           </div>
         </section>
 
-        <section class="anton-console-grid" id="anton-controls">
+        <details class="anton-panel anton-local-details" id="anton-controls">
+          <summary>
+            <span>Advanced</span>
+            Local Laptop Controls
+          </summary>
+          <div class="anton-live-card" data-anton-live-card>
+            <span>Laptop Helper</span>
+            <strong data-anton-server-state>Checking...</strong>
+            <p data-anton-server-detail>Looking for the laptop helper.</p>
+          </div>
           <article class="anton-panel anton-controls-panel">
             <div class="compact-section-head">
               <div>
@@ -92,7 +130,9 @@
             </div>
             <p class="agent-status-summary" data-anton-action-message>Controls require the laptop helper. From an iPhone, offline local controls can be normal while Anton's public agent status remains current.</p>
           </article>
+        </details>
 
+        <section class="anton-console-grid">
           <article class="anton-panel" id="anton-note">
             <div class="compact-section-head">
               <div>
