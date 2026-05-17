@@ -1833,7 +1833,7 @@ function actionForPage(page) {
     "maintenance.html": [
       { label: "Update", href: "#maintenance-updater", icon: "wrench" },
       { label: "Prep", href: "#service-prep", icon: "check" },
-      { label: "Planner", href: "#minder-pocket-planner", icon: "map" },
+      { label: "Stage", href: "garage.html#maintenance-note-preview", icon: "map" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "tires.html": [

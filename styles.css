@@ -5904,6 +5904,25 @@ kbd {
   line-height: 1.35;
 }
 
+.maintenance-stage-next {
+  margin-top: 7px;
+  color: #dff8ff;
+}
+
+.maintenance-stage-preview {
+  display: grid;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.maintenance-stage-preview li {
+  padding-left: 2px;
+}
+
 .maintenance-parts-card {
   display: grid;
   gap: 12px;

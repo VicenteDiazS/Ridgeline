@@ -361,6 +361,8 @@ async def assert_maintenance_features(page, page_name):
             return {
                 visibleMaintenanceHeroLinks,
                 visibleMaintenanceDockLinks,
+                hasMaintenanceStagingRoute: visibleMaintenanceDockLinks.includes("Stage") &&
+                    Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="garage.html#maintenance-note-preview"]')),
                 prepColumns,
                 prepActionRows,
                 minderActionRows,
@@ -369,7 +371,8 @@ async def assert_maintenance_features(page, page_name):
         }"""
     )
     assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
-    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Planner", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Planner, and More")
+    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
+    assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
     assert_true(mobile_state["prepColumns"] == 2, "service prep planner should keep two compact columns at iPhone width")
     assert_true(mobile_state["prepActionRows"] == 1, "service prep action buttons should stay on one compact row at iPhone width")
     assert_true(mobile_state["minderActionRows"] <= 2, "minder planner actions should not stack into three separate rows at iPhone width")
@@ -442,6 +445,7 @@ async def assert_maintenance_features(page, page_name):
                 hasShare: Boolean(confirmation?.querySelector("[data-share-maintenance-needed-inline]")),
                 hasCopy: Boolean(confirmation?.querySelector("[data-copy-maintenance-needed-inline]")),
                 hasSaveRun: Boolean(confirmation?.querySelector("[data-save-maintenance-run-inline]")),
+                previewLines: [...(confirmation?.querySelectorAll(".maintenance-stage-preview li") || [])].map((line) => line.textContent.trim()),
                 hasFreshNote: Boolean(fresh),
                 freshText: fresh?.innerText || "",
                 handoffCleared: !sessionStorage.getItem("ridgeline-maintenance-stage-handoff")
@@ -454,6 +458,9 @@ async def assert_maintenance_features(page, page_name):
     assert_true(stage_handoff_state["hasShare"], "Garage staging handoff confirmation should expose Share Buy List")
     assert_true(stage_handoff_state["hasCopy"], "Garage staging handoff confirmation should expose Copy Buy List")
     assert_true(stage_handoff_state["hasSaveRun"], "Garage staging handoff confirmation should expose Save Run Note")
+    assert_true(len(stage_handoff_state["previewLines"]) == 2, "Garage staging handoff confirmation should preview just-saved need-to-buy lines without the brake-fluid calendar caution")
+    assert_true(any("Replace engine oil" in line for line in stage_handoff_state["previewLines"]), "Garage staging handoff preview should include the just-saved checklist lines")
+    assert_true(not any("Brake fluid" in line for line in stage_handoff_state["previewLines"]), "Garage staging handoff preview should not treat the brake-fluid calendar note as a staging line")
     assert_true(stage_handoff_state["hasFreshNote"], "Garage staging should highlight the latest saved maintenance note")
     assert_true("just saved" in stage_handoff_state["freshText"].lower(), "latest saved maintenance note should carry a Just saved marker")
     assert_true(stage_handoff_state["handoffCleared"], "Maintenance Stage handoff should be one-visit session state")

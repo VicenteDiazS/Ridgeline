@@ -375,6 +375,7 @@ function maintenanceStagingItems(body = "") {
     .split(/\n+/)
     .map(normalizeMaintenanceLine)
     .filter((line) => line && !/:$/.test(line))
+    .filter((line) => !/\bbrake fluid\b.*\b(separate|calendar|sub-code|maintenance minder)\b/i.test(line))
     .filter((line) => line && stagingPattern.test(line))
     .filter((line) => {
       const key = line.toLowerCase();
@@ -560,11 +561,19 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
   }
 
   const latest = items[0];
-  const lineCount = latest?.stagingItems?.length || 0;
+  const latestLines = latest?.stagingItems || [];
+  const needLines = latestLines.filter((line) => maintenanceStagingStatus(latest?.title || "", line) !== "staged");
+  const previewLines = needLines.slice(0, 3);
+  const lineCount = latestLines.length;
   const summary = getMaintenanceStagingSummary(items);
   const lineText = lineCount
     ? `${lineCount} staging line${lineCount === 1 ? "" : "s"} ready below.`
     : "No parts or supplies lines were detected, but the saved note is visible below.";
+  const needText = needLines.length
+    ? `${needLines.length} current need-to-buy line${needLines.length === 1 ? "" : "s"} from this saved note.`
+    : lineCount
+      ? "All detected lines from this saved note are already marked staged."
+      : "";
 
   return `
     <article class="maintenance-stage-confirmation" data-maintenance-stage-confirmation>
@@ -572,6 +581,18 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
         <p class="eyebrow">Just saved from Maintenance</p>
         <strong>${escapeHtml(currentMaintenanceStageHandoff.title)}</strong>
         <p>${escapeHtml(currentMaintenanceStageHandoff.scope)} saved into Garage Notes. ${escapeHtml(lineText)}</p>
+        ${
+          needText
+            ? `<p class="maintenance-stage-next">${escapeHtml(needText)}</p>`
+            : ""
+        }
+        ${
+          previewLines.length
+            ? `<ul class="maintenance-stage-preview" aria-label="Need-to-buy lines from just-saved note">
+                ${previewLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+              </ul>`
+            : ""
+        }
       </div>
       <div class="inspector-actions">
         <button class="utility-link" type="button" data-share-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Share Buy List</button>
