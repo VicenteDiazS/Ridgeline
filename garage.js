@@ -770,6 +770,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
         ${groups
           .map((group) => {
             const stagedCount = group.lines.filter((line) => maintenanceStagingStatus(group.title, line) === "staged").length;
+            const needCount = Math.max(group.lines.length - stagedCount, 0);
             const visibleLines = group.lines.filter((line) => {
               const status = maintenanceStagingStatus(group.title, line);
               if (currentMaintenanceStagingFilter === "need") {
@@ -791,6 +792,24 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
                   <span>${stagedCount}/${group.lines.length} staged</span>
                 </div>
                 <div class="maintenance-group-actions">
+                  <button
+                    class="ghost-button"
+                    type="button"
+                    data-copy-maintenance-needed-index="${group.index}"
+                    ${needCount ? "" : "disabled"}
+                  >Copy Need</button>
+                  <button
+                    class="ghost-button"
+                    type="button"
+                    data-share-maintenance-needed-index="${group.index}"
+                    ${needCount ? "" : "disabled"}
+                  >Share Need</button>
+                  <button
+                    class="ghost-button"
+                    type="button"
+                    data-save-maintenance-needed-index="${group.index}"
+                    ${needCount ? "" : "disabled"}
+                  >Save Need</button>
                   <button
                     class="ghost-button"
                     type="button"
@@ -1572,16 +1591,20 @@ function copyMaintenanceStaging(index = null) {
     });
 }
 
-function copyMaintenanceNeedList() {
-  const { text, count } = maintenanceStagingExport({ status: "need" });
+function copyMaintenanceNeedList(index = null) {
+  const { text, count } = maintenanceStagingExport({ index, status: "need" });
   if (!text) {
-    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    setMaintenanceNoteStatus(Number.isInteger(index) ? "All items in this saved note are already marked staged." : "All saved staging items are already marked staged.");
     return;
   }
 
   copyText(text)
     .then(() => {
-      setMaintenanceNoteStatus(`Copied need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`);
+      setMaintenanceNoteStatus(
+        Number.isInteger(index)
+          ? `Copied saved-note buy list with ${count} item${count === 1 ? "" : "s"}.`
+          : `Copied need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`
+      );
     })
     .catch(() => {
       setMaintenanceNoteStatus("Could not copy the need-to-buy list automatically. Open the staging list and copy it manually.");
@@ -1620,13 +1643,14 @@ function saveMaintenanceRunNote() {
   setMaintenanceNoteStatus(`Saved staging run note with ${count} item${count === 1 ? "" : "s"} into Garage Notes.`);
 }
 
-function saveMaintenanceNeedNote() {
-  const { text, count } = maintenanceStagingExport({ status: "need" });
+function saveMaintenanceNeedNote(index = null) {
+  const { text, count } = maintenanceStagingExport({ index, status: "need" });
   if (!text) {
-    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    setMaintenanceNoteStatus(Number.isInteger(index) ? "All items in this saved note are already marked staged." : "All saved staging items are already marked staged.");
     return;
   }
 
+  const item = Number.isInteger(index) ? getMaintenanceNoteItems()[index] : null;
   const notes = loadJson(STORAGE.notes, {});
   const timestamp = new Date().toLocaleString("en-US", {
     month: "short",
@@ -1637,7 +1661,8 @@ function saveMaintenanceNeedNote() {
   });
   const existing = `${notes.general_notes || ""}`.trim();
   const savedNote = [
-    `[${timestamp} - Maintenance Buy List]`,
+    `[${timestamp} - ${item?.title ? "Job Buy List" : "Maintenance Buy List"}]`,
+    ...(item?.title ? [`Source saved note: ${item.title}`, ""] : []),
     text,
     "",
     "Saved from Garage staging as a remaining-purchases snapshot. Need/Staged toggles remain local browser state outside Garage backup and sync."
@@ -1649,24 +1674,35 @@ function saveMaintenanceNeedNote() {
   });
   hydrateGarageForms();
   renderDashboard();
-  setMaintenanceNoteStatus(`Saved buy note with ${count} need-to-buy item${count === 1 ? "" : "s"} into Garage Notes.`);
+  setMaintenanceNoteStatus(
+    Number.isInteger(index)
+      ? `Saved ${item?.title || "saved-note"} buy note with ${count} need-to-buy item${count === 1 ? "" : "s"} into Garage Notes.`
+      : `Saved buy note with ${count} need-to-buy item${count === 1 ? "" : "s"} into Garage Notes.`
+  );
 }
 
-function shareMaintenanceNeedList() {
-  const { text, count } = maintenanceStagingExport({ status: "need" });
+function shareMaintenanceNeedList(index = null) {
+  const { text, count } = maintenanceStagingExport({ index, status: "need" });
   if (!text) {
-    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    setMaintenanceNoteStatus(Number.isInteger(index) ? "All items in this saved note are already marked staged." : "All saved staging items are already marked staged.");
     return;
   }
+
+  const item = Number.isInteger(index) ? getMaintenanceNoteItems()[index] : null;
+  const title = item?.title ? `Ridgeline ${item.title} Buy List` : "Ridgeline Need-To-Buy Maintenance List";
 
   if (navigator.share) {
     navigator
       .share({
-        title: "Ridgeline Need-To-Buy Maintenance List",
+        title,
         text
       })
       .then(() => {
-        setMaintenanceNoteStatus(`Shared need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`);
+        setMaintenanceNoteStatus(
+          Number.isInteger(index)
+            ? `Shared saved-note buy list with ${count} item${count === 1 ? "" : "s"}.`
+            : `Shared need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`
+        );
       })
       .catch((error) => {
         if (error?.name === "AbortError") {
@@ -1758,9 +1794,21 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     return;
   }
 
+  const itemNeededButton = event.target.closest("[data-copy-maintenance-needed-index]");
+  if (itemNeededButton) {
+    copyMaintenanceNeedList(Number(itemNeededButton.dataset.copyMaintenanceNeededIndex || 0));
+    return;
+  }
+
   const inlineShareButton = event.target.closest("[data-share-maintenance-needed-inline]");
   if (inlineShareButton) {
     shareMaintenanceNeedList();
+    return;
+  }
+
+  const itemShareButton = event.target.closest("[data-share-maintenance-needed-index]");
+  if (itemShareButton) {
+    shareMaintenanceNeedList(Number(itemShareButton.dataset.shareMaintenanceNeededIndex || 0));
     return;
   }
 
@@ -1773,6 +1821,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const inlineSaveNeededButton = event.target.closest("[data-save-maintenance-needed-inline]");
   if (inlineSaveNeededButton) {
     saveMaintenanceNeedNote();
+    return;
+  }
+
+  const itemSaveNeededButton = event.target.closest("[data-save-maintenance-needed-index]");
+  if (itemSaveNeededButton) {
+    saveMaintenanceNeedNote(Number(itemSaveNeededButton.dataset.saveMaintenanceNeededIndex || 0));
     return;
   }
 
