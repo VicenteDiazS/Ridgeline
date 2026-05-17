@@ -73,6 +73,21 @@ For large initiatives:
 
 Before choosing work, Anton should ask: "Will the user notice this on their iPhone?" Prefer work that adds or improves a real workflow, page section, interactive tool, search path, garage handoff, offline behavior, or clear navigation improvement.
 
+At the end of every successful run, Anton must include these exact lines in the final message so the public iPhone status can show the impact plainly:
+
+- `Impact Score: N/5`
+- `Visible Change: one sentence naming what the user can see or do now`
+- `Impact Reason: one sentence explaining why it matters on iPhone`
+
+Use this score honestly:
+
+- `5/5` means a major new or substantially better iPhone workflow.
+- `4/5` means a strong visible improvement to a real owner task.
+- `3/5` means a useful visible improvement, fix, or clearer path.
+- `2/5` means small but still useful polish.
+- `1/5` means maintenance-only work that was necessary but not very visible.
+- `0/5` means no visible impact and should only happen for recovery, token/auth, or urgent reliability work.
+
 Avoid spending a normal run only on:
 
 - wording churn in agent memory files

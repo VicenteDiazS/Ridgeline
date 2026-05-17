@@ -73,7 +73,7 @@ function Get-GitChangedFiles {
     $files = git status --porcelain | ForEach-Object {
       if ($_.Length -ge 4) { $_.Substring(3) } else { $_ }
     }
-    return @($files)
+    return @($files | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
   } finally {
     Pop-Location
   }
@@ -101,6 +101,62 @@ function Get-StatusExcerpt {
   return $clean.Substring([Math]::Max(0, $clean.Length - 900)).Trim()
 }
 
+function Get-ImpactLabel {
+  param([nullable[int]]$Score)
+
+  if ($null -eq $Score) {
+    return "Not scored yet"
+  }
+  if ($Score -ge 5) {
+    return "Major iPhone-visible improvement"
+  }
+  if ($Score -ge 4) {
+    return "Strong iPhone-visible improvement"
+  }
+  if ($Score -ge 3) {
+    return "Useful visible improvement"
+  }
+  if ($Score -ge 2) {
+    return "Small useful improvement"
+  }
+  if ($Score -ge 1) {
+    return "Maintenance only"
+  }
+  return "No visible impact"
+}
+
+function Get-ImpactFromMessage {
+  param([string]$Message)
+
+  $score = $null
+  $visibleChange = ""
+  $reason = ""
+
+  if (-not [string]::IsNullOrWhiteSpace($Message)) {
+    $scoreMatch = [regex]::Match($Message, "(?im)^\s*(?:Impact\s*Score|Impact)\s*:\s*([0-5])\s*(?:/|out\s+of\s+)?\s*5?\b")
+    if ($scoreMatch.Success) {
+      $score = [int]$scoreMatch.Groups[1].Value
+    }
+
+    $visibleMatch = [regex]::Match($Message, "(?im)^\s*(?:Visible\s*Change|User-visible\s*Change|What\s*changed)\s*:\s*(.+)$")
+    if ($visibleMatch.Success) {
+      $visibleChange = $visibleMatch.Groups[1].Value.Trim()
+    }
+
+    $reasonMatch = [regex]::Match($Message, "(?im)^\s*(?:Impact\s*Reason|Why\s*it\s*matters)\s*:\s*(.+)$")
+    if ($reasonMatch.Success) {
+      $reason = $reasonMatch.Groups[1].Value.Trim()
+    }
+  }
+
+  return [ordered]@{
+    score = $score
+    label = Get-ImpactLabel -Score $score
+    visibleChange = $visibleChange
+    reason = $reason
+  }
+}
+
 function Write-AgentStatus {
   param(
     [string]$Status,
@@ -116,7 +172,8 @@ function Write-AgentStatus {
     [string]$ActionRequired = "",
     [string]$FailureKind = "",
     [string]$Diagnostic = "",
-    [string]$OutputLog = ""
+    [string]$OutputLog = "",
+    [object]$Impact = $null
   )
 
   $intervalMinutes = 90
@@ -151,7 +208,7 @@ function Write-AgentStatus {
 
   $payload = [ordered]@{
     agentName = "Anton"
-    statusVersion = 3
+    statusVersion = 4
     status = $Status
     statusTitle = $StatusTitle
     statusDetail = $StatusDetail
@@ -169,6 +226,10 @@ function Write-AgentStatus {
     pushed = $Pushed
     summary = $Summary
     changedFiles = @($ChangedFiles)
+    impactScore = if ($Impact -and $null -ne $Impact.score) { $Impact.score } else { $null }
+    impactLabel = if ($Impact -and $Impact.label) { $Impact.label } else { "Not scored yet" }
+    visibleChange = if ($Impact -and $Impact.visibleChange) { $Impact.visibleChange } else { "" }
+    impactReason = if ($Impact -and $Impact.reason) { $Impact.reason } else { "" }
     log = "agent-runs/agent-loop.log"
     outputLog = $OutputLog
   }
@@ -350,6 +411,7 @@ function Invoke-AgentOnce {
     if ([string]::IsNullOrWhiteSpace($lastMessage)) {
       $lastMessage = "Codex finished successfully."
     }
+    $impact = Get-ImpactFromMessage -Message $lastMessage
 
     $changedFiles = Get-GitChangedFiles
     $commitSha = $null
@@ -390,6 +452,7 @@ function Invoke-AgentOnce {
       -Commit $commitSha `
       -Pushed $pushed `
       -ChangedFiles $changedFiles `
+      -Impact $impact `
       -Phase "Completed" `
       -StatusTitle "Anton finished a run" `
       -StatusDetail "Anton completed the scheduled site-improvement loop and recorded the result." `

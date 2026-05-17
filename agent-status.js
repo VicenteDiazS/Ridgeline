@@ -162,6 +162,22 @@ function summarizeRun(data) {
   return summary;
 }
 
+function describeImpact(data) {
+  const score = Number(data.impactScore);
+  const hasScore = Number.isFinite(score);
+  const scoreText = hasScore ? `${score}/5` : "Not scored";
+  const label = data.impactLabel || "Not scored yet";
+  const visibleChange = data.visibleChange || firstUsefulLine(data.summary || "");
+  const reason = data.impactReason || "Anton will publish an impact reason after the next scored run.";
+
+  return {
+    scoreText,
+    label,
+    visibleChange,
+    reason
+  };
+}
+
 function getLoopHealth(data) {
   const interval = Number(data.intervalMinutes) || 90;
   const heartbeat = data.lastHeartbeatAt || data.finishedAt || data.startedAt;
@@ -231,6 +247,7 @@ function renderAgentStatus(data) {
   const phase = data.phase || data.status || "Unknown";
   const duration = Number.isFinite(Number(data.durationMinutes)) ? `${Number(data.durationMinutes)} min` : "In progress";
   const diagnostic = data.diagnostic ? firstUsefulLine(data.diagnostic) : "";
+  const impact = describeImpact(data);
 
   statusRoot.innerHTML = `
     <div class="agent-status-head">
@@ -256,10 +273,15 @@ function renderAgentStatus(data) {
         ${diagnostic ? `<p>${escapeHtml(diagnostic)}</p>` : ""}
       </article>
       <article class="agent-now-card">
-        <span>Current Phase</span>
-        <strong>${escapeHtml(phase)}</strong>
-        <p>${escapeHtml(data.failureKind ? `Issue type: ${data.failureKind}` : `Run time: ${duration}`)}</p>
+        <span>Impact Score</span>
+        <strong>${escapeHtml(`${impact.scoreText} - ${impact.label}`)}</strong>
+        <p>${escapeHtml(impact.visibleChange || impact.reason)}</p>
       </article>
+    </div>
+    <div class="agent-impact-bar">
+      <span>Visible Change</span>
+      <strong>${escapeHtml(impact.visibleChange || "Waiting for Anton's next scored run.")}</strong>
+      <p>${escapeHtml(impact.reason)}</p>
     </div>
     <div class="agent-control-panel">
       <div>
@@ -282,6 +304,7 @@ function renderAgentStatus(data) {
       <div><span>Started</span><strong>${formatDate(data.startedAt)}</strong></div>
       <div><span>Finished</span><strong>${formatDate(data.finishedAt)}</strong></div>
       <div><span>Duration</span><strong>${escapeHtml(duration)}</strong></div>
+      <div><span>Phase</span><strong>${escapeHtml(phase)}</strong></div>
       <div><span>Commit</span><strong>${escapeHtml(data.commit || "None yet")}</strong></div>
       <div><span>GitHub</span><strong>${pushedText}</strong></div>
       <div><span>Status Version</span><strong>${escapeHtml(data.statusVersion || "Legacy")}</strong></div>

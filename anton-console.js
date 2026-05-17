@@ -22,6 +22,9 @@ const els = {
   publicLastChange: document.querySelector("[data-anton-last-change]"),
   publicNext: document.querySelector("[data-anton-public-next]"),
   publicGithub: document.querySelector("[data-anton-public-github]"),
+  publicImpactScore: document.querySelector("[data-anton-impact-score]"),
+  publicVisibleChange: document.querySelector("[data-anton-visible-change]"),
+  publicImpactReason: document.querySelector("[data-anton-impact-reason]"),
   publicSummary: document.querySelector("[data-anton-run-summary]"),
   publicFiles: document.querySelector("[data-anton-public-files]"),
   serverState: document.querySelector("[data-anton-server-state]"),
@@ -107,6 +110,16 @@ function requestHeaders() {
 
 function summarizeText(value = "") {
   return `${value}`.trim() || "No summary recorded yet.";
+}
+
+function escapeHtml(value = "") {
+  return `${value}`.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  })[character]);
 }
 
 function firstSummaryLine(value = "") {
@@ -256,13 +269,23 @@ async function loadAgentRunStatus() {
     if (els.publicGithub) {
       els.publicGithub.textContent = status.pushed ? `Pushed ${status.commit || ""}`.trim() : "Not pushed yet";
     }
+    if (els.publicImpactScore) {
+      const score = Number.isFinite(Number(status.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored";
+      els.publicImpactScore.textContent = `${score} - ${status.impactLabel || "Not scored yet"}`;
+    }
+    if (els.publicVisibleChange) {
+      els.publicVisibleChange.textContent = status.visibleChange || firstSummaryLine(status.summary);
+    }
+    if (els.publicImpactReason) {
+      els.publicImpactReason.textContent = status.impactReason || "Anton will publish an impact reason after the next scored run.";
+    }
     if (els.publicSummary) {
       els.publicSummary.textContent = summarizeText(status.summary);
     }
     if (els.publicFiles) {
       const files = Array.isArray(status.changedFiles) ? status.changedFiles.filter(Boolean).slice(0, 10) : [];
       els.publicFiles.innerHTML = files.length
-        ? files.map((file) => `<li>${file}</li>`).join("")
+        ? files.map((file) => `<li>${escapeHtml(file)}</li>`).join("")
         : "<li>No changed files recorded.</li>";
     }
   } catch (error) {
