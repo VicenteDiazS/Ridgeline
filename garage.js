@@ -27,6 +27,7 @@ const diagnosticActivityList = document.querySelector("[data-diagnostic-activity
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
 const maintenancePartsCopyButton = document.querySelector("[data-copy-maintenance-parts]");
+const maintenanceNeededCopyButton = document.querySelector("[data-copy-maintenance-needed]");
 const maintenancePartsPreview = document.querySelector("[data-maintenance-parts-preview]");
 const maintenanceNoteStatus = document.querySelector("[data-maintenance-note-status]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
@@ -62,6 +63,7 @@ const defaultProfile = {
   parts_notes: "Timing belt service completed 4/25/2026 at 165,980 miles using AISIN TKH-002."
 };
 let currentDiagnosticActivityFilter = "all";
+let currentMaintenanceStagingFilter = "all";
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const GARAGE_BACKUP_LABELS = {
@@ -441,22 +443,42 @@ function setMaintenanceNoteStatus(message = "") {
 }
 
 function maintenanceStagingExportText(index = null) {
+  return maintenanceStagingExport({ index }).text;
+}
+
+function maintenanceStagingExport({ index = null, status = "all" } = {}) {
   const items = getMaintenanceNoteItems();
   const selectedItems = Number.isInteger(index) ? items.slice(index, index + 1) : items;
   const groups = selectedItems
     .map((item) => ({
       title: item.title,
-      lines: item.stagingItems || []
+      lines: (item.stagingItems || []).filter((line) => {
+        if (status === "need") {
+          return maintenanceStagingStatus(item.title, line) !== "staged";
+        }
+        if (status === "staged") {
+          return maintenanceStagingStatus(item.title, line) === "staged";
+        }
+        return true;
+      })
     }))
     .filter((group) => group.lines.length);
 
   if (!groups.length) {
-    return "";
+    return { text: "", count: 0 };
   }
 
-  return [
-    "Ridgeline Maintenance Staging List",
-    "Verify part numbers and truck labels before ordering.",
+  const count = groups.reduce((sum, group) => sum + group.lines.length, 0);
+  const title =
+    status === "need"
+      ? "Ridgeline Need-To-Buy Maintenance List"
+      : status === "staged"
+        ? "Ridgeline Staged Maintenance List"
+        : "Ridgeline Maintenance Staging List";
+
+  const text = [
+    title,
+    status === "need" ? "Remaining items only. Verify part numbers and truck labels before ordering." : "Verify part numbers and truck labels before ordering.",
     "",
     ...groups.flatMap((group) => [
       `${group.title}:`,
@@ -469,6 +491,8 @@ function maintenanceStagingExportText(index = null) {
   ]
     .join("\n")
     .trim();
+
+  return { text, count };
 }
 
 function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
@@ -506,6 +530,9 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   if (maintenancePartsCopyButton) {
     maintenancePartsCopyButton.disabled = !groups.length;
   }
+  if (maintenanceNeededCopyButton) {
+    maintenanceNeededCopyButton.disabled = !groups.length;
+  }
 
   if (!groups.length) {
     maintenancePartsPreview.innerHTML = items.length
@@ -528,37 +555,64 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
         </div>
         <a class="utility-link" href="#rockauto-parts">Open Parts Sources</a>
       </div>
+      <div class="maintenance-staging-filter" role="group" aria-label="Filter staging items">
+        ${["all", "need", "staged"]
+          .map((filter) => {
+            const active = currentMaintenanceStagingFilter === filter;
+            const label = filter === "all" ? "All" : filter === "need" ? "Need" : "Staged";
+            return `<button class="staging-filter-button" type="button" data-maintenance-staging-filter="${filter}" aria-pressed="${active ? "true" : "false"}">${label}</button>`;
+          })
+          .join("")}
+      </div>
       <div class="maintenance-parts-groups">
         ${groups
           .map((group) => {
             const stagedCount = group.lines.filter((line) => maintenanceStagingStatus(group.title, line) === "staged").length;
+            const visibleLines = group.lines.filter((line) => {
+              const status = maintenanceStagingStatus(group.title, line);
+              if (currentMaintenanceStagingFilter === "need") {
+                return status !== "staged";
+              }
+              if (currentMaintenanceStagingFilter === "staged") {
+                return status === "staged";
+              }
+              return true;
+            });
+            const emptyMessage =
+              currentMaintenanceStagingFilter === "need"
+                ? "No need-to-buy items left in this saved note."
+                : "No staged items yet in this saved note.";
             return `
               <section class="maintenance-parts-group">
                 <div class="maintenance-parts-group-head">
                   <strong>${escapeHtml(group.title)}</strong>
                   <span>${stagedCount}/${group.lines.length} staged</span>
                 </div>
-                <ul class="maintenance-staging-checklist">
-                  ${group.lines
-                    .map((line) => {
-                      const status = maintenanceStagingStatus(group.title, line);
-                      const staged = status === "staged";
-                      return `
-                        <li class="${staged ? "is-staged" : ""}">
-                          <span>${escapeHtml(line)}</span>
-                          <button
-                            class="staging-toggle"
-                            type="button"
-                            data-maintenance-staging-toggle
-                            data-maintenance-staging-title="${escapeHtml(group.title)}"
-                            data-maintenance-staging-line="${escapeHtml(line)}"
-                            aria-pressed="${staged ? "true" : "false"}"
-                          >${staged ? "Staged" : "Need to buy"}</button>
-                        </li>
-                      `;
-                    })
-                    .join("")}
-                </ul>
+                ${
+                  visibleLines.length
+                    ? `<ul class="maintenance-staging-checklist">
+                        ${visibleLines
+                          .map((line) => {
+                            const status = maintenanceStagingStatus(group.title, line);
+                            const staged = status === "staged";
+                            return `
+                              <li class="${staged ? "is-staged" : ""}">
+                                <span>${escapeHtml(line)}</span>
+                                <button
+                                  class="staging-toggle"
+                                  type="button"
+                                  data-maintenance-staging-toggle
+                                  data-maintenance-staging-title="${escapeHtml(group.title)}"
+                                  data-maintenance-staging-line="${escapeHtml(line)}"
+                                  aria-pressed="${staged ? "true" : "false"}"
+                                >${staged ? "Staged" : "Need to buy"}</button>
+                              </li>
+                            `;
+                          })
+                          .join("")}
+                      </ul>`
+                    : `<p class="small-note maintenance-staging-empty">${emptyMessage}</p>`
+                }
                 <button class="utility-link" type="button" data-copy-maintenance-parts-index="${group.index}">Copy This List</button>
               </section>
             `;
@@ -1221,6 +1275,9 @@ function renderMaintenanceNotePreview(items = getMaintenanceNoteItems()) {
   if (maintenancePartsCopyButton && !items.length) {
     maintenancePartsCopyButton.disabled = true;
   }
+  if (maintenanceNeededCopyButton && !items.length) {
+    maintenanceNeededCopyButton.disabled = true;
+  }
   if (!items.length) {
     maintenanceNotePreview.innerHTML = `
       <article class="maintenance-note-empty">
@@ -1276,7 +1333,7 @@ function copyMaintenanceNote(index = 0) {
 }
 
 function copyMaintenanceStaging(index = null) {
-  const text = maintenanceStagingExportText(index);
+  const { text } = maintenanceStagingExport({ index });
   if (!text) {
     setMaintenanceNoteStatus("No parts or supplies staging list found in saved planner notes yet.");
     return;
@@ -1288,6 +1345,22 @@ function copyMaintenanceStaging(index = null) {
     })
     .catch(() => {
       setMaintenanceNoteStatus("Could not copy the staging list automatically. Open the saved note and copy it manually.");
+    });
+}
+
+function copyMaintenanceNeedList() {
+  const { text, count } = maintenanceStagingExport({ status: "need" });
+  if (!text) {
+    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus(`Copied need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`);
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not copy the need-to-buy list automatically. Open the staging list and copy it manually.");
     });
 }
 
@@ -1320,6 +1393,7 @@ diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticAc
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
 maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));
 maintenancePartsCopyButton?.addEventListener("click", () => copyMaintenanceStaging());
+maintenanceNeededCopyButton?.addEventListener("click", copyMaintenanceNeedList);
 maintenanceNotePreview?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-copy-maintenance-note-index]");
   if (!button) {
@@ -1329,6 +1403,20 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
 });
 maintenancePartsPreview?.addEventListener("click", (event) => {
+  const filterButton = event.target.closest("[data-maintenance-staging-filter]");
+  if (filterButton) {
+    currentMaintenanceStagingFilter = filterButton.dataset.maintenanceStagingFilter || "all";
+    renderMaintenancePartsPreview();
+    const filterLabel =
+      currentMaintenanceStagingFilter === "all"
+        ? "all"
+        : currentMaintenanceStagingFilter === "need"
+          ? "need-to-buy"
+          : "staged";
+    setMaintenanceNoteStatus(`Showing ${filterLabel} staging items.`);
+    return;
+  }
+
   const toggle = event.target.closest("[data-maintenance-staging-toggle]");
   if (toggle) {
     toggleMaintenanceStaging(toggle);

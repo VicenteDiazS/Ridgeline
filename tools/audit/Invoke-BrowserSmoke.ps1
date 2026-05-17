@@ -541,6 +541,7 @@ async def assert_garage_features(page, page_name):
             const panel = document.querySelector("#maintenance-note-preview");
             const copyLatest = panel?.querySelector("[data-copy-maintenance-note]");
             const copyStaging = panel?.querySelector("[data-copy-maintenance-parts]");
+            const copyNeeded = panel?.querySelector("[data-copy-maintenance-needed]");
             const partsPreview = panel?.querySelector("[data-maintenance-parts-preview]");
             const stagingCard = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
                 .find((card) => card.textContent.includes("Parts Staging"));
@@ -550,10 +551,12 @@ async def assert_garage_features(page, page_name):
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
                 copyStagingEnabled: copyStaging?.disabled === false,
+                copyNeededEnabled: copyNeeded?.disabled === false,
                 itemButtonCount: itemButtons.length,
                 stagingButtonCount: stagingButtons.length,
                 stagingToggleCount: stagingToggles.length,
                 stagingToggleNeedText: stagingToggles.some((button) => button.textContent.includes("Need to buy")),
+                stagingFilterCount: panel ? panel.querySelectorAll("[data-maintenance-staging-filter]").length : 0,
                 stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
                 dashboardStagingText: stagingCard?.innerText || "",
                 hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
@@ -568,10 +571,12 @@ async def assert_garage_features(page, page_name):
     )
     assert_true(populated_state["copyLatestEnabled"], "saved maintenance notes Copy Latest should enable after notes are present")
     assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
+    assert_true(populated_state["copyNeededEnabled"], "saved maintenance notes Copy Buy List should enable after staging items are present")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
     assert_true(populated_state["stagingButtonCount"] >= 2, "saved maintenance notes preview should expose staging copy actions")
     assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
     assert_true(populated_state["stagingToggleNeedText"], "saved maintenance notes staging toggles should start as need-to-buy")
+    assert_true(populated_state["stagingFilterCount"] == 3, "saved maintenance notes staging preview should expose All/Need/Staged filters")
     assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
     assert_true("3 need / 0 staged" in populated_state["dashboardStagingText"], "garage dashboard parts staging card should summarize need/staged counts")
     assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
@@ -618,6 +623,44 @@ async def assert_garage_features(page, page_name):
     assert_true(toggled_state["hasStagedCount"], "maintenance staging group should show staged-count progress after toggle")
     assert_true(toggled_state["dashboardUpdated"], "garage dashboard parts staging card should update after a staging toggle")
     assert_true(toggled_state["storedCount"] >= 1, "maintenance staging state should persist outside the Garage notes object")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='need']").click()
+    await page.wait_for_timeout(150)
+    need_filter_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const toggles = [...panel.querySelectorAll("[data-maintenance-staging-toggle]")];
+            return {
+                activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
+                visibleToggleCount: toggles.length,
+                hasStagedToggle: toggles.some((button) => button.textContent.includes("Staged")),
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true(need_filter_state["activeNeed"] == "true", "maintenance staging Need filter should become active")
+    assert_true(need_filter_state["visibleToggleCount"] == 2, "maintenance staging Need filter should hide the staged line")
+    assert_true(not need_filter_state["hasStagedToggle"], "maintenance staging Need filter should not show staged toggles")
+    assert_true("need-to-buy staging items" in need_filter_state["status"], "maintenance staging Need filter should report the active filter")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='staged']").click()
+    await page.wait_for_timeout(150)
+    staged_filter_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const toggles = [...panel.querySelectorAll("[data-maintenance-staging-toggle]")];
+            return {
+                activeStaged: panel.querySelector("[data-maintenance-staging-filter='staged']")?.getAttribute("aria-pressed"),
+                visibleToggleCount: toggles.length,
+                hasStagedToggle: toggles.some((button) => button.textContent.includes("Staged"))
+            };
+        }"""
+    )
+    assert_true(staged_filter_state["activeStaged"] == "true", "maintenance staging Staged filter should become active")
+    assert_true(staged_filter_state["visibleToggleCount"] == 1, "maintenance staging Staged filter should show only the staged line")
+    assert_true(staged_filter_state["hasStagedToggle"], "maintenance staging Staged filter should show the staged toggle")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-needed]").click()
+    await page.wait_for_timeout(150)
+    need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied need-to-buy list with 2 items" in need_status, "saved maintenance notes Copy Buy List did not report the remaining need-to-buy count")
     await page.reload()
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-staging-toggle]", state="attached")
     reloaded_toggle = await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.inner_text()
