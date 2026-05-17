@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Current Site Status
 
@@ -40,6 +40,7 @@ Last updated: 2026-05-16
 - Maintenance now includes `maintenance.html#minder-pocket-planner`, a mobile-friendly Maintenance Minder Pocket Planner that accepts codes like A1/B12/B4, builds copyable checklist text from the existing A/B and sub-item 1-6 guide, rejects unsupported sub-code 7, and routes to Quick Maintenance Update and Garage Notes without mileage prediction or brake-fluid sub-code wording.
 - Maintenance now has a page-scoped iPhone density pass for the planning tools: mobile hero links are trimmed to six primary tasks, the bottom action bar prioritizes Update/Prep/Planner/More, Service Prep cards use a compact two-column layout where iPhone width allows it, and the Pocket Planner actions/samples are tighter without removing content.
 - Maintenance Minder Pocket Planner now has a guarded Save Note action that rebuilds from the current dash-code input, prepends the generated checklist into existing local Garage Notes, preserves the brake-fluid calendar-service caution, and does not change Garage storage schema or vehicle facts.
+- Garage Dashboard now includes `garage.html#maintenance-note-preview`, a read-only Recent Maintenance Notes panel that surfaces recent Service Prep and Maintenance Minder planner notes already saved in `ridgeline-notes.general_notes`, with empty/populated states and routes back to Maintenance planners and the full Garage Notes form.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
@@ -306,4 +307,9 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')"`; targeted Maintenance smoke passed, including Service Prep save status, checked-only save content, prepended existing Garage notes, unrelated note-key preservation, and no iPhone-width overflow.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v276-service-prep-save-final -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
 - `Capture-Screenshots.ps1` still failed to create the first Maintenance screenshot, so direct Playwright screenshots were captured with `--allow-file-access-from-files` and `--disable-web-security` at `debug-screenshots/audit-v276-service-prep-save-mobile-maintenance.png` and `debug-screenshots/audit-v276-service-prep-save-desktop-maintenance.png`.
-- Next safe slice: real-device review of Maintenance Service Prep and Minder saved Garage Notes output on the user's iPhone before adding larger job templates, inventory/parts handoffs, or remote-sync conflict behavior.
+- Added `garage.html#maintenance-note-preview`, a read-only Recent Maintenance Notes preview that parses existing bracketed Service Prep and Maintenance Minder planner note blocks from `ridgeline-notes.general_notes` without changing Garage storage.
+- Extended search and Playwright browser smoke coverage for `saved maintenance notes`, empty/populated preview states, seeded Service Prep/Minder note rendering, and iPhone-width no-overflow behavior; bumped the service-worker cache to `ridgeline-console-v279`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Garage/Maintenance smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v279-maintenance-notes-final -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
+- Captured direct Playwright screenshots at `debug-screenshots/audit-v279-maintenance-notes-mobile-garage.png` and `debug-screenshots/audit-v279-maintenance-notes-desktop-garage.png`.
+- Next safe slice: real-device review of the new Garage Recent Maintenance Notes preview on the user's iPhone before adding larger job templates, inventory/parts handoffs, or remote-sync conflict behavior.

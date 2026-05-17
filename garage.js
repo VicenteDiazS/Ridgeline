@@ -24,6 +24,7 @@ const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
+const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
 const diagnosticActivityDownloadButton = document.querySelector("[data-download-diagnostic-activity]");
@@ -309,6 +310,40 @@ function getDiagnosticActivityItems() {
   });
 
   return items.sort((a, b) => a.rank - b.rank);
+}
+
+function isMaintenanceNoteTitle(value = "") {
+  return /\b(maintenance minder|prep|oil change|tire rotation|brake service|transmission service|battery install|air filters|timing belt service|trailer wiring check)\b/i.test(
+    `${value}`
+  );
+}
+
+function getMaintenanceNoteItems() {
+  const notes = loadJson(STORAGE.notes, {});
+  const generalNotes = `${notes.general_notes || ""}`.trim();
+  if (!generalNotes) {
+    return [];
+  }
+
+  const blocks = [];
+  const pattern = /\[([^\]\n]+?)\]\s*\n?([\s\S]*?)(?=\n\[[^\]\n]+?\]\s*\n?|\s*$)/g;
+  let match;
+  while ((match = pattern.exec(generalNotes))) {
+    const heading = match[1] || "";
+    const body = (match[2] || "").trim();
+    const title = heading.replace(/^[^-]+-\s*/, "").trim() || heading;
+    if (!isMaintenanceNoteTitle(title)) {
+      continue;
+    }
+
+    blocks.push({
+      title,
+      meta: heading,
+      detail: shortText(body || title, 180)
+    });
+  }
+
+  return blocks.slice(0, 4);
 }
 
 function filterDiagnosticActivityItems(items = getDiagnosticActivityItems()) {
@@ -875,6 +910,7 @@ function renderDashboard() {
     .join("");
 
   renderDiagnosticActivity();
+  renderMaintenanceNotePreview();
 }
 
 function renderDiagnosticActivity() {
@@ -915,6 +951,40 @@ function renderDiagnosticActivity() {
           <strong>${escapeHtml(item.title)}</strong>
           <p>${escapeHtml(item.detail)}</p>
           <a class="utility-link" href="${item.href}">Open Source</a>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderMaintenanceNotePreview() {
+  if (!maintenanceNotePreview) {
+    return;
+  }
+
+  const items = getMaintenanceNoteItems();
+  if (!items.length) {
+    maintenanceNotePreview.innerHTML = `
+      <article class="maintenance-note-empty">
+        <strong>No saved maintenance planner notes yet.</strong>
+        <p>Save a Service Prep card or Maintenance Minder checklist from the Maintenance page, then confirm it here before opening the full notes form.</p>
+        <div class="inspector-actions">
+          <a class="utility-link" href="maintenance.html#service-prep">Open Prep Planner</a>
+          <a class="utility-link" href="maintenance.html#minder-pocket-planner">Open Minder Planner</a>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  maintenanceNotePreview.innerHTML = items
+    .map(
+      (item) => `
+        <article class="maintenance-note-item">
+          <span>${escapeHtml(item.meta)}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.detail)}</p>
+          <a class="utility-link" href="#notes">Open Full Note</a>
         </article>
       `
     )

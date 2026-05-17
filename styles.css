@@ -5849,7 +5849,19 @@ kbd {
   border-top: 1px solid rgba(121, 212, 255, 0.12);
 }
 
+.maintenance-note-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(121, 212, 255, 0.12);
+}
+
 .diagnostic-activity-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.maintenance-note-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -5969,7 +5981,9 @@ kbd {
 }
 
 .diagnostic-activity-item,
-.diagnostic-activity-empty {
+.diagnostic-activity-empty,
+.maintenance-note-item,
+.maintenance-note-empty {
   display: grid;
   gap: 8px;
   padding: 14px;
@@ -5978,7 +5992,8 @@ kbd {
   background: rgba(255, 255, 255, 0.035);
 }
 
-.diagnostic-activity-item span {
+.diagnostic-activity-item span,
+.maintenance-note-item span {
   color: var(--accent);
   font-size: 0.7rem;
   letter-spacing: 0.1em;
@@ -5986,13 +6001,17 @@ kbd {
 }
 
 .diagnostic-activity-item strong,
-.diagnostic-activity-empty strong {
+.diagnostic-activity-empty strong,
+.maintenance-note-item strong,
+.maintenance-note-empty strong {
   color: var(--text);
   line-height: 1.35;
 }
 
 .diagnostic-activity-item p,
-.diagnostic-activity-empty p {
+.diagnostic-activity-empty p,
+.maintenance-note-item p,
+.maintenance-note-empty p {
   margin: 0;
   color: var(--muted);
   line-height: 1.55;
@@ -8601,6 +8620,7 @@ kbd {
 
   .dashboard-grid,
   .diagnostic-activity-list,
+  .maintenance-note-list,
   .photo-atlas-grid {
     grid-template-columns: 1fr;
   }

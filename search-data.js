@@ -314,6 +314,13 @@ export const searchIndex = [
     keywords: ["minder planner", "maintenance minder planner", "pocket planner", "dash code checklist", "b12 checklist", "a1 checklist", "maintenance code checklist", "code b12", "code a1", "save minder note", "garage minder note", "maintenance checklist note"]
   },
   {
+    title: "Saved Maintenance Notes",
+    url: "garage.html#maintenance-note-preview",
+    category: "Garage",
+    excerpt: "Garage preview for Service Prep and Maintenance Minder planner notes saved from the Maintenance page.",
+    keywords: ["saved maintenance notes", "maintenance notes", "garage maintenance notes", "saved prep notes", "saved minder notes", "confirm maintenance note", "service prep saved", "minder saved"]
+  },
+  {
     title: "Recorded Timing Belt Service",
     url: "maintenance.html#major-service-log",
     category: "Maintenance",

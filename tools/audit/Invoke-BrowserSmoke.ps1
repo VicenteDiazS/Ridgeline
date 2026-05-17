@@ -42,6 +42,7 @@ SEARCH_EXPECTATIONS = {
     "workflow index": "Diagnostics Workflow Index",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
+    "saved maintenance notes": "Saved Maintenance Notes",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
 }
@@ -428,6 +429,8 @@ async def assert_garage_features(page, page_name):
             const diagnosticCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
                 .find((card) => card.textContent.includes("Diagnostic Notes")) : null;
             const activity = document.querySelector("#diagnostic-activity [data-diagnostic-activity]");
+            const maintenanceNotes = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
+            const maintenanceNoteText = document.querySelector("#maintenance-note-preview")?.innerText || "";
             const activityText = document.querySelector("#diagnostic-activity")?.innerText || "";
             const template = document.querySelector("#warning-light-template");
             const requiredFields = [
@@ -444,6 +447,10 @@ async def assert_garage_features(page, page_name):
                 hasDiagnosticCardRoute: Boolean(diagnosticCard?.querySelector('a[href="#warning-light-template"]')),
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
+                hasMaintenanceNotes: Boolean(maintenanceNotes),
+                maintenanceNotesRender: Boolean(maintenanceNotes?.textContent.includes("No saved maintenance planner notes yet.") || maintenanceNotes?.querySelector(".maintenance-note-item")),
+                maintenanceNoteHasRoutes: Boolean(document.querySelector('#maintenance-note-preview a[href="maintenance.html#service-prep"]')) &&
+                    (maintenanceNoteText.includes("Open Minder Planner") || Boolean(maintenanceNotes?.querySelector('.maintenance-note-item a[href="#notes"]'))),
                 hasFilter: Boolean(document.querySelector("#diagnostic-activity [data-diagnostic-activity-filter]")),
                 hasCopy: Boolean(document.querySelector("#diagnostic-activity [data-copy-diagnostic-activity]")),
                 hasActivityDownload: Boolean(document.querySelector("#diagnostic-activity [data-download-diagnostic-activity]")),
@@ -470,6 +477,9 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasDiagnosticCardRoute"], "diagnostic notes card is missing the warning-light note route")
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
+    assert_true(state["hasMaintenanceNotes"], "garage dashboard is missing saved maintenance notes preview")
+    assert_true(state["maintenanceNotesRender"], "saved maintenance notes preview is not rendering an empty or populated state")
+    assert_true(state["maintenanceNoteHasRoutes"], "saved maintenance notes preview is missing planner routes")
     for key, message in [
         ("hasFilter", "diagnostic activity filter is missing"),
         ("hasCopy", "diagnostic activity copy summary button is missing"),
@@ -491,6 +501,27 @@ async def assert_garage_features(page, page_name):
     ]:
         assert_true(state[key], message)
     assert_true(not state["missingFields"], f"warning-light template is missing fields: {state['missingFields']}")
+    await page.evaluate("""() => localStorage.setItem('ridgeline-notes', JSON.stringify({
+        general_notes: '[5/16/2026 - Maintenance Minder A1 planner]\\nMaintenance Minder A1:\\n- A: Replace engine oil.\\n- 1: Rotate tires.\\n[5/16/2026 - Oil Change Prep]\\nOil Change Prep:\\n- 0W-20 oil and final dipstick level check'
+    }))""")
+    await page.reload()
+    await page.wait_for_selector("#maintenance-note-preview [data-maintenance-note-preview]", state="attached")
+    await page.wait_for_timeout(300)
+    note_preview = await page.locator("#maintenance-note-preview [data-maintenance-note-preview]").inner_text()
+    assert_true("Maintenance Minder A1 planner" in note_preview, "saved maintenance notes preview did not show Minder planner note")
+    assert_true("Oil Change Prep" in note_preview, "saved maintenance notes preview did not show Service Prep note")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    garage_mobile_state = await page.evaluate(
+        """() => {
+            const preview = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            return { overflow: width > document.documentElement.clientWidth + 1, columns };
+        }"""
+    )
+    assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
+    assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
 
 
 async def set_search_query(page, query):
