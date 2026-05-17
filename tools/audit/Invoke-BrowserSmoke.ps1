@@ -42,6 +42,7 @@ SEARCH_EXPECTATIONS = {
     "workflow index": "Diagnostics Workflow Index",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
+    "parts staging list": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
@@ -430,6 +431,7 @@ async def assert_garage_features(page, page_name):
                 .find((card) => card.textContent.includes("Diagnostic Notes")) : null;
             const activity = document.querySelector("#diagnostic-activity [data-diagnostic-activity]");
             const maintenanceNotes = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
+            const maintenanceParts = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview]");
             const maintenanceNoteText = document.querySelector("#maintenance-note-preview")?.innerText || "";
             const activityText = document.querySelector("#diagnostic-activity")?.innerText || "";
             const template = document.querySelector("#warning-light-template");
@@ -448,10 +450,13 @@ async def assert_garage_features(page, page_name):
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
                 hasMaintenanceNotes: Boolean(maintenanceNotes),
+                hasMaintenancePartsPreview: Boolean(maintenanceParts),
                 hasMaintenanceNoteCopy: Boolean(document.querySelector("#maintenance-note-preview [data-copy-maintenance-note]")),
+                hasMaintenancePartsCopy: Boolean(document.querySelector("#maintenance-note-preview [data-copy-maintenance-parts]")),
                 maintenanceNotesEmpty: Boolean(maintenanceNotes?.textContent.includes("No saved maintenance planner notes yet.")),
                 maintenanceNotesPopulated: Boolean(maintenanceNotes?.querySelector(".maintenance-note-item")),
                 maintenanceNoteCopyDisabled: document.querySelector("#maintenance-note-preview [data-copy-maintenance-note]")?.disabled === true,
+                maintenancePartsCopyDisabled: document.querySelector("#maintenance-note-preview [data-copy-maintenance-parts]")?.disabled === true,
                 maintenanceNotesRender: Boolean(maintenanceNotes?.textContent.includes("No saved maintenance planner notes yet.") || maintenanceNotes?.querySelector(".maintenance-note-item")),
                 maintenanceNoteHasRoutes: Boolean(document.querySelector('#maintenance-note-preview a[href="maintenance.html#service-prep"]')) &&
                     (maintenanceNoteText.includes("Open Minder Planner") || Boolean(maintenanceNotes?.querySelector('.maintenance-note-item a[href="#notes"]'))),
@@ -482,9 +487,12 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
     assert_true(state["hasMaintenanceNotes"], "garage dashboard is missing saved maintenance notes preview")
+    assert_true(state["hasMaintenancePartsPreview"], "garage dashboard is missing maintenance parts staging preview")
     assert_true(state["hasMaintenanceNoteCopy"], "saved maintenance notes preview is missing Copy Latest")
+    assert_true(state["hasMaintenancePartsCopy"], "saved maintenance notes preview is missing Copy Staging List")
     if state["maintenanceNotesEmpty"]:
         assert_true(state["maintenanceNoteCopyDisabled"], "saved maintenance notes Copy Latest should start disabled when no planner notes exist")
+        assert_true(state["maintenancePartsCopyDisabled"], "saved maintenance notes Copy Staging List should start disabled when no planner notes exist")
     if state["maintenanceNotesPopulated"]:
         assert_true(not state["maintenanceNoteCopyDisabled"], "saved maintenance notes Copy Latest should enable when planner notes exist")
     assert_true(state["maintenanceNotesRender"], "saved maintenance notes preview is not rendering an empty or populated state")
@@ -523,10 +531,19 @@ async def assert_garage_features(page, page_name):
         """() => {
             const panel = document.querySelector("#maintenance-note-preview");
             const copyLatest = panel?.querySelector("[data-copy-maintenance-note]");
+            const copyStaging = panel?.querySelector("[data-copy-maintenance-parts]");
+            const partsPreview = panel?.querySelector("[data-maintenance-parts-preview]");
             const itemButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-note-index]")] : [];
+            const stagingButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-parts-index]")] : [];
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
+                copyStagingEnabled: copyStaging?.disabled === false,
                 itemButtonCount: itemButtons.length,
+                stagingButtonCount: stagingButtons.length,
+                hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
+                hasStagingText: partsPreview?.textContent.includes("0W-20 oil and final dipstick level check") &&
+                    partsPreview?.textContent.includes("Rotate tires"),
+                hasPartsSourceRoute: Boolean(partsPreview?.querySelector('a[href="#rockauto-parts"]')),
                 hasPrepRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="maintenance.html#service-prep"]')),
                 hasMinderRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="maintenance.html#minder-pocket-planner"]')),
                 hasFullNoteRoute: Boolean(panel?.querySelector('.maintenance-note-item a[href="#notes"]'))
@@ -534,7 +551,12 @@ async def assert_garage_features(page, page_name):
         }"""
     )
     assert_true(populated_state["copyLatestEnabled"], "saved maintenance notes Copy Latest should enable after notes are present")
+    assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
+    assert_true(populated_state["stagingButtonCount"] >= 2, "saved maintenance notes preview should expose staging copy actions")
+    assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
+    assert_true(populated_state["hasStagingText"], "saved maintenance notes preview did not derive expected staging items")
+    assert_true(populated_state["hasPartsSourceRoute"], "maintenance staging card is missing the parts source route")
     assert_true(populated_state["hasPrepRoute"], "saved maintenance notes preview is missing Service Prep planner route on populated notes")
     assert_true(populated_state["hasMinderRoute"], "saved maintenance notes preview is missing Minder planner route on populated notes")
     assert_true(populated_state["hasFullNoteRoute"], "saved maintenance notes preview is missing the full notes route on populated notes")
@@ -546,18 +568,29 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     second_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied Oil Change Prep" in second_status, "saved maintenance note item copy did not report the copied note")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-parts]").click()
+    await page.wait_for_timeout(150)
+    staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied maintenance staging list" in staging_status, "saved maintenance notes Copy Staging List did not report success")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-parts-index='1']").first.click()
+    await page.wait_for_timeout(150)
+    item_staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied staging list for this saved note" in item_staging_status, "saved maintenance note item staging copy did not report success")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     garage_mobile_state = await page.evaluate(
         """() => {
             const preview = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
+            const partsPreview = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview] .maintenance-parts-groups");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
-            return { overflow: width > document.documentElement.clientWidth + 1, columns };
+            const partsColumns = partsPreview ? getComputedStyle(partsPreview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            return { overflow: width > document.documentElement.clientWidth + 1, columns, partsColumns };
         }"""
     )
     assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
+    assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
 
 
 async def set_search_query(page, query):

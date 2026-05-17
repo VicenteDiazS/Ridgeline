@@ -55,6 +55,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Maintenance Minder Pocket Planner includes a guarded Save Note action that saves the generated checklist into local Garage Notes after rebuilding from the current input, preserving the brake-fluid calendar-service caution and avoiding a Garage schema change.
 - Maintenance has page-scoped iPhone density rules for its planning tools: six primary hero task links, Update/Prep/Planner/More bottom actions, compact two-column Service Prep cards at common iPhone width, and browser-smoke assertions for the mobile layout.
 - Garage Dashboard includes a Recent Maintenance Notes preview that surfaces Service Prep and Maintenance Minder planner notes already saved into `ridgeline-notes.general_notes`, with empty/populated states, Copy Latest, per-note Copy Note, source-planner routes, Open Full Note links, live status text, and no Garage schema change.
+- Garage Recent Maintenance Notes includes a derived Parts And Supplies Staging panel that extracts copyable staging lines from known saved planner-note blocks, links to existing parts-source shortcuts, and clearly keeps final fitment/truck-label verification with the user.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -242,3 +243,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')` passed after the action slice.
 - `Invoke-SiteAudit.ps1 -Tag audit-v280-maintenance-note-actions -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
 - Direct Playwright screenshots were captured under `debug-screenshots/audit-v280-maintenance-note-actions-mobile-garage.png` and `debug-screenshots/audit-v280-maintenance-note-actions-desktop-garage.png`.
+- Added Garage maintenance-note Parts And Supplies Staging: a no-schema derived panel, Copy Staging List, per-note Copy Staging, parts-source routing, search metadata, mobile layout CSS, and browser-smoke coverage for populated notes and iPhone no-overflow behavior.
+- `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')` passed after the staging slice.
+- `Invoke-SiteAudit.ps1 -Tag audit-v281-maintenance-staging -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
+- Direct Playwright screenshots were captured under `debug-screenshots/audit-v281-maintenance-staging-mobile-garage.png` and `debug-screenshots/audit-v281-maintenance-staging-desktop-garage.png`.

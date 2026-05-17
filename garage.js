@@ -26,6 +26,8 @@ const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
+const maintenancePartsCopyButton = document.querySelector("[data-copy-maintenance-parts]");
+const maintenancePartsPreview = document.querySelector("[data-maintenance-parts-preview]");
 const maintenanceNoteStatus = document.querySelector("[data-maintenance-note-status]");
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
@@ -328,6 +330,35 @@ function maintenanceNotePlannerLabel(title = "") {
   return /\bmaintenance minder\b/i.test(`${title}`) ? "Open Minder Planner" : "Open Prep Planner";
 }
 
+function normalizeMaintenanceLine(value = "") {
+  return `${value}`
+    .replace(/^\s*[-*]\s*/, "")
+    .replace(/^\d+\.\s*/, "")
+    .replace(/^[A-B1-6]:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function maintenanceStagingItems(body = "") {
+  const seen = new Set();
+  const stagingPattern =
+    /\b(oil|filters?|washers?|crush|drain|tires?|wheels?|lug|torque|brakes?|battery|terminal|cleaner|pollen|spark|plugs?|timing|belt|water pump|coolant|transmission|fluid|wipers?|fuse|tester|gauge|gloves|pan|funnel|parts|supplies|tools|label|photo|level check)\b/i;
+
+  return `${body}`
+    .split(/\n+/)
+    .map(normalizeMaintenanceLine)
+    .filter((line) => line && stagingPattern.test(line))
+    .filter((line) => {
+      const key = line.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 6);
+}
+
 function getMaintenanceNoteItems() {
   const notes = loadJson(STORAGE.notes, {});
   const generalNotes = `${notes.general_notes || ""}`.trim();
@@ -351,6 +382,7 @@ function getMaintenanceNoteItems() {
       meta: heading,
       detail: shortText(body || title, 180),
       copyText: `[${heading}]\n${body || title}`,
+      stagingItems: maintenanceStagingItems(body || title),
       href: maintenanceNotePlannerLink(title),
       hrefLabel: maintenanceNotePlannerLabel(title)
     });
@@ -363,6 +395,89 @@ function setMaintenanceNoteStatus(message = "") {
   if (maintenanceNoteStatus) {
     maintenanceNoteStatus.textContent = message;
   }
+}
+
+function maintenanceStagingExportText(index = null) {
+  const items = getMaintenanceNoteItems();
+  const selectedItems = Number.isInteger(index) ? items.slice(index, index + 1) : items;
+  const groups = selectedItems
+    .map((item) => ({
+      title: item.title,
+      lines: item.stagingItems || []
+    }))
+    .filter((group) => group.lines.length);
+
+  if (!groups.length) {
+    return "";
+  }
+
+  return [
+    "Ridgeline Maintenance Staging List",
+    "Verify part numbers and truck labels before ordering.",
+    "",
+    ...groups.flatMap((group) => [`${group.title}:`, ...group.lines.map((line) => `- ${line}`), ""])
+  ]
+    .join("\n")
+    .trim();
+}
+
+function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
+  if (!maintenancePartsPreview) {
+    return;
+  }
+
+  const groups = items
+    .map((item, index) => ({
+      index,
+      title: item.title,
+      lines: item.stagingItems || []
+    }))
+    .filter((group) => group.lines.length)
+    .slice(0, 3);
+
+  if (maintenancePartsCopyButton) {
+    maintenancePartsCopyButton.disabled = !groups.length;
+  }
+
+  if (!groups.length) {
+    maintenancePartsPreview.innerHTML = items.length
+      ? `
+        <article class="maintenance-parts-card maintenance-parts-empty">
+          <strong>No staging items detected yet.</strong>
+          <p>Saved notes are visible below. Add checked Service Prep items when you want this panel to build a parts-counter list.</p>
+        </article>
+      `
+      : "";
+    return;
+  }
+
+  maintenancePartsPreview.innerHTML = `
+    <article class="maintenance-parts-card">
+      <div class="compact-section-head">
+        <div>
+          <p class="eyebrow">Parts and supplies staging</p>
+          <h5>Pull From Saved Notes Before Ordering</h5>
+        </div>
+        <a class="utility-link" href="#rockauto-parts">Open Parts Sources</a>
+      </div>
+      <div class="maintenance-parts-groups">
+        ${groups
+          .map(
+            (group) => `
+              <section class="maintenance-parts-group">
+                <strong>${escapeHtml(group.title)}</strong>
+                <ul>
+                  ${group.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+                </ul>
+                <button class="utility-link" type="button" data-copy-maintenance-parts-index="${group.index}">Copy This List</button>
+              </section>
+            `
+          )
+          .join("")}
+      </div>
+      <p class="small-note">This is a handoff from your saved planner notes, not a fitment guarantee. Confirm final part numbers in the truck profile, the real truck labels, or the parts catalog.</p>
+    </article>
+  `;
 }
 
 function filterDiagnosticActivityItems(items = getDiagnosticActivityItems()) {
@@ -982,9 +1097,13 @@ function renderMaintenanceNotePreview() {
   }
 
   const items = getMaintenanceNoteItems();
+  renderMaintenancePartsPreview(items);
   setMaintenanceNoteStatus(items.length ? `Showing ${items.length} recent saved planner note${items.length === 1 ? "" : "s"}.` : "");
   if (maintenanceNoteCopyButton) {
     maintenanceNoteCopyButton.disabled = !items.length;
+  }
+  if (maintenancePartsCopyButton && !items.length) {
+    maintenancePartsCopyButton.disabled = true;
   }
   if (!items.length) {
     maintenanceNotePreview.innerHTML = `
@@ -1009,6 +1128,11 @@ function renderMaintenanceNotePreview() {
           <p>${escapeHtml(item.detail)}</p>
           <div class="maintenance-note-actions">
             <button class="utility-link" type="button" data-copy-maintenance-note-index="${index}">Copy Note</button>
+            ${
+              item.stagingItems?.length
+                ? `<button class="utility-link" type="button" data-copy-maintenance-parts-index="${index}">Copy Staging</button>`
+                : ""
+            }
             <a class="utility-link" href="${item.href}">${item.hrefLabel}</a>
             <a class="utility-link" href="#notes">Open Full Note</a>
           </div>
@@ -1035,6 +1159,22 @@ function copyMaintenanceNote(index = 0) {
     });
 }
 
+function copyMaintenanceStaging(index = null) {
+  const text = maintenanceStagingExportText(index);
+  if (!text) {
+    setMaintenanceNoteStatus("No parts or supplies staging list found in saved planner notes yet.");
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus(Number.isInteger(index) ? "Copied staging list for this saved note." : "Copied maintenance staging list.");
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not copy the staging list automatically. Open the saved note and copy it manually.");
+    });
+}
+
 diagnosticActivityFilter?.addEventListener("change", () => {
   currentDiagnosticActivityFilter = diagnosticActivityFilter.value || "all";
   renderDiagnosticActivity();
@@ -1054,6 +1194,7 @@ diagnosticActivityCopyButton?.addEventListener("click", () => {
 diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticActivity);
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
 maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));
+maintenancePartsCopyButton?.addEventListener("click", () => copyMaintenanceStaging());
 maintenanceNotePreview?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-copy-maintenance-note-index]");
   if (!button) {
@@ -1061,6 +1202,22 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   }
 
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
+});
+maintenancePartsPreview?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copy-maintenance-parts-index]");
+  if (!button) {
+    return;
+  }
+
+  copyMaintenanceStaging(Number(button.dataset.copyMaintenancePartsIndex || 0));
+});
+maintenanceNotePreview?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copy-maintenance-parts-index]");
+  if (!button) {
+    return;
+  }
+
+  copyMaintenanceStaging(Number(button.dataset.copyMaintenancePartsIndex || 0));
 });
 
 async function renderGaragePage() {
