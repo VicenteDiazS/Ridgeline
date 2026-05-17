@@ -513,6 +513,69 @@ function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
   return { groups: groups.length, total, staged, need };
 }
 
+function updateMaintenanceStagingBulk(action = "") {
+  const items = getMaintenanceNoteItems();
+  const groups = items
+    .map((item) => ({
+      title: item.title,
+      lines: item.stagingItems || []
+    }))
+    .filter((group) => group.lines.length);
+  let changed = 0;
+
+  groups.forEach((group) => {
+    group.lines.forEach((line) => {
+      const status = maintenanceStagingStatus(group.title, line);
+      if (action === "stage-needed" && status !== "staged") {
+        setMaintenanceStagingStatus(group.title, line, "staged");
+        changed += 1;
+      }
+      if (action === "reset-staged" && status === "staged") {
+        setMaintenanceStagingStatus(group.title, line, "need");
+        changed += 1;
+      }
+    });
+  });
+
+  renderDashboard();
+  if (action === "stage-needed") {
+    setMaintenanceNoteStatus(
+      changed ? `Marked ${changed} need-to-buy item${changed === 1 ? "" : "s"} as staged.` : "No need-to-buy staging items left."
+    );
+  } else if (action === "reset-staged") {
+    setMaintenanceNoteStatus(changed ? `Reset ${changed} staged item${changed === 1 ? "" : "s"} to need to buy.` : "No staged items to reset.");
+  }
+}
+
+function updateMaintenanceStagingGroup(index = 0, action = "") {
+  const item = getMaintenanceNoteItems()[index];
+  const lines = item?.stagingItems || [];
+  let changed = 0;
+
+  lines.forEach((line) => {
+    const status = maintenanceStagingStatus(item.title, line);
+    if (action === "stage-needed" && status !== "staged") {
+      setMaintenanceStagingStatus(item.title, line, "staged");
+      changed += 1;
+    }
+    if (action === "reset-staged" && status === "staged") {
+      setMaintenanceStagingStatus(item.title, line, "need");
+      changed += 1;
+    }
+  });
+
+  renderDashboard();
+  if (action === "stage-needed") {
+    setMaintenanceNoteStatus(
+      changed ? `Marked ${changed} ${item?.title || "saved note"} item${changed === 1 ? "" : "s"} as staged.` : "No need-to-buy items left in this saved note."
+    );
+  } else if (action === "reset-staged") {
+    setMaintenanceNoteStatus(
+      changed ? `Reset ${changed} ${item?.title || "saved note"} item${changed === 1 ? "" : "s"} to need to buy.` : "No staged items to reset in this saved note."
+    );
+  }
+}
+
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   if (!maintenancePartsPreview) {
     return;
@@ -546,6 +609,8 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
     return;
   }
 
+  const summary = getMaintenanceStagingSummary(items);
+
   maintenancePartsPreview.innerHTML = `
     <article class="maintenance-parts-card">
       <div class="compact-section-head">
@@ -563,6 +628,23 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
             return `<button class="staging-filter-button" type="button" data-maintenance-staging-filter="${filter}" aria-pressed="${active ? "true" : "false"}">${label}</button>`;
           })
           .join("")}
+      </div>
+      <div class="maintenance-staging-run">
+        <p><strong>${summary.need}</strong> need to buy <span>/</span> <strong>${summary.staged}</strong> staged</p>
+        <div class="inspector-actions">
+          <button
+            class="ghost-button"
+            type="button"
+            data-maintenance-staging-bulk="stage-needed"
+            ${summary.need ? "" : "disabled"}
+          >Mark Need Staged</button>
+          <button
+            class="ghost-button"
+            type="button"
+            data-maintenance-staging-bulk="reset-staged"
+            ${summary.staged ? "" : "disabled"}
+          >Reset Staged</button>
+        </div>
       </div>
       <div class="maintenance-parts-groups">
         ${groups
@@ -587,6 +669,22 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
                 <div class="maintenance-parts-group-head">
                   <strong>${escapeHtml(group.title)}</strong>
                   <span>${stagedCount}/${group.lines.length} staged</span>
+                </div>
+                <div class="maintenance-group-actions">
+                  <button
+                    class="ghost-button"
+                    type="button"
+                    data-maintenance-staging-group-bulk="stage-needed"
+                    data-maintenance-staging-group-index="${group.index}"
+                    ${stagedCount === group.lines.length ? "disabled" : ""}
+                  >Mark Group Staged</button>
+                  <button
+                    class="ghost-button"
+                    type="button"
+                    data-maintenance-staging-group-bulk="reset-staged"
+                    data-maintenance-staging-group-index="${group.index}"
+                    ${stagedCount ? "" : "disabled"}
+                  >Reset Group</button>
                 </div>
                 ${
                   visibleLines.length
@@ -1414,6 +1512,21 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
           ? "need-to-buy"
           : "staged";
     setMaintenanceNoteStatus(`Showing ${filterLabel} staging items.`);
+    return;
+  }
+
+  const bulkButton = event.target.closest("[data-maintenance-staging-bulk]");
+  if (bulkButton) {
+    updateMaintenanceStagingBulk(bulkButton.dataset.maintenanceStagingBulk || "");
+    return;
+  }
+
+  const groupBulkButton = event.target.closest("[data-maintenance-staging-group-bulk]");
+  if (groupBulkButton) {
+    updateMaintenanceStagingGroup(
+      Number(groupBulkButton.dataset.maintenanceStagingGroupIndex || 0),
+      groupBulkButton.dataset.maintenanceStagingGroupBulk || ""
+    );
     return;
   }
 

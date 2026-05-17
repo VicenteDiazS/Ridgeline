@@ -5928,6 +5928,30 @@ kbd {
   color: var(--text);
 }
 
+.maintenance-staging-run {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 210, 122, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 210, 122, 0.055);
+}
+
+.maintenance-staging-run p {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.maintenance-staging-run strong {
+  color: var(--text);
+}
+
+.maintenance-staging-run span {
+  color: rgba(210, 230, 240, 0.55);
+}
+
 .maintenance-parts-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5965,6 +5989,19 @@ kbd {
   font-size: 0.72rem;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.maintenance-group-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.maintenance-group-actions .ghost-button {
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
 }
 
 .maintenance-parts-group ul {
@@ -8815,6 +8852,19 @@ kbd {
     padding: 12px;
   }
 
+  .maintenance-staging-run {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-staging-run .inspector-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .maintenance-staging-run .ghost-button {
+    width: 100%;
+  }
+
   .maintenance-parts-group .utility-link {
     width: 100%;
   }
@@ -8826,6 +8876,10 @@ kbd {
 
   .maintenance-parts-group-head span {
     width: fit-content;
+  }
+
+  .maintenance-group-actions {
+    grid-template-columns: 1fr;
   }
 
   .maintenance-staging-checklist li {

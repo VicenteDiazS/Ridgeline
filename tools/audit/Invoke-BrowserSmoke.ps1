@@ -548,6 +548,9 @@ async def assert_garage_features(page, page_name):
             const itemButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-note-index]")] : [];
             const stagingButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-parts-index]")] : [];
             const stagingToggles = panel ? [...panel.querySelectorAll("[data-maintenance-staging-toggle]")] : [];
+            const bulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-bulk]")] : [];
+            const groupBulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-group-bulk]")] : [];
+            const stagingRun = panel?.querySelector(".maintenance-staging-run");
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
                 copyStagingEnabled: copyStaging?.disabled === false,
@@ -557,6 +560,10 @@ async def assert_garage_features(page, page_name):
                 stagingToggleCount: stagingToggles.length,
                 stagingToggleNeedText: stagingToggles.some((button) => button.textContent.includes("Need to buy")),
                 stagingFilterCount: panel ? panel.querySelectorAll("[data-maintenance-staging-filter]").length : 0,
+                stagingBulkButtonCount: bulkButtons.length,
+                stagingGroupBulkButtonCount: groupBulkButtons.length,
+                hasStagingRun: Boolean(stagingRun),
+                stagingRunText: stagingRun?.innerText || "",
                 stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
                 dashboardStagingText: stagingCard?.innerText || "",
                 hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
@@ -577,6 +584,10 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
     assert_true(populated_state["stagingToggleNeedText"], "saved maintenance notes staging toggles should start as need-to-buy")
     assert_true(populated_state["stagingFilterCount"] == 3, "saved maintenance notes staging preview should expose All/Need/Staged filters")
+    assert_true(populated_state["stagingBulkButtonCount"] == 2, "saved maintenance notes staging preview should expose bulk store-run controls")
+    assert_true(populated_state["stagingGroupBulkButtonCount"] >= 4, "saved maintenance notes staging preview should expose per-note bulk controls")
+    assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
+    assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
     assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
     assert_true("3 need / 0 staged" in populated_state["dashboardStagingText"], "garage dashboard parts staging card should summarize need/staged counts")
     assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
@@ -665,6 +676,82 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-staging-toggle]", state="attached")
     reloaded_toggle = await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.inner_text()
     assert_true("Staged" in reloaded_toggle, "staging toggle state should survive a Garage reload")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='stage-needed']").click()
+    await page.wait_for_timeout(150)
+    bulk_stage_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                runText: panel?.querySelector(".maintenance-staging-run")?.innerText || "",
+                stageNeededDisabled: panel?.querySelector("[data-maintenance-staging-bulk='stage-needed']")?.disabled === true,
+                resetEnabled: panel?.querySelector("[data-maintenance-staging-bulk='reset-staged']")?.disabled === false,
+                dashboardUpdated: stagingCardText.includes("0 need / 3 staged")
+            };
+        }"""
+    )
+    assert_true("Marked 2 need-to-buy items as staged" in bulk_stage_state["status"], "bulk stage-needed control did not report the changed count")
+    assert_true("0 need to buy" in bulk_stage_state["runText"], "bulk stage-needed control should update the run summary")
+    assert_true(bulk_stage_state["stageNeededDisabled"], "bulk stage-needed control should disable when no need-to-buy items remain")
+    assert_true(bulk_stage_state["resetEnabled"], "bulk reset control should enable when staged items exist")
+    assert_true(bulk_stage_state["dashboardUpdated"], "garage dashboard parts staging card should update after bulk staging")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='reset-staged']").click()
+    await page.wait_for_timeout(150)
+    bulk_reset_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                runText: panel?.querySelector(".maintenance-staging-run")?.innerText || "",
+                needEnabled: panel?.querySelector("[data-maintenance-staging-bulk='stage-needed']")?.disabled === false,
+                resetDisabled: panel?.querySelector("[data-maintenance-staging-bulk='reset-staged']")?.disabled === true,
+                dashboardUpdated: stagingCardText.includes("3 need / 0 staged")
+            };
+        }"""
+    )
+    assert_true("Reset 3 staged items to need to buy" in bulk_reset_state["status"], "bulk reset control did not report the changed count")
+    assert_true("3 need to buy" in bulk_reset_state["runText"], "bulk reset control should update the run summary")
+    assert_true(bulk_reset_state["needEnabled"], "bulk stage-needed control should re-enable after reset")
+    assert_true(bulk_reset_state["resetDisabled"], "bulk reset control should disable after all items return to need-to-buy")
+    assert_true(bulk_reset_state["dashboardUpdated"], "garage dashboard parts staging card should update after bulk reset")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-group-bulk='stage-needed']").first.click()
+    await page.wait_for_timeout(150)
+    group_stage_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const firstGroup = panel?.querySelector(".maintenance-parts-group");
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                groupText: firstGroup?.innerText || "",
+                stageDisabled: firstGroup?.querySelector("[data-maintenance-staging-group-bulk='stage-needed']")?.disabled === true,
+                resetEnabled: firstGroup?.querySelector("[data-maintenance-staging-group-bulk='reset-staged']")?.disabled === false
+            };
+        }"""
+    )
+    assert_true("Marked" in group_stage_state["status"] and "as staged" in group_stage_state["status"], "per-note bulk stage control did not report staged items")
+    assert_true("/" in group_stage_state["groupText"] and "staged" in group_stage_state["groupText"], "per-note bulk stage control should keep the group count visible")
+    assert_true(group_stage_state["stageDisabled"], "per-note bulk stage control should disable when the group is fully staged")
+    assert_true(group_stage_state["resetEnabled"], "per-note reset control should enable after staging the group")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-group-bulk='reset-staged']").first.click()
+    await page.wait_for_timeout(150)
+    group_reset_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const firstGroup = panel?.querySelector(".maintenance-parts-group");
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                stageEnabled: firstGroup?.querySelector("[data-maintenance-staging-group-bulk='stage-needed']")?.disabled === false,
+                resetDisabled: firstGroup?.querySelector("[data-maintenance-staging-group-bulk='reset-staged']")?.disabled === true
+            };
+        }"""
+    )
+    assert_true("Reset" in group_reset_state["status"] and "to need to buy" in group_reset_state["status"], "per-note reset control did not report reset items")
+    assert_true(group_reset_state["stageEnabled"], "per-note bulk stage control should re-enable after group reset")
+    assert_true(group_reset_state["resetDisabled"], "per-note reset control should disable after group reset")
     await page.locator("#maintenance-note-preview [data-copy-maintenance-parts-index='1']").first.click()
     await page.wait_for_timeout(150)
     item_staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
