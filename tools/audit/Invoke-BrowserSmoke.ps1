@@ -292,6 +292,7 @@ async def assert_maintenance_features(page, page_name):
                 checkboxCount: checkboxLabels.length,
                 hasGarageRoute: Boolean(prep?.querySelector('a[href="garage.html#notes"]')),
                 hasCopyButtons: cards.every((card) => Boolean(card.querySelector("[data-copy-service-prep]"))),
+                hasSaveButtons: cards.every((card) => Boolean(card.querySelector("[data-save-service-prep]"))),
                 hasResetButtons: cards.every((card) => Boolean(card.querySelector("[data-reset-service-prep]"))),
                 hasMinder: Boolean(minder),
                 hasMinderInput: Boolean(minder?.querySelector("[data-minder-code-input]")),
@@ -310,6 +311,7 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["checkboxCount"] >= 16, "service prep planner should expose labeled checkbox items")
     assert_true(state["hasGarageRoute"], "service prep planner is missing the Garage notes route")
     assert_true(state["hasCopyButtons"], "service prep planner is missing copy buttons")
+    assert_true(state["hasSaveButtons"], "service prep planner is missing Garage note save buttons")
     assert_true(state["hasResetButtons"], "service prep planner is missing reset buttons")
     assert_true(state["hasMinder"], "maintenance page is missing the Maintenance Minder Pocket Planner")
     assert_true(state["hasMinderInput"], "Maintenance Minder Pocket Planner is missing its code input")
@@ -366,11 +368,23 @@ async def assert_maintenance_features(page, page_name):
     assert_true(not mobile_state["overflow"], "maintenance planner mobile density introduced horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
+    await page.evaluate("""() => localStorage.setItem('ridgeline-notes', JSON.stringify({ general_notes: 'Existing garage note', quick_capture_keep: 'preserve me' }))""")
     await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
     await page.locator("#service-prep [data-copy-service-prep]").first.click()
     await page.wait_for_timeout(100)
     status = await page.locator("#service-prep [data-service-prep-status]").first.inner_text()
     assert_true("Prep copied" in status, "service prep copy did not report success")
+    await page.locator("#service-prep [data-save-service-prep]").first.click()
+    await page.wait_for_timeout(100)
+    prep_save_status = await page.locator("#service-prep [data-service-prep-status]").first.inner_text()
+    assert_true("saved to Garage Notes" in prep_save_status, "service prep save did not report success")
+    prep_saved_notes = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').general_notes || ''""")
+    prep_preserved_key = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').quick_capture_keep || ''""")
+    assert_true("Oil Change Prep" in prep_saved_notes, "service prep save did not write the card title to Garage notes")
+    assert_true("0W-20 oil and final dipstick level check" in prep_saved_notes, "service prep save did not write checked prep item to Garage notes")
+    assert_true("Oil filter and 14 mm crush washer" not in prep_saved_notes, "service prep save should use checked items when at least one item is checked")
+    assert_true(prep_saved_notes.index("Oil Change Prep") < prep_saved_notes.index("Existing garage note"), "service prep save should prepend instead of replacing or appending Garage notes")
+    assert_true(prep_preserved_key == "preserve me", "service prep save dropped an unrelated Garage note key")
     await page.locator("#service-prep [data-reset-service-prep]").first.click()
     unchecked = await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.is_checked()
     assert_true(not unchecked, "service prep reset did not uncheck the item")

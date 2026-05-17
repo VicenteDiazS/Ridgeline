@@ -39,10 +39,10 @@ Current focus areas:
 - Garage restore preview clarity and nested hash-target reveal fix, completed 2026-05-16. Restore preview chips now show backup counts beside current local Garage counts, and `shared-ui.js` reveals all animated ancestors of a deep-link target so `garage.html#diagnostic-activity` does not land on invisible content.
 - A compact Diagnostics workflow index near the top of the page so the deep flows stay reachable on iPhone without crowding the hero. Completed 2026-05-16 as `diagnostics.html#workflow-index`.
 - Lower-page Diagnostics routing trimmed so the workflow index is the canonical entry point and repeated no-start, accessory-power, audio/display, and trailer-light cards no longer duplicate the main flows. Completed 2026-05-16.
-- Service prep planning that turns existing maintenance facts into user-friendly job checklists without adding new specifications. Completed 2026-05-16 as `maintenance.html#service-prep`, with oil, wheel/tire, battery, and filter prep cards, copy/reset controls, Garage routing, search coverage, and browser-smoke assertions.
+- Service prep planning that turns existing maintenance facts into user-friendly job checklists without adding new specifications. Completed 2026-05-16 as `maintenance.html#service-prep`, with oil, wheel/tire, battery, and filter prep cards, copy/save/reset controls, Garage routing, search coverage, and browser-smoke assertions. The Save action writes checked prep items, or the full card when nothing is checked, into local Garage Notes without changing Garage storage shape.
 - Maintenance planning that separates official Maintenance Minder facts from user-friendly reminders. Maintenance Minder Pocket Planner completed 2026-05-16 near `maintenance.html#minder`; it assembles A/B plus sub-item 1-6 checklist text from the existing Honda-sourced tables only, rejects unsupported sub-code 7, routes to Quick Maintenance Update and Garage Notes, can save the generated checklist into local Garage Notes, and has no mileage prediction or brake-fluid sub-code.
 - Maintenance page iPhone density with both planners present, completed 2026-05-16. The page now has scoped mobile density rules, trimmed hero task chips, Update/Prep/Planner/More bottom actions, compact Service Prep cards, and browser-smoke coverage for the mobile layout.
-- Next safe maintenance-planning slice: review the Minder Save Note output on the real iPhone/Garage Notes path before adding more planner-to-Garage handoffs such as Service Prep save-to-note.
+- Next safe maintenance-planning slice: review the Minder and Service Prep saved Garage Notes output on the real iPhone/Garage Notes path before adding larger job templates, parts/inventory handoffs, or remote-sync conflict behavior.
 - iPhone-first garage workflows for quick use beside the truck.
 - Stronger navigation and smoke coverage so every added feature stays reachable, scrollable, and stable. Diagnostics Workflow Index coverage was added to `Invoke-BrowserSmoke.ps1` on 2026-05-16.
 - Current-page orientation in the sticky header and full menu, completed 2026-05-16.
@@ -87,7 +87,7 @@ Help the user prepare for service tasks without mixing vendor suggestions into f
 Candidate slices:
 
 - Parts list templates by job.
-- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`; Maintenance Minder Pocket Planner completed 2026-05-16 on `maintenance.html#minder-pocket-planner`, including a guarded local Garage Notes save for built checklist text. Future work can turn checked prep items into Garage notes after real-device review.
+- Service Prep Planner checklist cards completed 2026-05-16 on `maintenance.html#service-prep`, including guarded local Garage Notes save for checked prep items; Maintenance Minder Pocket Planner completed 2026-05-16 on `maintenance.html#minder-pocket-planner`, including a guarded local Garage Notes save for built checklist text. Future work should review both saved-note outputs on the user's iPhone before adding larger parts or inventory flows.
 - Source-date notes for vendor/catalog references.
 - Garage inventory and “need to buy” views.
 - Print-friendly job prep sheets.

@@ -303,8 +303,8 @@ export const searchIndex = [
     title: "Service Prep Planner",
     url: "maintenance.html#service-prep",
     category: "Maintenance",
-    excerpt: "Mobile checklist cards for staging oil, wheel/tire, battery, and filter service supplies before logging the work.",
-    keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter"]
+    excerpt: "Mobile checklist cards for staging oil, wheel/tire, battery, and filter service supplies before logging the work or saving prep notes.",
+    keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter", "save prep note", "garage prep note", "service checklist note"]
   },
   {
     title: "Maintenance Minder Pocket Planner",

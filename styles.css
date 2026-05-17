@@ -5185,7 +5185,7 @@ kbd {
 
   .maintenance-page .service-prep-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .maintenance-page .service-prep-actions .utility-link,
@@ -5194,7 +5194,7 @@ kbd {
     min-width: 0;
     width: auto;
     flex: 1 1 76px;
-    padding-inline: 8px;
+    padding-inline: 7px;
     font-size: 0.74rem;
   }
 

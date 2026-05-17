@@ -206,6 +206,14 @@ function servicePrepText(card) {
   return [`${title}:`, ...lines].join("\n");
 }
 
+function saveServicePrepNote(card) {
+  const title = card.dataset.servicePrepTitle || "Service Prep";
+  const date = new Date().toLocaleDateString("en-US");
+  const checkedCount = [...card.querySelectorAll("[data-service-prep-item]")].filter((item) => item.checked).length;
+  prependGarageGeneralNote(`[${date} - ${title}]\n${servicePrepText(card)}`);
+  return checkedCount;
+}
+
 function setServicePrepStatus(card, message) {
   const status = card.querySelector("[data-service-prep-status]");
   if (status) {
@@ -219,6 +227,12 @@ function initServicePrepCards() {
       copyText(servicePrepText(card))
         .then(() => setServicePrepStatus(card, "Prep copied. Checked items are included; if none are checked, the full card is copied."))
         .catch(() => setServicePrepStatus(card, "Could not copy automatically. Select the checklist text and copy it manually."));
+    });
+
+    card.querySelector("[data-save-service-prep]")?.addEventListener("click", () => {
+      const checkedCount = saveServicePrepNote(card);
+      const scope = checkedCount ? "checked prep items" : "full prep card";
+      setServicePrepStatus(card, `${scope} saved to Garage Notes.`);
     });
 
     card.querySelector("[data-reset-service-prep]")?.addEventListener("click", () => {
