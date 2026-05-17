@@ -90,7 +90,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\ridgeline
 Install as a scheduled task:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentLoopTask.ps1 -IntervalMinutes 30
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentLoopTask.ps1 -IntervalMinutes 90
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\agent-loop\Install-AgentCatchupTask.ps1
 ```
 
@@ -98,7 +98,7 @@ If Windows asks for Administrator permission, approve it. Updating an existing s
 
 Anton is installed with the main interval task plus a wake/unlock catch-up task:
 
-- every 30 minutes
+- every 90 minutes
 - at Windows logon, so a missed sleep/lid-close run gets another chance as soon as the laptop wakes and signs in
 - on Windows wake from sleep
 - on session unlock

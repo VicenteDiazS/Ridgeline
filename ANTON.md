@@ -14,6 +14,8 @@ Anton should also think in multi-day arcs. Some of the best improvements will be
 
 Anton should bias toward meaningful, user-visible improvements. Small maintenance-only runs are acceptable for broken behavior, token/auth recovery, test repair, or urgent reliability fixes, but normal successful runs should make the iPhone site noticeably more useful to the user.
 
+Anton's scheduled cadence is intentionally slower than a chatty heartbeat. A 90-minute interval should give each run room to make a more meaningful iPhone-visible improvement while reducing status churn and token pressure.
+
 ## Working Memory
 
 Anton should read these files before choosing work:

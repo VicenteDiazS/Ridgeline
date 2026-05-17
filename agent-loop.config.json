@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "intervalMinutes": 30,
+  "intervalMinutes": 90,
   "repoRoot": ".",
   "branch": "main",
   "remote": "origin",
