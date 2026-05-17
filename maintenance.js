@@ -13,6 +13,7 @@ const minderPlanner = document.querySelector("#minder-pocket-planner");
 const minderInput = document.querySelector("[data-minder-code-input]");
 const minderOutput = document.querySelector("[data-minder-plan-output]");
 const minderStatus = document.querySelector("[data-minder-plan-status]");
+const GARAGE_MAINTENANCE_STAGING_URL = "garage.html#maintenance-note-preview";
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -214,6 +215,10 @@ function saveServicePrepNote(card) {
   return checkedCount;
 }
 
+function openMaintenanceStaging() {
+  window.location.href = GARAGE_MAINTENANCE_STAGING_URL;
+}
+
 function setServicePrepStatus(card, message) {
   const status = card.querySelector("[data-service-prep-status]");
   if (status) {
@@ -233,6 +238,13 @@ function initServicePrepCards() {
       const checkedCount = saveServicePrepNote(card);
       const scope = checkedCount ? "checked prep items" : "full prep card";
       setServicePrepStatus(card, `${scope} saved to Garage Notes.`);
+    });
+
+    card.querySelector("[data-save-open-service-staging]")?.addEventListener("click", () => {
+      const checkedCount = saveServicePrepNote(card);
+      const scope = checkedCount ? "checked prep items" : "full prep card";
+      setServicePrepStatus(card, `${scope} saved. Opening Garage staging...`);
+      openMaintenanceStaging();
     });
 
     card.querySelector("[data-reset-service-prep]")?.addEventListener("click", () => {
@@ -277,7 +289,7 @@ function initMinderPlanner() {
       });
   });
 
-  minderPlanner.querySelector("[data-save-minder-note]")?.addEventListener("click", () => {
+  function saveCurrentMinderNote() {
     if (minderPlanNeedsRefresh()) {
       renderMinderPlan(minderInput.value);
     }
@@ -286,15 +298,34 @@ function initMinderPlanner() {
       if (minderStatus) {
         minderStatus.textContent = "Build a checklist before saving a Garage note.";
       }
-      return;
+      return false;
     }
 
     const code = lastMinderPlanCode || "code";
     const date = new Date().toLocaleDateString("en-US");
     prependGarageGeneralNote(`[${date} - Maintenance Minder ${code} planner]\n${lastMinderPlanText}`);
+    return true;
+  }
+
+  minderPlanner.querySelector("[data-save-minder-note]")?.addEventListener("click", () => {
+    if (!saveCurrentMinderNote()) {
+      return;
+    }
+
     if (minderStatus) {
       minderStatus.textContent = "Checklist saved to Garage Notes.";
     }
+  });
+
+  minderPlanner.querySelector("[data-save-open-minder-staging]")?.addEventListener("click", () => {
+    if (!saveCurrentMinderNote()) {
+      return;
+    }
+
+    if (minderStatus) {
+      minderStatus.textContent = "Checklist saved. Opening Garage staging...";
+    }
+    openMaintenanceStaging();
   });
 
   minderPlanner.querySelector("[data-reset-minder-plan]")?.addEventListener("click", () => {

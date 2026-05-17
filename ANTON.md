@@ -198,3 +198,4 @@ Anton may add a short "Learned" or "User Note" entry when:
 - For derived Garage staging surfaces, keep buying/review helpers local and no-schema until real iPhone review: prefer filters, copy handoffs, and read-only summaries before adding inventory fields, restorable staging data, or sync conflict behavior.
 - For Garage staging workflows used at a parts counter, prefer fast local-only bulk actions at both whole-list and per-note scope before adding durable inventory schema.
 - For high-use iPhone Garage handoffs, keep the primary action near the working context as well as in the section header; for example, staging copy actions should be reachable beside the need/staged summary without scrolling back up.
+- For planner-to-Garage workflows, prefer a direct save-and-open destination action when the user naturally wants to continue the task elsewhere; keep the regular save action too so the route is optional.

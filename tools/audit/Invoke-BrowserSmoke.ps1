@@ -42,6 +42,7 @@ SEARCH_EXPECTATIONS = {
     "workflow index": "Diagnostics Workflow Index",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
+    "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
     "need to buy": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
@@ -296,11 +297,13 @@ async def assert_maintenance_features(page, page_name):
                 hasGarageRoute: Boolean(prep?.querySelector('a[href="garage.html#notes"]')),
                 hasCopyButtons: cards.every((card) => Boolean(card.querySelector("[data-copy-service-prep]"))),
                 hasSaveButtons: cards.every((card) => Boolean(card.querySelector("[data-save-service-prep]"))),
+                hasStageButtons: cards.every((card) => Boolean(card.querySelector("[data-save-open-service-staging]"))),
                 hasResetButtons: cards.every((card) => Boolean(card.querySelector("[data-reset-service-prep]"))),
                 hasMinder: Boolean(minder),
                 hasMinderInput: Boolean(minder?.querySelector("[data-minder-code-input]")),
                 hasMinderCopy: Boolean(minder?.querySelector("[data-copy-minder-plan]")),
                 hasMinderSaveNote: Boolean(minder?.querySelector("[data-save-minder-note]")),
+                hasMinderStage: Boolean(minder?.querySelector("[data-save-open-minder-staging]")),
                 hasMinderReset: Boolean(minder?.querySelector("[data-reset-minder-plan]")),
                 hasMinderUpdaterRoute: Boolean(minder?.querySelector('a[href="#maintenance-updater"]')),
                 hasMinderGarageRoute: Boolean(minder?.querySelector('a[href="garage.html#notes"]')),
@@ -315,11 +318,13 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["hasGarageRoute"], "service prep planner is missing the Garage notes route")
     assert_true(state["hasCopyButtons"], "service prep planner is missing copy buttons")
     assert_true(state["hasSaveButtons"], "service prep planner is missing Garage note save buttons")
+    assert_true(state["hasStageButtons"], "service prep planner is missing direct Garage staging buttons")
     assert_true(state["hasResetButtons"], "service prep planner is missing reset buttons")
     assert_true(state["hasMinder"], "maintenance page is missing the Maintenance Minder Pocket Planner")
     assert_true(state["hasMinderInput"], "Maintenance Minder Pocket Planner is missing its code input")
     assert_true(state["hasMinderCopy"], "Maintenance Minder Pocket Planner is missing copy action")
     assert_true(state["hasMinderSaveNote"], "Maintenance Minder Pocket Planner is missing its Garage note save action")
+    assert_true(state["hasMinderStage"], "Maintenance Minder Pocket Planner is missing its direct Garage staging action")
     assert_true(state["hasMinderReset"], "Maintenance Minder Pocket Planner is missing reset action")
     assert_true(state["hasMinderUpdaterRoute"], "Maintenance Minder Pocket Planner is missing the Quick Maintenance Update route")
     assert_true(state["hasMinderGarageRoute"], "Maintenance Minder Pocket Planner is missing the Garage notes route")
@@ -419,6 +424,15 @@ async def assert_maintenance_features(page, page_name):
     await page.wait_for_timeout(100)
     minder_value = await page.locator("#minder-pocket-planner [data-minder-code-input]").input_value()
     assert_true(minder_value == "", "minder planner reset did not clear the code input")
+    await page.locator("#minder-pocket-planner [data-minder-code-input]").fill("A1")
+    await page.locator("#minder-pocket-planner [data-save-open-minder-staging]").click()
+    await page.wait_for_url("**/garage.html#maintenance-note-preview", timeout=5000)
+    await page.wait_for_selector("#maintenance-note-preview [data-maintenance-parts-preview]", state="attached")
+    stage_nav_notes = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').general_notes || ''""")
+    assert_true("Maintenance Minder A1 planner" in stage_nav_notes, "minder planner Stage action did not save before opening Garage staging")
+    assert_true("maintenance-note-preview" in page.url, "minder planner Stage action did not open Garage staging")
+    await page.go_back(wait_until="load")
+    await page.wait_for_selector("#minder-pocket-planner [data-minder-code-input]", state="attached")
     await assert_scroll_unlocked(page, "service prep planner")
 
 

@@ -303,15 +303,15 @@ export const searchIndex = [
     title: "Service Prep Planner",
     url: "maintenance.html#service-prep",
     category: "Maintenance",
-    excerpt: "Mobile checklist cards for staging oil, wheel/tire, battery, and filter service supplies before logging the work or saving prep notes.",
-    keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter", "save prep note", "garage prep note", "service checklist note"]
+    excerpt: "Mobile checklist cards for staging oil, wheel/tire, battery, and filter service supplies before logging the work, saving prep notes, or opening Garage staging.",
+    keywords: ["service prep", "prep planner", "job prep", "maintenance checklist", "oil change checklist", "filter checklist", "battery checklist", "parts counter", "save prep note", "garage prep note", "service checklist note", "save and stage", "open staging"]
   },
   {
     title: "Maintenance Minder Pocket Planner",
     url: "maintenance.html#minder-pocket-planner",
     category: "Maintenance",
-    excerpt: "Enter a dash code like A1, B12, or B4, build a compact checklist from the existing A/B and sub-item 1-6 Maintenance Minder rows, and save it to Garage Notes.",
-    keywords: ["minder planner", "maintenance minder planner", "pocket planner", "dash code checklist", "b12 checklist", "a1 checklist", "maintenance code checklist", "code b12", "code a1", "save minder note", "garage minder note", "maintenance checklist note"]
+    excerpt: "Enter a dash code like A1, B12, or B4, build a compact checklist from the existing A/B and sub-item 1-6 Maintenance Minder rows, and save it to Garage Notes or Garage staging.",
+    keywords: ["minder planner", "maintenance minder planner", "pocket planner", "dash code checklist", "b12 checklist", "a1 checklist", "maintenance code checklist", "code b12", "code a1", "save minder note", "garage minder note", "maintenance checklist note", "save and stage", "open staging"]
   },
   {
     title: "Saved Maintenance Notes",
