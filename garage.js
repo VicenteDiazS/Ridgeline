@@ -30,6 +30,7 @@ const maintenancePartsCopyButton = document.querySelector("[data-copy-maintenanc
 const maintenanceNeededCopyButton = document.querySelector("[data-copy-maintenance-needed]");
 const maintenancePartsPreview = document.querySelector("[data-maintenance-parts-preview]");
 const maintenanceNoteStatus = document.querySelector("[data-maintenance-note-status]");
+const MAINTENANCE_STAGE_HANDOFF_KEY = "ridgeline-maintenance-stage-handoff";
 const diagnosticActivityFilter = document.querySelector("[data-diagnostic-activity-filter]");
 const diagnosticActivityCopyButton = document.querySelector("[data-copy-diagnostic-activity]");
 const diagnosticActivityDownloadButton = document.querySelector("[data-download-diagnostic-activity]");
@@ -64,6 +65,7 @@ const defaultProfile = {
 };
 let currentDiagnosticActivityFilter = "all";
 let currentMaintenanceStagingFilter = "all";
+let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const GARAGE_BACKUP_LABELS = {
@@ -333,6 +335,28 @@ function maintenanceNotePlannerLabel(title = "") {
   return /\bmaintenance minder\b/i.test(`${title}`) ? "Open Minder Planner" : "Open Prep Planner";
 }
 
+function consumeMaintenanceStageHandoff() {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(MAINTENANCE_STAGE_HANDOFF_KEY) || "null");
+    sessionStorage.removeItem(MAINTENANCE_STAGE_HANDOFF_KEY);
+    if (!isPlainObject(value)) {
+      return null;
+    }
+
+    const age = Date.now() - Number(value.savedAt || 0);
+    if (age < 0 || age > 1000 * 60 * 10) {
+      return null;
+    }
+
+    return {
+      title: shortText(value.title || "Maintenance planner note", 80),
+      scope: shortText(value.scope || "planner note", 80)
+    };
+  } catch {
+    return null;
+  }
+}
+
 function normalizeMaintenanceLine(value = "") {
   return `${value}`
     .replace(/^\s*[-*]\s*/, "")
@@ -530,6 +554,33 @@ function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
   `;
 }
 
+function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
+  if (!currentMaintenanceStageHandoff) {
+    return "";
+  }
+
+  const latest = items[0];
+  const lineCount = latest?.stagingItems?.length || 0;
+  const lineText = lineCount
+    ? `${lineCount} staging line${lineCount === 1 ? "" : "s"} ready below.`
+    : "No parts or supplies lines were detected, but the saved note is visible below.";
+
+  return `
+    <article class="maintenance-stage-confirmation" data-maintenance-stage-confirmation>
+      <div>
+        <p class="eyebrow">Just saved from Maintenance</p>
+        <strong>${escapeHtml(currentMaintenanceStageHandoff.title)}</strong>
+        <p>${escapeHtml(currentMaintenanceStageHandoff.scope)} saved into Garage Notes. ${escapeHtml(lineText)}</p>
+      </div>
+      <div class="inspector-actions">
+        <button class="utility-link" type="button" data-share-maintenance-needed-inline ${lineCount ? "" : "disabled"}>Share Buy List</button>
+        <button class="utility-link" type="button" data-copy-maintenance-needed-inline ${lineCount ? "" : "disabled"}>Copy Buy List</button>
+        <a class="utility-link" href="#notes">Open Full Note</a>
+      </div>
+    </article>
+  `;
+}
+
 function updateMaintenanceStagingBulk(action = "") {
   const items = getMaintenanceNoteItems();
   const groups = items
@@ -617,6 +668,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   if (!groups.length) {
     maintenancePartsPreview.innerHTML = items.length
       ? `
+        ${maintenanceStageConfirmationMarkup(items)}
         <article class="maintenance-parts-card maintenance-parts-empty">
           ${maintenanceStagingGuideMarkup(items)}
           <strong>No staging items detected yet.</strong>
@@ -630,6 +682,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   const summary = getMaintenanceStagingSummary(items);
 
   maintenancePartsPreview.innerHTML = `
+    ${maintenanceStageConfirmationMarkup(items)}
     <article class="maintenance-parts-card">
       <div class="compact-section-head">
         <div>
@@ -657,6 +710,12 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
             data-copy-maintenance-needed-inline
             ${summary.need ? "" : "disabled"}
           >Copy Buy List</button>
+          <button
+            class="ghost-button"
+            type="button"
+            data-share-maintenance-needed-inline
+            ${summary.need ? "" : "disabled"}
+          >Share Buy List</button>
           <button
             class="ghost-button"
             type="button"
@@ -1418,7 +1477,8 @@ function renderMaintenanceNotePreview(items = getMaintenanceNoteItems()) {
   maintenanceNotePreview.innerHTML = items
     .map(
       (item, index) => `
-        <article class="maintenance-note-item">
+        <article class="maintenance-note-item${index === 0 && currentMaintenanceStageHandoff ? " is-fresh-maintenance-note" : ""}">
+          ${index === 0 && currentMaintenanceStageHandoff ? '<span class="maintenance-note-fresh">Just saved</span>' : ""}
           <span>${escapeHtml(item.meta)}</span>
           <strong>${escapeHtml(item.title)}</strong>
           <p>${escapeHtml(item.detail)}</p>
@@ -1487,6 +1547,47 @@ function copyMaintenanceNeedList() {
     });
 }
 
+function shareMaintenanceNeedList() {
+  const { text, count } = maintenanceStagingExport({ status: "need" });
+  if (!text) {
+    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    return;
+  }
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title: "Ridgeline Need-To-Buy Maintenance List",
+        text
+      })
+      .then(() => {
+        setMaintenanceNoteStatus(`Shared need-to-buy list with ${count} item${count === 1 ? "" : "s"}.`);
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          setMaintenanceNoteStatus("Share canceled.");
+          return;
+        }
+        copyText(text)
+          .then(() => {
+            setMaintenanceNoteStatus(`Share was unavailable, so the ${count}-item buy list was copied.`);
+          })
+          .catch(() => {
+            setMaintenanceNoteStatus("Could not share or copy the need-to-buy list automatically.");
+          });
+      });
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus(`Share is unavailable here, so the ${count}-item buy list was copied.`);
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not share or copy the need-to-buy list automatically.");
+    });
+}
+
 function toggleMaintenanceStaging(button) {
   const title = button.dataset.maintenanceStagingTitle || "";
   const line = button.dataset.maintenanceStagingLine || "";
@@ -1549,6 +1650,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const inlineNeededButton = event.target.closest("[data-copy-maintenance-needed-inline]");
   if (inlineNeededButton) {
     copyMaintenanceNeedList();
+    return;
+  }
+
+  const inlineShareButton = event.target.closest("[data-share-maintenance-needed-inline]");
+  if (inlineShareButton) {
+    shareMaintenanceNeedList();
     return;
   }
 

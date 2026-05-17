@@ -62,6 +62,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Garage maintenance staging also repeats Copy Buy List inside the store-run summary, keeping the remaining-purchases handoff near the need/staged counts on iPhone without adding inventory schema or vehicle facts.
 - Garage maintenance staging includes a compact guide that shows derived staging-line count, states that Need/Staged toggles are local browser state outside Garage backup/sync, and explains that saved planner notes without detected parts/tools/supplies still appear below but do not create staging checklist items.
 - Maintenance Service Prep cards and the Maintenance Minder Pocket Planner include Stage actions that save the current planner note and open `garage.html#maintenance-note-preview`, keeping the planner-to-Garage staging path reachable in one iPhone action without adding vehicle facts or Garage schema.
+- Maintenance-to-Garage Stage shows a one-visit Garage receipt naming the saved planner note, reporting derived staging-line count, highlighting the newest saved note, and exposing Share Buy List through Web Share with clipboard fallback while keeping staging state outside Garage backup/sync.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -285,3 +286,8 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('garage.html')` passed after adding assertions for the derived-line count, local-only backup/sync boundary, skipped-note explanation, and existing staging controls.
 - `Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v288-staging-guide -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and Garage browser smoke completed.
 - Direct Playwright screenshots were captured under `debug-screenshots/audit-v288-staging-guide-mobile-garage.png` and `debug-screenshots/audit-v288-staging-guide-desktop-garage.png`; an additional 390px/1280px check confirmed the guide is visible with no horizontal overflow.
+- Added the Maintenance-to-Garage Stage receipt, latest-note highlight, Share Buy List action, and bumped the service worker cache to `ridgeline-console-v289`.
+- `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html','garage.html')` passed after adding assertions for the session-only handoff receipt, highlighted latest note, Web Share payload, and existing staging controls.
+- `Test-InternalLinks.ps1` passed for 16 HTML files.
+- `Invoke-SiteAudit.ps1 -Pages @('maintenance.html','garage.html') -Tag audit-v289-stage-share -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and Maintenance/Garage browser smoke completed.
+- Direct 390px Playwright screenshots were captured under `debug-screenshots/audit-v289-stage-share-mobile-handoff.png` and `debug-screenshots/audit-v289-stage-share-mobile-run-actions.png`; the direct check confirmed the receipt and Share Buy List are visible with no horizontal overflow.

@@ -14,6 +14,7 @@ const minderInput = document.querySelector("[data-minder-code-input]");
 const minderOutput = document.querySelector("[data-minder-plan-output]");
 const minderStatus = document.querySelector("[data-minder-plan-status]");
 const GARAGE_MAINTENANCE_STAGING_URL = "garage.html#maintenance-note-preview";
+const MAINTENANCE_STAGE_HANDOFF_KEY = "ridgeline-maintenance-stage-handoff";
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -219,6 +220,21 @@ function openMaintenanceStaging() {
   window.location.href = GARAGE_MAINTENANCE_STAGING_URL;
 }
 
+function recordMaintenanceStageHandoff(title = "Maintenance planner note", scope = "planner note") {
+  try {
+    sessionStorage.setItem(
+      MAINTENANCE_STAGE_HANDOFF_KEY,
+      JSON.stringify({
+        title,
+        scope,
+        savedAt: Date.now()
+      })
+    );
+  } catch {
+    // Session storage is only used for a one-page confirmation after navigation.
+  }
+}
+
 function setServicePrepStatus(card, message) {
   const status = card.querySelector("[data-service-prep-status]");
   if (status) {
@@ -243,6 +259,7 @@ function initServicePrepCards() {
     card.querySelector("[data-save-open-service-staging]")?.addEventListener("click", () => {
       const checkedCount = saveServicePrepNote(card);
       const scope = checkedCount ? "checked prep items" : "full prep card";
+      recordMaintenanceStageHandoff(card.dataset.servicePrepTitle || "Service Prep", scope);
       setServicePrepStatus(card, `${scope} saved. Opening Garage staging...`);
       openMaintenanceStaging();
     });
@@ -325,6 +342,7 @@ function initMinderPlanner() {
     if (minderStatus) {
       minderStatus.textContent = "Checklist saved. Opening Garage staging...";
     }
+    recordMaintenanceStageHandoff(`Maintenance Minder ${lastMinderPlanCode || "planner"}`, "built checklist");
     openMaintenanceStaging();
   });
 

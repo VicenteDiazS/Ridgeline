@@ -431,6 +431,30 @@ async def assert_maintenance_features(page, page_name):
     stage_nav_notes = await page.evaluate("""() => JSON.parse(localStorage.getItem('ridgeline-notes') || '{}').general_notes || ''""")
     assert_true("Maintenance Minder A1 planner" in stage_nav_notes, "minder planner Stage action did not save before opening Garage staging")
     assert_true("maintenance-note-preview" in page.url, "minder planner Stage action did not open Garage staging")
+    stage_handoff_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const confirmation = panel?.querySelector("[data-maintenance-stage-confirmation]");
+            const fresh = panel?.querySelector(".maintenance-note-item.is-fresh-maintenance-note");
+            return {
+                hasConfirmation: Boolean(confirmation),
+                confirmationText: confirmation?.innerText || "",
+                hasShare: Boolean(confirmation?.querySelector("[data-share-maintenance-needed-inline]")),
+                hasCopy: Boolean(confirmation?.querySelector("[data-copy-maintenance-needed-inline]")),
+                hasFreshNote: Boolean(fresh),
+                freshText: fresh?.innerText || "",
+                handoffCleared: !sessionStorage.getItem("ridgeline-maintenance-stage-handoff")
+            };
+        }"""
+    )
+    assert_true(stage_handoff_state["hasConfirmation"], "Garage staging should show a just-saved handoff confirmation after Maintenance Stage")
+    assert_true("Maintenance Minder A1" in stage_handoff_state["confirmationText"], "Garage staging handoff confirmation should name the saved planner")
+    assert_true("staging line" in stage_handoff_state["confirmationText"], "Garage staging handoff confirmation should report derived staging lines")
+    assert_true(stage_handoff_state["hasShare"], "Garage staging handoff confirmation should expose Share Buy List")
+    assert_true(stage_handoff_state["hasCopy"], "Garage staging handoff confirmation should expose Copy Buy List")
+    assert_true(stage_handoff_state["hasFreshNote"], "Garage staging should highlight the latest saved maintenance note")
+    assert_true("just saved" in stage_handoff_state["freshText"].lower(), "latest saved maintenance note should carry a Just saved marker")
+    assert_true(stage_handoff_state["handoffCleared"], "Maintenance Stage handoff should be one-visit session state")
     await page.go_back(wait_until="load")
     await page.wait_for_selector("#minder-pocket-planner [data-minder-code-input]", state="attached")
     await assert_scroll_unlocked(page, "service prep planner")
@@ -564,14 +588,17 @@ async def assert_garage_features(page, page_name):
             const stagingToggles = panel ? [...panel.querySelectorAll("[data-maintenance-staging-toggle]")] : [];
             const bulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-bulk]")] : [];
             const groupBulkButtons = panel ? [...panel.querySelectorAll("[data-maintenance-staging-group-bulk]")] : [];
+            const shareButtons = panel ? [...panel.querySelectorAll("[data-share-maintenance-needed-inline]")] : [];
             const stagingRun = panel?.querySelector(".maintenance-staging-run");
             const stagingGuide = panel?.querySelector("[data-maintenance-staging-guide]");
             const inlineBuyButton = panel?.querySelector("[data-copy-maintenance-needed-inline]");
+            const inlineShareButton = panel?.querySelector(".maintenance-staging-run [data-share-maintenance-needed-inline]");
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
                 copyStagingEnabled: copyStaging?.disabled === false,
                 copyNeededEnabled: copyNeeded?.disabled === false,
                 inlineBuyEnabled: inlineBuyButton?.disabled === false,
+                inlineShareEnabled: inlineShareButton?.disabled === false,
                 itemButtonCount: itemButtons.length,
                 stagingButtonCount: stagingButtons.length,
                 stagingToggleCount: stagingToggles.length,
@@ -579,6 +606,7 @@ async def assert_garage_features(page, page_name):
                 stagingFilterCount: panel ? panel.querySelectorAll("[data-maintenance-staging-filter]").length : 0,
                 stagingBulkButtonCount: bulkButtons.length,
                 stagingGroupBulkButtonCount: groupBulkButtons.length,
+                shareButtonCount: shareButtons.length,
                 hasStagingRun: Boolean(stagingRun),
                 stagingRunText: stagingRun?.innerText || "",
                 hasStagingGuide: Boolean(stagingGuide),
@@ -599,6 +627,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
     assert_true(populated_state["copyNeededEnabled"], "saved maintenance notes Copy Buy List should enable after staging items are present")
     assert_true(populated_state["inlineBuyEnabled"], "saved maintenance notes store-run summary should expose an enabled Copy Buy List")
+    assert_true(populated_state["inlineShareEnabled"], "saved maintenance notes store-run summary should expose an enabled Share Buy List")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
     assert_true(populated_state["stagingButtonCount"] >= 2, "saved maintenance notes preview should expose staging copy actions")
     assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
@@ -606,6 +635,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingFilterCount"] == 3, "saved maintenance notes staging preview should expose All/Need/Staged filters")
     assert_true(populated_state["stagingBulkButtonCount"] == 2, "saved maintenance notes staging preview should expose bulk store-run controls")
     assert_true(populated_state["stagingGroupBulkButtonCount"] >= 4, "saved maintenance notes staging preview should expose per-note bulk controls")
+    assert_true(populated_state["shareButtonCount"] >= 1, "saved maintenance notes staging preview should expose Share Buy List")
     assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
     assert_true(populated_state["hasStagingGuide"], "saved maintenance notes staging preview is missing the local-only staging guide")
     assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
@@ -636,6 +666,31 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     inline_need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied need-to-buy list with 3 items" in inline_need_status, "inline store-run Copy Buy List did not report the initial need-to-buy count")
+    await page.evaluate(
+        """() => {
+            window.__maintenanceSharePayload = null;
+            Object.defineProperty(navigator, "share", {
+                configurable: true,
+                value: (payload) => {
+                    window.__maintenanceSharePayload = payload;
+                    return Promise.resolve();
+                }
+            });
+        }"""
+    )
+    await page.locator("#maintenance-note-preview .maintenance-staging-run [data-share-maintenance-needed-inline]").click()
+    await page.wait_for_timeout(150)
+    share_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || "",
+            title: window.__maintenanceSharePayload?.title || "",
+            text: window.__maintenanceSharePayload?.text || ""
+        })"""
+    )
+    assert_true("Shared need-to-buy list with 3 items" in share_state["status"], "Share Buy List did not report the shared need-to-buy count")
+    assert_true(share_state["title"] == "Ridgeline Need-To-Buy Maintenance List", "Share Buy List should use a clear share-sheet title")
+    assert_true("Remaining items only" in share_state["text"], "Share Buy List should share the need-to-buy export text")
+    assert_true("0W-20 oil and final dipstick level check" in share_state["text"], "Share Buy List should include derived maintenance staging lines")
     await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.click()
     await page.wait_for_timeout(150)
     toggled_state = await page.evaluate(
