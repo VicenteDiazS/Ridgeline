@@ -44,6 +44,7 @@ SEARCH_EXPECTATIONS = {
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
+    "one-off store item": "Saved Maintenance Notes",
     "need to buy": "Saved Maintenance Notes",
     "save buy note": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
@@ -577,9 +578,12 @@ async def assert_garage_features(page, page_name):
     ]:
         assert_true(state[key], message)
     assert_true(not state["missingFields"], f"warning-light template is missing fields: {state['missingFields']}")
-    await page.evaluate("""() => localStorage.setItem('ridgeline-notes', JSON.stringify({
-        general_notes: '[5/16/2026 - Maintenance Minder A1 planner]\\nMaintenance Minder A1:\\n- A: Replace engine oil.\\n- 1: Rotate tires.\\n[5/16/2026 - Oil Change Prep]\\nOil Change Prep:\\n- 0W-20 oil and final dipstick level check\\n[5/16/2026 - Battery Install Prep]\\nBattery Install Prep:\\n- Call shop before buying'
-    }))""")
+    await page.evaluate("""() => {
+        localStorage.removeItem('ridgeline-maintenance-custom-staging');
+        localStorage.setItem('ridgeline-notes', JSON.stringify({
+            general_notes: '[5/16/2026 - Maintenance Minder A1 planner]\\nMaintenance Minder A1:\\n- A: Replace engine oil.\\n- 1: Rotate tires.\\n[5/16/2026 - Oil Change Prep]\\nOil Change Prep:\\n- 0W-20 oil and final dipstick level check\\n[5/16/2026 - Battery Install Prep]\\nBattery Install Prep:\\n- Call shop before buying'
+        }));
+    }""")
     await page.reload()
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-note-preview]", state="attached")
     await page.wait_for_timeout(300)
@@ -666,7 +670,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
     assert_true(populated_state["hasStagingGuide"], "saved maintenance notes staging preview is missing the local-only staging guide")
     assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
-    assert_true("3 staging lines from saved notes" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should show derived line count")
+    assert_true("3 staging lines from saved notes and one-off items" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should show derived line count")
     assert_true("outside Garage backup and sync" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should clarify local-only state")
     assert_true("1 saved note visible below did not include detected parts, tools, or supplies" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should explain skipped notes")
     assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
@@ -947,6 +951,32 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     item_staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied staging list for this saved note" in item_staging_status, "saved maintenance note item staging copy did not report success")
+    await page.locator("#maintenance-note-preview [data-maintenance-custom-staging-input]").fill("Shop towels")
+    await page.locator("#maintenance-note-preview [data-maintenance-custom-staging-form]").evaluate("form => form.requestSubmit()")
+    await page.wait_for_timeout(150)
+    custom_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            const customItems = JSON.parse(localStorage.getItem("ridgeline-maintenance-custom-staging") || "[]");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}").general_notes || "";
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                text: panel?.querySelector("[data-maintenance-parts-preview]")?.innerText || "",
+                dashboardUpdated: stagingCardText.includes("4 need / 0 staged"),
+                customCount: customItems.length,
+                customOutsideNotes: !notes.includes("Shop towels"),
+                hasRemove: Boolean(panel?.querySelector("[data-maintenance-custom-staging-remove]"))
+            };
+        }"""
+    )
+    assert_true("Added Shop towels to the local-only staging list" in custom_state["status"], "custom one-off staging item did not report add success")
+    assert_true("One-Off Store Items" in custom_state["text"] and "Shop towels" in custom_state["text"], "custom one-off staging item did not render in the staging list")
+    assert_true(custom_state["dashboardUpdated"], "custom one-off staging item should update the dashboard staging count")
+    assert_true(custom_state["customCount"] == 1, "custom one-off staging item should persist in the local-only helper key")
+    assert_true(custom_state["customOutsideNotes"], "custom one-off staging item should not be written into Garage notes")
+    assert_true(custom_state["hasRemove"], "custom one-off staging item should expose a remove control")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     garage_mobile_state = await page.evaluate(

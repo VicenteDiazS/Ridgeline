@@ -5994,6 +5994,30 @@ kbd {
   color: var(--text);
 }
 
+.maintenance-custom-staging-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  padding: 10px;
+  border: 1px dashed rgba(97, 223, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(97, 223, 255, 0.055);
+}
+
+.maintenance-custom-staging-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.maintenance-custom-staging-form input {
+  width: 100%;
+  min-height: 38px;
+}
+
 .maintenance-staging-run {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -6099,10 +6123,20 @@ kbd {
   min-width: 0;
 }
 
-.maintenance-staging-checklist li.is-staged span {
+.maintenance-staging-checklist li.is-staged > span:first-child {
   color: rgba(210, 230, 240, 0.68);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
+}
+
+.maintenance-staging-checklist li.is-custom-staging-item {
+  border-color: rgba(97, 223, 255, 0.16);
+}
+
+.staging-line-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .staging-toggle {
@@ -6122,6 +6156,19 @@ kbd {
   border-color: rgba(97, 223, 255, 0.36);
   background: rgba(97, 223, 255, 0.12);
   color: #dff8ff;
+}
+
+.staging-remove {
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  white-space: nowrap;
 }
 
 .maintenance-staging-empty {
@@ -8972,6 +9019,14 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .maintenance-custom-staging-form {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-custom-staging-form .ghost-button {
+    width: 100%;
+  }
+
   .maintenance-staging-run .inspector-actions {
     align-items: stretch;
     flex-direction: column;
@@ -9002,8 +9057,16 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .staging-line-actions {
+    justify-content: stretch;
+  }
+
   .staging-toggle {
     width: 100%;
+  }
+
+  .staging-remove {
+    flex: 0 0 auto;
   }
 
   .garage-backup-preview {

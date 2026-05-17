@@ -68,6 +68,8 @@ let currentMaintenanceStagingFilter = "all";
 let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
+const MAINTENANCE_CUSTOM_STAGING_KEY = "ridgeline-maintenance-custom-staging";
+const MAINTENANCE_CUSTOM_STAGING_TITLE = "One-Off Store Items";
 const GARAGE_BACKUP_LABELS = {
   [STORAGE.notes]: "notes",
   [STORAGE.tracker]: "tracker",
@@ -429,6 +431,69 @@ function setMaintenanceStagingStatus(title = "", line = "", status = "need") {
   saveMaintenanceStagingState(state);
 }
 
+function loadCustomMaintenanceStagingItems() {
+  try {
+    const value = JSON.parse(localStorage.getItem(MAINTENANCE_CUSTOM_STAGING_KEY) || "[]");
+    return Array.isArray(value) ? value.map(normalizeMaintenanceLine).filter(Boolean).slice(0, 12) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomMaintenanceStagingItems(items = []) {
+  const seen = new Set();
+  const cleaned = items
+    .map(normalizeMaintenanceLine)
+    .filter(Boolean)
+    .filter((line) => {
+      const key = line.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 12);
+
+  localStorage.setItem(MAINTENANCE_CUSTOM_STAGING_KEY, JSON.stringify(cleaned));
+  return cleaned;
+}
+
+function addCustomMaintenanceStagingItem(value = "") {
+  const line = normalizeMaintenanceLine(value).slice(0, 90);
+  if (!line) {
+    setMaintenanceNoteStatus("Enter a one-off store item before adding it.");
+    return false;
+  }
+
+  const items = loadCustomMaintenanceStagingItems();
+  if (items.some((item) => item.toLowerCase() === line.toLowerCase())) {
+    setMaintenanceNoteStatus("That one-off store item is already in the staging list.");
+    return false;
+  }
+
+  saveCustomMaintenanceStagingItems([line, ...items]);
+  setMaintenanceStagingStatus(MAINTENANCE_CUSTOM_STAGING_TITLE, line, "need");
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(`Added ${line} to the local-only staging list.`);
+  return true;
+}
+
+function removeCustomMaintenanceStagingItem(line = "") {
+  const normalized = normalizeMaintenanceLine(line);
+  if (!normalized) {
+    return;
+  }
+
+  const items = loadCustomMaintenanceStagingItems().filter((item) => item.toLowerCase() !== normalized.toLowerCase());
+  saveCustomMaintenanceStagingItems(items);
+  setMaintenanceStagingStatus(MAINTENANCE_CUSTOM_STAGING_TITLE, normalized, "need");
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(`Removed ${normalized} from the local-only staging list.`);
+}
+
 function getMaintenanceNoteItems() {
   const notes = loadJson(STORAGE.notes, {});
   const generalNotes = `${notes.general_notes || ""}`.trim();
@@ -461,6 +526,31 @@ function getMaintenanceNoteItems() {
   return blocks.slice(0, 4);
 }
 
+function maintenanceStagingGroups({ items = getMaintenanceNoteItems(), index = null, includeCustom = true } = {}) {
+  const selectedItems = Number.isInteger(index) ? items.slice(index, index + 1) : items;
+  const savedGroups = selectedItems
+    .map((item) => ({
+      title: item.title,
+      lines: item.stagingItems || [],
+      index: items.indexOf(item),
+      custom: false
+    }))
+    .filter((group) => group.lines.length);
+  const customLines = includeCustom && !Number.isInteger(index) ? loadCustomMaintenanceStagingItems() : [];
+  const customGroup = customLines.length
+    ? [
+        {
+          title: MAINTENANCE_CUSTOM_STAGING_TITLE,
+          lines: customLines,
+          index: null,
+          custom: true
+        }
+      ]
+    : [];
+
+  return [...customGroup, ...savedGroups];
+}
+
 function setMaintenanceNoteStatus(message = "") {
   if (maintenanceNoteStatus) {
     maintenanceNoteStatus.textContent = message;
@@ -473,16 +563,15 @@ function maintenanceStagingExportText(index = null) {
 
 function maintenanceStagingExport({ index = null, status = "all" } = {}) {
   const items = getMaintenanceNoteItems();
-  const selectedItems = Number.isInteger(index) ? items.slice(index, index + 1) : items;
-  const groups = selectedItems
-    .map((item) => ({
-      title: item.title,
-      lines: (item.stagingItems || []).filter((line) => {
+  const groups = maintenanceStagingGroups({ items, index })
+    .map((group) => ({
+      ...group,
+      lines: (group.lines || []).filter((line) => {
         if (status === "need") {
-          return maintenanceStagingStatus(item.title, line) !== "staged";
+          return maintenanceStagingStatus(group.title, line) !== "staged";
         }
         if (status === "staged") {
-          return maintenanceStagingStatus(item.title, line) === "staged";
+          return maintenanceStagingStatus(group.title, line) === "staged";
         }
         return true;
       })
@@ -503,7 +592,9 @@ function maintenanceStagingExport({ index = null, status = "all" } = {}) {
 
   const text = [
     title,
-    status === "need" ? "Remaining items only. Verify part numbers and truck labels before ordering." : "Verify part numbers and truck labels before ordering.",
+    status === "need"
+      ? "Remaining items only. Verify part numbers and truck labels before ordering. One-off items are local-only helper entries."
+      : "Verify part numbers and truck labels before ordering. One-off items are local-only helper entries.",
     "",
     ...groups.flatMap((group) => [
       `${group.title}:`,
@@ -521,12 +612,7 @@ function maintenanceStagingExport({ index = null, status = "all" } = {}) {
 }
 
 function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
-  const groups = items
-    .map((item) => ({
-      title: item.title,
-      lines: item.stagingItems || []
-    }))
-    .filter((group) => group.lines.length);
+  const groups = maintenanceStagingGroups({ items });
   const total = groups.reduce((sum, group) => sum + group.lines.length, 0);
   const staged = groups.reduce(
     (sum, group) =>
@@ -540,7 +626,7 @@ function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
 
 function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
   const summary = getMaintenanceStagingSummary(items);
-  const skipped = Math.max(items.length - summary.groups, 0);
+  const skipped = items.filter((item) => !(item.stagingItems || []).length).length;
   const skippedText =
     skipped > 0
       ? `${skipped} saved note${skipped === 1 ? "" : "s"} visible below did not include detected parts, tools, or supplies.`
@@ -548,10 +634,23 @@ function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
 
   return `
     <div class="maintenance-staging-guide" data-maintenance-staging-guide>
-      <span><strong>${summary.total}</strong> staging line${summary.total === 1 ? "" : "s"} from saved notes</span>
-      <span>Need/Staged toggles stay on this iPhone in local browser storage, outside Garage backup and sync.</span>
+      <span><strong>${summary.total}</strong> staging line${summary.total === 1 ? "" : "s"} from saved notes and one-off items</span>
+      <span>Need/Staged toggles and one-off items stay on this iPhone in local browser storage, outside Garage backup and sync.</span>
       <span>${escapeHtml(skippedText)}</span>
     </div>
+  `;
+}
+
+function maintenanceCustomStagingMarkup() {
+  return `
+    <form class="maintenance-custom-staging-form" data-maintenance-custom-staging-form>
+      <label>
+        <span>Add one-off store item</span>
+        <input type="text" maxlength="90" autocomplete="off" data-maintenance-custom-staging-input placeholder="Shop towels, funnel, trim clips" />
+      </label>
+      <button class="ghost-button" type="submit">Add Item</button>
+    </form>
+    <p class="small-note">One-off items are quick local helpers for this iPhone and are not included in Garage backup or sync.</p>
   `;
 }
 
@@ -607,12 +706,7 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
 
 function updateMaintenanceStagingBulk(action = "") {
   const items = getMaintenanceNoteItems();
-  const groups = items
-    .map((item) => ({
-      title: item.title,
-      lines: item.stagingItems || []
-    }))
-    .filter((group) => group.lines.length);
+  const groups = maintenanceStagingGroups({ items });
   let changed = 0;
 
   groups.forEach((group) => {
@@ -639,8 +733,11 @@ function updateMaintenanceStagingBulk(action = "") {
   }
 }
 
-function updateMaintenanceStagingGroup(index = 0, action = "") {
-  const item = getMaintenanceNoteItems()[index];
+function updateMaintenanceStagingGroup(index = 0, action = "", title = "") {
+  const item =
+    title === MAINTENANCE_CUSTOM_STAGING_TITLE
+      ? { title: MAINTENANCE_CUSTOM_STAGING_TITLE, stagingItems: loadCustomMaintenanceStagingItems() }
+      : getMaintenanceNoteItems()[index];
   const lines = item?.stagingItems || [];
   let changed = 0;
 
@@ -673,14 +770,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
     return;
   }
 
-  const groups = items
-    .map((item, index) => ({
-      index,
-      title: item.title,
-      lines: item.stagingItems || []
-    }))
-    .filter((group) => group.lines.length)
-    .slice(0, 3);
+  const groups = maintenanceStagingGroups({ items }).slice(0, 4);
 
   if (maintenancePartsCopyButton) {
     maintenancePartsCopyButton.disabled = !groups.length;
@@ -690,16 +780,15 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   }
 
   if (!groups.length) {
-    maintenancePartsPreview.innerHTML = items.length
-      ? `
+    maintenancePartsPreview.innerHTML = `
         ${maintenanceStageConfirmationMarkup(items)}
         <article class="maintenance-parts-card maintenance-parts-empty">
           ${maintenanceStagingGuideMarkup(items)}
+          ${maintenanceCustomStagingMarkup()}
           <strong>No staging items detected yet.</strong>
           <p>Saved notes are visible below. Add checked Service Prep items or a built Minder checklist when you want this panel to build a parts-counter list.</p>
         </article>
-      `
-      : "";
+      `;
     return;
   }
 
@@ -716,6 +805,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
         <a class="utility-link" href="#rockauto-parts">Open Parts Sources</a>
       </div>
       ${maintenanceStagingGuideMarkup(items)}
+      ${maintenanceCustomStagingMarkup()}
       <div class="maintenance-staging-filter" role="group" aria-label="Filter staging items">
         ${["all", "need", "staged"]
           .map((filter) => {
@@ -792,36 +882,44 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
                   <span>${stagedCount}/${group.lines.length} staged</span>
                 </div>
                 <div class="maintenance-group-actions">
-                  <button
-                    class="ghost-button"
-                    type="button"
-                    data-copy-maintenance-needed-index="${group.index}"
-                    ${needCount ? "" : "disabled"}
-                  >Copy Need</button>
-                  <button
-                    class="ghost-button"
-                    type="button"
-                    data-share-maintenance-needed-index="${group.index}"
-                    ${needCount ? "" : "disabled"}
-                  >Share Need</button>
-                  <button
-                    class="ghost-button"
-                    type="button"
-                    data-save-maintenance-needed-index="${group.index}"
-                    ${needCount ? "" : "disabled"}
-                  >Save Need</button>
+                  ${
+                    group.custom
+                      ? ""
+                      : `
+                        <button
+                          class="ghost-button"
+                          type="button"
+                          data-copy-maintenance-needed-index="${group.index}"
+                          ${needCount ? "" : "disabled"}
+                        >Copy Need</button>
+                        <button
+                          class="ghost-button"
+                          type="button"
+                          data-share-maintenance-needed-index="${group.index}"
+                          ${needCount ? "" : "disabled"}
+                        >Share Need</button>
+                        <button
+                          class="ghost-button"
+                          type="button"
+                          data-save-maintenance-needed-index="${group.index}"
+                          ${needCount ? "" : "disabled"}
+                        >Save Need</button>
+                      `
+                  }
                   <button
                     class="ghost-button"
                     type="button"
                     data-maintenance-staging-group-bulk="stage-needed"
-                    data-maintenance-staging-group-index="${group.index}"
+                    data-maintenance-staging-group-index="${group.index ?? ""}"
+                    data-maintenance-staging-group-title="${escapeHtml(group.title)}"
                     ${stagedCount === group.lines.length ? "disabled" : ""}
                   >Mark Group Staged</button>
                   <button
                     class="ghost-button"
                     type="button"
                     data-maintenance-staging-group-bulk="reset-staged"
-                    data-maintenance-staging-group-index="${group.index}"
+                    data-maintenance-staging-group-index="${group.index ?? ""}"
+                    data-maintenance-staging-group-title="${escapeHtml(group.title)}"
                     ${stagedCount ? "" : "disabled"}
                   >Reset Group</button>
                 </div>
@@ -833,16 +931,23 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
                             const status = maintenanceStagingStatus(group.title, line);
                             const staged = status === "staged";
                             return `
-                              <li class="${staged ? "is-staged" : ""}">
+                              <li class="${staged ? "is-staged" : ""} ${group.custom ? "is-custom-staging-item" : ""}">
                                 <span>${escapeHtml(line)}</span>
-                                <button
-                                  class="staging-toggle"
-                                  type="button"
-                                  data-maintenance-staging-toggle
-                                  data-maintenance-staging-title="${escapeHtml(group.title)}"
-                                  data-maintenance-staging-line="${escapeHtml(line)}"
-                                  aria-pressed="${staged ? "true" : "false"}"
-                                >${staged ? "Staged" : "Need to buy"}</button>
+                                <span class="staging-line-actions">
+                                  <button
+                                    class="staging-toggle"
+                                    type="button"
+                                    data-maintenance-staging-toggle
+                                    data-maintenance-staging-title="${escapeHtml(group.title)}"
+                                    data-maintenance-staging-line="${escapeHtml(line)}"
+                                    aria-pressed="${staged ? "true" : "false"}"
+                                  >${staged ? "Staged" : "Need to buy"}</button>
+                                  ${
+                                    group.custom
+                                      ? `<button class="staging-remove" type="button" data-maintenance-custom-staging-remove="${escapeHtml(line)}">Remove</button>`
+                                      : ""
+                                  }
+                                </span>
                               </li>
                             `;
                           })
@@ -850,7 +955,11 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
                       </ul>`
                     : `<p class="small-note maintenance-staging-empty">${emptyMessage}</p>`
                 }
-                <button class="utility-link" type="button" data-copy-maintenance-parts-index="${group.index}">Copy This List</button>
+                ${
+                  group.custom
+                    ? ""
+                    : `<button class="utility-link" type="button" data-copy-maintenance-parts-index="${group.index}">Copy This List</button>`
+                }
               </section>
             `;
           })
@@ -1768,6 +1877,12 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
 });
 maintenancePartsPreview?.addEventListener("click", (event) => {
+  const removeCustomButton = event.target.closest("[data-maintenance-custom-staging-remove]");
+  if (removeCustomButton) {
+    removeCustomMaintenanceStagingItem(removeCustomButton.dataset.maintenanceCustomStagingRemove || "");
+    return;
+  }
+
   const filterButton = event.target.closest("[data-maintenance-staging-filter]");
   if (filterButton) {
     currentMaintenanceStagingFilter = filterButton.dataset.maintenanceStagingFilter || "all";
@@ -1834,7 +1949,8 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   if (groupBulkButton) {
     updateMaintenanceStagingGroup(
       Number(groupBulkButton.dataset.maintenanceStagingGroupIndex || 0),
-      groupBulkButton.dataset.maintenanceStagingGroupBulk || ""
+      groupBulkButton.dataset.maintenanceStagingGroupBulk || "",
+      groupBulkButton.dataset.maintenanceStagingGroupTitle || ""
     );
     return;
   }
@@ -1851,6 +1967,18 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   }
 
   copyMaintenanceStaging(Number(button.dataset.copyMaintenancePartsIndex || 0));
+});
+maintenancePartsPreview?.addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-maintenance-custom-staging-form]");
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  const input = form.querySelector("[data-maintenance-custom-staging-input]");
+  if (addCustomMaintenanceStagingItem(input?.value || "") && input) {
+    input.value = "";
+  }
 });
 maintenanceNotePreview?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-copy-maintenance-parts-index]");
