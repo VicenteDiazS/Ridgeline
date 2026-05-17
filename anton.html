@@ -55,13 +55,18 @@
             <p class="eyebrow">Anton Console</p>
             <h1>Agent Desk</h1>
             <p class="section-copy">
-              Read Anton's working notes, append instructions, and control the local scheduled loop from one place.
+              Check Anton's public run status from your iPhone, then use local controls when this device can reach the laptop helper.
             </p>
           </div>
+          <div class="anton-live-card" data-anton-agent-card>
+            <span>Anton Agent</span>
+            <strong data-anton-agent-state>Checking...</strong>
+            <p data-anton-agent-detail>Loading the latest pushed run status.</p>
+          </div>
           <div class="anton-live-card" data-anton-live-card>
-            <span>Control Server</span>
+            <span>Local Controls</span>
             <strong data-anton-server-state>Checking...</strong>
-            <p data-anton-server-detail>Looking for the local helper.</p>
+            <p data-anton-server-detail>Looking for the laptop helper.</p>
           </div>
         </section>
 
@@ -85,7 +90,7 @@
               <div><span>Next Run</span><strong data-anton-next-run>Unknown</strong></div>
               <div><span>Lock</span><strong data-anton-lock>Unknown</strong></div>
             </div>
-            <p class="agent-status-summary" data-anton-action-message>Controls use the local Anton helper at http://127.0.0.1:8765.</p>
+            <p class="agent-status-summary" data-anton-action-message>Controls require the laptop helper. From an iPhone, offline local controls can be normal while Anton's public agent status remains current.</p>
           </article>
 
           <article class="anton-panel" id="anton-note">

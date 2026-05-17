@@ -16,6 +16,9 @@ const state = {
 };
 
 const els = {
+  agentCard: document.querySelector("[data-anton-agent-card]"),
+  agentState: document.querySelector("[data-anton-agent-state]"),
+  agentDetail: document.querySelector("[data-anton-agent-detail]"),
   serverState: document.querySelector("[data-anton-server-state]"),
   serverDetail: document.querySelector("[data-anton-server-detail]"),
   liveCard: document.querySelector("[data-anton-live-card]"),
@@ -70,6 +73,26 @@ function formatDate(value) {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(date);
+}
+
+function describeNextRun(value) {
+  if (!value) {
+    return "next check pending";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const minutes = Math.round((date.getTime() - Date.now()) / 60000);
+  if (minutes <= -1) {
+    return `${Math.abs(minutes)} min overdue`;
+  }
+  if (minutes <= 1) {
+    return "due now";
+  }
+  return `next check in about ${minutes} min`;
 }
 
 function requestHeaders() {
@@ -137,6 +160,8 @@ function renderHistory(history = []) {
 }
 
 async function loadStatus() {
+  await loadAgentRunStatus();
+
   try {
     const status = await controlFetch("/status");
     state.serverOnline = true;
@@ -145,7 +170,7 @@ async function loadStatus() {
       els.serverState.textContent = "Online";
     }
     if (els.serverDetail) {
-      els.serverDetail.textContent = `Connected to ${getControlUrl()}`;
+      els.serverDetail.textContent = `Laptop helper connected at ${getControlUrl()}.`;
     }
     if (els.taskState) {
       els.taskState.textContent = status.taskState || status.status || "Online";
@@ -163,10 +188,10 @@ async function loadStatus() {
     state.serverOnline = false;
     els.liveCard?.setAttribute("data-anton-server", "offline");
     if (els.serverState) {
-      els.serverState.textContent = "Offline";
+      els.serverState.textContent = "Helper Offline";
     }
     if (els.serverDetail) {
-      els.serverDetail.textContent = `Start the local helper or adjust Control URL. ${error.message}`;
+      els.serverDetail.textContent = `Local controls are unavailable from this browser. On iPhone this is normal unless the helper is exposed on your private network. ${error.message}`;
     }
     if (els.taskState) {
       els.taskState.textContent = "Helper offline";
@@ -179,6 +204,39 @@ async function loadStatus() {
     }
     if (els.lock) {
       els.lock.textContent = "Unknown";
+    }
+  }
+}
+
+async function loadAgentRunStatus() {
+  if (!els.agentState && !els.agentDetail) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`agent-last-run.json?__live=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Status request failed: ${response.status}`);
+    }
+    const status = await response.json();
+    const state = status.status || "unknown";
+    const title = status.statusTitle || (state === "completed" ? "Anton Finished" : state);
+    const detail = status.statusDetail || status.summary || "No Anton run summary has been recorded yet.";
+    const next = describeNextRun(status.nextExpectedRunAt);
+    els.agentCard?.setAttribute("data-anton-server", state === "completed" ? "online" : state);
+    if (els.agentState) {
+      els.agentState.textContent = title;
+    }
+    if (els.agentDetail) {
+      els.agentDetail.textContent = `${detail} Last heartbeat ${formatDate(status.lastHeartbeatAt)}; ${next}.`;
+    }
+  } catch (error) {
+    els.agentCard?.setAttribute("data-anton-server", "offline");
+    if (els.agentState) {
+      els.agentState.textContent = "Status Unavailable";
+    }
+    if (els.agentDetail) {
+      els.agentDetail.textContent = `Could not load the pushed Anton status. ${error.message}`;
     }
   }
 }
