@@ -441,6 +441,7 @@ async def assert_maintenance_features(page, page_name):
                 confirmationText: confirmation?.innerText || "",
                 hasShare: Boolean(confirmation?.querySelector("[data-share-maintenance-needed-inline]")),
                 hasCopy: Boolean(confirmation?.querySelector("[data-copy-maintenance-needed-inline]")),
+                hasSaveRun: Boolean(confirmation?.querySelector("[data-save-maintenance-run-inline]")),
                 hasFreshNote: Boolean(fresh),
                 freshText: fresh?.innerText || "",
                 handoffCleared: !sessionStorage.getItem("ridgeline-maintenance-stage-handoff")
@@ -452,6 +453,7 @@ async def assert_maintenance_features(page, page_name):
     assert_true("staging line" in stage_handoff_state["confirmationText"], "Garage staging handoff confirmation should report derived staging lines")
     assert_true(stage_handoff_state["hasShare"], "Garage staging handoff confirmation should expose Share Buy List")
     assert_true(stage_handoff_state["hasCopy"], "Garage staging handoff confirmation should expose Copy Buy List")
+    assert_true(stage_handoff_state["hasSaveRun"], "Garage staging handoff confirmation should expose Save Run Note")
     assert_true(stage_handoff_state["hasFreshNote"], "Garage staging should highlight the latest saved maintenance note")
     assert_true("just saved" in stage_handoff_state["freshText"].lower(), "latest saved maintenance note should carry a Just saved marker")
     assert_true(stage_handoff_state["handoffCleared"], "Maintenance Stage handoff should be one-visit session state")
@@ -755,6 +757,24 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied need-to-buy list with 2 items" in need_status, "saved maintenance notes Copy Buy List did not report the remaining need-to-buy count")
+    await page.locator("#maintenance-note-preview [data-save-maintenance-run-inline]").first.click()
+    await page.wait_for_timeout(150)
+    saved_run_state = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}").general_notes || "";
+            const panel = document.querySelector("#maintenance-note-preview");
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                notes,
+                stillHasToggle: Boolean(panel?.querySelector("[data-maintenance-staging-toggle]"))
+            };
+        }"""
+    )
+    assert_true("Saved staging run note with 3 items into Garage Notes" in saved_run_state["status"], "Save Run Note did not report the saved staging count")
+    assert_true("Maintenance Staging Run" in saved_run_state["notes"], "Save Run Note did not prepend a Garage maintenance staging run block")
+    assert_true("Ridgeline Maintenance Staging List" in saved_run_state["notes"], "saved staging run note is missing the staging export text")
+    assert_true("Need/Staged toggles remain local browser state outside Garage backup and sync" in saved_run_state["notes"], "saved staging run note should preserve the local-only staging boundary")
+    assert_true(saved_run_state["stillHasToggle"], "Save Run Note should not remove the interactive staging checklist")
     await page.reload()
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-staging-toggle]", state="attached")
     reloaded_toggle = await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.inner_text()

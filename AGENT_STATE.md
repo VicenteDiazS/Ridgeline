@@ -49,6 +49,7 @@ Last updated: 2026-05-17
 - Maintenance Service Prep cards and the Maintenance Minder Pocket Planner now include a direct Stage action that saves the current planner note and opens `garage.html#maintenance-note-preview`, reducing the iPhone handoff from planner input to Garage staging without adding vehicle facts or changing Garage storage schema.
 - Garage Parts And Supplies Staging now has a compact iPhone-visible staging guide that shows how many staging lines were derived from saved notes, states that Need/Staged toggles stay in local browser storage outside Garage backup/sync, and explains when saved planner notes appear below but do not produce parts/supplies staging items.
 - Maintenance-to-Garage Stage now records a one-visit session handoff so Garage shows a "Just saved from Maintenance" receipt, highlights the newest saved planner note, and exposes Share Buy List next to Copy Buy List without adding Garage schema or vehicle facts.
+- Garage Parts And Supplies Staging now includes Save Run Note in the handoff receipt and store-run summary. It snapshots the current staging export into existing Garage Notes with the local-only Need/Staged boundary stated in the saved note, while leaving interactive staging toggle state in `ridgeline-maintenance-staging-state` outside Garage backup/sync.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
@@ -58,7 +59,7 @@ Last updated: 2026-05-17
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
 - Manual full-access startup script exists at `tools/agent-loop/Start-AntonManual.ps1`.
-- Recent verification produced desktop/mobile screenshots in `debug-screenshots/` with the `audit-v282-staging-state` tag.
+- Recent verification produced direct Playwright desktop/mobile Garage screenshots in `debug-screenshots/` with the `audit-v290-staging-run-note` tag.
 
 ## Last Completed Work
 
@@ -369,4 +370,9 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('maintenance.html','garage.html') -Tag audit-v289-stage-share -SkipScreenshots"`; link checks, Garage restore Playwright audit, and Maintenance/Garage browser smoke passed.
 - Captured direct 390px Playwright screenshots with file-access flags at `debug-screenshots/audit-v289-stage-share-mobile-handoff.png` and `debug-screenshots/audit-v289-stage-share-mobile-run-actions.png`; the screenshot helper confirmed the handoff receipt and Share Buy List are visible with no horizontal overflow.
-- Next safe slice: review the Maintenance-to-Garage Stage receipt and iOS share-sheet behavior on the user's real iPhone, then consider job-template or inventory-schema work only after the no-schema staging workflow is validated in real use.
+- Added Garage staging Save Run Note actions to the one-visit handoff receipt and store-run summary. The action prepends a timestamped `Maintenance Staging Run` block into existing `ridgeline-notes.general_notes`, includes the current all-item staging export, and explicitly states that Need/Staged toggles remain local browser state outside Garage backup/sync.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html')"`; targeted Garage browser smoke passed, including Save Run Note persistence into Garage Notes.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('maintenance.html','garage.html') -Tag audit-v290-staging-run-note -SkipScreenshots"`; link checks, Garage restore Playwright audit, and Maintenance/Garage browser smoke passed.
+- `Capture-Screenshots.ps1` still failed to create the first Garage screenshot in this shell, so direct Playwright fallback screenshots with file-access flags were captured at `debug-screenshots/audit-v290-staging-run-note-mobile-garage.png` and `debug-screenshots/audit-v290-staging-run-note-desktop-garage.png`; both confirmed the Save Run Note button is visible and no horizontal overflow is present.
+- Next safe slice: review the Maintenance-to-Garage Stage receipt, Save Run Note wording, and iOS share-sheet behavior on the user's real iPhone, then consider job-template or inventory-schema work only after the no-schema staging workflow is validated in real use.
