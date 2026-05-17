@@ -1856,7 +1856,7 @@ function actionForPage(page) {
     ],
     "garage.html": [
       { label: "Dash", href: "#dashboard", icon: "map" },
-      { label: "Notes", href: "#notes", icon: "wrench" },
+      { label: "Staging", href: "#maintenance-note-preview", icon: "wrench" },
       { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ]
@@ -2959,6 +2959,7 @@ function buildPageActionBar() {
 const quickCommands = [
   { label: "Open Garage Notes", hint: "Save notes, records, and reminders", href: "garage.html#notes", icon: "garage" },
   { label: "Open Truck Profile", hint: "VIN, fluids, tires, torque, and common part numbers", href: "garage.html#truck-profile", icon: "garage" },
+  { label: "Open Maintenance Staging", hint: "Saved prep and Minder staging checklist", href: "garage.html#maintenance-note-preview", icon: "wrench" },
   { label: "Open RockAuto Parts", hint: "2019 Ridgeline 3.5L V6 catalog shortcuts", href: "garage.html#rockauto-parts", icon: "wrench" },
   { label: "Find Under-Hood Fuse Box A", hint: "Jump to the active 3D map hotspot", href: "index.html?system=fuse-engine-a#viewer", icon: "bolt" },
   { label: "Show Jack Points", hint: "Open the truck map on roadside jack points", href: "index.html?system=jack-points#viewer", icon: "wrench" },
@@ -2999,6 +3000,7 @@ const visualSiteMapGroups = [
     label: "Garage",
     links: [
       { label: "Truck Profile", href: "garage.html#truck-profile" },
+      { label: "Maintenance Staging", href: "garage.html#maintenance-note-preview" },
       { label: "RockAuto Parts", href: "garage.html#rockauto-parts" },
       { label: "Notes", href: "garage.html#notes" },
       { label: "Photo Atlas", href: "photo-atlas.html" },

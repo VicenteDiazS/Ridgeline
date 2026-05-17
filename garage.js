@@ -348,6 +348,7 @@ function maintenanceStagingItems(body = "") {
   return `${body}`
     .split(/\n+/)
     .map(normalizeMaintenanceLine)
+    .filter((line) => line && !/:$/.test(line))
     .filter((line) => line && stagingPattern.test(line))
     .filter((line) => {
       const key = line.toLowerCase();
@@ -468,6 +469,24 @@ function maintenanceStagingExportText(index = null) {
   ]
     .join("\n")
     .trim();
+}
+
+function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
+  const groups = items
+    .map((item) => ({
+      title: item.title,
+      lines: item.stagingItems || []
+    }))
+    .filter((group) => group.lines.length);
+  const total = groups.reduce((sum, group) => sum + group.lines.length, 0);
+  const staged = groups.reduce(
+    (sum, group) =>
+      sum + group.lines.filter((line) => maintenanceStagingStatus(group.title, line) === "staged").length,
+    0
+  );
+  const need = Math.max(total - staged, 0);
+
+  return { groups: groups.length, total, staged, need };
 }
 
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
@@ -1074,6 +1093,8 @@ function renderDashboard() {
   const photos = loadJson(STORAGE.photos, []);
   const profile = loadJson(STORAGE.profile, defaultProfile);
   const areas = ["hood", "cabin", "cargo", "rear-hitch"].map((key) => loadAreaJournal(key));
+  const maintenanceNoteItems = getMaintenanceNoteItems();
+  const maintenanceStagingSummary = getMaintenanceStagingSummary(maintenanceNoteItems);
   const noteFields = Object.values(notes).filter(Boolean).length;
   const trackerFields = Object.values(tracker).filter(Boolean).length;
   const areaPhotos = areas.reduce((sum, area) => sum + (area.photos || []).length, 0);
@@ -1084,17 +1105,35 @@ function renderDashboard() {
   const warningLightSummary = getWarningLightSummary(notes);
 
   const cards = [
-    ["Truck Profile", profile.vin || "VIN not set", `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`],
-    ["Saved Notes", `${noteFields} fields`, "Installed parts and general truck memory"],
-    [
-      "Diagnostic Notes",
-      warningLightSummary.count ? `${warningLightSummary.count} warning-light fields` : "Ready to capture",
-      warningLightSummary.count
+    {
+      label: "Truck Profile",
+      value: profile.vin || "VIN not set",
+      note: `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`
+    },
+    { label: "Saved Notes", value: `${noteFields} fields`, note: "Installed parts and general truck memory" },
+    {
+      label: "Diagnostic Notes",
+      value: warningLightSummary.count ? `${warningLightSummary.count} warning-light fields` : "Ready to capture",
+      note: warningLightSummary.count
         ? `${warningLightSummary.title} - ${warningLightSummary.detail}`
         : "Open the warning-light template before codes are cleared or parts are replaced.",
-      "#warning-light-template"
-    ],
-    ["Service Tracker", `${trackerFields} entries`, "Mileage and last-service checkpoints"],
+      href: "#warning-light-template",
+      actionLabel: "Open Warning Light Note",
+      actionClass: "dashboard-diagnostic-card"
+    },
+    { label: "Service Tracker", value: `${trackerFields} entries`, note: "Mileage and last-service checkpoints" },
+    {
+      label: "Parts Staging",
+      value: maintenanceStagingSummary.total
+        ? `${maintenanceStagingSummary.need} need / ${maintenanceStagingSummary.staged} staged`
+        : "Ready for planner notes",
+      note: maintenanceStagingSummary.total
+        ? `${maintenanceStagingSummary.total} saved-note line${maintenanceStagingSummary.total === 1 ? "" : "s"} ready for parts-counter review.`
+        : "Save a Service Prep or Minder checklist, then track what still needs to be bought.",
+      href: "#maintenance-note-preview",
+      actionLabel: "Open Staging",
+      actionClass: "dashboard-maintenance-card"
+    },
     ["Quick Updates", `${maintenanceLog.length} entries`, "Fast maintenance notes saved from the Maintenance page"],
     ["Fuse Saves", `${favorites.length} favorites`, "Frequently checked circuits saved locally"],
     ["Photo Atlas", `${photos.length + areaPhotos} photos`, "Garage and area-reference images"],
@@ -1102,20 +1141,27 @@ function renderDashboard() {
   ];
 
   dashboardGrid.innerHTML = cards
-    .map(
-      ([label, value, note, href]) => `
-        <article class="dashboard-card${href ? " dashboard-card-action dashboard-diagnostic-card" : ""}">
-          <span>${label}</span>
-          <strong>${escapeHtml(value)}</strong>
-          <p>${escapeHtml(note)}</p>
-          ${href ? `<a class="utility-link" href="${href}">Open Warning Light Note</a>` : ""}
+    .map((card) => {
+      const normalized = Array.isArray(card) ? { label: card[0], value: card[1], note: card[2], href: card[3] } : card;
+      return `
+        <article class="dashboard-card${
+          normalized.href ? ` dashboard-card-action ${normalized.actionClass || ""}` : ""
+        }">
+          <span>${escapeHtml(normalized.label)}</span>
+          <strong>${escapeHtml(normalized.value)}</strong>
+          <p>${escapeHtml(normalized.note)}</p>
+          ${
+            normalized.href
+              ? `<a class="utility-link" href="${escapeHtml(normalized.href)}">${escapeHtml(normalized.actionLabel || "Open")}</a>`
+              : ""
+          }
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 
   renderDiagnosticActivity();
-  renderMaintenanceNotePreview();
+  renderMaintenanceNotePreview(maintenanceNoteItems);
 }
 
 function renderDiagnosticActivity() {
@@ -1162,12 +1208,11 @@ function renderDiagnosticActivity() {
     .join("");
 }
 
-function renderMaintenanceNotePreview() {
+function renderMaintenanceNotePreview(items = getMaintenanceNoteItems()) {
   if (!maintenanceNotePreview) {
     return;
   }
 
-  const items = getMaintenanceNoteItems();
   renderMaintenancePartsPreview(items);
   setMaintenanceNoteStatus(items.length ? `Showing ${items.length} recent saved planner note${items.length === 1 ? "" : "s"}.` : "");
   if (maintenanceNoteCopyButton) {
@@ -1251,7 +1296,7 @@ function toggleMaintenanceStaging(button) {
   const line = button.dataset.maintenanceStagingLine || "";
   const nextStatus = button.getAttribute("aria-pressed") === "true" ? "need" : "staged";
   setMaintenanceStagingStatus(title, line, nextStatus);
-  renderMaintenancePartsPreview();
+  renderDashboard();
   setMaintenanceNoteStatus(nextStatus === "staged" ? "Marked staging item as already staged." : "Marked staging item as need to buy.");
 }
 

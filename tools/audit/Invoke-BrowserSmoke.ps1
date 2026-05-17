@@ -430,6 +430,8 @@ async def assert_garage_features(page, page_name):
             const dashboard = document.querySelector("[data-garage-dashboard]");
             const diagnosticCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
                 .find((card) => card.textContent.includes("Diagnostic Notes")) : null;
+            const stagingCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging")) : null;
             const activity = document.querySelector("#diagnostic-activity [data-diagnostic-activity]");
             const maintenanceNotes = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
             const maintenanceParts = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview]");
@@ -448,6 +450,9 @@ async def assert_garage_features(page, page_name):
                 hasDashboard: Boolean(dashboard),
                 hasDiagnosticCard: Boolean(diagnosticCard),
                 hasDiagnosticCardRoute: Boolean(diagnosticCard?.querySelector('a[href="#warning-light-template"]')),
+                hasStagingDashboardCard: Boolean(stagingCard),
+                hasStagingDashboardRoute: Boolean(stagingCard?.querySelector('a[href="#maintenance-note-preview"]')),
+                hasHeroStagingRoute: Boolean(document.querySelector('.section-utility-nav a[href="#maintenance-note-preview"]')),
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
                 hasMaintenanceNotes: Boolean(maintenanceNotes),
@@ -485,6 +490,9 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasDashboard"], "garage page is missing the garage dashboard")
     assert_true(state["hasDiagnosticCard"], "garage dashboard is missing the diagnostic notes card")
     assert_true(state["hasDiagnosticCardRoute"], "diagnostic notes card is missing the warning-light note route")
+    assert_true(state["hasStagingDashboardCard"], "garage dashboard is missing the parts staging card")
+    assert_true(state["hasStagingDashboardRoute"], "garage dashboard parts staging card is missing the staging route")
+    assert_true(state["hasHeroStagingRoute"], "garage hero is missing the saved maintenance shortcut")
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
     assert_true(state["hasMaintenanceNotes"], "garage dashboard is missing saved maintenance notes preview")
@@ -534,6 +542,8 @@ async def assert_garage_features(page, page_name):
             const copyLatest = panel?.querySelector("[data-copy-maintenance-note]");
             const copyStaging = panel?.querySelector("[data-copy-maintenance-parts]");
             const partsPreview = panel?.querySelector("[data-maintenance-parts-preview]");
+            const stagingCard = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"));
             const itemButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-note-index]")] : [];
             const stagingButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-parts-index]")] : [];
             const stagingToggles = panel ? [...panel.querySelectorAll("[data-maintenance-staging-toggle]")] : [];
@@ -545,6 +555,7 @@ async def assert_garage_features(page, page_name):
                 stagingToggleCount: stagingToggles.length,
                 stagingToggleNeedText: stagingToggles.some((button) => button.textContent.includes("Need to buy")),
                 stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
+                dashboardStagingText: stagingCard?.innerText || "",
                 hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
                 hasStagingText: partsPreview?.textContent.includes("0W-20 oil and final dipstick level check") &&
                     partsPreview?.textContent.includes("Rotate tires"),
@@ -562,6 +573,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
     assert_true(populated_state["stagingToggleNeedText"], "saved maintenance notes staging toggles should start as need-to-buy")
     assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
+    assert_true("3 need / 0 staged" in populated_state["dashboardStagingText"], "garage dashboard parts staging card should summarize need/staged counts")
     assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
     assert_true(populated_state["hasStagingText"], "saved maintenance notes preview did not derive expected staging items")
     assert_true(populated_state["hasPartsSourceRoute"], "maintenance staging card is missing the parts source route")
@@ -587,12 +599,15 @@ async def assert_garage_features(page, page_name):
             const panel = document.querySelector("#maintenance-note-preview");
             const firstToggle = panel?.querySelector("[data-maintenance-staging-toggle]");
             const partsText = panel?.querySelector("[data-maintenance-parts-preview]")?.innerText || "";
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
             const storage = JSON.parse(localStorage.getItem("ridgeline-maintenance-staging-state") || "{}");
             return {
                 pressed: firstToggle?.getAttribute("aria-pressed"),
                 text: firstToggle?.textContent || "",
                 status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 hasStagedCount: partsText.includes("1/"),
+                dashboardUpdated: stagingCardText.includes("2 need / 1 staged"),
                 storedCount: Object.keys(storage).length
             };
         }"""
@@ -601,6 +616,7 @@ async def assert_garage_features(page, page_name):
     assert_true("Staged" in toggled_state["text"], "staging toggle should report Staged after click")
     assert_true("already staged" in toggled_state["status"], "staging toggle status should report staged state")
     assert_true(toggled_state["hasStagedCount"], "maintenance staging group should show staged-count progress after toggle")
+    assert_true(toggled_state["dashboardUpdated"], "garage dashboard parts staging card should update after a staging toggle")
     assert_true(toggled_state["storedCount"] >= 1, "maintenance staging state should persist outside the Garage notes object")
     await page.reload()
     await page.wait_for_selector("#maintenance-note-preview [data-maintenance-staging-toggle]", state="attached")
@@ -619,12 +635,33 @@ async def assert_garage_features(page, page_name):
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const partsColumns = partsPreview ? getComputedStyle(partsPreview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
-            return { overflow: width > document.documentElement.clientWidth + 1, columns, partsColumns };
+            return {
+                overflow: width > document.documentElement.clientWidth + 1,
+                columns,
+                partsColumns,
+                hasContextRoute: Boolean(document.querySelector('.context-action[href="#maintenance-note-preview"]'))
+            };
         }"""
     )
     assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
+    assert_true(garage_mobile_state["hasContextRoute"], "garage contextual bottom bar is missing the staging route")
+    await page.locator('.context-action[href="#maintenance-note-preview"]').click()
+    await page.wait_for_timeout(700)
+    staging_nav_state = await page.evaluate(
+        """() => {
+            const target = document.querySelector("#maintenance-note-preview");
+            return {
+                hash: window.location.hash,
+                targetHeight: target?.getBoundingClientRect().height || 0,
+                targetTop: target?.getBoundingClientRect().top || 0
+            };
+        }"""
+    )
+    assert_true(staging_nav_state["hash"] == "#maintenance-note-preview", "garage staging bottom-bar route did not update the hash")
+    assert_true(staging_nav_state["targetHeight"] > 0, "garage staging bottom-bar route landed on a missing or collapsed target")
+    assert_true(staging_nav_state["targetTop"] >= 0, "garage staging bottom-bar route landed above the visible viewport")
 
 
 async def set_search_query(page, query):

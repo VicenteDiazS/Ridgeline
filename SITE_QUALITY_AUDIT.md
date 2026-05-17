@@ -56,6 +56,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Maintenance has page-scoped iPhone density rules for its planning tools: six primary hero task links, Update/Prep/Planner/More bottom actions, compact two-column Service Prep cards at common iPhone width, and browser-smoke assertions for the mobile layout.
 - Garage Dashboard includes a Recent Maintenance Notes preview that surfaces Service Prep and Maintenance Minder planner notes already saved into `ridgeline-notes.general_notes`, with empty/populated states, Copy Latest, per-note Copy Note, source-planner routes, Open Full Note links, live status text, and no Garage schema change.
 - Garage Recent Maintenance Notes includes a derived Parts And Supplies Staging panel that extracts copyable staging lines from known saved planner-note blocks, links to existing parts-source shortcuts, clearly keeps final fitment/truck-label verification with the user, and lets each line be marked Need to buy or Staged in local-only browser state outside the Garage backup/sync schema.
+- Garage Dashboard includes a Parts Staging card that summarizes those derived staging lines as need-to-buy versus staged, routes directly to the staging preview, updates after toggles, and is reachable from the iPhone contextual bottom bar without adding the local staging state to Garage backup/sync keys.
 - Screenshot capture uses `System.Diagnostics.ProcessStartInfo` instead of PowerShell `Start-Process`, avoiding duplicate environment-key failures in this Windows shell.
 - Long-horizon product work is tracked in `ANTON_ROADMAP.md` so multi-day improvements can keep moving without losing verification or next-step context.
 
@@ -252,3 +253,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')` passed after the staging-state slice.
 - `Invoke-SiteAudit.ps1 -Tag audit-v282-staging-state -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
 - Direct Playwright screenshots were captured under `debug-screenshots/audit-v282-staging-state-mobile-garage.png` and `debug-screenshots/audit-v282-staging-state-desktop-garage.png`.
+- Added the Garage Dashboard Parts Staging card, Saved Maintenance hero shortcut, Staging contextual bottom-bar action, Maintenance Staging command-palette route, and visual-site-map route. The staging parser now skips saved-note heading lines so labels like `Oil Change Prep:` do not become parts-counter items.
+- `Invoke-BrowserSmoke.ps1 -Pages @('garage.html')` passed after the dashboard/bottom-bar staging slice.
+- `Invoke-SiteAudit.ps1 -Tag audit-v283-garage-staging-dashboard -SkipScreenshots` passed: internal links, Garage restore Playwright audit, and default Playwright browser smoke all completed.
+- Direct Playwright screenshots were captured under `debug-screenshots/audit-v283-garage-staging-dashboard-mobile.png`, `debug-screenshots/audit-v283-garage-staging-route-mobile.png`, and `debug-screenshots/audit-v283-garage-staging-dashboard-desktop.png`.

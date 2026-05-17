@@ -5843,6 +5843,13 @@ kbd {
     rgba(8, 16, 28, 0.86);
 }
 
+.dashboard-maintenance-card {
+  border-color: rgba(255, 210, 122, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(255, 210, 122, 0.12), transparent 38%),
+    rgba(8, 16, 28, 0.86);
+}
+
 .diagnostic-activity-panel {
   margin-top: 18px;
   padding-top: 18px;
