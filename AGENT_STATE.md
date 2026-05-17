@@ -41,7 +41,7 @@ Last updated: 2026-05-17
 - Maintenance now has a page-scoped iPhone density pass for the planning tools: mobile hero links are trimmed to six primary tasks, the bottom action bar prioritizes Update/Prep/Planner/More, Service Prep cards use a compact two-column layout where iPhone width allows it, and the Pocket Planner actions/samples are tighter without removing content.
 - Maintenance Minder Pocket Planner now has a guarded Save Note action that rebuilds from the current dash-code input, prepends the generated checklist into existing local Garage Notes, preserves the brake-fluid calendar-service caution, and does not change Garage storage schema or vehicle facts.
 - Garage Dashboard now includes `garage.html#maintenance-note-preview`, a read-only Recent Maintenance Notes panel that surfaces recent Service Prep and Maintenance Minder planner notes already saved in `ridgeline-notes.general_notes`, with empty/populated states and routes back to Maintenance planners and the full Garage Notes form.
-- Garage Recent Maintenance Notes now includes a no-schema Parts And Supplies Staging view that derives short parts-counter lists from saved planner-note lines, offers Copy Staging List and per-note Copy Staging actions, and routes to the existing Garage parts-source section without adding vehicle fitment facts.
+- Garage Recent Maintenance Notes now includes a no-schema Parts And Supplies Staging view that derives short parts-counter lists from saved planner-note lines, offers Copy Staging List and per-note Copy Staging actions, routes to the existing Garage parts-source section, and lets each staging line be marked Need to buy or Staged in a local-only checklist without adding vehicle fitment facts.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
@@ -51,7 +51,7 @@ Last updated: 2026-05-17
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
 - Anton is the main coding agent. Its editable instruction file is `ANTON.md`.
 - Manual full-access startup script exists at `tools/agent-loop/Start-AntonManual.ps1`.
-- Recent verification produced desktop/mobile screenshots in `debug-screenshots/` with the `audit-v280-maintenance-note-actions` tag.
+- Recent verification produced desktop/mobile screenshots in `debug-screenshots/` with the `audit-v282-staging-state` tag.
 
 ## Last Completed Work
 
@@ -321,4 +321,9 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Garage/Maintenance smoke passed after tightening the staging parser for plural tire/filter terms.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v281-maintenance-staging -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
 - Captured direct Playwright screenshots at `debug-screenshots/audit-v281-maintenance-staging-mobile-garage.png` and `debug-screenshots/audit-v281-maintenance-staging-desktop-garage.png`.
-- Next safe slice: add a small "already staged / need to buy" state to Service Prep saves or Garage note display only after reviewing whether the derived staging panel is clear enough on the user's real iPhone.
+- Added local-only Need to buy / Staged toggles to the Garage Parts And Supplies Staging handoff. Staging state is stored in `ridgeline-maintenance-staging-state`, not the Garage backup/sync keys; copy/export labels now include the staged state while the visible panel shows per-note progress counts.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Garage/Maintenance smoke passed, including staging toggles, local-only persistence after reload, search coverage for `need to buy`, and iPhone no-overflow checks.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Invoke-SiteAudit.ps1 -Tag audit-v282-staging-state -SkipScreenshots`; internal links, Garage restore Playwright audit, and default Playwright browser smoke all passed.
+- Captured direct Playwright screenshots at `debug-screenshots/audit-v282-staging-state-mobile-garage.png` and `debug-screenshots/audit-v282-staging-state-desktop-garage.png`.
+- Next safe slice: review the staging checklist on a real iPhone/Garage Notes path before adding larger job templates, inventory storage, or remote-sync conflict behavior.

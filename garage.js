@@ -63,6 +63,7 @@ const defaultProfile = {
 };
 let currentDiagnosticActivityFilter = "all";
 let pendingGarageBackup = null;
+const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const GARAGE_BACKUP_LABELS = {
   [STORAGE.notes]: "notes",
   [STORAGE.tracker]: "tracker",
@@ -359,6 +360,47 @@ function maintenanceStagingItems(body = "") {
     .slice(0, 6);
 }
 
+function stagingItemKey(title = "", line = "") {
+  return `${title}::${line}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 120);
+}
+
+function loadMaintenanceStagingState() {
+  try {
+    const value = JSON.parse(localStorage.getItem(MAINTENANCE_STAGING_STATE_KEY) || "{}");
+    return isPlainObject(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveMaintenanceStagingState(state = {}) {
+  localStorage.setItem(MAINTENANCE_STAGING_STATE_KEY, JSON.stringify(state));
+}
+
+function maintenanceStagingStatus(title = "", line = "") {
+  return loadMaintenanceStagingState()[stagingItemKey(title, line)] === "staged" ? "staged" : "need";
+}
+
+function setMaintenanceStagingStatus(title = "", line = "", status = "need") {
+  const state = loadMaintenanceStagingState();
+  const key = stagingItemKey(title, line);
+  if (!key) {
+    return;
+  }
+
+  if (status === "staged") {
+    state[key] = "staged";
+  } else {
+    delete state[key];
+  }
+
+  saveMaintenanceStagingState(state);
+}
+
 function getMaintenanceNoteItems() {
   const notes = loadJson(STORAGE.notes, {});
   const generalNotes = `${notes.general_notes || ""}`.trim();
@@ -415,7 +457,14 @@ function maintenanceStagingExportText(index = null) {
     "Ridgeline Maintenance Staging List",
     "Verify part numbers and truck labels before ordering.",
     "",
-    ...groups.flatMap((group) => [`${group.title}:`, ...group.lines.map((line) => `- ${line}`), ""])
+    ...groups.flatMap((group) => [
+      `${group.title}:`,
+      ...group.lines.map((line) => {
+        const label = maintenanceStagingStatus(group.title, line) === "staged" ? "Staged" : "Need to buy";
+        return `- [${label}] ${line}`;
+      }),
+      ""
+    ])
   ]
     .join("\n")
     .trim();
@@ -462,17 +511,39 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
       </div>
       <div class="maintenance-parts-groups">
         ${groups
-          .map(
-            (group) => `
+          .map((group) => {
+            const stagedCount = group.lines.filter((line) => maintenanceStagingStatus(group.title, line) === "staged").length;
+            return `
               <section class="maintenance-parts-group">
-                <strong>${escapeHtml(group.title)}</strong>
-                <ul>
-                  ${group.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+                <div class="maintenance-parts-group-head">
+                  <strong>${escapeHtml(group.title)}</strong>
+                  <span>${stagedCount}/${group.lines.length} staged</span>
+                </div>
+                <ul class="maintenance-staging-checklist">
+                  ${group.lines
+                    .map((line) => {
+                      const status = maintenanceStagingStatus(group.title, line);
+                      const staged = status === "staged";
+                      return `
+                        <li class="${staged ? "is-staged" : ""}">
+                          <span>${escapeHtml(line)}</span>
+                          <button
+                            class="staging-toggle"
+                            type="button"
+                            data-maintenance-staging-toggle
+                            data-maintenance-staging-title="${escapeHtml(group.title)}"
+                            data-maintenance-staging-line="${escapeHtml(line)}"
+                            aria-pressed="${staged ? "true" : "false"}"
+                          >${staged ? "Staged" : "Need to buy"}</button>
+                        </li>
+                      `;
+                    })
+                    .join("")}
                 </ul>
                 <button class="utility-link" type="button" data-copy-maintenance-parts-index="${group.index}">Copy This List</button>
               </section>
-            `
-          )
+            `;
+          })
           .join("")}
       </div>
       <p class="small-note">This is a handoff from your saved planner notes, not a fitment guarantee. Confirm final part numbers in the truck profile, the real truck labels, or the parts catalog.</p>
@@ -1175,6 +1246,15 @@ function copyMaintenanceStaging(index = null) {
     });
 }
 
+function toggleMaintenanceStaging(button) {
+  const title = button.dataset.maintenanceStagingTitle || "";
+  const line = button.dataset.maintenanceStagingLine || "";
+  const nextStatus = button.getAttribute("aria-pressed") === "true" ? "need" : "staged";
+  setMaintenanceStagingStatus(title, line, nextStatus);
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(nextStatus === "staged" ? "Marked staging item as already staged." : "Marked staging item as need to buy.");
+}
+
 diagnosticActivityFilter?.addEventListener("change", () => {
   currentDiagnosticActivityFilter = diagnosticActivityFilter.value || "all";
   renderDiagnosticActivity();
@@ -1204,6 +1284,12 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
 });
 maintenancePartsPreview?.addEventListener("click", (event) => {
+  const toggle = event.target.closest("[data-maintenance-staging-toggle]");
+  if (toggle) {
+    toggleMaintenanceStaging(toggle);
+    return;
+  }
+
   const button = event.target.closest("[data-copy-maintenance-parts-index]");
   if (!button) {
     return;

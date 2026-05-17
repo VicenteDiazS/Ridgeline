@@ -317,8 +317,8 @@ export const searchIndex = [
     title: "Saved Maintenance Notes",
     url: "garage.html#maintenance-note-preview",
     category: "Garage",
-    excerpt: "Garage preview, parts-counter staging, and copy handoff actions for Service Prep and Maintenance Minder planner notes saved from the Maintenance page.",
-    keywords: ["saved maintenance notes", "maintenance notes", "garage maintenance notes", "saved prep notes", "saved minder notes", "confirm maintenance note", "service prep saved", "minder saved", "copy maintenance note", "copy saved prep note", "parts staging list", "supplies staging list", "parts counter list", "maintenance staging"]
+    excerpt: "Garage preview, parts-counter staging checklist, and copy handoff actions for Service Prep and Maintenance Minder planner notes saved from the Maintenance page.",
+    keywords: ["saved maintenance notes", "maintenance notes", "garage maintenance notes", "saved prep notes", "saved minder notes", "confirm maintenance note", "service prep saved", "minder saved", "copy maintenance note", "copy saved prep note", "parts staging list", "supplies staging list", "parts counter list", "maintenance staging", "need to buy", "already staged", "staged parts"]
   },
   {
     title: "Recorded Timing Belt Service",

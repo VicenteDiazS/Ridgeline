@@ -43,6 +43,7 @@ SEARCH_EXPECTATIONS = {
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
     "parts staging list": "Saved Maintenance Notes",
+    "need to buy": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
@@ -535,11 +536,15 @@ async def assert_garage_features(page, page_name):
             const partsPreview = panel?.querySelector("[data-maintenance-parts-preview]");
             const itemButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-note-index]")] : [];
             const stagingButtons = panel ? [...panel.querySelectorAll("[data-copy-maintenance-parts-index]")] : [];
+            const stagingToggles = panel ? [...panel.querySelectorAll("[data-maintenance-staging-toggle]")] : [];
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
                 copyStagingEnabled: copyStaging?.disabled === false,
                 itemButtonCount: itemButtons.length,
                 stagingButtonCount: stagingButtons.length,
+                stagingToggleCount: stagingToggles.length,
+                stagingToggleNeedText: stagingToggles.some((button) => button.textContent.includes("Need to buy")),
+                stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
                 hasStagingCard: Boolean(partsPreview?.querySelector(".maintenance-parts-card")),
                 hasStagingText: partsPreview?.textContent.includes("0W-20 oil and final dipstick level check") &&
                     partsPreview?.textContent.includes("Rotate tires"),
@@ -554,6 +559,9 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
     assert_true(populated_state["stagingButtonCount"] >= 2, "saved maintenance notes preview should expose staging copy actions")
+    assert_true(populated_state["stagingToggleCount"] >= 2, "saved maintenance notes preview should expose need-to-buy/staged toggles")
+    assert_true(populated_state["stagingToggleNeedText"], "saved maintenance notes staging toggles should start as need-to-buy")
+    assert_true(populated_state["stagingStateKeyEmpty"], "saved maintenance notes staging state should start separate from seeded Garage notes")
     assert_true(populated_state["hasStagingCard"], "saved maintenance notes preview did not render the parts/supplies staging card")
     assert_true(populated_state["hasStagingText"], "saved maintenance notes preview did not derive expected staging items")
     assert_true(populated_state["hasPartsSourceRoute"], "maintenance staging card is missing the parts source route")
@@ -572,6 +580,32 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied maintenance staging list" in staging_status, "saved maintenance notes Copy Staging List did not report success")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.click()
+    await page.wait_for_timeout(150)
+    toggled_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const firstToggle = panel?.querySelector("[data-maintenance-staging-toggle]");
+            const partsText = panel?.querySelector("[data-maintenance-parts-preview]")?.innerText || "";
+            const storage = JSON.parse(localStorage.getItem("ridgeline-maintenance-staging-state") || "{}");
+            return {
+                pressed: firstToggle?.getAttribute("aria-pressed"),
+                text: firstToggle?.textContent || "",
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                hasStagedCount: partsText.includes("1/"),
+                storedCount: Object.keys(storage).length
+            };
+        }"""
+    )
+    assert_true(toggled_state["pressed"] == "true", "staging toggle should become pressed after marking item staged")
+    assert_true("Staged" in toggled_state["text"], "staging toggle should report Staged after click")
+    assert_true("already staged" in toggled_state["status"], "staging toggle status should report staged state")
+    assert_true(toggled_state["hasStagedCount"], "maintenance staging group should show staged-count progress after toggle")
+    assert_true(toggled_state["storedCount"] >= 1, "maintenance staging state should persist outside the Garage notes object")
+    await page.reload()
+    await page.wait_for_selector("#maintenance-note-preview [data-maintenance-staging-toggle]", state="attached")
+    reloaded_toggle = await page.locator("#maintenance-note-preview [data-maintenance-staging-toggle]").first.inner_text()
+    assert_true("Staged" in reloaded_toggle, "staging toggle state should survive a Garage reload")
     await page.locator("#maintenance-note-preview [data-copy-maintenance-parts-index='1']").first.click()
     await page.wait_for_timeout(150)
     item_staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
