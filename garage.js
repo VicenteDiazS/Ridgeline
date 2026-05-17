@@ -597,6 +597,7 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
       <div class="inspector-actions">
         <button class="utility-link" type="button" data-share-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Share Buy List</button>
         <button class="utility-link" type="button" data-copy-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Copy Buy List</button>
+        <button class="utility-link" type="button" data-save-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Save Buy Note</button>
         <button class="utility-link" type="button" data-save-maintenance-run-inline ${summary.total ? "" : "disabled"}>Save Run Note</button>
         <a class="utility-link" href="#notes">Open Full Note</a>
       </div>
@@ -739,6 +740,12 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
             data-share-maintenance-needed-inline
             ${summary.need ? "" : "disabled"}
           >Share Buy List</button>
+          <button
+            class="ghost-button"
+            type="button"
+            data-save-maintenance-needed-inline
+            ${summary.need ? "" : "disabled"}
+          >Save Buy Note</button>
           <button
             class="ghost-button"
             type="button"
@@ -1511,6 +1518,11 @@ function renderMaintenanceNotePreview(items = getMaintenanceNoteItems()) {
           <span>${escapeHtml(item.meta)}</span>
           <strong>${escapeHtml(item.title)}</strong>
           <p>${escapeHtml(item.detail)}</p>
+          ${
+            item.stagingItems?.length
+              ? `<span class="maintenance-note-staging-state">${item.stagingItems.length} staging line${item.stagingItems.length === 1 ? "" : "s"} detected</span>`
+              : '<span class="maintenance-note-staging-state is-empty">No staging lines detected</span>'
+          }
           <div class="maintenance-note-actions">
             <button class="utility-link" type="button" data-copy-maintenance-note-index="${index}">Copy Note</button>
             ${
@@ -1606,6 +1618,38 @@ function saveMaintenanceRunNote() {
   hydrateGarageForms();
   renderDashboard();
   setMaintenanceNoteStatus(`Saved staging run note with ${count} item${count === 1 ? "" : "s"} into Garage Notes.`);
+}
+
+function saveMaintenanceNeedNote() {
+  const { text, count } = maintenanceStagingExport({ status: "need" });
+  if (!text) {
+    setMaintenanceNoteStatus("All saved staging items are already marked staged.");
+    return;
+  }
+
+  const notes = loadJson(STORAGE.notes, {});
+  const timestamp = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+  const existing = `${notes.general_notes || ""}`.trim();
+  const savedNote = [
+    `[${timestamp} - Maintenance Buy List]`,
+    text,
+    "",
+    "Saved from Garage staging as a remaining-purchases snapshot. Need/Staged toggles remain local browser state outside Garage backup and sync."
+  ].join("\n");
+
+  saveJson(STORAGE.notes, {
+    ...notes,
+    general_notes: existing ? `${savedNote}\n\n${existing}` : savedNote
+  });
+  hydrateGarageForms();
+  renderDashboard();
+  setMaintenanceNoteStatus(`Saved buy note with ${count} need-to-buy item${count === 1 ? "" : "s"} into Garage Notes.`);
 }
 
 function shareMaintenanceNeedList() {
@@ -1723,6 +1767,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const inlineSaveRunButton = event.target.closest("[data-save-maintenance-run-inline]");
   if (inlineSaveRunButton) {
     saveMaintenanceRunNote();
+    return;
+  }
+
+  const inlineSaveNeededButton = event.target.closest("[data-save-maintenance-needed-inline]");
+  if (inlineSaveNeededButton) {
+    saveMaintenanceNeedNote();
     return;
   }
 
