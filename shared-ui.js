@@ -1790,11 +1790,6 @@ function buildDynamicIslandShelf() {
   const shelf = document.createElement("div");
   shelf.className = "dynamic-island-shelf";
   shelf.setAttribute("aria-hidden", "true");
-  shelf.innerHTML = `
-    <span class="dynamic-island-pill"></span>
-    <span class="dynamic-island-orbit dynamic-island-orbit-left"></span>
-    <span class="dynamic-island-orbit dynamic-island-orbit-right"></span>
-  `;
   document.body.classList.add("has-dynamic-island-shelf");
   document.body.prepend(shelf);
 }

@@ -10637,71 +10637,11 @@ body {
     right: 0;
     z-index: 24;
     display: block;
-    height: calc(env(safe-area-inset-top, 0px) + 38px);
+    height: calc(env(safe-area-inset-top, 0px) + 18px);
     pointer-events: none;
     background:
-      radial-gradient(ellipse 170px 58px at 50% calc(env(safe-area-inset-top, 0px) + 4px), rgba(121, 212, 255, 0.24), transparent 66%),
-      linear-gradient(180deg, rgba(4, 10, 17, 0.98), rgba(4, 10, 17, 0.72) 62%, transparent);
-  }
-
-  .dynamic-island-pill {
-    position: absolute;
-    top: max(7px, calc(env(safe-area-inset-top, 0px) - 2px));
-    left: 50%;
-    width: 126px;
-    height: 36px;
-    border-radius: 999px;
-    transform: translateX(-50%);
-    background:
-      radial-gradient(circle at 74% 50%, rgba(35, 45, 56, 0.96) 0 8px, transparent 9px),
-      linear-gradient(180deg, #020509, #000);
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.055),
-      0 0 24px rgba(121, 212, 255, 0.28),
-      0 14px 36px rgba(0, 0, 0, 0.44);
-  }
-
-  .dynamic-island-pill::before,
-  .dynamic-island-pill::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 5px;
-    height: 5px;
-    border-radius: 999px;
-    transform: translateY(-50%);
-    background: rgba(111, 255, 180, 0.82);
-    box-shadow: 0 0 12px rgba(111, 255, 180, 0.66);
-  }
-
-  .dynamic-island-pill::before {
-    left: 18px;
-  }
-
-  .dynamic-island-pill::after {
-    right: 18px;
-    background: rgba(121, 212, 255, 0.82);
-    box-shadow: 0 0 12px rgba(121, 212, 255, 0.66);
-  }
-
-  .dynamic-island-orbit {
-    position: absolute;
-    top: max(10px, calc(env(safe-area-inset-top, 0px) + 1px));
-    width: 72px;
-    height: 28px;
-    border-radius: 999px;
-    opacity: 0.62;
-    border: 1px solid rgba(121, 212, 255, 0.18);
-    background: linear-gradient(90deg, transparent, rgba(121, 212, 255, 0.12), transparent);
-    filter: blur(0.2px);
-  }
-
-  .dynamic-island-orbit-left {
-    right: calc(50% + 72px);
-  }
-
-  .dynamic-island-orbit-right {
-    left: calc(50% + 72px);
+      radial-gradient(ellipse 70% 44px at 50% calc(env(safe-area-inset-top, 0px) + 10px), rgba(121, 212, 255, 0.16), transparent 70%),
+      linear-gradient(180deg, rgba(4, 10, 17, 0.98), rgba(4, 10, 17, 0.58) 66%, transparent);
   }
 }
 
