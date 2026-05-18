@@ -1087,6 +1087,10 @@ function revealNavigationTarget(target) {
   return true;
 }
 
+function isInsideHiddenContent(target) {
+  return Boolean(target?.closest("[hidden]"));
+}
+
 function getNavigationScrollOffset() {
   const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
   return Math.max(72, topbarHeight + 18);
@@ -1109,13 +1113,23 @@ function scrollWindowTo(top, behavior = "smooth") {
 
 function scrollToHashTarget() {
   const target = getHashTarget();
+  const wasHidden = isInsideHiddenContent(target);
   if (!revealNavigationTarget(target)) {
     return;
   }
 
-  const offset = getNavigationScrollOffset();
-  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
-  scrollWindowTo(top, "auto");
+  const scroll = () => {
+    const offset = getNavigationScrollOffset();
+    const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+    scrollWindowTo(top, "auto");
+  };
+
+  if (wasHidden) {
+    requestAnimationFrame(() => requestAnimationFrame(scroll));
+    return;
+  }
+
+  scroll();
 }
 
 function scrollToSectionElement(target, behavior = "smooth") {
@@ -1123,11 +1137,21 @@ function scrollToSectionElement(target, behavior = "smooth") {
     return;
   }
 
+  const wasHidden = isInsideHiddenContent(target);
   revealNavigationTarget(target);
 
-  const offset = getNavigationScrollOffset();
-  const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
-  scrollWindowTo(top, behavior);
+  const scroll = () => {
+    const offset = getNavigationScrollOffset();
+    const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+    scrollWindowTo(top, behavior);
+  };
+
+  if (wasHidden) {
+    requestAnimationFrame(() => requestAnimationFrame(scroll));
+    return;
+  }
+
+  scroll();
 }
 
 function scrollToHashValue(hashValue, behavior = "smooth") {
@@ -1141,6 +1165,10 @@ function scrollToHashValue(hashValue, behavior = "smooth") {
 
   scrollToSectionElement(target, behavior);
   return true;
+}
+
+function sectionNavigationBehavior() {
+  return window.matchMedia("(max-width: 760px)").matches ? "auto" : "smooth";
 }
 
 let pendingHashScrollTimers = [];
@@ -4203,6 +4231,10 @@ window.addEventListener("hashchange", () => {
   requestAnimationFrame(scrollToHashTarget);
 });
 document.addEventListener("click", (event) => {
+  if (event.defaultPrevented) {
+    return;
+  }
+
   const link = event.target.closest("a[href]");
   if (!link) {
     return;
@@ -4216,10 +4248,11 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   const nextLocation = `${localUrl.pathname}${localUrl.search}${localUrl.hash}`;
   history.pushState({}, "", nextLocation);
-  scrollToHashValue(localUrl.hash, "smooth");
-  scheduleHashScroll(localUrl.hash, "smooth", [120, 360]);
-  keepHashTargetAligned(localUrl.hash, "smooth", 900);
-});
+  const behavior = sectionNavigationBehavior();
+  scrollToHashValue(localUrl.hash, behavior);
+  scheduleHashScroll(localUrl.hash, behavior, [120, 360]);
+  keepHashTargetAligned(localUrl.hash, behavior, 900);
+}, true);
 
 function applyGarageMode(enabled) {
   document.body.classList.toggle("garage-mode", enabled);
