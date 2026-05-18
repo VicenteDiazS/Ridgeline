@@ -46,6 +46,8 @@ SEARCH_EXPECTATIONS = {
     "parts staging list": "Saved Maintenance Notes",
     "counter mode": "Saved Maintenance Notes",
     "counter mode done": "Saved Maintenance Notes",
+    "copy staged list": "Saved Maintenance Notes",
+    "share staged list": "Saved Maintenance Notes",
     "draft staged parts": "Saved Maintenance Notes",
     "use staged list": "Saved Maintenance Notes",
     "skip counter item": "Saved Maintenance Notes",
@@ -346,6 +348,8 @@ async def assert_maintenance_features(page, page_name):
         """() => {
             const prepGrid = document.querySelector("#service-prep .service-prep-grid");
             const firstPrepAction = document.querySelector("#service-prep [data-service-prep-card] .service-prep-actions");
+            const firstPrepStageButton = firstPrepAction?.querySelector("[data-save-open-service-staging]");
+            const minderStageButton = document.querySelector("#minder-pocket-planner [data-save-open-minder-staging]");
             const minderActions = document.querySelector("#minder-pocket-planner .minder-pocket-actions");
             const visibleMaintenanceHeroLinks = [...document.querySelectorAll(".maintenance-page .section-page-hero .section-utility-nav .utility-link")]
                 .filter((link) => {
@@ -373,6 +377,10 @@ async def assert_maintenance_features(page, page_name):
                 visibleMaintenanceDockLinks,
                 hasMaintenanceStagingRoute: visibleMaintenanceDockLinks.includes("Stage") &&
                     Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="garage.html#maintenance-note-preview"]')),
+                prepStageText: firstPrepStageButton?.textContent.trim() || "",
+                prepStageLabel: firstPrepStageButton?.getAttribute("aria-label") || "",
+                minderStageText: minderStageButton?.textContent.trim() || "",
+                minderStageLabel: minderStageButton?.getAttribute("aria-label") || "",
                 prepColumns,
                 prepActionRows,
                 minderActionRows,
@@ -383,6 +391,10 @@ async def assert_maintenance_features(page, page_name):
     assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
     assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
     assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
+    assert_true(mobile_state["prepStageText"] == "Stage in Garage", "service prep Stage button should clearly state it opens Garage staging")
+    assert_true("open Garage staging" in mobile_state["prepStageLabel"], "service prep Stage button should expose a descriptive aria label")
+    assert_true(mobile_state["minderStageText"] == "Stage in Garage", "minder planner Stage button should clearly state it opens Garage staging")
+    assert_true("open Garage staging" in mobile_state["minderStageLabel"], "minder planner Stage button should expose a descriptive aria label")
     assert_true(mobile_state["prepColumns"] == 2, "service prep planner should keep two compact columns at iPhone width")
     assert_true(mobile_state["prepActionRows"] == 1, "service prep action buttons should stay on one compact row at iPhone width")
     assert_true(mobile_state["minderActionRows"] <= 2, "minder planner actions should not stack into three separate rows at iPhone width")
@@ -887,6 +899,8 @@ async def assert_garage_features(page, page_name):
                 counterText: counterPanel?.innerText || "",
                 hasUndo: Boolean(counterPanel?.querySelector("[data-maintenance-counter-undo]")),
                 hasSaveRun: Boolean(counterPanel?.querySelector("[data-save-maintenance-run-inline]")),
+                hasCopyStaged: Boolean(counterPanel?.querySelector("[data-copy-maintenance-staged-inline]")),
+                hasShareStaged: Boolean(counterPanel?.querySelector("[data-share-maintenance-staged-inline]")),
                 hasFinalParts: Boolean(counterPanel?.querySelector("[data-maintenance-counter-final-parts]")),
                 hasDraftStaged: Boolean(counterPanel?.querySelector("[data-maintenance-counter-draft-staged]")),
                 stagedFillEnabled: panel?.querySelector("[data-maintenance-final-parts-fill='staged']")?.disabled === false,
@@ -900,12 +914,48 @@ async def assert_garage_features(page, page_name):
     assert_true("All Need-To-Buy Items Are Staged" in counter_complete_state["counterText"], "Counter Mode completion panel should name the all-staged state")
     assert_true(counter_complete_state["hasUndo"], "Counter Mode completion panel should keep Undo Last available")
     assert_true(counter_complete_state["hasSaveRun"], "Counter Mode completion panel should expose Save Run Note")
+    assert_true(counter_complete_state["hasCopyStaged"], "Counter Mode completion panel should expose Copy Staged List")
+    assert_true(counter_complete_state["hasShareStaged"], "Counter Mode completion panel should expose Share Staged List")
     assert_true(counter_complete_state["hasFinalParts"], "Counter Mode completion panel should expose Open Final Parts")
     assert_true(counter_complete_state["hasDraftStaged"], "Counter Mode completion panel should expose Draft Staged Parts")
     assert_true(counter_complete_state["stagedFillEnabled"], "Final Part Numbers should allow drafting from staged lines after Counter Mode completion")
     assert_true(counter_complete_state["needFillDisabled"], "Final Part Numbers should disable need-list draft when no need-to-buy lines remain")
     assert_true("Marked the last Counter Mode item staged" in counter_complete_state["status"], "Counter Mode completion should report the last staged action")
     assert_true(counter_complete_state["dashboardComplete"], "Counter Mode completion should update the dashboard count to all staged")
+    await page.locator("#maintenance-note-preview [data-copy-maintenance-staged-inline]").click()
+    await page.wait_for_timeout(150)
+    staged_copy_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || ""
+        })"""
+    )
+    assert_true("Copied staged list with 3 items" in staged_copy_state["status"], "Counter Mode completion Copy Staged List should report the staged count")
+    await page.evaluate(
+        """() => {
+            window.__maintenanceSharePayload = null;
+            Object.defineProperty(navigator, "share", {
+                configurable: true,
+                value: (payload) => {
+                    window.__maintenanceSharePayload = payload;
+                    return Promise.resolve();
+                }
+            });
+        }"""
+    )
+    await page.locator("#maintenance-note-preview [data-share-maintenance-staged-inline]").click()
+    await page.wait_for_timeout(150)
+    staged_share_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || "",
+            title: window.__maintenanceSharePayload?.title || "",
+            text: window.__maintenanceSharePayload?.text || ""
+        })"""
+    )
+    assert_true("Shared staged list with 3 items" in staged_share_state["status"], "Counter Mode completion Share Staged List should report the staged count")
+    assert_true(staged_share_state["title"] == "Ridgeline Staged Maintenance List", "Share Staged List should use a clear share-sheet title")
+    assert_true("Ridgeline Staged Maintenance List" in staged_share_state["text"], "Share Staged List should share the staged export text")
+    assert_true("Remaining items only" not in staged_share_state["text"], "Share Staged List should not use the need-to-buy export copy")
+    assert_true("0W-20 oil and final dipstick level check" in staged_share_state["text"], "Share Staged List should include completed staged maintenance lines")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-draft-staged]").click()
     await page.wait_for_timeout(150)
     staged_final_parts_state = await page.evaluate(

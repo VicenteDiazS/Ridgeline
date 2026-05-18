@@ -821,6 +821,8 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
               : ""
           }
           <button class="ghost-button" type="button" data-save-maintenance-run-inline>Save Run Note</button>
+          <button class="ghost-button" type="button" data-copy-maintenance-staged-inline>Copy Staged List</button>
+          <button class="ghost-button" type="button" data-share-maintenance-staged-inline>Share Staged List</button>
           <button class="ghost-button" type="button" data-maintenance-counter-final-parts>Open Final Parts</button>
           <button class="ghost-button" type="button" data-maintenance-counter-draft-staged>Draft Staged Parts</button>
           <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
@@ -2167,6 +2169,26 @@ function copyMaintenanceNeedList(index = null) {
     });
 }
 
+function copyMaintenanceStagedList(index = null) {
+  const { text, count } = maintenanceStagingExport({ index, status: "staged" });
+  if (!text) {
+    setMaintenanceNoteStatus(Number.isInteger(index) ? "No staged items found in this saved note yet." : "No staged maintenance items are ready to copy yet.");
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus(
+        Number.isInteger(index)
+          ? `Copied saved-note staged list with ${count} item${count === 1 ? "" : "s"}.`
+          : `Copied staged list with ${count} item${count === 1 ? "" : "s"}.`
+      );
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not copy the staged list automatically. Open the staging list and copy it manually.");
+    });
+}
+
 function saveMaintenanceRunNote() {
   const { text, count } = maintenanceStagingExport();
   if (!text) {
@@ -2344,6 +2366,54 @@ function shareMaintenanceNeedList(index = null) {
     });
 }
 
+function shareMaintenanceStagedList(index = null) {
+  const { text, count } = maintenanceStagingExport({ index, status: "staged" });
+  if (!text) {
+    setMaintenanceNoteStatus(Number.isInteger(index) ? "No staged items found in this saved note yet." : "No staged maintenance items are ready to share yet.");
+    return;
+  }
+
+  const item = Number.isInteger(index) ? getMaintenanceNoteItems()[index] : null;
+  const title = item?.title ? `Ridgeline ${item.title} Staged List` : "Ridgeline Staged Maintenance List";
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title,
+        text
+      })
+      .then(() => {
+        setMaintenanceNoteStatus(
+          Number.isInteger(index)
+            ? `Shared saved-note staged list with ${count} item${count === 1 ? "" : "s"}.`
+            : `Shared staged list with ${count} item${count === 1 ? "" : "s"}.`
+        );
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          setMaintenanceNoteStatus("Share canceled.");
+          return;
+        }
+        copyText(text)
+          .then(() => {
+            setMaintenanceNoteStatus(`Share was unavailable, so the ${count}-item staged list was copied.`);
+          })
+          .catch(() => {
+            setMaintenanceNoteStatus("Could not share or copy the staged list automatically.");
+          });
+      });
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus(`Share is unavailable here, so the ${count}-item staged list was copied.`);
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not share or copy the staged list automatically.");
+    });
+}
+
 function toggleMaintenanceStaging(button) {
   const title = button.dataset.maintenanceStagingTitle || "";
   const line = button.dataset.maintenanceStagingLine || "";
@@ -2465,6 +2535,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     return;
   }
 
+  const inlineStagedButton = event.target.closest("[data-copy-maintenance-staged-inline]");
+  if (inlineStagedButton) {
+    copyMaintenanceStagedList();
+    return;
+  }
+
   const counterModeButton = event.target.closest("[data-maintenance-counter-mode]");
   if (counterModeButton) {
     startMaintenanceCounterMode();
@@ -2534,6 +2610,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const inlineShareButton = event.target.closest("[data-share-maintenance-needed-inline]");
   if (inlineShareButton) {
     shareMaintenanceNeedList();
+    return;
+  }
+
+  const inlineShareStagedButton = event.target.closest("[data-share-maintenance-staged-inline]");
+  if (inlineShareStagedButton) {
+    shareMaintenanceStagedList();
     return;
   }
 
