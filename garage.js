@@ -819,6 +819,8 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
               ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
               : ""
           }
+          <button class="ghost-button" type="button" data-save-maintenance-run-inline>Save Run Note</button>
+          <button class="ghost-button" type="button" data-maintenance-counter-final-parts>Open Final Parts</button>
           <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
         </div>
       </section>
@@ -1180,6 +1182,19 @@ function undoLastMaintenanceCounterItem() {
   renderDashboard();
   renderMaintenancePartsPreview();
   setMaintenanceNoteStatus(`Undid the last Counter Mode item: ${restoredLine} is back on the need-to-buy list.`);
+}
+
+function openCounterFinalParts() {
+  const target = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts]");
+  const input = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts-input]");
+  if (!target) {
+    setMaintenanceNoteStatus("Final part-number handoff is not available yet.");
+    return;
+  }
+
+  target.scrollIntoView({ block: "nearest" });
+  input?.focus({ preventScroll: true });
+  setMaintenanceNoteStatus("Opened Final Part Numbers. Save only user-confirmed part numbers or store SKUs here.");
 }
 
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
@@ -2473,6 +2488,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterResetSkipsButton = event.target.closest("[data-maintenance-counter-reset-skips]");
   if (counterResetSkipsButton) {
     resetMaintenanceCounterSkips();
+    return;
+  }
+
+  const counterFinalPartsButton = event.target.closest("[data-maintenance-counter-final-parts]");
+  if (counterFinalPartsButton) {
+    openCounterFinalParts();
     return;
   }
 

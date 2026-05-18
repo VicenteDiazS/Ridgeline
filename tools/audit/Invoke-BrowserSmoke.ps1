@@ -45,6 +45,7 @@ SEARCH_EXPECTATIONS = {
     "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
     "counter mode": "Saved Maintenance Notes",
+    "counter mode done": "Saved Maintenance Notes",
     "skip counter item": "Saved Maintenance Notes",
     "undo counter mode": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
@@ -869,6 +870,44 @@ async def assert_garage_features(page, page_name):
     assert_true(counter_undo_state["dashboardReset"], "Counter Mode Undo Last should update the dashboard count")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
     await page.wait_for_timeout(150)
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
+    await page.wait_for_timeout(150)
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
+    await page.wait_for_timeout(150)
+    counter_complete_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const counterPanel = panel.querySelector("[data-maintenance-counter-panel]");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                activeAll: panel.querySelector("[data-maintenance-staging-filter='all']")?.getAttribute("aria-pressed"),
+                counterText: counterPanel?.innerText || "",
+                hasUndo: Boolean(counterPanel?.querySelector("[data-maintenance-counter-undo]")),
+                hasSaveRun: Boolean(counterPanel?.querySelector("[data-save-maintenance-run-inline]")),
+                hasFinalParts: Boolean(counterPanel?.querySelector("[data-maintenance-counter-final-parts]")),
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                dashboardComplete: stagingCardText.includes("0 need / 3 staged")
+            };
+        }"""
+    )
+    assert_true(counter_complete_state["activeAll"] == "true", "Counter Mode completion should switch back to All so staged items remain visible")
+    assert_true("All Need-To-Buy Items Are Staged" in counter_complete_state["counterText"], "Counter Mode completion panel should name the all-staged state")
+    assert_true(counter_complete_state["hasUndo"], "Counter Mode completion panel should keep Undo Last available")
+    assert_true(counter_complete_state["hasSaveRun"], "Counter Mode completion panel should expose Save Run Note")
+    assert_true(counter_complete_state["hasFinalParts"], "Counter Mode completion panel should expose Open Final Parts")
+    assert_true("Marked the last Counter Mode item staged" in counter_complete_state["status"], "Counter Mode completion should report the last staged action")
+    assert_true(counter_complete_state["dashboardComplete"], "Counter Mode completion should update the dashboard count to all staged")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-final-parts]").click()
+    await page.wait_for_timeout(150)
+    final_parts_focus_state = await page.evaluate(
+        """() => ({
+            focusedFinalParts: document.activeElement?.matches("[data-maintenance-final-parts-input]") || false,
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || ""
+        })"""
+    )
+    assert_true(final_parts_focus_state["focusedFinalParts"], "Open Final Parts should focus the final part-number handoff input")
+    assert_true("Opened Final Part Numbers" in final_parts_focus_state["status"], "Open Final Parts should report where the user landed")
     await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='all']").click()
     await page.wait_for_timeout(150)
     await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='reset-staged']").click()
