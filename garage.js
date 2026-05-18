@@ -820,6 +820,7 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
       <div class="inspector-actions">
         <button class="utility-link" type="button" data-share-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Share Buy List</button>
         <button class="utility-link" type="button" data-copy-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Copy Buy List</button>
+        <button class="utility-link" type="button" data-maintenance-counter-mode ${summary.need ? "" : "disabled"}>Counter Mode</button>
         <button class="utility-link" type="button" data-save-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Save Buy Note</button>
         <button class="utility-link" type="button" data-save-maintenance-run-inline ${summary.total ? "" : "disabled"}>Save Run Note</button>
         <button class="utility-link" type="button" data-dismiss-maintenance-stage-confirmation>Dismiss</button>
@@ -890,6 +891,24 @@ function updateMaintenanceStagingGroup(index = 0, action = "", title = "") {
   }
 }
 
+function startMaintenanceCounterMode() {
+  const summary = getMaintenanceStagingSummary();
+  if (!summary.need) {
+    setMaintenanceNoteStatus("No need-to-buy items are left for Counter Mode.");
+    return;
+  }
+
+  currentMaintenanceStagingFilter = "need";
+  renderMaintenancePartsPreview();
+  const target =
+    maintenancePartsPreview?.querySelector(".maintenance-staging-run") ||
+    maintenancePartsPreview?.querySelector("[data-maintenance-staging-toggle]");
+  target?.scrollIntoView({ block: "nearest" });
+  setMaintenanceNoteStatus(
+    `Counter Mode is showing ${summary.need} need-to-buy item${summary.need === 1 ? "" : "s"}. Confirm fitment before saving final part numbers.`
+  );
+}
+
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
   if (!maintenancePartsPreview) {
     return;
@@ -949,6 +968,12 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
             data-copy-maintenance-needed-inline
             ${summary.need ? "" : "disabled"}
           >Copy Buy List</button>
+          <button
+            class="ghost-button"
+            type="button"
+            data-maintenance-counter-mode
+            ${summary.need ? "" : "disabled"}
+          >Counter Mode</button>
           <button
             class="ghost-button"
             type="button"
@@ -2127,6 +2152,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const inlineNeededButton = event.target.closest("[data-copy-maintenance-needed-inline]");
   if (inlineNeededButton) {
     copyMaintenanceNeedList();
+    return;
+  }
+
+  const counterModeButton = event.target.closest("[data-maintenance-counter-mode]");
+  if (counterModeButton) {
+    startMaintenanceCounterMode();
     return;
   }
 

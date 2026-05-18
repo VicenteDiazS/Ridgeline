@@ -44,6 +44,7 @@ SEARCH_EXPECTATIONS = {
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
+    "counter mode": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
     "quick add store item": "Saved Maintenance Notes",
     "quick kit": "Saved Maintenance Notes",
@@ -633,6 +634,7 @@ async def assert_garage_features(page, page_name):
             const stagingRun = panel?.querySelector(".maintenance-staging-run");
             const stagingGuide = panel?.querySelector("[data-maintenance-staging-guide]");
             const inlineBuyButton = panel?.querySelector("[data-copy-maintenance-needed-inline]");
+            const inlineCounterButton = panel?.querySelector(".maintenance-staging-run [data-maintenance-counter-mode]");
             const inlineShareButton = panel?.querySelector(".maintenance-staging-run [data-share-maintenance-needed-inline]");
             const inlineSaveBuyButton = panel?.querySelector(".maintenance-staging-run [data-save-maintenance-needed-inline]");
             const finalPartsPanel = panel?.querySelector("[data-maintenance-final-parts]");
@@ -642,6 +644,7 @@ async def assert_garage_features(page, page_name):
                 copyStagingEnabled: copyStaging?.disabled === false,
                 copyNeededEnabled: copyNeeded?.disabled === false,
                 inlineBuyEnabled: inlineBuyButton?.disabled === false,
+                inlineCounterEnabled: inlineCounterButton?.disabled === false,
                 inlineShareEnabled: inlineShareButton?.disabled === false,
                 inlineSaveBuyEnabled: inlineSaveBuyButton?.disabled === false,
                 itemButtonCount: itemButtons.length,
@@ -679,6 +682,7 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["copyStagingEnabled"], "saved maintenance notes Copy Staging List should enable after staging items are present")
     assert_true(populated_state["copyNeededEnabled"], "saved maintenance notes Copy Buy List should enable after staging items are present")
     assert_true(populated_state["inlineBuyEnabled"], "saved maintenance notes store-run summary should expose an enabled Copy Buy List")
+    assert_true(populated_state["inlineCounterEnabled"], "saved maintenance notes store-run summary should expose an enabled Counter Mode")
     assert_true(populated_state["inlineShareEnabled"], "saved maintenance notes store-run summary should expose an enabled Share Buy List")
     assert_true(populated_state["inlineSaveBuyEnabled"], "saved maintenance notes store-run summary should expose an enabled Save Buy Note")
     assert_true(populated_state["itemButtonCount"] >= 2, "saved maintenance notes preview should expose per-note copy actions")
@@ -726,6 +730,24 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     inline_need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied need-to-buy list with 3 items" in inline_need_status, "inline store-run Copy Buy List did not report the initial need-to-buy count")
+    await page.locator("#maintenance-note-preview .maintenance-staging-run [data-maintenance-counter-mode]").click()
+    await page.wait_for_timeout(150)
+    counter_mode_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const toggles = [...panel.querySelectorAll("[data-maintenance-staging-toggle]")];
+            return {
+                activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
+                visibleToggleCount: toggles.length,
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true(counter_mode_state["activeNeed"] == "true", "Counter Mode should switch the staging panel to the Need filter")
+    assert_true(counter_mode_state["visibleToggleCount"] == 3, "Counter Mode should show the current need-to-buy staging items")
+    assert_true("Counter Mode is showing 3 need-to-buy items" in counter_mode_state["status"], "Counter Mode should report the need-to-buy count")
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='all']").click()
+    await page.wait_for_timeout(150)
     await page.evaluate(
         """() => {
             window.__maintenanceSharePayload = null;
