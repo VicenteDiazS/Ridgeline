@@ -6101,6 +6101,47 @@ kbd {
   color: rgba(210, 230, 240, 0.55);
 }
 
+.maintenance-final-parts {
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(97, 223, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(97, 223, 255, 0.055);
+}
+
+.maintenance-final-parts h5,
+.maintenance-final-parts p {
+  margin: 0;
+}
+
+.maintenance-final-parts label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.maintenance-final-parts textarea {
+  width: 100%;
+  min-height: 104px;
+  resize: vertical;
+}
+
+.maintenance-final-parts-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.maintenance-final-parts-actions > span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
 .maintenance-parts-groups {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9115,6 +9156,20 @@ kbd {
   }
 
   .maintenance-staging-run .ghost-button {
+    width: 100%;
+  }
+
+  .maintenance-final-parts-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-final-parts-actions .inspector-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .maintenance-final-parts-actions .ghost-button,
+  .maintenance-final-parts-actions .utility-link {
     width: 100%;
   }
 

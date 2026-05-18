@@ -615,6 +615,7 @@ async def assert_garage_features(page, page_name):
             const inlineBuyButton = panel?.querySelector("[data-copy-maintenance-needed-inline]");
             const inlineShareButton = panel?.querySelector(".maintenance-staging-run [data-share-maintenance-needed-inline]");
             const inlineSaveBuyButton = panel?.querySelector(".maintenance-staging-run [data-save-maintenance-needed-inline]");
+            const finalPartsPanel = panel?.querySelector("[data-maintenance-final-parts]");
             const stagingStateChips = panel ? [...panel.querySelectorAll(".maintenance-note-staging-state")].map((chip) => chip.textContent.trim()) : [];
             return {
                 copyLatestEnabled: copyLatest?.disabled === false,
@@ -636,6 +637,8 @@ async def assert_garage_features(page, page_name):
                 shareButtonCount: shareButtons.length,
                 hasStagingRun: Boolean(stagingRun),
                 stagingRunText: stagingRun?.innerText || "",
+                hasFinalPartsPanel: Boolean(finalPartsPanel),
+                finalPartsText: finalPartsPanel?.innerText || "",
                 hasStagingGuide: Boolean(stagingGuide),
                 stagingGuideText: stagingGuide?.innerText || "",
                 stagingStateKeyEmpty: !localStorage.getItem("ridgeline-maintenance-staging-state"),
@@ -670,8 +673,10 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingGroupSaveButtonCount"] >= 2, "saved maintenance notes staging preview should expose per-note Save Need controls")
     assert_true(populated_state["shareButtonCount"] >= 1, "saved maintenance notes staging preview should expose Share Buy List")
     assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
+    assert_true(populated_state["hasFinalPartsPanel"], "saved maintenance notes staging preview is missing the final part-number profile handoff")
     assert_true(populated_state["hasStagingGuide"], "saved maintenance notes staging preview is missing the local-only staging guide")
     assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
+    assert_true("Save Confirmed Parts To Truck Profile" in populated_state["finalPartsText"], "final part-number handoff should clearly target Truck Profile")
     assert_true("3 staging lines from saved notes and one-off items" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should show derived line count")
     assert_true("outside Garage backup and sync" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should clarify local-only state")
     assert_true("1 saved note visible below did not include detected parts, tools, or supplies" in populated_state["stagingGuideText"], "saved maintenance notes staging guide should explain skipped notes")
@@ -726,6 +731,30 @@ async def assert_garage_features(page, page_name):
     assert_true(share_state["title"] == "Ridgeline Need-To-Buy Maintenance List", "Share Buy List should use a clear share-sheet title")
     assert_true("Remaining items only" in share_state["text"], "Share Buy List should share the need-to-buy export text")
     assert_true("0W-20 oil and final dipstick level check" in share_state["text"], "Share Buy List should include derived maintenance staging lines")
+    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-fill]").click()
+    await page.wait_for_timeout(150)
+    final_parts_draft = await page.locator("#maintenance-note-preview [data-maintenance-final-parts-input]").input_value()
+    assert_true("Maintenance Minder A1 planner: Rotate tires" in final_parts_draft, "final part-number helper should draft from current need-to-buy lines")
+    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-input]").fill("Oil filter: TEST-15400-PCX-004\nCabin filter: TEST-CABIN-80292")
+    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-save]").click()
+    await page.wait_for_timeout(150)
+    final_parts_state = await page.evaluate(
+        """() => {
+            const profile = JSON.parse(localStorage.getItem("ridgeline-truck-profile") || "{}");
+            const profileText = document.querySelector("[data-profile-form] textarea[name='parts_notes']")?.value || "";
+            const panel = document.querySelector("#maintenance-note-preview");
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                profileNotes: profile.parts_notes || "",
+                profileText
+            };
+        }"""
+    )
+    assert_true("Saved final part-number notes into Truck Profile" in final_parts_state["status"], "final part-number save should report Truck Profile persistence")
+    assert_true("Maintenance Final Part Numbers" in final_parts_state["profileNotes"], "final part-number save should append a Truck Profile parts note block")
+    assert_true("Oil filter: TEST-15400-PCX-004" in final_parts_state["profileNotes"], "final part-number save should preserve user-entered part numbers")
+    assert_true("User-entered from Garage staging" in final_parts_state["profileNotes"], "final part-number save should preserve the user-entered/source boundary")
+    assert_true("Oil filter: TEST-15400-PCX-004" in final_parts_state["profileText"], "Truck Profile form should hydrate after final part-number save")
     await page.locator("#maintenance-note-preview [data-copy-maintenance-needed-index]").first.click()
     await page.wait_for_timeout(150)
     group_need_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()

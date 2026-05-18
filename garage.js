@@ -66,6 +66,7 @@ const defaultProfile = {
 let currentDiagnosticActivityFilter = "all";
 let currentMaintenanceStagingFilter = "all";
 let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
+let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const MAINTENANCE_CUSTOM_STAGING_KEY = "ridgeline-maintenance-custom-staging";
@@ -611,6 +612,24 @@ function maintenanceStagingExportText(index = null) {
   return maintenanceStagingExport({ index }).text;
 }
 
+function maintenanceStagingPlainLines(status = "need") {
+  return maintenanceStagingGroups()
+    .flatMap((group) =>
+      group.lines
+        .filter((line) => {
+          if (status === "need") {
+            return maintenanceStagingStatus(group.title, line) !== "staged";
+          }
+          if (status === "staged") {
+            return maintenanceStagingStatus(group.title, line) === "staged";
+          }
+          return true;
+        })
+        .map((line) => `${group.title}: ${line}`)
+    )
+    .slice(0, 12);
+}
+
 function maintenanceStagingExport({ index = null, status = "all" } = {}) {
   const items = getMaintenanceNoteItems();
   const groups = maintenanceStagingGroups({ items, index })
@@ -659,6 +678,32 @@ function maintenanceStagingExport({ index = null, status = "all" } = {}) {
     .trim();
 
   return { text, count };
+}
+
+function maintenanceFinalPartsMarkup(summary = getMaintenanceStagingSummary()) {
+  const profile = loadJson(STORAGE.profile, defaultProfile);
+  const profileNoteCount = `${profile.parts_notes || ""}`.trim().split(/\n+/).filter(Boolean).length;
+  return `
+    <section class="maintenance-final-parts" data-maintenance-final-parts>
+      <div>
+        <p class="eyebrow">Final part numbers</p>
+        <h5>Save Confirmed Parts To Truck Profile</h5>
+        <p class="small-note">Paste verified part numbers, brands, or store SKUs here after checking the catalog or truck labels. This saves into the existing Truck Profile parts notes.</p>
+      </div>
+      <label>
+        <span>Confirmed parts / notes</span>
+        <textarea rows="4" maxlength="900" data-maintenance-final-parts-input placeholder="Oil filter: ...&#10;Cabin filter: ...&#10;Battery: ...">${escapeHtml(maintenanceFinalPartsDraft)}</textarea>
+      </label>
+      <div class="maintenance-final-parts-actions">
+        <span>${profileNoteCount ? `${profileNoteCount} Truck Profile note line${profileNoteCount === 1 ? "" : "s"} saved` : "Truck Profile parts notes are empty"}</span>
+        <div class="inspector-actions">
+          <button class="ghost-button" type="button" data-maintenance-final-parts-fill ${summary.need ? "" : "disabled"}>Use Need List</button>
+          <button class="ghost-button" type="button" data-maintenance-final-parts-save>Save To Profile</button>
+          <a class="utility-link" href="#truck-profile">Open Profile</a>
+        </div>
+      </div>
+    </section>
+  `;
 }
 
 function getMaintenanceStagingSummary(items = getMaintenanceNoteItems()) {
@@ -917,6 +962,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
           >Reset Staged</button>
         </div>
       </div>
+      ${maintenanceFinalPartsMarkup(summary)}
       <div class="maintenance-parts-groups">
         ${groups
           .map((group) => {
@@ -1851,6 +1897,56 @@ function saveMaintenanceNeedNote(index = null) {
   );
 }
 
+function fillMaintenanceFinalPartsDraft() {
+  const lines = maintenanceStagingPlainLines("need");
+  if (!lines.length) {
+    setMaintenanceNoteStatus("No need-to-buy lines are available to use as a final-parts draft.");
+    return;
+  }
+
+  maintenanceFinalPartsDraft = lines.map((line) => `${line} -> `).join("\n");
+  renderMaintenancePartsPreview();
+  const input = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts-input]");
+  input?.focus();
+  setMaintenanceNoteStatus("Need-to-buy lines were copied into the final-parts draft. Add confirmed part numbers before saving.");
+}
+
+function saveMaintenanceFinalPartsToProfile() {
+  const input = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts-input]");
+  const draft = `${input?.value || maintenanceFinalPartsDraft}`.trim();
+  if (!draft) {
+    setMaintenanceNoteStatus("Enter confirmed part numbers or notes before saving to Truck Profile.");
+    input?.focus();
+    return;
+  }
+
+  const profile = loadJson(STORAGE.profile, defaultProfile);
+  const timestamp = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+  const existing = `${profile.parts_notes || ""}`.trim();
+  const savedBlock = [
+    `[${timestamp} - Maintenance Final Part Numbers]`,
+    draft,
+    "",
+    "User-entered from Garage staging after final catalog, receipt, or truck-label verification."
+  ].join("\n");
+
+  saveJson(STORAGE.profile, {
+    ...profile,
+    parts_notes: existing ? `${savedBlock}\n\n${existing}` : savedBlock
+  });
+  maintenanceFinalPartsDraft = "";
+  hydrateGarageForms();
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus("Saved final part-number notes into Truck Profile.");
+}
+
 function shareMaintenanceNeedList(index = null) {
   const { text, count } = maintenanceStagingExport({ index, status: "need" });
   if (!text) {
@@ -1970,9 +2066,27 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     return;
   }
 
+  const finalPartsInput = event.target.closest("[data-maintenance-final-parts-input]");
+  if (finalPartsInput) {
+    maintenanceFinalPartsDraft = finalPartsInput.value;
+    return;
+  }
+
   const bulkButton = event.target.closest("[data-maintenance-staging-bulk]");
   if (bulkButton) {
     updateMaintenanceStagingBulk(bulkButton.dataset.maintenanceStagingBulk || "");
+    return;
+  }
+
+  const finalPartsFillButton = event.target.closest("[data-maintenance-final-parts-fill]");
+  if (finalPartsFillButton) {
+    fillMaintenanceFinalPartsDraft();
+    return;
+  }
+
+  const finalPartsSaveButton = event.target.closest("[data-maintenance-final-parts-save]");
+  if (finalPartsSaveButton) {
+    saveMaintenanceFinalPartsToProfile();
     return;
   }
 
@@ -2051,6 +2165,12 @@ maintenancePartsPreview?.addEventListener("submit", (event) => {
   const input = form.querySelector("[data-maintenance-custom-staging-input]");
   if (addCustomMaintenanceStagingItem(input?.value || "") && input) {
     input.value = "";
+  }
+});
+maintenancePartsPreview?.addEventListener("input", (event) => {
+  const input = event.target.closest("[data-maintenance-final-parts-input]");
+  if (input) {
+    maintenanceFinalPartsDraft = input.value;
   }
 });
 maintenanceNotePreview?.addEventListener("click", (event) => {
