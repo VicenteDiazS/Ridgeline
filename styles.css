@@ -12825,6 +12825,24 @@ select:focus {
   margin-top: 18px;
 }
 
+.roadside-router-section {
+  border-color: rgba(255, 122, 168, 0.2);
+}
+
+.roadside-action-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.roadside-action-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.roadside-action-card .inspector-actions {
+  margin-top: 4px;
+}
+
 .quick-sheet-triage-grid .dashboard-card {
   display: grid;
   align-content: start;
@@ -12855,6 +12873,7 @@ select:focus {
 }
 
 @media (max-width: 860px) {
+  .roadside-action-grid,
   .quick-sheet-source-grid,
   .quick-sheet-reference-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -12862,6 +12881,39 @@ select:focus {
 }
 
 @media (max-width: 560px) {
+  .quick-sheet-page .section-page-hero .section-utility-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .quick-sheet-page .section-page-hero .utility-link {
+    min-height: 38px;
+    padding: 0 8px;
+    font-size: 0.68rem;
+  }
+
+  .roadside-router-section {
+    padding: 14px;
+  }
+
+  .roadside-action-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .roadside-action-card {
+    padding: 13px;
+  }
+
+  .roadside-action-card strong {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .roadside-action-card p {
+    line-height: 1.45;
+  }
+
   .quick-sheet-source-grid,
   .quick-sheet-reference-list {
     grid-template-columns: 1fr;

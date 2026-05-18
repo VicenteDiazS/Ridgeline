@@ -624,6 +624,23 @@ export const searchIndex = [
     keywords: ["quick sheet", "emergency", "battery", "oil", "tires", "jack", "fuses", "towing"]
   },
   {
+    title: "Roadside Router",
+    url: "quick-sheet.html#roadside-router",
+    category: "Navigation",
+    excerpt: "Thumb-friendly quick-sheet cards for flat tire, no-start, warning-light, and trailer-light situations that route into the existing detailed references.",
+    keywords: [
+      "roadside router",
+      "roadside help",
+      "roadside quick sheet",
+      "flat tire quick sheet",
+      "won't start roadside",
+      "warning light roadside",
+      "trailer light roadside",
+      "jack point roadside",
+      "emergency situation"
+    ]
+  },
+  {
     title: "Fuse Triage Quick Sheet",
     url: "quick-sheet.html#fuse-triage",
     category: "Electrical",

@@ -37,6 +37,7 @@
           </p>
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#emergency-card">Emergency Card</a>
+            <a class="utility-link utility-link-strong" href="#roadside-router">Roadside Router</a>
             <a class="utility-link utility-link-strong" href="#oil">Oil</a>
             <a class="utility-link" href="#battery">Battery</a>
             <a class="utility-link" href="#tires">Tires / Jack</a>
@@ -49,6 +50,57 @@
           <div class="inspector-actions quick-sheet-actions">
             <button class="secondary-button" type="button" data-print-page>Print / Save PDF</button>
             <a class="utility-link" href="diagnostics.html#workflow-index">Open Diagnostics Index</a>
+          </div>
+        </section>
+
+        <section class="section-page-stack roadside-router-section" id="roadside-router">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Roadside Router</p>
+              <h2>Pick The Situation First</h2>
+            </div>
+            <a class="utility-link" href="#emergency-card">Critical Specs</a>
+          </div>
+          <div class="dashboard-grid roadside-action-grid">
+            <article class="dashboard-card roadside-action-card">
+              <span>Flat tire or wheel work</span>
+              <strong>Open jack points, pressure, and torque</strong>
+              <p>Use the tire card for pressure and wheel nut torque, then open the vehicle map for jack-point location.</p>
+              <div class="inspector-actions">
+                <a class="utility-link" href="#tires">Tire Card</a>
+                <a class="utility-link" href="index.html?system=jack-points#viewer">Jack Map</a>
+              </div>
+            </article>
+            <article class="dashboard-card roadside-action-card">
+              <span>Won't start</span>
+              <strong>Jump/battery path before fuse chasing</strong>
+              <p>Start with the no-start workflow, then use battery and jump references if the truck is safe to inspect.</p>
+              <div class="inspector-actions">
+                <a class="utility-link" href="diagnostics.html#no-start-workflow">No-Start Flow</a>
+                <a class="utility-link" href="hood.html#wiring">Jump Notes</a>
+              </div>
+            </article>
+            <article class="dashboard-card roadside-action-card">
+              <span>Warning light or MID message</span>
+              <strong>Record exact wording before guessing</strong>
+              <p>Use the warning-light flow to sort red/amber indicators, multiple lights, and recent service context.</p>
+              <div class="inspector-actions">
+                <a class="utility-link" href="diagnostics.html#warning-light-workflow">Warning Flow</a>
+                <a class="utility-link" href="garage.html#warning-light-template">Save Note</a>
+              </div>
+            </article>
+            <article class="dashboard-card roadside-action-card">
+              <span>Trailer light or tow setup</span>
+              <strong>Check hookup, pinout, and light symptoms</strong>
+              <p>Use the towing card for the 7-way quick reference, then route symptoms through the trailer-light flow.</p>
+              <div class="inspector-actions">
+                <a class="utility-link" href="#towing">Tow Card</a>
+                <a class="utility-link" href="diagnostics.html#trailer-light-workflow">Trailer Flow</a>
+              </div>
+            </article>
+          </div>
+          <div class="section-callout">
+            Roadside rule: use the truck labels, owner manual, and current conditions as final authority. These cards only move you to the right existing reference faster.
           </div>
         </section>
 
@@ -277,9 +329,9 @@
 
       <nav class="section-dock" aria-label="Quick return">
         <a href="#emergency-card">Emergency</a>
+        <a href="#roadside-router">Roadside</a>
         <a href="#oil">Oil</a>
         <a href="#battery">Battery</a>
-        <a href="#tires">Tires</a>
         <a href="#fuse-triage">Fuses</a>
         <a href="#top">Top</a>
       </nav>

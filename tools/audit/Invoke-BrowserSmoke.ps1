@@ -58,6 +58,7 @@ SEARCH_EXPECTATIONS = {
     "need to buy": "Saved Maintenance Notes",
     "save buy note": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
+    "roadside router": "Roadside Router",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
 }
@@ -245,8 +246,17 @@ async def assert_quick_sheet(page, page_name):
         return
     state = await page.evaluate(
         """() => {
+            const router = document.querySelector("#roadside-router");
             const triage = document.querySelector("#fuse-triage");
             const sources = document.querySelector("#source-confidence");
+            const requiredRouterTargets = [
+                "#tires",
+                "index.html?system=jack-points#viewer",
+                "diagnostics.html#no-start-workflow",
+                "diagnostics.html#warning-light-workflow",
+                "garage.html#warning-light-template",
+                "diagnostics.html#trailer-light-workflow"
+            ];
             const requiredTargets = [
                 "diagnostics.html#accessory-power-workflow",
                 "diagnostics.html#trailer-light-workflow",
@@ -260,6 +270,10 @@ async def assert_quick_sheet(page, page_name):
                 "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
             ];
             return {
+                hasRouter: Boolean(router),
+                routerCards: router ? router.querySelectorAll(".roadside-action-grid .dashboard-card").length : 0,
+                routerText: router ? router.innerText.toLowerCase() : "",
+                missingRouterTargets: requiredRouterTargets.filter((href) => !router?.querySelector(`a[href="${href}"]`)),
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
@@ -279,6 +293,11 @@ async def assert_quick_sheet(page, page_name):
             };
         }"""
     )
+    assert_true(state["hasRouter"], "quick sheet is missing roadside router section")
+    assert_true(state["routerCards"] == 4, "roadside router should expose four situation cards")
+    assert_true(not state["missingRouterTargets"], f"roadside router is missing routes: {state['missingRouterTargets']}")
+    for phrase in ["flat tire", "won't start", "warning light", "trailer light"]:
+        assert_true(phrase in state["routerText"], f"roadside router is missing situation: {phrase}")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
