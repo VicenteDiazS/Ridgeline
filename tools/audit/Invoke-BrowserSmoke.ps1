@@ -45,6 +45,7 @@ SEARCH_EXPECTATIONS = {
     "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
     "counter mode": "Saved Maintenance Notes",
+    "skip counter item": "Saved Maintenance Notes",
     "undo counter mode": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
     "quick add store item": "Saved Maintenance Notes",
@@ -744,6 +745,7 @@ async def assert_garage_features(page, page_name):
                 hasCounterPanel: Boolean(counterPanel),
                 counterText: counterPanel?.innerText || "",
                 hasMarkNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-mark-next]")),
+                hasSkipNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-skip-next]")),
                 hasCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
                 hasShareNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-share-next]")),
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
@@ -756,6 +758,7 @@ async def assert_garage_features(page, page_name):
     assert_true("Next Need-To-Buy Item" in counter_mode_state["counterText"], "Counter Mode panel should name the next need-to-buy item")
     assert_true("Replace engine oil" in counter_mode_state["counterText"] or "Rotate tires" in counter_mode_state["counterText"], "Counter Mode panel should surface the next current need-to-buy line")
     assert_true(counter_mode_state["hasMarkNext"], "Counter Mode panel should expose Mark Next Staged")
+    assert_true(counter_mode_state["hasSkipNext"], "Counter Mode panel should expose Skip This Item")
     assert_true(counter_mode_state["hasCopyNext"], "Counter Mode panel should expose Copy Next Item")
     assert_true(counter_mode_state["hasShareNext"], "Counter Mode panel should expose Share Next Item")
     assert_true("Counter Mode is showing 3 need-to-buy items" in counter_mode_state["status"], "Counter Mode should report the need-to-buy count")
@@ -788,6 +791,30 @@ async def assert_garage_features(page, page_name):
     assert_true(share_next_state["title"] == "Ridgeline Counter Mode Next Item", "Counter Mode Share Next Item should use a clear share-sheet title")
     assert_true("Source note:" in share_next_state["text"], "Counter Mode Share Next Item should include the source saved-note title")
     assert_true("Confirm fitment against the receipt" in share_next_state["text"], "Counter Mode Share Next Item should include the final-fitment caution")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-skip-next]").click()
+    await page.wait_for_timeout(150)
+    counter_skip_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const counterPanel = panel.querySelector("[data-maintenance-counter-panel]");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                counterText: counterPanel?.innerText || "",
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                hasResetSkips: Boolean(counterPanel?.querySelector("[data-maintenance-counter-reset-skips]")),
+                stagingUnchanged: stagingCardText.includes("3 need / 0 staged")
+            };
+        }"""
+    )
+    assert_true("for this Counter Mode visit" in counter_skip_state["status"], "Counter Mode Skip This Item did not report a session-only skip")
+    assert_true("Skips do not change saved Garage data" in counter_skip_state["counterText"], "Counter Mode skipped item note should state the data boundary")
+    assert_true(counter_skip_state["hasResetSkips"], "Counter Mode should expose Reset Skips after skipping an item")
+    assert_true(counter_skip_state["stagingUnchanged"], "Counter Mode Skip This Item should not mark staging data")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-reset-skips]").click()
+    await page.wait_for_timeout(150)
+    reset_skip_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Original need-to-buy order is restored" in reset_skip_status, "Counter Mode Reset Skips did not report restored order")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
     await page.wait_for_timeout(150)
     counter_next_state = await page.evaluate(
@@ -1191,6 +1218,7 @@ async def assert_garage_features(page, page_name):
                 columns,
                 partsColumns,
                 counterSticky: counterStyle?.position === "sticky",
+                hasCounterSkipNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-skip-next]")),
                 hasCounterCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
                 hasCounterShareNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-share-next]")),
                 hasContextRoute: Boolean(document.querySelector('.context-action[href="#maintenance-note-preview"]'))
@@ -1201,6 +1229,7 @@ async def assert_garage_features(page, page_name):
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["counterSticky"], "Counter Mode panel should stay sticky on iPhone width")
+    assert_true(garage_mobile_state["hasCounterSkipNext"], "Counter Mode mobile panel is missing Skip This Item")
     assert_true(garage_mobile_state["hasCounterCopyNext"], "Counter Mode mobile panel is missing Copy Next Item")
     assert_true(garage_mobile_state["hasCounterShareNext"], "Counter Mode mobile panel is missing Share Next Item")
     assert_true(garage_mobile_state["hasContextRoute"], "garage contextual bottom bar is missing the staging route")

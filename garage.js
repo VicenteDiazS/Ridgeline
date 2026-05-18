@@ -68,6 +68,7 @@ let currentMaintenanceStagingFilter = "all";
 let currentMaintenanceCounterMode = false;
 let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
 let maintenanceCounterLastStaged = null;
+let maintenanceCounterSkippedKeys = [];
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
@@ -647,7 +648,7 @@ function maintenanceStagingPlainLines(status = "need") {
 }
 
 function maintenanceCounterNeedItems(items = getMaintenanceNoteItems()) {
-  return maintenanceStagingGroups({ items })
+  const needItems = maintenanceStagingGroups({ items })
     .flatMap((group) =>
       group.lines
         .filter((line) => maintenanceStagingStatus(group.title, line) !== "staged")
@@ -657,6 +658,26 @@ function maintenanceCounterNeedItems(items = getMaintenanceNoteItems()) {
         }))
     )
     .slice(0, 12);
+  const activeSkippedKeys = maintenanceCounterSkippedKeys.filter((key) =>
+    needItems.some((item) => maintenanceCounterItemKey(item) === key)
+  );
+  maintenanceCounterSkippedKeys = activeSkippedKeys;
+
+  if (!activeSkippedKeys.length) {
+    return needItems;
+  }
+
+  const activeSkippedSet = new Set(activeSkippedKeys);
+  const readyItems = needItems.filter((item) => !activeSkippedSet.has(maintenanceCounterItemKey(item)));
+  const skippedItems = activeSkippedKeys
+    .map((key) => needItems.find((item) => maintenanceCounterItemKey(item) === key))
+    .filter(Boolean);
+
+  return [...readyItems, ...skippedItems];
+}
+
+function maintenanceCounterItemKey(item) {
+  return `${item?.title || ""}::${item?.line || ""}`;
 }
 
 function maintenanceStagingExport({ index = null, status = "all" } = {}) {
@@ -772,6 +793,7 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
 
   const needItems = maintenanceCounterNeedItems(items);
   const nextItem = needItems[0];
+  const skippedCount = maintenanceCounterSkippedKeys.length;
   const lastStaged =
     maintenanceCounterLastStaged &&
     maintenanceStagingStatus(maintenanceCounterLastStaged.title, maintenanceCounterLastStaged.line) === "staged"
@@ -810,6 +832,11 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
         <p class="maintenance-counter-next">${escapeHtml(nextItem.line)}</p>
         <p class="small-note">${needItems.length} need-to-buy item${needItems.length === 1 ? "" : "s"} remain. Source note: ${escapeHtml(nextItem.title)}.</p>
         ${
+          skippedCount
+            ? `<p class="maintenance-counter-skip-note">${skippedCount} skipped for this Counter Mode visit. Skips do not change saved Garage data.</p>`
+            : ""
+        }
+        ${
           lastStaged
             ? `<p class="maintenance-counter-last">Last staged: ${escapeHtml(lastStaged.line)}</p>`
             : ""
@@ -817,11 +844,17 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
       </div>
       <div class="inspector-actions">
         <button class="ghost-button" type="button" data-maintenance-counter-mark-next>Mark Next Staged</button>
+        <button class="ghost-button" type="button" data-maintenance-counter-skip-next ${needItems.length > 1 ? "" : "disabled"}>Skip This Item</button>
         <button class="ghost-button" type="button" data-maintenance-counter-copy-next>Copy Next Item</button>
         <button class="ghost-button" type="button" data-maintenance-counter-share-next>Share Next Item</button>
         ${
           lastStaged
             ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
+            : ""
+        }
+        ${
+          skippedCount
+            ? `<button class="ghost-button" type="button" data-maintenance-counter-reset-skips>Reset Skips</button>`
             : ""
         }
         <button class="ghost-button" type="button" data-copy-maintenance-needed-inline>Copy Buy List</button>
@@ -982,6 +1015,7 @@ function startMaintenanceCounterMode() {
   currentMaintenanceCounterMode = true;
   currentMaintenanceStagingFilter = "need";
   maintenanceCounterLastStaged = null;
+  maintenanceCounterSkippedKeys = [];
   renderMaintenancePartsPreview();
   const target =
     maintenancePartsPreview?.querySelector(".maintenance-staging-run") ||
@@ -995,8 +1029,39 @@ function startMaintenanceCounterMode() {
 function exitMaintenanceCounterMode() {
   currentMaintenanceCounterMode = false;
   maintenanceCounterLastStaged = null;
+  maintenanceCounterSkippedKeys = [];
   renderMaintenancePartsPreview();
   setMaintenanceNoteStatus("Counter Mode closed. Saved notes and local staging state are unchanged.");
+}
+
+function skipNextMaintenanceCounterItem() {
+  const needItems = maintenanceCounterNeedItems();
+  const nextItem = needItems[0];
+  if (!nextItem || needItems.length <= 1) {
+    setMaintenanceNoteStatus("No other Counter Mode item is ready to show.");
+    return;
+  }
+
+  const key = maintenanceCounterItemKey(nextItem);
+  maintenanceCounterSkippedKeys = [...maintenanceCounterSkippedKeys.filter((itemKey) => itemKey !== key), key];
+  currentMaintenanceCounterMode = true;
+  currentMaintenanceStagingFilter = "need";
+  renderMaintenancePartsPreview();
+  const newNextItem = maintenanceCounterNeedItems()[0];
+  setMaintenanceNoteStatus(
+    `Skipped ${nextItem.line} for this Counter Mode visit. Showing ${newNextItem?.line || "the next need-to-buy item"} next; saved staging data is unchanged.`
+  );
+}
+
+function resetMaintenanceCounterSkips() {
+  const skipped = maintenanceCounterSkippedKeys.length;
+  maintenanceCounterSkippedKeys = [];
+  currentMaintenanceCounterMode = true;
+  currentMaintenanceStagingFilter = "need";
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(
+    skipped ? `Reset ${skipped} Counter Mode skip${skipped === 1 ? "" : "s"}. Original need-to-buy order is restored.` : "No Counter Mode skips to reset."
+  );
 }
 
 function markNextMaintenanceCounterItemStaged() {
@@ -1010,6 +1075,7 @@ function markNextMaintenanceCounterItemStaged() {
 
   setMaintenanceStagingStatus(nextItem.title, nextItem.line, "staged");
   maintenanceCounterLastStaged = nextItem;
+  maintenanceCounterSkippedKeys = maintenanceCounterSkippedKeys.filter((key) => key !== maintenanceCounterItemKey(nextItem));
   renderDashboard();
   const remaining = maintenanceCounterNeedItems().length;
   if (!remaining) {
@@ -2309,6 +2375,7 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     if (currentMaintenanceStagingFilter !== "need") {
       currentMaintenanceCounterMode = false;
       maintenanceCounterLastStaged = null;
+      maintenanceCounterSkippedKeys = [];
     }
     renderMaintenancePartsPreview();
     const filterLabel =
@@ -2372,6 +2439,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     return;
   }
 
+  const counterSkipNextButton = event.target.closest("[data-maintenance-counter-skip-next]");
+  if (counterSkipNextButton) {
+    skipNextMaintenanceCounterItem();
+    return;
+  }
+
   const counterCopyNextButton = event.target.closest("[data-maintenance-counter-copy-next]");
   if (counterCopyNextButton) {
     copyNextMaintenanceCounterItem();
@@ -2387,6 +2460,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterUndoButton = event.target.closest("[data-maintenance-counter-undo]");
   if (counterUndoButton) {
     undoLastMaintenanceCounterItem();
+    return;
+  }
+
+  const counterResetSkipsButton = event.target.closest("[data-maintenance-counter-reset-skips]");
+  if (counterResetSkipsButton) {
+    resetMaintenanceCounterSkips();
     return;
   }
 

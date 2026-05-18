@@ -228,3 +228,4 @@ Anton may add a short "Learned" or "User Note" entry when:
 - For iPhone parts-counter workflows, a one-visit "next item" action is preferable to more schema: advance through existing local-only staging state first, and only save durable receipts or final part numbers through existing Garage Notes / Truck Profile paths.
 - For one-tap parts-counter advancement, provide a short local Undo/restore path when practical so accidental taps can be corrected without adding schema or rewriting saved Garage data.
 - For iPhone parts-counter Counter Mode, keep the current item and its main actions sticky/thumb-reachable when practical, and prefer item-level copy/share actions before adding new durable staging or inventory fields.
+- Counter Mode may use session-only helper state for flow control, such as skipped items, as long as the UI states that it does not change Garage backup/sync data and offers a clear reset or exit path.
