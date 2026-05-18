@@ -818,6 +818,7 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
       <div class="inspector-actions">
         <button class="ghost-button" type="button" data-maintenance-counter-mark-next>Mark Next Staged</button>
         <button class="ghost-button" type="button" data-maintenance-counter-copy-next>Copy Next Item</button>
+        <button class="ghost-button" type="button" data-maintenance-counter-share-next>Share Next Item</button>
         ${
           lastStaged
             ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
@@ -1037,6 +1038,55 @@ function copyNextMaintenanceCounterItem() {
     })
     .catch(() => {
       setMaintenanceNoteStatus("Could not copy the next Counter Mode item automatically.");
+    });
+}
+
+function shareNextMaintenanceCounterItem() {
+  const nextItem = maintenanceCounterNeedItems()[0];
+  if (!nextItem) {
+    setMaintenanceNoteStatus("No Counter Mode need-to-buy item is ready to share.");
+    return;
+  }
+
+  const text = [
+    nextItem.line,
+    "",
+    `Source note: ${nextItem.title}`,
+    "Confirm fitment against the receipt, catalog, or truck labels before saving final part numbers."
+  ].join("\n");
+  const title = "Ridgeline Counter Mode Next Item";
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title,
+        text
+      })
+      .then(() => {
+        setMaintenanceNoteStatus(`Shared next Counter Mode item from ${nextItem.title}.`);
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          setMaintenanceNoteStatus("Share canceled.");
+          return;
+        }
+        copyText(text)
+          .then(() => {
+            setMaintenanceNoteStatus("Share was unavailable, so the next Counter Mode item was copied.");
+          })
+          .catch(() => {
+            setMaintenanceNoteStatus("Could not share or copy the next Counter Mode item automatically.");
+          });
+      });
+    return;
+  }
+
+  copyText(text)
+    .then(() => {
+      setMaintenanceNoteStatus("Share is unavailable here, so the next Counter Mode item was copied.");
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not share or copy the next Counter Mode item automatically.");
     });
 }
 
@@ -2325,6 +2375,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterCopyNextButton = event.target.closest("[data-maintenance-counter-copy-next]");
   if (counterCopyNextButton) {
     copyNextMaintenanceCounterItem();
+    return;
+  }
+
+  const counterShareNextButton = event.target.closest("[data-maintenance-counter-share-next]");
+  if (counterShareNextButton) {
+    shareNextMaintenanceCounterItem();
     return;
   }
 

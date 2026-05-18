@@ -745,6 +745,7 @@ async def assert_garage_features(page, page_name):
                 counterText: counterPanel?.innerText || "",
                 hasMarkNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-mark-next]")),
                 hasCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
+                hasShareNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-share-next]")),
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
             };
         }"""
@@ -756,11 +757,37 @@ async def assert_garage_features(page, page_name):
     assert_true("Replace engine oil" in counter_mode_state["counterText"] or "Rotate tires" in counter_mode_state["counterText"], "Counter Mode panel should surface the next current need-to-buy line")
     assert_true(counter_mode_state["hasMarkNext"], "Counter Mode panel should expose Mark Next Staged")
     assert_true(counter_mode_state["hasCopyNext"], "Counter Mode panel should expose Copy Next Item")
+    assert_true(counter_mode_state["hasShareNext"], "Counter Mode panel should expose Share Next Item")
     assert_true("Counter Mode is showing 3 need-to-buy items" in counter_mode_state["status"], "Counter Mode should report the need-to-buy count")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-copy-next]").click()
     await page.wait_for_timeout(150)
     copy_next_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied next Counter Mode item" in copy_next_status, "Counter Mode Copy Next Item did not report success")
+    await page.evaluate(
+        """() => {
+            window.__maintenanceNextSharePayload = null;
+            Object.defineProperty(navigator, "share", {
+                configurable: true,
+                value: (payload) => {
+                    window.__maintenanceNextSharePayload = payload;
+                    return Promise.resolve();
+                }
+            });
+        }"""
+    )
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-share-next]").click()
+    await page.wait_for_timeout(150)
+    share_next_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || "",
+            title: window.__maintenanceNextSharePayload?.title || "",
+            text: window.__maintenanceNextSharePayload?.text || ""
+        })"""
+    )
+    assert_true("Shared next Counter Mode item" in share_next_state["status"], "Counter Mode Share Next Item did not report success")
+    assert_true(share_next_state["title"] == "Ridgeline Counter Mode Next Item", "Counter Mode Share Next Item should use a clear share-sheet title")
+    assert_true("Source note:" in share_next_state["text"], "Counter Mode Share Next Item should include the source saved-note title")
+    assert_true("Confirm fitment against the receipt" in share_next_state["text"], "Counter Mode Share Next Item should include the final-fitment caution")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
     await page.wait_for_timeout(150)
     counter_next_state = await page.evaluate(
@@ -1165,6 +1192,7 @@ async def assert_garage_features(page, page_name):
                 partsColumns,
                 counterSticky: counterStyle?.position === "sticky",
                 hasCounterCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
+                hasCounterShareNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-share-next]")),
                 hasContextRoute: Boolean(document.querySelector('.context-action[href="#maintenance-note-preview"]'))
             };
         }"""
@@ -1174,6 +1202,7 @@ async def assert_garage_features(page, page_name):
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["counterSticky"], "Counter Mode panel should stay sticky on iPhone width")
     assert_true(garage_mobile_state["hasCounterCopyNext"], "Counter Mode mobile panel is missing Copy Next Item")
+    assert_true(garage_mobile_state["hasCounterShareNext"], "Counter Mode mobile panel is missing Share Next Item")
     assert_true(garage_mobile_state["hasContextRoute"], "garage contextual bottom bar is missing the staging route")
     await page.locator('.context-action[href="#maintenance-note-preview"]').click()
     await page.wait_for_timeout(700)
