@@ -736,17 +736,49 @@ async def assert_garage_features(page, page_name):
         """() => {
             const panel = document.querySelector("#maintenance-note-preview");
             const toggles = [...panel.querySelectorAll("[data-maintenance-staging-toggle]")];
+            const counterPanel = panel.querySelector("[data-maintenance-counter-panel]");
             return {
                 activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
                 visibleToggleCount: toggles.length,
+                hasCounterPanel: Boolean(counterPanel),
+                counterText: counterPanel?.innerText || "",
+                hasMarkNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-mark-next]")),
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
             };
         }"""
     )
     assert_true(counter_mode_state["activeNeed"] == "true", "Counter Mode should switch the staging panel to the Need filter")
     assert_true(counter_mode_state["visibleToggleCount"] == 3, "Counter Mode should show the current need-to-buy staging items")
+    assert_true(counter_mode_state["hasCounterPanel"], "Counter Mode should show the next-item counter panel")
+    assert_true("Next Need-To-Buy Item" in counter_mode_state["counterText"], "Counter Mode panel should name the next need-to-buy item")
+    assert_true("Replace engine oil" in counter_mode_state["counterText"] or "Rotate tires" in counter_mode_state["counterText"], "Counter Mode panel should surface the next current need-to-buy line")
+    assert_true(counter_mode_state["hasMarkNext"], "Counter Mode panel should expose Mark Next Staged")
     assert_true("Counter Mode is showing 3 need-to-buy items" in counter_mode_state["status"], "Counter Mode should report the need-to-buy count")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
+    await page.wait_for_timeout(150)
+    counter_next_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const counterPanel = panel.querySelector("[data-maintenance-counter-panel]");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
+                visibleToggleCount: panel.querySelectorAll("[data-maintenance-staging-toggle]").length,
+                counterText: counterPanel?.innerText || "",
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                dashboardUpdated: stagingCardText.includes("2 need / 1 staged")
+            };
+        }"""
+    )
+    assert_true(counter_next_state["activeNeed"] == "true", "Counter Mode should stay in the Need filter after marking the next item staged")
+    assert_true(counter_next_state["visibleToggleCount"] == 2, "Counter Mode Mark Next should hide the newly staged line from the need view")
+    assert_true("2 need-to-buy items remain" in counter_next_state["counterText"], "Counter Mode panel should update the remaining count after Mark Next")
+    assert_true("Marked next Counter Mode item staged" in counter_next_state["status"], "Counter Mode Mark Next should report progress")
+    assert_true(counter_next_state["dashboardUpdated"], "Counter Mode Mark Next should update the dashboard staging count")
     await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='all']").click()
+    await page.wait_for_timeout(150)
+    await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='reset-staged']").click()
     await page.wait_for_timeout(150)
     await page.evaluate(
         """() => {

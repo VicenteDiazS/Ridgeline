@@ -65,6 +65,7 @@ const defaultProfile = {
 };
 let currentDiagnosticActivityFilter = "all";
 let currentMaintenanceStagingFilter = "all";
+let currentMaintenanceCounterMode = false;
 let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
@@ -644,6 +645,19 @@ function maintenanceStagingPlainLines(status = "need") {
     .slice(0, 12);
 }
 
+function maintenanceCounterNeedItems(items = getMaintenanceNoteItems()) {
+  return maintenanceStagingGroups({ items })
+    .flatMap((group) =>
+      group.lines
+        .filter((line) => maintenanceStagingStatus(group.title, line) !== "staged")
+        .map((line) => ({
+          title: group.title,
+          line
+        }))
+    )
+    .slice(0, 12);
+}
+
 function maintenanceStagingExport({ index = null, status = "all" } = {}) {
   const items = getMaintenanceNoteItems();
   const groups = maintenanceStagingGroups({ items, index })
@@ -747,6 +761,43 @@ function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
       <span>Need/Staged toggles and one-off items stay on this iPhone in local browser storage, outside Garage backup and sync.</span>
       <span>${escapeHtml(skippedText)}</span>
     </div>
+  `;
+}
+
+function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
+  if (!currentMaintenanceCounterMode) {
+    return "";
+  }
+
+  const needItems = maintenanceCounterNeedItems(items);
+  const nextItem = needItems[0];
+  if (!nextItem) {
+    return `
+      <section class="maintenance-counter-panel is-complete" data-maintenance-counter-panel>
+        <div>
+          <p class="eyebrow">Counter Mode</p>
+          <h5>All Need-To-Buy Items Are Staged</h5>
+          <p class="small-note">No current need-to-buy lines remain. Save final part numbers only after checking the receipt, catalog, or truck labels.</p>
+        </div>
+        <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="maintenance-counter-panel" data-maintenance-counter-panel>
+      <div>
+        <p class="eyebrow">Counter Mode</p>
+        <h5>Next Need-To-Buy Item</h5>
+        <p class="maintenance-counter-next">${escapeHtml(nextItem.line)}</p>
+        <p class="small-note">${needItems.length} need-to-buy item${needItems.length === 1 ? "" : "s"} remain. Source note: ${escapeHtml(nextItem.title)}.</p>
+      </div>
+      <div class="inspector-actions">
+        <button class="ghost-button" type="button" data-maintenance-counter-mark-next>Mark Next Staged</button>
+        <button class="ghost-button" type="button" data-copy-maintenance-needed-inline>Copy Buy List</button>
+        <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
+      </div>
+    </section>
   `;
 }
 
@@ -898,6 +949,7 @@ function startMaintenanceCounterMode() {
     return;
   }
 
+  currentMaintenanceCounterMode = true;
   currentMaintenanceStagingFilter = "need";
   renderMaintenancePartsPreview();
   const target =
@@ -906,6 +958,38 @@ function startMaintenanceCounterMode() {
   target?.scrollIntoView({ block: "nearest" });
   setMaintenanceNoteStatus(
     `Counter Mode is showing ${summary.need} need-to-buy item${summary.need === 1 ? "" : "s"}. Confirm fitment before saving final part numbers.`
+  );
+}
+
+function exitMaintenanceCounterMode() {
+  currentMaintenanceCounterMode = false;
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus("Counter Mode closed. Saved notes and local staging state are unchanged.");
+}
+
+function markNextMaintenanceCounterItemStaged() {
+  const nextItem = maintenanceCounterNeedItems()[0];
+  if (!nextItem) {
+    currentMaintenanceCounterMode = false;
+    renderMaintenancePartsPreview();
+    setMaintenanceNoteStatus("No need-to-buy items are left for Counter Mode.");
+    return;
+  }
+
+  setMaintenanceStagingStatus(nextItem.title, nextItem.line, "staged");
+  renderDashboard();
+  const remaining = maintenanceCounterNeedItems().length;
+  if (!remaining) {
+    currentMaintenanceCounterMode = false;
+    currentMaintenanceStagingFilter = "all";
+  } else {
+    currentMaintenanceStagingFilter = "need";
+  }
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(
+    remaining
+      ? `Marked next Counter Mode item staged. ${remaining} need-to-buy item${remaining === 1 ? "" : "s"} remain.`
+      : "Marked the last Counter Mode item staged. Save final part numbers after receipt or catalog verification."
   );
 }
 
@@ -1006,6 +1090,7 @@ function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
           >Reset Staged</button>
         </div>
       </div>
+      ${maintenanceCounterModeMarkup(items)}
       ${maintenanceFinalPartsMarkup(summary)}
       <div class="maintenance-parts-groups">
         ${groups
@@ -2105,6 +2190,9 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const filterButton = event.target.closest("[data-maintenance-staging-filter]");
   if (filterButton) {
     currentMaintenanceStagingFilter = filterButton.dataset.maintenanceStagingFilter || "all";
+    if (currentMaintenanceStagingFilter !== "need") {
+      currentMaintenanceCounterMode = false;
+    }
     renderMaintenancePartsPreview();
     const filterLabel =
       currentMaintenanceStagingFilter === "all"
@@ -2158,6 +2246,18 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterModeButton = event.target.closest("[data-maintenance-counter-mode]");
   if (counterModeButton) {
     startMaintenanceCounterMode();
+    return;
+  }
+
+  const counterMarkNextButton = event.target.closest("[data-maintenance-counter-mark-next]");
+  if (counterMarkNextButton) {
+    markNextMaintenanceCounterItemStaged();
+    return;
+  }
+
+  const counterExitButton = event.target.closest("[data-maintenance-counter-exit]");
+  if (counterExitButton) {
+    exitMaintenanceCounterMode();
     return;
   }
 
