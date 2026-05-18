@@ -6137,6 +6137,16 @@ kbd {
   line-height: 1.35;
 }
 
+.maintenance-counter-last {
+  margin-top: 7px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 210, 122, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 210, 122, 0.055);
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .maintenance-counter-panel.is-complete {
   border-color: rgba(102, 255, 178, 0.22);
   background: rgba(102, 255, 178, 0.055);

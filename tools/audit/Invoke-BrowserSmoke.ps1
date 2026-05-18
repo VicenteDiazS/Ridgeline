@@ -45,6 +45,7 @@ SEARCH_EXPECTATIONS = {
     "save and stage": "Service Prep Planner",
     "parts staging list": "Saved Maintenance Notes",
     "counter mode": "Saved Maintenance Notes",
+    "undo counter mode": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
     "quick add store item": "Saved Maintenance Notes",
     "quick kit": "Saved Maintenance Notes",
@@ -766,6 +767,7 @@ async def assert_garage_features(page, page_name):
                 activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
                 visibleToggleCount: panel.querySelectorAll("[data-maintenance-staging-toggle]").length,
                 counterText: counterPanel?.innerText || "",
+                hasUndo: Boolean(counterPanel?.querySelector("[data-maintenance-counter-undo]")),
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 dashboardUpdated: stagingCardText.includes("2 need / 1 staged")
             };
@@ -774,8 +776,35 @@ async def assert_garage_features(page, page_name):
     assert_true(counter_next_state["activeNeed"] == "true", "Counter Mode should stay in the Need filter after marking the next item staged")
     assert_true(counter_next_state["visibleToggleCount"] == 2, "Counter Mode Mark Next should hide the newly staged line from the need view")
     assert_true("2 need-to-buy items remain" in counter_next_state["counterText"], "Counter Mode panel should update the remaining count after Mark Next")
+    assert_true(counter_next_state["hasUndo"], "Counter Mode should expose Undo Last after Mark Next Staged")
     assert_true("Marked next Counter Mode item staged" in counter_next_state["status"], "Counter Mode Mark Next should report progress")
     assert_true(counter_next_state["dashboardUpdated"], "Counter Mode Mark Next should update the dashboard staging count")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-undo]").click()
+    await page.wait_for_timeout(150)
+    counter_undo_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const counterPanel = panel.querySelector("[data-maintenance-counter-panel]");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            return {
+                activeNeed: panel.querySelector("[data-maintenance-staging-filter='need']")?.getAttribute("aria-pressed"),
+                visibleToggleCount: panel.querySelectorAll("[data-maintenance-staging-toggle]").length,
+                counterText: counterPanel?.innerText || "",
+                hasUndo: Boolean(counterPanel?.querySelector("[data-maintenance-counter-undo]")),
+                status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                dashboardReset: stagingCardText.includes("3 need / 0 staged")
+            };
+        }"""
+    )
+    assert_true(counter_undo_state["activeNeed"] == "true", "Counter Mode Undo Last should keep the Need filter active")
+    assert_true(counter_undo_state["visibleToggleCount"] == 3, "Counter Mode Undo Last should restore the item to the need view")
+    assert_true("3 need-to-buy items remain" in counter_undo_state["counterText"], "Counter Mode panel should show restored need count after Undo Last")
+    assert_true(not counter_undo_state["hasUndo"], "Counter Mode Undo Last should clear the undo action after use")
+    assert_true("Undid the last Counter Mode item" in counter_undo_state["status"], "Counter Mode Undo Last should report the restored item")
+    assert_true(counter_undo_state["dashboardReset"], "Counter Mode Undo Last should update the dashboard count")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
+    await page.wait_for_timeout(150)
     await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='all']").click()
     await page.wait_for_timeout(150)
     await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='reset-staged']").click()

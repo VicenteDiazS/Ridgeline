@@ -67,6 +67,7 @@ let currentDiagnosticActivityFilter = "all";
 let currentMaintenanceStagingFilter = "all";
 let currentMaintenanceCounterMode = false;
 let currentMaintenanceStageHandoff = consumeMaintenanceStageHandoff();
+let maintenanceCounterLastStaged = null;
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
@@ -771,6 +772,11 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
 
   const needItems = maintenanceCounterNeedItems(items);
   const nextItem = needItems[0];
+  const lastStaged =
+    maintenanceCounterLastStaged &&
+    maintenanceStagingStatus(maintenanceCounterLastStaged.title, maintenanceCounterLastStaged.line) === "staged"
+      ? maintenanceCounterLastStaged
+      : null;
   if (!nextItem) {
     return `
       <section class="maintenance-counter-panel is-complete" data-maintenance-counter-panel>
@@ -778,8 +784,20 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
           <p class="eyebrow">Counter Mode</p>
           <h5>All Need-To-Buy Items Are Staged</h5>
           <p class="small-note">No current need-to-buy lines remain. Save final part numbers only after checking the receipt, catalog, or truck labels.</p>
+          ${
+            lastStaged
+              ? `<p class="maintenance-counter-last">Last staged: ${escapeHtml(lastStaged.line)}</p>`
+              : ""
+          }
         </div>
-        <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
+        <div class="inspector-actions">
+          ${
+            lastStaged
+              ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
+              : ""
+          }
+          <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
+        </div>
       </section>
     `;
   }
@@ -791,9 +809,19 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
         <h5>Next Need-To-Buy Item</h5>
         <p class="maintenance-counter-next">${escapeHtml(nextItem.line)}</p>
         <p class="small-note">${needItems.length} need-to-buy item${needItems.length === 1 ? "" : "s"} remain. Source note: ${escapeHtml(nextItem.title)}.</p>
+        ${
+          lastStaged
+            ? `<p class="maintenance-counter-last">Last staged: ${escapeHtml(lastStaged.line)}</p>`
+            : ""
+        }
       </div>
       <div class="inspector-actions">
         <button class="ghost-button" type="button" data-maintenance-counter-mark-next>Mark Next Staged</button>
+        ${
+          lastStaged
+            ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
+            : ""
+        }
         <button class="ghost-button" type="button" data-copy-maintenance-needed-inline>Copy Buy List</button>
         <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
       </div>
@@ -951,6 +979,7 @@ function startMaintenanceCounterMode() {
 
   currentMaintenanceCounterMode = true;
   currentMaintenanceStagingFilter = "need";
+  maintenanceCounterLastStaged = null;
   renderMaintenancePartsPreview();
   const target =
     maintenancePartsPreview?.querySelector(".maintenance-staging-run") ||
@@ -963,6 +992,7 @@ function startMaintenanceCounterMode() {
 
 function exitMaintenanceCounterMode() {
   currentMaintenanceCounterMode = false;
+  maintenanceCounterLastStaged = null;
   renderMaintenancePartsPreview();
   setMaintenanceNoteStatus("Counter Mode closed. Saved notes and local staging state are unchanged.");
 }
@@ -977,10 +1007,10 @@ function markNextMaintenanceCounterItemStaged() {
   }
 
   setMaintenanceStagingStatus(nextItem.title, nextItem.line, "staged");
+  maintenanceCounterLastStaged = nextItem;
   renderDashboard();
   const remaining = maintenanceCounterNeedItems().length;
   if (!remaining) {
-    currentMaintenanceCounterMode = false;
     currentMaintenanceStagingFilter = "all";
   } else {
     currentMaintenanceStagingFilter = "need";
@@ -991,6 +1021,25 @@ function markNextMaintenanceCounterItemStaged() {
       ? `Marked next Counter Mode item staged. ${remaining} need-to-buy item${remaining === 1 ? "" : "s"} remain.`
       : "Marked the last Counter Mode item staged. Save final part numbers after receipt or catalog verification."
   );
+}
+
+function undoLastMaintenanceCounterItem() {
+  if (
+    !maintenanceCounterLastStaged ||
+    maintenanceStagingStatus(maintenanceCounterLastStaged.title, maintenanceCounterLastStaged.line) !== "staged"
+  ) {
+    setMaintenanceNoteStatus("No Counter Mode item is ready to undo.");
+    return;
+  }
+
+  setMaintenanceStagingStatus(maintenanceCounterLastStaged.title, maintenanceCounterLastStaged.line, "need");
+  const restoredLine = maintenanceCounterLastStaged.line;
+  maintenanceCounterLastStaged = null;
+  currentMaintenanceCounterMode = true;
+  currentMaintenanceStagingFilter = "need";
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(`Undid the last Counter Mode item: ${restoredLine} is back on the need-to-buy list.`);
 }
 
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
@@ -2192,6 +2241,7 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     currentMaintenanceStagingFilter = filterButton.dataset.maintenanceStagingFilter || "all";
     if (currentMaintenanceStagingFilter !== "need") {
       currentMaintenanceCounterMode = false;
+      maintenanceCounterLastStaged = null;
     }
     renderMaintenancePartsPreview();
     const filterLabel =
@@ -2252,6 +2302,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterMarkNextButton = event.target.closest("[data-maintenance-counter-mark-next]");
   if (counterMarkNextButton) {
     markNextMaintenanceCounterItemStaged();
+    return;
+  }
+
+  const counterUndoButton = event.target.closest("[data-maintenance-counter-undo]");
+  if (counterUndoButton) {
+    undoLastMaintenanceCounterItem();
     return;
   }
 
