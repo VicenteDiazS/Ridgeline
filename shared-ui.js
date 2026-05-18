@@ -1750,6 +1750,30 @@ function bindCompactStickyHeader() {
   window.addEventListener("resize", update, { passive: true });
 }
 
+function buildDynamicIslandShelf() {
+  if (document.querySelector(".dynamic-island-shelf")) {
+    return;
+  }
+
+  const isiOSLike =
+    /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!isiOSLike) {
+    return;
+  }
+
+  const shelf = document.createElement("div");
+  shelf.className = "dynamic-island-shelf";
+  shelf.setAttribute("aria-hidden", "true");
+  shelf.innerHTML = `
+    <span class="dynamic-island-pill"></span>
+    <span class="dynamic-island-orbit dynamic-island-orbit-left"></span>
+    <span class="dynamic-island-orbit dynamic-island-orbit-right"></span>
+  `;
+  document.body.classList.add("has-dynamic-island-shelf");
+  document.body.prepend(shelf);
+}
+
 function buildSectionStepper(sections) {
   if (
     !sections.length ||
@@ -4136,6 +4160,7 @@ syncActiveSectionUi(pageSections, sectionRail);
 buildBackToMapButton();
 buildScrollProgress();
 bindCompactStickyHeader();
+buildDynamicIslandShelf();
 if (!isMobileNavMode) {
   buildSectionStepper(pageSections);
 }
