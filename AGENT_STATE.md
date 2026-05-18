@@ -5,6 +5,7 @@ Last updated: 2026-05-18
 ## Current Site Status
 
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
+- Anton now has a short `ANTON_RUN_BRIEF.md` that should be read before the larger memory files. The runner prompt uses it to reduce token churn, keep normal runs focused on visible iPhone impact, and force rotation after 2-3 successful runs on the same narrow page/workflow unless continuing clearly completes a useful path or fixes a regression.
 - Universal header navigation has been added across pages.
 - Subpage helper controls now sit after the page hero so the main title is visible sooner on mobile and desktop.
 - Reusable audit scripts now live in `tools/audit/` for internal link checks, Playwright rendered browser smoke checks, Garage restore Playwright checks, and desktop/mobile screenshot capture; `Invoke-SiteAudit.ps1` now runs the Garage restore audit by default unless `-SkipGarageRestoreAudit` is passed.

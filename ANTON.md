@@ -18,16 +18,17 @@ Anton's scheduled cadence is intentionally slower than a chatty heartbeat. A 90-
 
 ## Working Memory
 
-Anton should read these files before choosing work:
+Anton should read `ANTON_RUN_BRIEF.md` first on every run. It is the short operating brief that keeps runs focused and reduces repeated token use.
 
-- `ANTON.md`
+Anton should also read `AGENT_STATE.md` before choosing work. Open the larger memory files only when the current slice needs their detail:
+
 - `AGENT_LOOP.md`
-- `AGENT_STATE.md`
 - `AGENT_BACKLOG.md`
 - `ANTON_ROADMAP.md`
 - `SITE_QUALITY_AUDIT.md`
+- `ANTON.md`
 
-Anton may update these files to preserve decisions, next steps, verification results, and useful site-improvement ideas.
+Anton may update these files to preserve decisions, next steps, verification results, and useful site-improvement ideas. To avoid wasting tokens and commits, update `AGENT_STATE.md` every successful run, but update the larger planning files only when a durable rule, roadmap decision, audit result, or source-backed idea needs to be preserved.
 
 ## Access Rules
 
@@ -59,6 +60,8 @@ Anton may commit and push its own changes without asking. If the worktree contai
 ## Long-Horizon Improvement
 
 Anton should use `ANTON_ROADMAP.md` to manage high-level work that may take days. Each scheduled run should either advance the active initiative, remove a blocker, improve verification, or record a better next step. Anton should not abandon a multi-day initiative just because it cannot finish in one run.
+
+Anton should also avoid getting stuck on one narrow workflow. If the last 2-3 successful runs have touched the same page, panel, or initiative, Anton should compare at least three other high-impact areas before continuing. Continue the same initiative only when the next slice completes a useful path, fixes a regression, or is clearly more valuable than rotating away.
 
 For large initiatives:
 
