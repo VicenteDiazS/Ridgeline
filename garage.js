@@ -747,7 +747,8 @@ function maintenanceFinalPartsMarkup(summary = getMaintenanceStagingSummary()) {
       <div class="maintenance-final-parts-actions">
         <span>${profileNoteCount ? `${profileNoteCount} Truck Profile note line${profileNoteCount === 1 ? "" : "s"} saved` : "Truck Profile parts notes are empty"}</span>
         <div class="inspector-actions">
-          <button class="ghost-button" type="button" data-maintenance-final-parts-fill ${summary.need ? "" : "disabled"}>Use Need List</button>
+          <button class="ghost-button" type="button" data-maintenance-final-parts-fill="need" ${summary.need ? "" : "disabled"}>Use Need List</button>
+          <button class="ghost-button" type="button" data-maintenance-final-parts-fill="staged" ${summary.staged ? "" : "disabled"}>Use Staged List</button>
           <button class="ghost-button" type="button" data-maintenance-final-parts-save>Save To Profile</button>
           <a class="utility-link" href="#truck-profile">Open Profile</a>
         </div>
@@ -2230,10 +2231,15 @@ function saveMaintenanceNeedNote(index = null) {
   );
 }
 
-function fillMaintenanceFinalPartsDraft() {
-  const lines = maintenanceStagingPlainLines("need");
+function fillMaintenanceFinalPartsDraft(status = "need") {
+  const isStagedDraft = status === "staged";
+  const lines = maintenanceStagingPlainLines(isStagedDraft ? "staged" : "need");
   if (!lines.length) {
-    setMaintenanceNoteStatus("No need-to-buy lines are available to use as a final-parts draft.");
+    setMaintenanceNoteStatus(
+      isStagedDraft
+        ? "No staged lines are available to use as a final-parts draft."
+        : "No need-to-buy lines are available to use as a final-parts draft."
+    );
     return;
   }
 
@@ -2241,7 +2247,11 @@ function fillMaintenanceFinalPartsDraft() {
   renderMaintenancePartsPreview();
   const input = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts-input]");
   input?.focus();
-  setMaintenanceNoteStatus("Need-to-buy lines were copied into the final-parts draft. Add confirmed part numbers before saving.");
+  setMaintenanceNoteStatus(
+    isStagedDraft
+      ? "Staged lines were copied into the final-parts draft. Add confirmed part numbers before saving."
+      : "Need-to-buy lines were copied into the final-parts draft. Add confirmed part numbers before saving."
+  );
 }
 
 function saveMaintenanceFinalPartsToProfile() {
@@ -2433,7 +2443,7 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
 
   const finalPartsFillButton = event.target.closest("[data-maintenance-final-parts-fill]");
   if (finalPartsFillButton) {
-    fillMaintenanceFinalPartsDraft();
+    fillMaintenanceFinalPartsDraft(finalPartsFillButton.dataset.maintenanceFinalPartsFill || "need");
     return;
   }
 

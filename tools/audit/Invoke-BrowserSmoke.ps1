@@ -46,6 +46,7 @@ SEARCH_EXPECTATIONS = {
     "parts staging list": "Saved Maintenance Notes",
     "counter mode": "Saved Maintenance Notes",
     "counter mode done": "Saved Maintenance Notes",
+    "use staged list": "Saved Maintenance Notes",
     "skip counter item": "Saved Maintenance Notes",
     "undo counter mode": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
@@ -886,6 +887,8 @@ async def assert_garage_features(page, page_name):
                 hasUndo: Boolean(counterPanel?.querySelector("[data-maintenance-counter-undo]")),
                 hasSaveRun: Boolean(counterPanel?.querySelector("[data-save-maintenance-run-inline]")),
                 hasFinalParts: Boolean(counterPanel?.querySelector("[data-maintenance-counter-final-parts]")),
+                stagedFillEnabled: panel?.querySelector("[data-maintenance-final-parts-fill='staged']")?.disabled === false,
+                needFillDisabled: panel?.querySelector("[data-maintenance-final-parts-fill='need']")?.disabled === true,
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 dashboardComplete: stagingCardText.includes("0 need / 3 staged")
             };
@@ -896,6 +899,8 @@ async def assert_garage_features(page, page_name):
     assert_true(counter_complete_state["hasUndo"], "Counter Mode completion panel should keep Undo Last available")
     assert_true(counter_complete_state["hasSaveRun"], "Counter Mode completion panel should expose Save Run Note")
     assert_true(counter_complete_state["hasFinalParts"], "Counter Mode completion panel should expose Open Final Parts")
+    assert_true(counter_complete_state["stagedFillEnabled"], "Final Part Numbers should allow drafting from staged lines after Counter Mode completion")
+    assert_true(counter_complete_state["needFillDisabled"], "Final Part Numbers should disable need-list draft when no need-to-buy lines remain")
     assert_true("Marked the last Counter Mode item staged" in counter_complete_state["status"], "Counter Mode completion should report the last staged action")
     assert_true(counter_complete_state["dashboardComplete"], "Counter Mode completion should update the dashboard count to all staged")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-final-parts]").click()
@@ -908,6 +913,17 @@ async def assert_garage_features(page, page_name):
     )
     assert_true(final_parts_focus_state["focusedFinalParts"], "Open Final Parts should focus the final part-number handoff input")
     assert_true("Opened Final Part Numbers" in final_parts_focus_state["status"], "Open Final Parts should report where the user landed")
+    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-fill='staged']").click()
+    await page.wait_for_timeout(150)
+    staged_final_parts_state = await page.evaluate(
+        """() => ({
+            draft: document.querySelector("#maintenance-note-preview [data-maintenance-final-parts-input]")?.value || "",
+            status: document.querySelector("#maintenance-note-preview [data-maintenance-note-status]")?.textContent || ""
+        })"""
+    )
+    assert_true("0W-20 oil and final dipstick level check" in staged_final_parts_state["draft"], "staged final-part helper should draft from completed Counter Mode lines")
+    assert_true("Maintenance Minder A1 planner: Rotate tires" in staged_final_parts_state["draft"], "staged final-part helper should include all staged saved-note lines")
+    assert_true("Staged lines were copied into the final-parts draft" in staged_final_parts_state["status"], "staged final-part helper should report its source")
     await page.locator("#maintenance-note-preview [data-maintenance-staging-filter='all']").click()
     await page.wait_for_timeout(150)
     await page.locator("#maintenance-note-preview [data-maintenance-staging-bulk='reset-staged']").click()
@@ -937,7 +953,7 @@ async def assert_garage_features(page, page_name):
     assert_true(share_state["title"] == "Ridgeline Need-To-Buy Maintenance List", "Share Buy List should use a clear share-sheet title")
     assert_true("Remaining items only" in share_state["text"], "Share Buy List should share the need-to-buy export text")
     assert_true("0W-20 oil and final dipstick level check" in share_state["text"], "Share Buy List should include derived maintenance staging lines")
-    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-fill]").click()
+    await page.locator("#maintenance-note-preview [data-maintenance-final-parts-fill='need']").click()
     await page.wait_for_timeout(150)
     final_parts_draft = await page.locator("#maintenance-note-preview [data-maintenance-final-parts-input]").input_value()
     assert_true("Maintenance Minder A1 planner: Rotate tires" in final_parts_draft, "final part-number helper should draft from current need-to-buy lines")
