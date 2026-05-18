@@ -545,6 +545,20 @@ function removeCustomMaintenanceStagingItem(line = "") {
   setMaintenanceNoteStatus(`Removed ${normalized} from the local-only staging list.`);
 }
 
+function clearCustomMaintenanceStagingItems() {
+  const items = loadCustomMaintenanceStagingItems();
+  if (!items.length) {
+    setMaintenanceNoteStatus("No one-off store items are in the local-only staging list.");
+    return;
+  }
+
+  saveCustomMaintenanceStagingItems([]);
+  items.forEach((item) => setMaintenanceStagingStatus(MAINTENANCE_CUSTOM_STAGING_TITLE, item, "need"));
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(`Cleared ${items.length} one-off store item${items.length === 1 ? "" : "s"} from the local-only staging list.`);
+}
+
 function getMaintenanceNoteItems() {
   const notes = loadJson(STORAGE.notes, {});
   const generalNotes = `${notes.general_notes || ""}`.trim();
@@ -737,6 +751,7 @@ function maintenanceStagingGuideMarkup(items = getMaintenanceNoteItems()) {
 }
 
 function maintenanceCustomStagingMarkup() {
+  const customCount = loadCustomMaintenanceStagingItems().length;
   return `
     <form class="maintenance-custom-staging-form" data-maintenance-custom-staging-form>
       <label>
@@ -756,7 +771,10 @@ function maintenanceCustomStagingMarkup() {
         (item) => `<button class="staging-suggestion" type="button" data-maintenance-custom-staging-suggestion="${escapeHtml(item)}">${escapeHtml(item)}</button>`
       ).join("")}
     </div>
-    <p class="small-note">One-off items are quick local helpers for this iPhone and are not included in Garage backup or sync.</p>
+    <div class="maintenance-custom-staging-clear">
+      <p class="small-note">One-off items are quick local helpers for this iPhone and are not included in Garage backup or sync.</p>
+      <button class="ghost-button" type="button" data-maintenance-custom-staging-clear ${customCount ? "" : "disabled"}>Clear One-Offs</button>
+    </div>
   `;
 }
 
@@ -804,6 +822,7 @@ function maintenanceStageConfirmationMarkup(items = getMaintenanceNoteItems()) {
         <button class="utility-link" type="button" data-copy-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Copy Buy List</button>
         <button class="utility-link" type="button" data-save-maintenance-needed-inline ${summary.need ? "" : "disabled"}>Save Buy Note</button>
         <button class="utility-link" type="button" data-save-maintenance-run-inline ${summary.total ? "" : "disabled"}>Save Run Note</button>
+        <button class="utility-link" type="button" data-dismiss-maintenance-stage-confirmation>Dismiss</button>
         <a class="utility-link" href="#notes">Open Full Note</a>
       </div>
     </article>
@@ -2052,6 +2071,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
     return;
   }
 
+  const clearCustomButton = event.target.closest("[data-maintenance-custom-staging-clear]");
+  if (clearCustomButton) {
+    clearCustomMaintenanceStagingItems();
+    return;
+  }
+
   const filterButton = event.target.closest("[data-maintenance-staging-filter]");
   if (filterButton) {
     currentMaintenanceStagingFilter = filterButton.dataset.maintenanceStagingFilter || "all";
@@ -2063,6 +2088,15 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
           ? "need-to-buy"
           : "staged";
     setMaintenanceNoteStatus(`Showing ${filterLabel} staging items.`);
+    return;
+  }
+
+  const dismissStageConfirmationButton = event.target.closest("[data-dismiss-maintenance-stage-confirmation]");
+  if (dismissStageConfirmationButton) {
+    currentMaintenanceStageHandoff = null;
+    sessionStorage.removeItem(MAINTENANCE_STAGE_HANDOFF_KEY);
+    renderMaintenancePartsPreview();
+    setMaintenanceNoteStatus("Dismissed the one-visit Maintenance handoff receipt. Saved notes and staging items are still here.");
     return;
   }
 

@@ -450,6 +450,7 @@ async def assert_maintenance_features(page, page_name):
                 hasCopy: Boolean(confirmation?.querySelector("[data-copy-maintenance-needed-inline]")),
                 hasSaveBuy: Boolean(confirmation?.querySelector("[data-save-maintenance-needed-inline]")),
                 hasSaveRun: Boolean(confirmation?.querySelector("[data-save-maintenance-run-inline]")),
+                hasDismiss: Boolean(confirmation?.querySelector("[data-dismiss-maintenance-stage-confirmation]")),
                 previewLines: [...(confirmation?.querySelectorAll(".maintenance-stage-preview li") || [])].map((line) => line.textContent.trim()),
                 hasFreshNote: Boolean(fresh),
                 freshText: fresh?.innerText || "",
@@ -464,12 +465,31 @@ async def assert_maintenance_features(page, page_name):
     assert_true(stage_handoff_state["hasCopy"], "Garage staging handoff confirmation should expose Copy Buy List")
     assert_true(stage_handoff_state["hasSaveBuy"], "Garage staging handoff confirmation should expose Save Buy Note")
     assert_true(stage_handoff_state["hasSaveRun"], "Garage staging handoff confirmation should expose Save Run Note")
+    assert_true(stage_handoff_state["hasDismiss"], "Garage staging handoff confirmation should expose a Dismiss control")
     assert_true(len(stage_handoff_state["previewLines"]) == 2, "Garage staging handoff confirmation should preview just-saved need-to-buy lines without the brake-fluid calendar caution")
     assert_true(any("Replace engine oil" in line for line in stage_handoff_state["previewLines"]), "Garage staging handoff preview should include the just-saved checklist lines")
     assert_true(not any("Brake fluid" in line for line in stage_handoff_state["previewLines"]), "Garage staging handoff preview should not treat the brake-fluid calendar note as a staging line")
     assert_true(stage_handoff_state["hasFreshNote"], "Garage staging should highlight the latest saved maintenance note")
     assert_true("just saved" in stage_handoff_state["freshText"].lower(), "latest saved maintenance note should carry a Just saved marker")
     assert_true(stage_handoff_state["handoffCleared"], "Maintenance Stage handoff should be one-visit session state")
+    await page.locator("#maintenance-note-preview [data-dismiss-maintenance-stage-confirmation]").click()
+    await page.wait_for_timeout(150)
+    dismiss_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            return {
+                hasConfirmation: Boolean(panel?.querySelector("[data-maintenance-stage-confirmation]")),
+                hasFreshNote: Boolean(panel?.querySelector(".maintenance-note-item.is-fresh-maintenance-note")),
+                hasStagingList: Boolean(panel?.querySelector("[data-maintenance-staging-toggle]")),
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                handoffCleared: !sessionStorage.getItem("ridgeline-maintenance-stage-handoff")
+            };
+        }"""
+    )
+    assert_true(not dismiss_state["hasConfirmation"], "dismissing the Maintenance handoff should remove the one-visit receipt")
+    assert_true(dismiss_state["hasStagingList"], "dismissing the Maintenance handoff should keep the saved staging checklist")
+    assert_true(dismiss_state["handoffCleared"], "dismissing the Maintenance handoff should keep session handoff state cleared")
+    assert_true("Dismissed the one-visit Maintenance handoff receipt" in dismiss_state["status"], "dismissing the Maintenance handoff should explain that saved staging remains")
     await page.go_back(wait_until="load")
     await page.wait_for_selector("#minder-pocket-planner [data-minder-code-input]", state="attached")
     await assert_scroll_unlocked(page, "service prep planner")
@@ -998,6 +1018,7 @@ async def assert_garage_features(page, page_name):
                 customCount: customItems.length,
                 customOutsideNotes: !notes.includes("Shop towels"),
                 hasRemove: Boolean(panel?.querySelector("[data-maintenance-custom-staging-remove]")),
+                hasClear: Boolean(panel?.querySelector("[data-maintenance-custom-staging-clear]")),
                 suggestionCount: panel?.querySelectorAll("[data-maintenance-custom-staging-suggestion]").length || 0,
                 kitCount: panel?.querySelectorAll("[data-maintenance-custom-staging-kit]").length || 0,
                 hasOilKit: Boolean(panel?.querySelector("[data-maintenance-custom-staging-kit='Oil run']"))
@@ -1010,8 +1031,32 @@ async def assert_garage_features(page, page_name):
     assert_true(custom_state["customCount"] == 4, "custom one-off quick kit should persist in the local-only helper key")
     assert_true(custom_state["customOutsideNotes"], "custom one-off quick kit should not be written into Garage notes")
     assert_true(custom_state["hasRemove"], "custom one-off staging item should expose a remove control")
+    assert_true(custom_state["hasClear"], "custom one-off staging items should expose a clear-all control")
     assert_true(custom_state["suggestionCount"] >= 6, "custom one-off staging quick-add suggestions should render")
     assert_true(custom_state["kitCount"] >= 4 and custom_state["hasOilKit"], "custom one-off staging quick kits should render")
+    await page.locator("#maintenance-note-preview [data-maintenance-custom-staging-clear]").click()
+    await page.wait_for_timeout(150)
+    clear_custom_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#maintenance-note-preview");
+            const stagingCardText = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((card) => card.textContent.includes("Parts Staging"))?.innerText || "";
+            const customItems = JSON.parse(localStorage.getItem("ridgeline-maintenance-custom-staging") || "[]");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}").general_notes || "";
+            return {
+                status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
+                text: panel?.querySelector("[data-maintenance-parts-preview]")?.innerText || "",
+                dashboardReset: stagingCardText.includes("3 need / 0 staged"),
+                customCount: customItems.length,
+                customOutsideNotes: !notes.includes("Shop towels")
+            };
+        }"""
+    )
+    assert_true("Cleared 4 one-off store items" in clear_custom_state["status"], "custom one-off clear control did not report cleared item count")
+    assert_true(clear_custom_state["customCount"] == 0, "custom one-off clear control should empty the local-only helper key")
+    assert_true("One-Off Store Items" not in clear_custom_state["text"], "custom one-off clear control should remove the one-off group from the staging list")
+    assert_true(clear_custom_state["dashboardReset"], "custom one-off clear control should restore dashboard staging counts")
+    assert_true(clear_custom_state["customOutsideNotes"], "custom one-off clear control should not write helper items into Garage notes")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     garage_mobile_state = await page.evaluate(

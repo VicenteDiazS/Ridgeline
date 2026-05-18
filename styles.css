@@ -6024,6 +6024,17 @@ kbd {
   gap: 6px;
 }
 
+.maintenance-custom-staging-clear {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.maintenance-custom-staging-clear p {
+  margin: 0;
+}
+
 .maintenance-custom-staging-kits {
   display: grid;
   grid-template-columns: auto repeat(4, minmax(0, 1fr));
@@ -9143,6 +9154,14 @@ kbd {
   .maintenance-custom-staging-suggestions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .maintenance-custom-staging-clear {
+    grid-template-columns: 1fr;
+  }
+
+  .maintenance-custom-staging-clear .ghost-button {
+    width: 100%;
   }
 
   .staging-suggestion {
