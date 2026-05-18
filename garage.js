@@ -817,6 +817,7 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
       </div>
       <div class="inspector-actions">
         <button class="ghost-button" type="button" data-maintenance-counter-mark-next>Mark Next Staged</button>
+        <button class="ghost-button" type="button" data-maintenance-counter-copy-next>Copy Next Item</button>
         ${
           lastStaged
             ? `<button class="ghost-button" type="button" data-maintenance-counter-undo>Undo Last</button>`
@@ -1021,6 +1022,22 @@ function markNextMaintenanceCounterItemStaged() {
       ? `Marked next Counter Mode item staged. ${remaining} need-to-buy item${remaining === 1 ? "" : "s"} remain.`
       : "Marked the last Counter Mode item staged. Save final part numbers after receipt or catalog verification."
   );
+}
+
+function copyNextMaintenanceCounterItem() {
+  const nextItem = maintenanceCounterNeedItems()[0];
+  if (!nextItem) {
+    setMaintenanceNoteStatus("No Counter Mode need-to-buy item is ready to copy.");
+    return;
+  }
+
+  copyText(nextItem.line)
+    .then(() => {
+      setMaintenanceNoteStatus(`Copied next Counter Mode item from ${nextItem.title}.`);
+    })
+    .catch(() => {
+      setMaintenanceNoteStatus("Could not copy the next Counter Mode item automatically.");
+    });
 }
 
 function undoLastMaintenanceCounterItem() {
@@ -2302,6 +2319,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterMarkNextButton = event.target.closest("[data-maintenance-counter-mark-next]");
   if (counterMarkNextButton) {
     markNextMaintenanceCounterItemStaged();
+    return;
+  }
+
+  const counterCopyNextButton = event.target.closest("[data-maintenance-counter-copy-next]");
+  if (counterCopyNextButton) {
+    copyNextMaintenanceCounterItem();
     return;
   }
 

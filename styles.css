@@ -9219,7 +9219,11 @@ kbd {
   }
 
   .maintenance-counter-panel {
+    position: sticky;
+    top: calc(var(--header-height, 72px) + 8px);
+    z-index: 8;
     grid-template-columns: 1fr;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.26);
   }
 
   .maintenance-counter-panel .inspector-actions {

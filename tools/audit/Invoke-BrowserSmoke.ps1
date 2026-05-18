@@ -744,6 +744,7 @@ async def assert_garage_features(page, page_name):
                 hasCounterPanel: Boolean(counterPanel),
                 counterText: counterPanel?.innerText || "",
                 hasMarkNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-mark-next]")),
+                hasCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
                 status: panel.querySelector("[data-maintenance-note-status]")?.textContent || ""
             };
         }"""
@@ -754,7 +755,12 @@ async def assert_garage_features(page, page_name):
     assert_true("Next Need-To-Buy Item" in counter_mode_state["counterText"], "Counter Mode panel should name the next need-to-buy item")
     assert_true("Replace engine oil" in counter_mode_state["counterText"] or "Rotate tires" in counter_mode_state["counterText"], "Counter Mode panel should surface the next current need-to-buy line")
     assert_true(counter_mode_state["hasMarkNext"], "Counter Mode panel should expose Mark Next Staged")
+    assert_true(counter_mode_state["hasCopyNext"], "Counter Mode panel should expose Copy Next Item")
     assert_true("Counter Mode is showing 3 need-to-buy items" in counter_mode_state["status"], "Counter Mode should report the need-to-buy count")
+    await page.locator("#maintenance-note-preview [data-maintenance-counter-copy-next]").click()
+    await page.wait_for_timeout(150)
+    copy_next_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
+    assert_true("Copied next Counter Mode item" in copy_next_status, "Counter Mode Copy Next Item did not report success")
     await page.locator("#maintenance-note-preview [data-maintenance-counter-mark-next]").click()
     await page.wait_for_timeout(150)
     counter_next_state = await page.evaluate(
@@ -1142,10 +1148,14 @@ async def assert_garage_features(page, page_name):
     assert_true(clear_custom_state["customOutsideNotes"], "custom one-off clear control should not write helper items into Garage notes")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
+    await page.locator("#maintenance-note-preview .maintenance-staging-run [data-maintenance-counter-mode]").click()
+    await page.wait_for_timeout(150)
     garage_mobile_state = await page.evaluate(
         """() => {
             const preview = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
             const partsPreview = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview] .maintenance-parts-groups");
+            const counterPanel = document.querySelector("#maintenance-note-preview [data-maintenance-counter-panel]");
+            const counterStyle = counterPanel ? getComputedStyle(counterPanel) : null;
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const partsColumns = partsPreview ? getComputedStyle(partsPreview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
@@ -1153,6 +1163,8 @@ async def assert_garage_features(page, page_name):
                 overflow: width > document.documentElement.clientWidth + 1,
                 columns,
                 partsColumns,
+                counterSticky: counterStyle?.position === "sticky",
+                hasCounterCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
                 hasContextRoute: Boolean(document.querySelector('.context-action[href="#maintenance-note-preview"]'))
             };
         }"""
@@ -1160,6 +1172,8 @@ async def assert_garage_features(page, page_name):
     assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
+    assert_true(garage_mobile_state["counterSticky"], "Counter Mode panel should stay sticky on iPhone width")
+    assert_true(garage_mobile_state["hasCounterCopyNext"], "Counter Mode mobile panel is missing Copy Next Item")
     assert_true(garage_mobile_state["hasContextRoute"], "garage contextual bottom bar is missing the staging route")
     await page.locator('.context-action[href="#maintenance-note-preview"]').click()
     await page.wait_for_timeout(700)
