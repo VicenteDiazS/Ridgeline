@@ -822,6 +822,7 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
           }
           <button class="ghost-button" type="button" data-save-maintenance-run-inline>Save Run Note</button>
           <button class="ghost-button" type="button" data-maintenance-counter-final-parts>Open Final Parts</button>
+          <button class="ghost-button" type="button" data-maintenance-counter-draft-staged>Draft Staged Parts</button>
           <button class="ghost-button" type="button" data-maintenance-counter-exit>Exit Counter Mode</button>
         </div>
       </section>
@@ -1185,7 +1186,7 @@ function undoLastMaintenanceCounterItem() {
   setMaintenanceNoteStatus(`Undid the last Counter Mode item: ${restoredLine} is back on the need-to-buy list.`);
 }
 
-function openCounterFinalParts() {
+function openCounterFinalParts(statusMessage = "Opened Final Part Numbers. Save only user-confirmed part numbers or store SKUs here.") {
   const target = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts]");
   const input = maintenancePartsPreview?.querySelector("[data-maintenance-final-parts-input]");
   if (!target) {
@@ -1195,7 +1196,12 @@ function openCounterFinalParts() {
 
   target.scrollIntoView({ block: "nearest" });
   input?.focus({ preventScroll: true });
-  setMaintenanceNoteStatus("Opened Final Part Numbers. Save only user-confirmed part numbers or store SKUs here.");
+  setMaintenanceNoteStatus(statusMessage);
+}
+
+function draftCounterStagedFinalParts() {
+  fillMaintenanceFinalPartsDraft("staged");
+  openCounterFinalParts("Drafted staged lines into Final Part Numbers. Add confirmed part numbers before saving.");
 }
 
 function renderMaintenancePartsPreview(items = getMaintenanceNoteItems()) {
@@ -2504,6 +2510,12 @@ maintenancePartsPreview?.addEventListener("click", (event) => {
   const counterFinalPartsButton = event.target.closest("[data-maintenance-counter-final-parts]");
   if (counterFinalPartsButton) {
     openCounterFinalParts();
+    return;
+  }
+
+  const counterDraftStagedButton = event.target.closest("[data-maintenance-counter-draft-staged]");
+  if (counterDraftStagedButton) {
+    draftCounterStagedFinalParts();
     return;
   }
 
