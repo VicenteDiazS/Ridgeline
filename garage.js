@@ -70,6 +70,14 @@ let pendingGarageBackup = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const MAINTENANCE_CUSTOM_STAGING_KEY = "ridgeline-maintenance-custom-staging";
 const MAINTENANCE_CUSTOM_STAGING_TITLE = "One-Off Store Items";
+const MAINTENANCE_CUSTOM_STAGING_SUGGESTIONS = [
+  "Shop towels",
+  "Funnel",
+  "Gloves",
+  "Brake cleaner",
+  "Trim clips",
+  "Drain pan"
+];
 const GARAGE_BACKUP_LABELS = {
   [STORAGE.notes]: "notes",
   [STORAGE.tracker]: "tracker",
@@ -650,6 +658,11 @@ function maintenanceCustomStagingMarkup() {
       </label>
       <button class="ghost-button" type="submit">Add Item</button>
     </form>
+    <div class="maintenance-custom-staging-suggestions" aria-label="Quick add common one-off store items">
+      ${MAINTENANCE_CUSTOM_STAGING_SUGGESTIONS.map(
+        (item) => `<button class="staging-suggestion" type="button" data-maintenance-custom-staging-suggestion="${escapeHtml(item)}">${escapeHtml(item)}</button>`
+      ).join("")}
+    </div>
     <p class="small-note">One-off items are quick local helpers for this iPhone and are not included in Garage backup or sync.</p>
   `;
 }
@@ -1877,6 +1890,12 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
 });
 maintenancePartsPreview?.addEventListener("click", (event) => {
+  const suggestionButton = event.target.closest("[data-maintenance-custom-staging-suggestion]");
+  if (suggestionButton) {
+    addCustomMaintenanceStagingItem(suggestionButton.dataset.maintenanceCustomStagingSuggestion || "");
+    return;
+  }
+
   const removeCustomButton = event.target.closest("[data-maintenance-custom-staging-remove]");
   if (removeCustomButton) {
     removeCustomMaintenanceStagingItem(removeCustomButton.dataset.maintenanceCustomStagingRemove || "");

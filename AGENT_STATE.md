@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Current Site Status
 
@@ -53,6 +53,7 @@ Last updated: 2026-05-17
 - Garage Parts And Supplies Staging now includes Save Buy Note in the handoff receipt and store-run summary. It snapshots only the current need-to-buy export into existing Garage Notes, keeps Need/Staged toggle state local-only, and saved-note cards now show whether each note produced staging lines.
 - Garage Parts And Supplies Staging now includes per-saved-note Copy Need, Share Need, and Save Need controls inside each staging group. These export only that saved planner note's remaining need-to-buy lines; saved per-note snapshots use a `Job Buy List` heading plus a source note so they do not reappear as parsed planner cards.
 - Garage Parts And Supplies Staging now includes local-only one-off store items. The Garage staging panel can add/remove quick extra items such as shop towels, includes them in run/buy exports and Need/Staged counts, stores them in `ridgeline-maintenance-custom-staging`, and keeps them outside Garage backup/sync and saved Garage Notes unless the user chooses a snapshot action.
+- Garage Parts And Supplies Staging now has one-tap quick-add chips for common one-off store items: Shop towels, Funnel, Gloves, Brake cleaner, Trim clips, and Drain pan. The chips reuse the existing local-only one-off item path, update counts/exports, and stay outside Garage backup/sync and Garage Notes unless the user saves a snapshot.
 - Hood and Cabin fuse pages now include generated Fuse Label Glossary sections that expose plain-English shorthand definitions already used by the fuse inspector, without changing fuse positions, ratings, or source-conflict notes.
 - Quick Sheet now includes a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, plus a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
@@ -398,4 +399,8 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('maintenance.html','garage.html') -Tag audit-v295-custom-staging -SkipScreenshots"`; link checks, Garage restore Playwright audit, and Maintenance/Garage browser smoke passed.
 - Captured direct Playwright screenshots with file-access flags at `debug-screenshots/audit-v295-custom-staging-mobile-garage.png` and `debug-screenshots/audit-v295-custom-staging-desktop-garage.png`; both confirmed the one-off item panel renders with no horizontal overflow.
-- Next safe slice: review the Maintenance-to-Garage Stage receipt, one-off item entry/removal, per-note Need actions, Save Buy Note / Save Run Note wording, and iOS share-sheet behavior on the user's real iPhone, then consider job-template or inventory-schema work only after the no-schema staging workflow is validated in real use.
+- Added quick-add chips to Garage one-off store items, so common extras can be added with one tap on iPhone while still using `ridgeline-maintenance-custom-staging` and staying outside Garage backup/sync. The quick-add terms are included in search and the service worker cache is `ridgeline-console-v296`.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html','maintenance.html')"`; targeted Maintenance/Garage smoke passed, including the quick-add chip path.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('garage.html','maintenance.html') -Tag audit-v296-staging-quick-add -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Maintenance/Garage browser smoke passed.
+- Captured direct Playwright iPhone screenshot at `debug-screenshots/audit-v296-staging-quick-add-mobile-garage.png`; the check confirmed six quick-add chips, Shop towels added through a chip, no horizontal overflow, and local-only status text.
+- Next safe slice: review the Maintenance-to-Garage Stage receipt, quick-add one-off item chips/removal, per-note Need actions, Save Buy Note / Save Run Note wording, and iOS share-sheet behavior on the user's real iPhone, then consider job-template or inventory-schema work only after the no-schema staging workflow is validated in real use.
