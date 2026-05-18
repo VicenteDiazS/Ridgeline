@@ -1143,11 +1143,35 @@ function scrollToHashValue(hashValue, behavior = "smooth") {
   return true;
 }
 
-function scheduleHashScroll(hashValue = location.hash, behavior = "auto") {
-  const delays = [0, 80, 220, 520, 1000, 1800, 2800, 4200, 6000];
-  delays.forEach((delay) => {
-    window.setTimeout(() => scrollToHashValue(hashValue, behavior), delay);
-  });
+let pendingHashScrollTimers = [];
+
+function clearScheduledHashScroll() {
+  pendingHashScrollTimers.forEach((timer) => window.clearTimeout(timer));
+  pendingHashScrollTimers = [];
+}
+
+function scheduleHashScroll(hashValue = location.hash, behavior = "auto", delays = [0, 120, 360]) {
+  clearScheduledHashScroll();
+
+  const stop = () => {
+    clearScheduledHashScroll();
+    window.removeEventListener("pointerdown", stop, true);
+    window.removeEventListener("touchstart", stop, true);
+    window.removeEventListener("wheel", stop, true);
+    window.removeEventListener("keydown", stop, true);
+  };
+
+  window.addEventListener("pointerdown", stop, true);
+  window.addEventListener("touchstart", stop, true);
+  window.addEventListener("wheel", stop, true);
+  window.addEventListener("keydown", stop, true);
+
+  pendingHashScrollTimers = delays.map((delay) => window.setTimeout(() => {
+    scrollToHashValue(hashValue, behavior);
+    if (delay === delays[delays.length - 1]) {
+      stop();
+    }
+  }, delay));
 }
 
 function keepHashTargetAligned(hashValue = location.hash, behavior = "auto", duration = 6500) {
@@ -1162,6 +1186,7 @@ function keepHashTargetAligned(hashValue = location.hash, behavior = "auto", dur
     }
 
     stopped = true;
+    clearScheduledHashScroll();
     observer?.disconnect();
     clearInterval(interval);
     window.removeEventListener("pointerdown", stop, true);
@@ -4173,13 +4198,15 @@ if (location.hash || new URLSearchParams(location.search).has("nfc")) {
   requestAnimationFrame(scrollToHashTarget);
   window.addEventListener("load", () => {
     const targetHash = currentDeepTargetHash();
-    scheduleHashScroll(targetHash, "auto");
-    keepHashTargetAligned(targetHash, "auto");
-    setTimeout(scrollToHashTarget, 1800);
+    scheduleHashScroll(targetHash, "auto", [0, 120, 360, 900]);
+    keepHashTargetAligned(targetHash, "auto", 1400);
   });
 }
 
-window.addEventListener("hashchange", () => requestAnimationFrame(scrollToHashTarget));
+window.addEventListener("hashchange", () => {
+  clearScheduledHashScroll();
+  requestAnimationFrame(scrollToHashTarget);
+});
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[href]");
   if (!link) {
@@ -4195,8 +4222,8 @@ document.addEventListener("click", (event) => {
   const nextLocation = `${localUrl.pathname}${localUrl.search}${localUrl.hash}`;
   history.pushState({}, "", nextLocation);
   scrollToHashValue(localUrl.hash, "smooth");
-  scheduleHashScroll(localUrl.hash, "smooth");
-  keepHashTargetAligned(localUrl.hash, "smooth", 2600);
+  scheduleHashScroll(localUrl.hash, "smooth", [120, 360]);
+  keepHashTargetAligned(localUrl.hash, "smooth", 900);
 });
 
 function applyGarageMode(enabled) {
