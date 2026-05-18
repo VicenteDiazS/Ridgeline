@@ -1734,6 +1734,22 @@ function buildScrollProgress() {
   window.addEventListener("resize", update, { passive: true });
 }
 
+function bindCompactStickyHeader() {
+  if (!topbar) {
+    return;
+  }
+
+  const update = () => {
+    const compact = window.matchMedia("(max-width: 760px)").matches && window.scrollY > 84;
+    topbar.classList.toggle("is-compact", compact);
+    document.body.classList.toggle("has-compact-topbar", compact);
+  };
+
+  update();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update, { passive: true });
+}
+
 function buildSectionStepper(sections) {
   if (
     !sections.length ||
@@ -4119,6 +4135,7 @@ const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
 buildBackToMapButton();
 buildScrollProgress();
+bindCompactStickyHeader();
 if (!isMobileNavMode) {
   buildSectionStepper(pageSections);
 }

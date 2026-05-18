@@ -10580,6 +10580,55 @@ body {
     flex-basis: 16px;
     margin: 0;
   }
+
+  .topbar {
+    transition:
+      padding 160ms ease,
+      border-radius 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .topbar.is-compact {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 4px;
+    border-radius: 15px;
+    background:
+      linear-gradient(135deg, rgba(17, 25, 34, 0.98), rgba(6, 10, 16, 0.94)),
+      rgba(5, 10, 16, 0.94);
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .topbar.is-compact .brand,
+  .topbar.is-compact .header-quick-nav {
+    display: none;
+  }
+
+  .topbar.is-compact .header-current-page {
+    min-height: 28px;
+    padding: 3px 8px;
+  }
+
+  .topbar.is-compact .header-current-page span {
+    display: none;
+  }
+
+  .topbar.is-compact .header-current-page strong {
+    font-size: 0.7rem;
+  }
+
+  .topbar.is-compact .topbar-actions {
+    width: 100%;
+  }
+
+  .topbar.is-compact .topbar-actions > .header-nav-button,
+  .topbar.is-compact .topbar-actions > .search-button {
+    min-height: 31px;
+    border-radius: 10px;
+  }
 }
 
 /* Sleeker home button treatment for the Ridgeline brand link. */
