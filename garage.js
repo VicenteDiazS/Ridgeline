@@ -78,6 +78,24 @@ const MAINTENANCE_CUSTOM_STAGING_SUGGESTIONS = [
   "Trim clips",
   "Drain pan"
 ];
+const MAINTENANCE_CUSTOM_STAGING_KITS = [
+  {
+    label: "Oil run",
+    items: ["Shop towels", "Funnel", "Gloves", "Drain pan"]
+  },
+  {
+    label: "Filter run",
+    items: ["Gloves", "Shop towels"]
+  },
+  {
+    label: "Electrical check",
+    items: ["Trim clips", "Gloves"]
+  },
+  {
+    label: "Cleanup",
+    items: ["Shop towels", "Brake cleaner", "Gloves"]
+  }
+];
 const GARAGE_BACKUP_LABELS = {
   [STORAGE.notes]: "notes",
   [STORAGE.tracker]: "tracker",
@@ -488,6 +506,30 @@ function addCustomMaintenanceStagingItem(value = "") {
   return true;
 }
 
+function addCustomMaintenanceStagingKit(label = "") {
+  const kit = MAINTENANCE_CUSTOM_STAGING_KITS.find((item) => item.label.toLowerCase() === `${label}`.toLowerCase());
+  if (!kit) {
+    return;
+  }
+
+  const existing = loadCustomMaintenanceStagingItems();
+  const existingKeys = new Set(existing.map((item) => item.toLowerCase()));
+  const newItems = kit.items
+    .map((item) => normalizeMaintenanceLine(item).slice(0, 90))
+    .filter((item) => item && !existingKeys.has(item.toLowerCase()));
+
+  if (!newItems.length) {
+    setMaintenanceNoteStatus(`${kit.label} quick kit is already in the local-only staging list.`);
+    return;
+  }
+
+  saveCustomMaintenanceStagingItems([...newItems, ...existing]);
+  newItems.forEach((item) => setMaintenanceStagingStatus(MAINTENANCE_CUSTOM_STAGING_TITLE, item, "need"));
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  setMaintenanceNoteStatus(`Added ${newItems.length} ${kit.label} item${newItems.length === 1 ? "" : "s"} to the local-only staging list.`);
+}
+
 function removeCustomMaintenanceStagingItem(line = "") {
   const normalized = normalizeMaintenanceLine(line);
   if (!normalized) {
@@ -658,6 +700,12 @@ function maintenanceCustomStagingMarkup() {
       </label>
       <button class="ghost-button" type="submit">Add Item</button>
     </form>
+    <div class="maintenance-custom-staging-kits" aria-label="Quick add one-off store kits">
+      <span>Quick kits</span>
+      ${MAINTENANCE_CUSTOM_STAGING_KITS.map(
+        (kit) => `<button class="staging-kit" type="button" data-maintenance-custom-staging-kit="${escapeHtml(kit.label)}">${escapeHtml(kit.label)}</button>`
+      ).join("")}
+    </div>
     <div class="maintenance-custom-staging-suggestions" aria-label="Quick add common one-off store items">
       ${MAINTENANCE_CUSTOM_STAGING_SUGGESTIONS.map(
         (item) => `<button class="staging-suggestion" type="button" data-maintenance-custom-staging-suggestion="${escapeHtml(item)}">${escapeHtml(item)}</button>`
@@ -1890,6 +1938,12 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceNote(Number(button.dataset.copyMaintenanceNoteIndex || 0));
 });
 maintenancePartsPreview?.addEventListener("click", (event) => {
+  const kitButton = event.target.closest("[data-maintenance-custom-staging-kit]");
+  if (kitButton) {
+    addCustomMaintenanceStagingKit(kitButton.dataset.maintenanceCustomStagingKit || "");
+    return;
+  }
+
   const suggestionButton = event.target.closest("[data-maintenance-custom-staging-suggestion]");
   if (suggestionButton) {
     addCustomMaintenanceStagingItem(suggestionButton.dataset.maintenanceCustomStagingSuggestion || "");

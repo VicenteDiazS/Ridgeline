@@ -46,6 +46,7 @@ SEARCH_EXPECTATIONS = {
     "parts staging list": "Saved Maintenance Notes",
     "one-off store item": "Saved Maintenance Notes",
     "quick add store item": "Saved Maintenance Notes",
+    "quick kit": "Saved Maintenance Notes",
     "need to buy": "Saved Maintenance Notes",
     "save buy note": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
@@ -952,7 +953,7 @@ async def assert_garage_features(page, page_name):
     await page.wait_for_timeout(150)
     item_staging_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
     assert_true("Copied staging list for this saved note" in item_staging_status, "saved maintenance note item staging copy did not report success")
-    await page.locator("#maintenance-note-preview [data-maintenance-custom-staging-suggestion='Shop towels']").click()
+    await page.locator("#maintenance-note-preview [data-maintenance-custom-staging-kit='Oil run']").click()
     await page.wait_for_timeout(150)
     custom_state = await page.evaluate(
         """() => {
@@ -964,21 +965,24 @@ async def assert_garage_features(page, page_name):
             return {
                 status: panel?.querySelector("[data-maintenance-note-status]")?.textContent || "",
                 text: panel?.querySelector("[data-maintenance-parts-preview]")?.innerText || "",
-                dashboardUpdated: stagingCardText.includes("4 need / 0 staged"),
+                dashboardUpdated: stagingCardText.includes("7 need / 0 staged"),
                 customCount: customItems.length,
                 customOutsideNotes: !notes.includes("Shop towels"),
                 hasRemove: Boolean(panel?.querySelector("[data-maintenance-custom-staging-remove]")),
-                suggestionCount: panel?.querySelectorAll("[data-maintenance-custom-staging-suggestion]").length || 0
+                suggestionCount: panel?.querySelectorAll("[data-maintenance-custom-staging-suggestion]").length || 0,
+                kitCount: panel?.querySelectorAll("[data-maintenance-custom-staging-kit]").length || 0,
+                hasOilKit: Boolean(panel?.querySelector("[data-maintenance-custom-staging-kit='Oil run']"))
             };
         }"""
     )
-    assert_true("Added Shop towels to the local-only staging list" in custom_state["status"], "custom one-off staging item did not report add success")
-    assert_true("One-Off Store Items" in custom_state["text"] and "Shop towels" in custom_state["text"], "custom one-off staging item did not render in the staging list")
-    assert_true(custom_state["dashboardUpdated"], "custom one-off staging item should update the dashboard staging count")
-    assert_true(custom_state["customCount"] == 1, "custom one-off staging item should persist in the local-only helper key")
-    assert_true(custom_state["customOutsideNotes"], "custom one-off staging item should not be written into Garage notes")
+    assert_true("Added 4 Oil run items to the local-only staging list" in custom_state["status"], "custom one-off quick kit did not report add success")
+    assert_true("One-Off Store Items" in custom_state["text"] and "Shop towels" in custom_state["text"] and "Drain pan" in custom_state["text"], "custom one-off quick kit did not render in the staging list")
+    assert_true(custom_state["dashboardUpdated"], "custom one-off quick kit should update the dashboard staging count")
+    assert_true(custom_state["customCount"] == 4, "custom one-off quick kit should persist in the local-only helper key")
+    assert_true(custom_state["customOutsideNotes"], "custom one-off quick kit should not be written into Garage notes")
     assert_true(custom_state["hasRemove"], "custom one-off staging item should expose a remove control")
     assert_true(custom_state["suggestionCount"] >= 6, "custom one-off staging quick-add suggestions should render")
+    assert_true(custom_state["kitCount"] >= 4 and custom_state["hasOilKit"], "custom one-off staging quick kits should render")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     garage_mobile_state = await page.evaluate(

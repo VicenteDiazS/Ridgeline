@@ -6024,6 +6024,24 @@ kbd {
   gap: 6px;
 }
 
+.maintenance-custom-staging-kits {
+  display: grid;
+  grid-template-columns: auto repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(255, 210, 122, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 210, 122, 0.045);
+}
+
+.maintenance-custom-staging-kits > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .staging-suggestion {
   min-height: 34px;
   padding: 6px 9px;
@@ -6037,8 +6055,23 @@ kbd {
   line-height: 1.2;
 }
 
+.staging-kit {
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 210, 122, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 210, 122, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
 .staging-suggestion:hover,
-.staging-suggestion:focus-visible {
+.staging-suggestion:focus-visible,
+.staging-kit:hover,
+.staging-kit:focus-visible {
   border-color: rgba(255, 210, 122, 0.34);
   background: rgba(255, 210, 122, 0.1);
   outline: none;
@@ -9050,6 +9083,19 @@ kbd {
   }
 
   .maintenance-custom-staging-form .ghost-button {
+    width: 100%;
+  }
+
+  .maintenance-custom-staging-kits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .maintenance-custom-staging-kits > span {
+    grid-column: 1 / -1;
+  }
+
+  .staging-kit {
+    min-height: 38px;
     width: 100%;
   }
 
