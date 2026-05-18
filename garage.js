@@ -793,6 +793,7 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
 
   const needItems = maintenanceCounterNeedItems(items);
   const nextItem = needItems[0];
+  const followingItem = needItems[1];
   const skippedCount = maintenanceCounterSkippedKeys.length;
   const lastStaged =
     maintenanceCounterLastStaged &&
@@ -829,8 +830,14 @@ function maintenanceCounterModeMarkup(items = getMaintenanceNoteItems()) {
       <div>
         <p class="eyebrow">Counter Mode</p>
         <h5>Next Need-To-Buy Item</h5>
+        <p class="maintenance-counter-progress">Item 1 of ${needItems.length}</p>
         <p class="maintenance-counter-next">${escapeHtml(nextItem.line)}</p>
         <p class="small-note">${needItems.length} need-to-buy item${needItems.length === 1 ? "" : "s"} remain. Source note: ${escapeHtml(nextItem.title)}.</p>
+        ${
+          followingItem
+            ? `<p class="maintenance-counter-peek">Next up: ${escapeHtml(followingItem.line)}</p>`
+            : `<p class="maintenance-counter-peek">Last item in the current Counter Mode list.</p>`
+        }
         ${
           skippedCount
             ? `<p class="maintenance-counter-skip-note">${skippedCount} skipped for this Counter Mode visit. Skips do not change saved Garage data.</p>`
