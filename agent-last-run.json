@@ -1,22 +1,22 @@
 ﻿{
     "agentName":  "Anton",
     "statusVersion":  4,
-    "status":  "running",
-    "statusTitle":  "Anton is working",
-    "statusDetail":  "The scheduled task started and Anton is launching Codex for the next site-improvement slice.",
-    "phase":  "Starting Codex",
-    "actionRequired":  "No action needed. Refresh this page after the run finishes to see the commit, files, and summary.",
-    "failureKind":  "",
-    "diagnostic":  "",
+    "status":  "waiting-for-tokens-or-auth",
+    "statusTitle":  "Anton could not use Codex",
+    "statusDetail":  "Codex exited with code 1. Check the captured stdout/stderr for the exact cause. See C:\\Users\\diazv\\Desktop\\Ridgeline\\agent-runs\\codex-20260520-021413.log.",
+    "phase":  "Codex unavailable",
+    "actionRequired":  "Check Codex/OpenAI login, quota, token, or rate-limit status. Anton will retry on the next scheduled run.",
+    "failureKind":  "tokens-auth-or-service",
+    "diagnostic":  "chatgpt.com/backend-api/codex/responses\nERROR: Reconnecting... 4/5\n2026-05-20T07:14:22.952795Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: No such host is known. (os error 11001), url: wss://chatgpt.com/backend-api/codex/responses\nERROR: Reconnecting... 5/5\n2026-05-20T07:14:25.942875Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: IO error: No such host is known. (os error 11001), url: wss://chatgpt.com/backend-api/codex/responses\nERROR: Reconnecting... 1/5\nERROR: Reconnecting... 2/5\nERROR: Reconnecting... 3/5\nERROR: Reconnecting... 4/5\nERROR: Reconnecting... 5/5\nERROR: stream disconnected before completion: error sending request for url (https://chatgpt.com/backend-api/codex/responses)\nERROR: stream disconnected before completion: error sending request for url (https://chatgpt.com/backend-api/codex/responses)",
     "startedAt":  "2026-05-20T02:14:12.3715149-05:00",
-    "finishedAt":  "",
-    "lastHeartbeatAt":  "2026-05-20T02:14:12.6385412-05:00",
+    "finishedAt":  "2026-05-20T02:14:51.4294934-05:00",
+    "lastHeartbeatAt":  "2026-05-20T02:14:51.5378937-05:00",
     "intervalMinutes":  90,
-    "nextExpectedRunAt":  null,
-    "durationMinutes":  0,
+    "nextExpectedRunAt":  "2026-05-20T03:44:51.4294934-05:00",
+    "durationMinutes":  0.7,
     "commit":  "",
     "pushed":  false,
-    "summary":  "Agent run started.",
+    "summary":  "Codex exited with code 1. Check the captured stdout/stderr for the exact cause. See C:\\Users\\diazv\\Desktop\\Ridgeline\\agent-runs\\codex-20260520-021413.log.",
     "changedFiles":  [
                          null
                      ],
@@ -25,5 +25,5 @@
     "visibleChange":  "",
     "impactReason":  "",
     "log":  "agent-runs/agent-loop.log",
-    "outputLog":  ""
+    "outputLog":  "agent-runs\\codex-20260520-021413.log"
 }
