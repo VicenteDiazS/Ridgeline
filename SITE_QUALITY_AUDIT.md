@@ -22,6 +22,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Screenshots are captured into `debug-screenshots/` after major UI/navigation changes.
 - Hood and Cabin fuse pages include per-box source-status notes so uncertain or model-dependent fuse rows remain visible instead of silently normalized.
 - Hood and Cabin fuse pages include visible Fuse Label Glossary sections generated from existing fuse-table labels so common shorthand is easier to understand without changing fuse data.
+- Hood and Cabin fuse pages have iPhone-specific fuse lookup styling: diagrams pan inside their own panels, selected fuse details can scroll into view after tapping a diagram position, inspector metadata is compact, and full fuse tables render as labeled card rows instead of requiring sideways table reading.
 - Quick Sheet includes a Fuse Triage section that routes common fuse/electrical symptoms to existing Diagnostics workflows and Cabin glossary references without changing fuse data.
 - Quick Sheet includes a Source Confidence section that exposes truck-label priority, Honda references, accessory wheel instructions, and weaker replacement-battery / fitment-reference cautions.
 - Quick Sheet has print-specific CSS for paper/PDF use, hiding injected navigation/support controls and preserving the emergency card, fuse-triage content, and source-confidence notes.
@@ -96,6 +97,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 ## Latest Verification Notes
 
+- 2026-05-20: Added and verified iPhone fuse-readability coverage for Hood/Cabin. `Invoke-BrowserSmoke.ps1 -Pages @('hood.html','cabin.html')`, `Test-InternalLinks.ps1`, and `Invoke-SiteAudit.ps1 -Pages @('hood.html','cabin.html') -Tag audit-v318-fuse-mobile-cards -SkipScreenshots` passed; the smoke path checks tap-to-inspector behavior, stacked metadata, labeled mobile fuse rows, circuit wrapping, contained diagram panning, and no horizontal overflow.
 - Added keyboard focus behavior for Search and More in `shared-ui.js`: focus moves into the opened dialog/menu and returns to the opener when closed.
 - Improved `Invoke-BrowserSmoke.ps1` with keyboard focus checks for Search, More, Escape close behavior, and focus return.
 - Bumped the service worker cache to `ridgeline-console-v241` so offline installs receive the shared UI change.

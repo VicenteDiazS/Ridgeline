@@ -8189,6 +8189,148 @@ kbd {
   border-top: 0;
 }
 
+@media (max-width: 760px) {
+  .fuse-layout {
+    gap: 10px;
+  }
+
+  .fuse-diagram {
+    padding: 8px;
+    border-radius: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fuse-diagram svg {
+    min-width: 620px;
+    max-height: 58svh;
+  }
+
+  .fuse-diagram svg .fuse-hit {
+    touch-action: manipulation;
+  }
+
+  .fuse-inspector {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .fuse-inspector-title {
+    margin-bottom: 5px;
+    font-size: 1rem;
+  }
+
+  .fuse-inspector-copy,
+  .fuse-inspector-circuit {
+    line-height: 1.45;
+  }
+
+  .fuse-inspector-meta {
+    gap: 7px;
+    margin: 10px 0;
+  }
+
+  .fuse-inspector-meta div {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 8px;
+    align-items: baseline;
+    padding: 8px 9px;
+    border-radius: 10px;
+  }
+
+  .fuse-inspector-meta dt {
+    margin: 0;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+  }
+
+  .fuse-inspector-meta dd {
+    line-height: 1.32;
+    overflow-wrap: anywhere;
+  }
+
+  .table-scroll {
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+
+  .fuse-table,
+  .fuse-table tbody,
+  .fuse-table tr,
+  .fuse-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .fuse-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+  }
+
+  .fuse-table tr:first-child {
+    display: none;
+  }
+
+  .fuse-table tr {
+    margin-bottom: 8px;
+    padding: 9px;
+    border: 1px solid rgba(121, 212, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .fuse-table tr.is-active {
+    border-color: rgba(255, 145, 94, 0.38);
+    background: rgba(255, 145, 94, 0.08);
+  }
+
+  .fuse-table td {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+    padding: 3px 0;
+    border-top: 0;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.36;
+  }
+
+  .fuse-table td::before {
+    color: var(--accent);
+    font-size: 0.64rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .fuse-table td:nth-child(1)::before {
+    content: "Pos";
+  }
+
+  .fuse-table td:nth-child(2)::before {
+    content: "Location";
+  }
+
+  .fuse-table td:nth-child(3)::before {
+    content: "Type";
+  }
+
+  .fuse-table td:nth-child(4)::before {
+    content: "Rating";
+  }
+
+  .fuse-table td:nth-child(5)::before {
+    content: "Circuit";
+  }
+
+  .fuse-table td:first-child {
+    color: #ffe6d8;
+    font-weight: 900;
+  }
+}
+
 .source-note {
   margin: 0;
   color: var(--muted);

@@ -415,7 +415,7 @@ function bindDiagram(diagramEl) {
     renderDefinitionItems(acronymList, found);
   }
 
-  function setActive(position) {
+  function setActive(position, shouldScroll = false) {
     const normalized = normalizePosition(position);
     const entry = entries.get(normalized);
     if (!entry) {
@@ -448,6 +448,10 @@ function bindDiagram(diagramEl) {
       target.text?.classList.add("is-active");
       target.rect?.classList.add("is-active");
     }
+
+    if (shouldScroll && window.matchMedia("(max-width: 760px)").matches) {
+      inspector.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   saveButton?.addEventListener("click", () => {
@@ -479,7 +483,7 @@ function bindDiagram(diagramEl) {
   });
 
   targets.forEach((target) => {
-    const handler = () => setActive(target.position);
+    const handler = () => setActive(target.position, true);
     const interactiveEl = target.element || target.text;
     interactiveEl.addEventListener("click", handler);
     interactiveEl.addEventListener("keydown", (event) => {

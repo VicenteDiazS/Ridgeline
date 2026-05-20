@@ -353,6 +353,51 @@ async def assert_quick_sheet(page, page_name):
         assert_true("noreferrer" in link["rel"], f"source link should use noreferrer {link['href']}")
 
 
+async def assert_fuse_mobile_readability(page, page_name):
+    if page_name not in ["hood.html", "cabin.html"]:
+        return
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(350)
+    keys = ["hood-a", "hood-b"] if page_name == "hood.html" else ["cabin-a", "cabin-b"]
+    for key in keys:
+        await page.locator(f'[data-fuse-diagram="{key}"] [data-fuse-position]').last.click()
+        await page.wait_for_timeout(350)
+        state = await page.evaluate(
+            """(key) => {
+                const diagram = document.querySelector(`[data-fuse-diagram="${key}"]`);
+                const inspector = document.querySelector(`[data-fuse-inspector="${key}"]`);
+                const table = document.querySelector(`[data-fuse-table="${key}"]`);
+                const activeRow = table?.querySelector("tr.is-active");
+                const firstDataCell = table?.querySelector("tr:nth-child(2) td:first-child");
+                const circuitCell = activeRow?.querySelector("td:nth-child(5)");
+                const diagramWidth = diagram?.getBoundingClientRect().width || 0;
+                const svgWidth = diagram?.querySelector("svg")?.getBoundingClientRect().width || 0;
+                const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+                const beforeLabel = firstDataCell ? getComputedStyle(firstDataCell, "::before").content : "";
+                return {
+                    inspectorVisible: Boolean(inspector && !inspector.hidden),
+                    title: inspector?.querySelector(".fuse-inspector-title")?.textContent || "",
+                    metaColumns: inspector ? getComputedStyle(inspector.querySelector(".fuse-inspector-meta")).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                    rowDisplay: activeRow ? getComputedStyle(activeRow).display : "",
+                    circuitWrap: circuitCell ? getComputedStyle(circuitCell).whiteSpace : "",
+                    label: beforeLabel,
+                    diagramPans: svgWidth > diagramWidth,
+                    pageOverflow: docWidth > document.documentElement.clientWidth + 1
+                };
+            }""",
+            key,
+        )
+        assert_true(state["inspectorVisible"], f"{key} fuse inspector did not open after tapping a fuse")
+        assert_true("Fuse" in state["title"], f"{key} fuse inspector title did not update")
+        assert_true(state["metaColumns"] == 1, f"{key} fuse inspector meta should stack on iPhone")
+        assert_true(state["rowDisplay"] == "block", f"{key} fuse table rows should render as mobile cards")
+        assert_true(state["circuitWrap"] != "nowrap", f"{key} fuse circuit cell should wrap on iPhone")
+        assert_true("Pos" in state["label"], f"{key} fuse mobile table should show row labels")
+        assert_true(state["diagramPans"], f"{key} fuse diagram should pan inside its panel on iPhone")
+        assert_true(not state["pageOverflow"], f"{key} fuse page introduced horizontal overflow")
+
+
 async def assert_maintenance_features(page, page_name):
     if page_name != "maintenance.html":
         return
@@ -1576,6 +1621,7 @@ async def smoke_page(context, root, page_name):
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
+    await assert_fuse_mobile_readability(page, page_name)
     await assert_garage_features(page, page_name)
     await run_overlay_checks(page, page_name)
     await assert_section_navigation(page)
