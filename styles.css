@@ -11628,6 +11628,12 @@ body {
   backdrop-filter: blur(14px);
 }
 
+@media (min-width: 761px) {
+  .is-home-page .hotspot-tray {
+    display: none;
+  }
+}
+
 .hotspot-tray-kicker {
   display: block;
   margin-bottom: 4px;
