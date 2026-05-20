@@ -540,6 +540,456 @@ const systems = [
     target: new THREE.Vector3(-1.44, 1.08, 0.98)
   },
   {
+    id: "engine-model-launch",
+    label: "Engine Model",
+    area: "Engine bay 3D reference",
+    use: "Detailed engine-focused model view",
+    description:
+      "Open the dedicated engine experience when the truck-wide map is not specific enough for front-bay orientation or part context.",
+    bullets: [
+      "Best when you want an engine-only 3D view instead of the whole truck.",
+      "Useful for hose, intake, and front-bay orientation work.",
+      "Pairs naturally with the fuse, battery, and service hardware entries."
+    ],
+    links: [{ label: "Open the engine model", url: "engine.html" }],
+    quickFacts: [["View", "Focused engine model"], ["Best page", "Engine"], ["Context", "Front bay detail"]],
+    actions: [
+      { label: "Engine Model", href: "engine.html", description: "Open the dedicated engine 3D model." },
+      { label: "Photo Atlas", href: "photo-atlas.html", description: "Compare the engine bay with real truck photos." },
+      { label: "AR Lab", href: "ar-lab.html", description: "Open the AR experiment view for the truck." }
+    ],
+    labelOffset: { x: 124, y: -132 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.92, 1.74, -0.12),
+    camera: new THREE.Vector3(-4.48, 2.48, -3.54),
+    target: new THREE.Vector3(-1.72, 1.56, -0.02)
+  },
+  {
+    id: "fuse-symptom-route",
+    label: "Fuse Symptom Finder",
+    area: "Electrical symptom routing",
+    use: "Start from a dead feature instead of a fuse number",
+    description:
+      "Use the symptom-first electrical route when you know what failed but do not yet know which fuse table or diagram to open.",
+    bullets: [
+      "Good for outlets, radio, reverse lights, and trailer-light questions.",
+      "Useful when owner wording is clearer than the fuse-box legend.",
+      "Bridges diagnostics flows into the right fuse pages."
+    ],
+    links: [{ label: "Open fuse symptom finder", url: "diagnostics.html#fuse-symptom-finder" }],
+    quickFacts: [["Flow", "Symptom to fuse"], ["Best page", "Diagnostics"], ["Use", "Dead accessory clues"]],
+    actions: [
+      { label: "Fuse Symptoms", href: "diagnostics.html#fuse-symptom-finder", description: "Route from the failed feature into the right fuse references." },
+      { label: "Engine Fuses", href: "hood.html#fuses", description: "Jump straight to the under-hood fuse references." },
+      { label: "Cabin Fuses", href: "cabin.html#fuses", description: "Open the under-dash fuse references." }
+    ],
+    labelOffset: { x: 158, y: -54 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.16, 1.44, 0.52),
+    camera: new THREE.Vector3(-3.02, 2.12, 4.42),
+    target: new THREE.Vector3(-1.02, 1.3, 0.44)
+  },
+  {
+    id: "no-start-route",
+    label: "No-Start Route",
+    area: "Battery and ignition symptom path",
+    use: "Clicks, slow crank, or will not fire",
+    description:
+      "Open the no-start workflow when the truck will not crank or will not fire and you need the shortest route into the existing diagnostic checks.",
+    bullets: [
+      "Starts with the exact symptom before jumping to battery or fuse checks.",
+      "Pairs with jump-start references and the roadside card.",
+      "Useful for weak-battery versus deeper no-start separation."
+    ],
+    links: [{ label: "Open no-start workflow", url: "diagnostics.html#no-start-workflow" }],
+    quickFacts: [["Symptom", "No start"], ["Best page", "Diagnostics"], ["Companion", "Battery / jump-start"]],
+    actions: [
+      { label: "No-Start Flow", href: "diagnostics.html#no-start-workflow", description: "Open the dedicated no-start troubleshooting route." },
+      { label: "Roadside Stack", href: "quick-sheet.html#roadside-action-stack", description: "Keep the no-start roadside moves visible." },
+      { label: "Battery Notes", href: "hood.html#wiring", description: "Review the jump-start and battery references." }
+    ],
+    labelOffset: { x: 174, y: 26 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.94, 1.34, 0.98),
+    camera: new THREE.Vector3(-4.34, 2.18, 4.82),
+    target: new THREE.Vector3(-1.78, 1.24, 0.82)
+  },
+  {
+    id: "trailer-light-flow",
+    label: "Trailer-Light Flow",
+    area: "Rear connector and trailer symptoms",
+    use: "One trailer light function failed after hookup",
+    description:
+      "Use this when towing symptoms are about light behavior, adapters, or connector functions and you want the targeted trailer-light workflow.",
+    bullets: [
+      "Best for one-side, one-function, or all-lights trailer failures.",
+      "Pairs well with hitch setup and wiring references.",
+      "Useful before replacing adapters or checking every fuse blindly."
+    ],
+    links: [{ label: "Open trailer-light workflow", url: "diagnostics.html#trailer-light-workflow" }],
+    quickFacts: [["Symptom", "Trailer lights"], ["Best page", "Diagnostics"], ["Companion", "Rear hitch"]],
+    actions: [
+      { label: "Trailer Flow", href: "diagnostics.html#trailer-light-workflow", description: "Open the trailer-light diagnostic workflow." },
+      { label: "Hookup Flow", href: "rear-hitch.html#trailer-hookup-flow", description: "Open the trailer hookup and connector flow." },
+      { label: "Tow Page", href: "rear-hitch.html", description: "Open the full rear hitch and towing page." }
+    ],
+    labelOffset: { x: -170, y: -16 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(3.04, 0.98, 0.46),
+    camera: new THREE.Vector3(5.82, 1.92, 4.26),
+    target: new THREE.Vector3(2.88, 0.9, 0.32)
+  },
+  {
+    id: "maintenance-minder",
+    label: "Maintenance Minder",
+    area: "Dash code guide and pocket planner",
+    use: "Decode A/B service codes and build a checklist",
+    description:
+      "Jump into the Maintenance Minder guide when the dash code is your starting point and you want the code guide plus the pocket planner nearby.",
+    bullets: [
+      "Starts from the actual dash code instead of guessing the next service.",
+      "Includes the code guide and a compact planner with staging actions.",
+      "Useful for converting B12-style codes into a real checklist."
+    ],
+    links: [{ label: "Open maintenance minder planner", url: "maintenance.html#minder-pocket-planner" }],
+    quickFacts: [["Page", "Maintenance"], ["Guide", "A/B and 1-6"], ["Planner", "Pocket checklist"]],
+    actions: [
+      { label: "Pocket Planner", href: "maintenance.html#minder-pocket-planner", description: "Build a checklist from the dash service code." },
+      { label: "Code Guide", href: "maintenance.html#minder", description: "Review the Honda-backed main and sub-item guide." },
+      { label: "Garage Notes", href: "garage.html#maintenance-note-preview", description: "Open saved maintenance staging and prep notes." }
+    ],
+    labelOffset: { x: 166, y: -76 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.88, 1.46, 0.9),
+    camera: new THREE.Vector3(-2.48, 2.16, 4.9),
+    target: new THREE.Vector3(-0.74, 1.3, 0.78)
+  },
+  {
+    id: "garage-notes",
+    label: "Garage Notes",
+    area: "Truck memory layer",
+    use: "Parts, notes, saved maintenance, and incident capture",
+    description:
+      "Open the Garage note layer when you want to save what is unique to your truck instead of staying in the shared reference material.",
+    bullets: [
+      "Good for parts, battery history, trailer setup, and general truck notes.",
+      "Includes warning-light templates and saved maintenance staging.",
+      "Best when you are turning a one-time fix into truck memory."
+    ],
+    links: [{ label: "Open Garage notes", url: "garage.html#notes" }],
+    quickFacts: [["Page", "Garage"], ["Section", "Parts and Notes"], ["Companion", "Warning note"]],
+    actions: [
+      { label: "Parts And Notes", href: "garage.html#notes", description: "Open the main Garage notes form." },
+      { label: "Dashboard", href: "garage.html#dashboard", description: "Review the Garage dashboard and recent activity." },
+      { label: "Saved Maintenance", href: "garage.html#maintenance-note-preview", description: "Open saved prep and minder notes." }
+    ],
+    labelOffset: { x: 156, y: 120 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(0.34, 1.04, 0.32),
+    camera: new THREE.Vector3(-2.1, 1.9, 4.06),
+    target: new THREE.Vector3(0.2, 0.98, 0.22)
+  },
+  {
+    id: "photo-atlas-launch",
+    label: "Photo Atlas",
+    area: "Real truck photo reference",
+    use: "Compare diagrams and models with actual truck images",
+    description:
+      "Open the Photo Atlas when you want a visual bridge from the polished site diagrams to real photos of the truck and service areas.",
+    bullets: [
+      "Useful when model geometry is less helpful than a real photo.",
+      "Pairs naturally with the engine, hitch, bed, and fuse entries.",
+      "Good for photo-based orientation before touching a part."
+    ],
+    links: [{ label: "Open the photo atlas", url: "photo-atlas.html" }],
+    quickFacts: [["View", "Real photos"], ["Page", "Photo Atlas"], ["Use", "Visual confirmation"]],
+    actions: [
+      { label: "Photo Atlas", href: "photo-atlas.html", description: "Open the full truck photo atlas." },
+      { label: "AR Lab", href: "ar-lab.html", description: "Jump from photo reference into the AR lab." },
+      { label: "Garage Photos", href: "garage.html#photos", description: "Open your own truck photo storage area." }
+    ],
+    labelOffset: { x: -152, y: -94 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(1.02, 1.92, 0.18),
+    camera: new THREE.Vector3(4.58, 2.8, 3.86),
+    target: new THREE.Vector3(0.96, 1.72, 0.08)
+  },
+  {
+    id: "ar-lab-launch",
+    label: "AR Lab",
+    area: "Experimental model and spatial reference",
+    use: "AR-style exploration of truck reference content",
+    description:
+      "Use the AR Lab when you want a more experimental, spatially oriented way to inspect the truck content beyond the homepage map.",
+    bullets: [
+      "Good when you want to explore beyond the main truck map.",
+      "Pairs well with the Photo Atlas and engine model.",
+      "Useful for trying alternate spatial presentations of the same truck data."
+    ],
+    links: [{ label: "Open AR lab", url: "ar-lab.html" }],
+    quickFacts: [["Page", "AR Lab"], ["Mode", "Spatial reference"], ["Pair with", "Photo Atlas"]],
+    actions: [
+      { label: "AR Lab", href: "ar-lab.html", description: "Open the Ridgeline AR lab." },
+      { label: "Photo Atlas", href: "photo-atlas.html", description: "Compare the AR view with truck photos." },
+      { label: "Engine Model", href: "engine.html", description: "Switch to the dedicated engine view." }
+    ],
+    labelOffset: { x: -168, y: -40 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(1.68, 1.84, -0.14),
+    camera: new THREE.Vector3(4.92, 2.7, -3.6),
+    target: new THREE.Vector3(1.56, 1.66, -0.02)
+  },
+  {
+    id: "offline-launch-pad",
+    label: "Offline Launch Pad",
+    area: "Search-based offline kit",
+    use: "Cached roadside and diagnostics access",
+    description:
+      "Open the Global Search offline launch pad when you want to check pack status or jump into cached roadside, diagnostics, fuses, and backup routes before signal gets weak.",
+    bullets: [
+      "Lives inside Global Search rather than a standalone page section.",
+      "Shows online/offline state plus offline-pack readiness.",
+      "Best before a trip or when you expect weak signal."
+    ],
+    links: [{ label: "Open offline launch pad in search", url: "index.html?search=offline%20pack" }],
+    quickFacts: [["Lives in", "Global Search"], ["Focus", "Offline pack"], ["Use", "Cached routes"]],
+    actions: [
+      { label: "Offline Launch Pad", href: "index.html?search=offline%20pack", description: "Open search directly to the offline launch pad." },
+      { label: "Roadside Router", href: "quick-sheet.html#roadside-router", description: "Jump to the roadside quick-routing page." },
+      { label: "Garage Backup", href: "garage.html#diagnostic-activity", description: "Open recent activity and backup tools." }
+    ],
+    labelOffset: { x: -176, y: 18 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(2.22, 1.48, -0.18),
+    camera: new THREE.Vector3(5.12, 2.34, -3.72),
+    target: new THREE.Vector3(2.04, 1.34, -0.06)
+  },
+  {
+    id: "roadside-router-launch",
+    label: "Roadside Router",
+    area: "Fast roadside situation picker",
+    use: "Choose flat tire, no-start, warning light, or trailer issue",
+    description:
+      "Use this when you need the shortest route to the right roadside reference without wading through the full page structure first.",
+    bullets: [
+      "Starts from the situation rather than the truck area.",
+      "Works well for iPhone use beside the truck.",
+      "Pairs with the emergency card and action stack."
+    ],
+    links: [{ label: "Open roadside router", url: "quick-sheet.html#roadside-router" }],
+    quickFacts: [["Page", "Quick Sheet"], ["Mode", "Situation first"], ["Best for", "Roadside use"]],
+    actions: [
+      { label: "Roadside Router", href: "quick-sheet.html#roadside-router", description: "Open the situation-first roadside launcher." },
+      { label: "Action Stack", href: "quick-sheet.html#roadside-action-stack", description: "Keep the next moves visible on screen." },
+      { label: "Emergency Card", href: "quick-sheet.html#emergency-card", description: "Open the critical at-a-glance card." }
+    ],
+    labelOffset: { x: 176, y: 60 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.46, 0.96, -0.56),
+    camera: new THREE.Vector3(-2.62, 1.88, -4.18),
+    target: new THREE.Vector3(-0.3, 0.9, -0.44)
+  },
+  {
+    id: "warning-note",
+    label: "Warning Note",
+    area: "Garage incident capture",
+    use: "Save exact warning-light wording and behavior",
+    description:
+      "Open the structured warning-light note before the message disappears or before you reset anything that would erase the clue.",
+    bullets: [
+      "Best for capturing the exact wording, color, and context.",
+      "Pairs with the warning-light workflow and diagnostics first-minute cards.",
+      "Useful when you want a durable record before the symptom changes."
+    ],
+    links: [{ label: "Open warning note template", url: "garage.html#warning-light-template" }],
+    quickFacts: [["Page", "Garage"], ["Template", "Warning light"], ["Pair with", "Diagnostics"]],
+    actions: [
+      { label: "Warning Note", href: "garage.html#warning-light-template", description: "Open the incident template for warning lights." },
+      { label: "Warning Flow", href: "diagnostics.html#warning-light-workflow", description: "Open the warning-light diagnostic flow." },
+      { label: "Recent Activity", href: "garage.html#diagnostic-activity", description: "Review recently saved diagnostic activity." }
+    ],
+    labelOffset: { x: 188, y: -122 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.72, 1.52, 0.98),
+    camera: new THREE.Vector3(-2.52, 2.22, 4.96),
+    target: new THREE.Vector3(-0.62, 1.4, 0.82)
+  },
+  {
+    id: "service-hardware",
+    label: "Service Hardware",
+    area: "Drain hardware and stock service parts",
+    use: "Washers, bolts, and small service essentials",
+    description:
+      "Jump into the maintenance hardware reference when the job is small but the exact crush washer, bolt, or hardware note matters.",
+    bullets: [
+      "Good before oil and transmission service.",
+      "Keeps drain-plug washers and hardware notes close to the truck map.",
+      "Useful for staging small parts before you start."
+    ],
+    links: [{ label: "Open drain hardware reference", url: "maintenance.html#drain-hardware" }],
+    quickFacts: [["Page", "Maintenance"], ["Section", "Drain hardware"], ["Use", "Stock small parts"]],
+    actions: [
+      { label: "Drain Hardware", href: "maintenance.html#drain-hardware", description: "Open the washer, bolt, and hardware table." },
+      { label: "Prep Planner", href: "maintenance.html#service-prep", description: "Stage parts and reminders before the job." },
+      { label: "Garage Notes", href: "garage.html#notes", description: "Save the hardware you actually use on your truck." }
+    ],
+    labelOffset: { x: 126, y: 120 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.1, 0.54, 0.16),
+    camera: new THREE.Vector3(-3.22, 1.36, 4.44),
+    target: new THREE.Vector3(-0.98, 0.62, 0.1)
+  },
+  {
+    id: "task-truck-wont-start",
+    label: "Truck Won't Start",
+    area: "Task shortcut",
+    use: "Fast route into the starting symptom workflows",
+    description:
+      "A plain-language shortcut for the most stressful version of the no-start problem when you want the site to match the words in your head.",
+    bullets: [
+      "Useful when you are not thinking in service-manual terms.",
+      "Routes into the same no-start and roadside references quickly.",
+      "Best on mobile when the truck simply will not start."
+    ],
+    links: [{ label: "Open no-start workflow", url: "diagnostics.html#no-start-workflow" }],
+    quickFacts: [["Task", "Won't start"], ["Primary flow", "No-start"], ["Companion", "Roadside router"]],
+    actions: [
+      { label: "No-Start Flow", href: "diagnostics.html#no-start-workflow", description: "Open the no-start diagnostic route." },
+      { label: "Roadside Router", href: "quick-sheet.html#roadside-router", description: "Open the fast roadside chooser." },
+      { label: "Battery", href: "hood.html#wiring", description: "Review the battery and jump-start notes." }
+    ],
+    labelOffset: { x: 194, y: 76 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.72, 1.1, 1.06),
+    camera: new THREE.Vector3(-4.18, 1.92, 5.0),
+    target: new THREE.Vector3(-1.58, 1.04, 0.92)
+  },
+  {
+    id: "task-flat-tire",
+    label: "Flat Tire",
+    area: "Task shortcut",
+    use: "Fast route into jack points, torque, and tire references",
+    description:
+      "A plain-language shortcut for the most common roadside truck task: getting to the tire, jack-point, torque, and action-stack references quickly.",
+    bullets: [
+      "Best when the user is thinking about the problem, not the component.",
+      "Pairs with jack points, emergency card, and tire lab.",
+      "Useful on iPhone at the side of the road."
+    ],
+    links: [{ label: "Open roadside action stack", url: "quick-sheet.html#roadside-action-stack" }],
+    quickFacts: [["Task", "Flat tire"], ["Primary page", "Quick Sheet"], ["Companion", "Jack points"]],
+    actions: [
+      { label: "Action Stack", href: "quick-sheet.html#roadside-action-stack", description: "Open the flat-tire roadside sequence." },
+      { label: "Jack Points", href: "maintenance.html#jack-points", description: "Open the maintenance jack-point notes." },
+      { label: "Tire Lab", href: "tires.html", description: "Open the tire and wheel reference lab." }
+    ],
+    labelOffset: { x: 152, y: 132 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-2.14, 0.52, 1.1),
+    camera: new THREE.Vector3(-4.34, 1.44, 4.94),
+    target: new THREE.Vector3(-1.92, 0.58, 0.98)
+  },
+  {
+    id: "task-dead-outlet-radio",
+    label: "Dead Outlet / Radio",
+    area: "Task shortcut",
+    use: "Fast route into cabin electrical and fuse symptom flows",
+    description:
+      "Open the symptom-first cabin electrical route when a phone charger, outlet, radio, or screen suddenly stops working.",
+    bullets: [
+      "Matches the way most people describe the problem.",
+      "Routes into fuse symptoms before a blind fuse swap.",
+      "Pairs with cabin fuses and cabin electronics."
+    ],
+    links: [{ label: "Open fuse symptom finder", url: "diagnostics.html#fuse-symptom-finder" }],
+    quickFacts: [["Task", "Dead outlet or radio"], ["Primary flow", "Fuse symptoms"], ["Companion", "Cabin fuses"]],
+    actions: [
+      { label: "Fuse Symptoms", href: "diagnostics.html#fuse-symptom-finder", description: "Start from the failed feature." },
+      { label: "Cabin Fuses", href: "cabin.html#fuses", description: "Open the under-dash fuse references." },
+      { label: "Cabin Page", href: "cabin.html", description: "Open the cabin electronics page." }
+    ],
+    labelOffset: { x: 170, y: -8 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.28, 1.18, 0.32),
+    camera: new THREE.Vector3(-2.56, 2.0, 4.22),
+    target: new THREE.Vector3(-0.22, 1.08, 0.2)
+  },
+  {
+    id: "task-tow-setup",
+    label: "Tow Setup",
+    area: "Task shortcut",
+    use: "Fast route into hitch, hookup, and towing references",
+    description:
+      "Use this when the job is simply getting ready to tow and you want the setup, hookup, and trailer-light material together.",
+    bullets: [
+      "Good before connecting a trailer.",
+      "Pairs with the hitch, trailer-light, and quick-sheet towing references.",
+      "Useful when you care about setup more than diagnosis."
+    ],
+    links: [{ label: "Open rear hitch page", url: "rear-hitch.html" }],
+    quickFacts: [["Task", "Tow setup"], ["Primary page", "Rear Hitch"], ["Companion", "Trailer flow"]],
+    actions: [
+      { label: "Rear Hitch", href: "rear-hitch.html", description: "Open the towing and hitch reference page." },
+      { label: "Hookup Flow", href: "rear-hitch.html#trailer-hookup-flow", description: "Open the hookup flow." },
+      { label: "Trailer Flow", href: "diagnostics.html#trailer-light-workflow", description: "Open the trailer-light workflow." }
+    ],
+    labelOffset: { x: -162, y: 58 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(2.96, 0.82, -0.16),
+    camera: new THREE.Vector3(5.72, 1.76, -4.02),
+    target: new THREE.Vector3(2.8, 0.78, -0.08)
+  },
+  {
+    id: "task-log-service",
+    label: "Log Service",
+    area: "Task shortcut",
+    use: "Fast route into the maintenance log and Garage tracker",
+    description:
+      "A plain-language shortcut for the moment right after work is done and you want to capture it before the mileage, date, or parts details disappear.",
+    bullets: [
+      "Useful after oil changes, rotations, battery installs, and timing work.",
+      "Pairs with the Garage tracker and maintenance record.",
+      "Helps turn one-off work into durable truck history."
+    ],
+    links: [{ label: "Open Garage tracker", url: "garage.html#notes" }],
+    quickFacts: [["Task", "Log service"], ["Primary page", "Garage"], ["Companion", "Maintenance log"]],
+    actions: [
+      { label: "Garage Notes", href: "garage.html#notes", description: "Open the Garage notes and tracker section." },
+      { label: "Garage Dashboard", href: "garage.html#dashboard", description: "Review recent history and activity." },
+      { label: "Major Service Log", href: "maintenance.html#major-service-log", description: "Open the main maintenance record." }
+    ],
+    labelOffset: { x: 186, y: 104 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(0.92, 1.0, -0.18),
+    camera: new THREE.Vector3(4.36, 1.88, -3.9),
+    target: new THREE.Vector3(0.78, 0.96, -0.08)
+  },
+  {
+    id: "task-tag-this-area",
+    label: "Tag This Area",
+    area: "Task shortcut",
+    use: "Create a physical NFC shortcut for a truck location",
+    description:
+      "Use this when the next improvement is making the truck itself launch the right page with a phone tap from a physical tag.",
+    bullets: [
+      "Best for repeated locations like fuse covers, bed utility, or service spots.",
+      "Pairs with the NFC writer and tag map.",
+      "Useful when you want one-tap iPhone access from the truck."
+    ],
+    links: [{ label: "Open NFC writer", url: "nfc.html#tag-writer" }],
+    quickFacts: [["Task", "Tag this area"], ["Primary page", "NFC"], ["Companion", "Tag map"]],
+    actions: [
+      { label: "Write A Tag", href: "nfc.html#tag-writer", description: "Open the NFC tag writer workbench." },
+      { label: "Tag Map", href: "nfc.html#tag-map", description: "See suggested truck tag locations." },
+      { label: "iPhone Setup", href: "nfc.html#iphone-nfc-workflow", description: "Open the iPhone NFC setup steps." }
+    ],
+    labelOffset: { x: 184, y: 18 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.22, 0.98, 1.08),
+    camera: new THREE.Vector3(-3.28, 1.82, 5.12),
+    target: new THREE.Vector3(-1.08, 0.94, 0.96)
+  },
+  {
     id: "bed-trunk",
     label: "Bed / In-Bed Trunk",
     area: "Rear cargo section",
@@ -644,8 +1094,26 @@ const systems = [
 function compactHotspotLabel(label = "") {
   const compactLabels = {
     "Battery / Jump-Start": "Battery",
+    "Engine Model": "Engine",
     "Warning Lights / Diagnostics": "Diagnostics",
     "Service Prep / Log": "Service",
+    "Fuse Symptom Finder": "Fuse Route",
+    "No-Start Route": "No-Start",
+    "Trailer-Light Flow": "Trailer",
+    "Maintenance Minder": "Minder",
+    "Garage Notes": "Notes",
+    "Photo Atlas": "Photos",
+    "AR Lab": "AR",
+    "Offline Launch Pad": "Offline",
+    "Roadside Router": "Roadside",
+    "Warning Note": "Warn Note",
+    "Service Hardware": "Hardware",
+    "Truck Won't Start": "Won't Start",
+    "Flat Tire": "Flat Tire",
+    "Dead Outlet / Radio": "Outlet/Radio",
+    "Tow Setup": "Tow Setup",
+    "Log Service": "Log Service",
+    "Tag This Area": "Tag Area",
     "Driver-Left Fuse Box": "Driver Fuse",
     "Roadside Jack Points": "Jack Points",
     "Tires / Wheels": "Tires",

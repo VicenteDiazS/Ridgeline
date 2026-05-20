@@ -4503,6 +4503,12 @@ window.addEventListener("offline", () => updateSearchOfflineCard("Browsing cache
 navigator.serviceWorker?.addEventListener?.("controllerchange", () => updateSearchOfflineCard("Offline pack updated."));
 navigator.serviceWorker?.ready?.then(() => updateSearchOfflineCard()).catch(() => {});
 
+const initialSearchQuery = new URLSearchParams(location.search).get("search");
+if (initialSearchQuery) {
+  searchInput.value = initialSearchQuery;
+  openSearch();
+}
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "/" && !/input|textarea/i.test(document.activeElement?.tagName || "")) {
     event.preventDefault();
