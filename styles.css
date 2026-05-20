@@ -123,6 +123,36 @@ body::after {
   display: none;
 }
 
+.viewer-section#viewer .viewer-ambient {
+  display: block;
+}
+
+body.motion-reduced .viewer-ambient,
+body.motion-reduced .viewer-stage::before,
+body.motion-reduced .viewer-stage::after {
+  transition: none;
+  transform: none;
+}
+
+body.motion-reduced .viewer-stage {
+  --viewer-stage-shift-x: 0px;
+  --viewer-stage-shift-y: 0px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewer-ambient,
+  .viewer-stage::before,
+  .viewer-stage::after {
+    transition: none;
+    transform: none;
+  }
+
+  .viewer-stage {
+    --viewer-stage-shift-x: 0px;
+    --viewer-stage-shift-y: 0px;
+  }
+}
+
 .viewer-layout {
   gap: 12px;
 }
@@ -132,7 +162,11 @@ body::after {
   border-radius: 22px;
   border-color: rgba(121, 212, 255, 0.22);
   background:
-    radial-gradient(circle at 50% 78%, rgba(31, 83, 112, 0.36), transparent 34%),
+    radial-gradient(
+      circle at calc(50% + var(--viewer-stage-shift-x)) calc(78% + var(--viewer-stage-shift-y)),
+      rgba(31, 83, 112, 0.36),
+      transparent 34%
+    ),
     linear-gradient(180deg, rgba(10, 18, 27, 0.64), rgba(5, 9, 14, 0.94)),
     #070d13;
   box-shadow:
@@ -2652,6 +2686,15 @@ main > .model-launchpad:first-child {
   pointer-events: none;
   opacity: 0.82;
   mix-blend-mode: screen;
+  transform:
+    translate3d(
+      calc(var(--viewer-parallax-x, 0px) * var(--viewer-parallax-depth-x, 1)),
+      calc(var(--viewer-parallax-y, 0px) * var(--viewer-parallax-depth-y, 1)),
+      0
+    )
+    scale(var(--viewer-parallax-scale, 1));
+  transition: transform 220ms ease-out, opacity 220ms ease-out;
+  will-change: transform;
 }
 
 .viewer-ambient-a {
@@ -2670,6 +2713,30 @@ main > .model-launchpad:first-child {
   background: radial-gradient(circle, rgba(196, 169, 255, 0.22), transparent 70%);
 }
 
+.viewer-ambient-c {
+  top: 18%;
+  right: 18%;
+  width: 340px;
+  height: 140px;
+  border-radius: 40px;
+  opacity: 0.3;
+  background:
+    linear-gradient(90deg, rgba(121, 212, 255, 0.16), rgba(121, 212, 255, 0)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(121, 212, 255, 0.12) 0 2px,
+      transparent 2px 18px
+    );
+  transform:
+    translate3d(
+      calc(var(--viewer-parallax-x, 0px) * -0.58),
+      calc(var(--viewer-parallax-y, 0px) * 0.42),
+      0
+    )
+    rotate(-12deg)
+    scale(1.02);
+}
+
 .viewer-stage,
 .inspector-panel,
 .system-card,
@@ -2680,6 +2747,8 @@ main > .model-launchpad:first-child {
 }
 
 .viewer-stage {
+  --viewer-stage-shift-x: 0px;
+  --viewer-stage-shift-y: 0px;
   position: relative;
   min-height: clamp(560px, calc(100svh - 170px), 760px);
   overflow: hidden;
@@ -2689,10 +2758,26 @@ main > .model-launchpad:first-child {
   border-radius: 34px;
   width: 100%;
   background:
-    radial-gradient(circle at 50% 86%, rgba(40, 72, 82, 0.92), transparent 32%),
-    radial-gradient(circle at 12% 12%, rgba(255, 210, 122, 0.16), transparent 28%),
-    radial-gradient(circle at 86% 16%, rgba(196, 169, 255, 0.13), transparent 24%),
-    radial-gradient(circle at 28% 92%, rgba(111, 255, 180, 0.08), transparent 26%),
+    radial-gradient(
+      circle at calc(50% + var(--viewer-stage-shift-x)) calc(86% + var(--viewer-stage-shift-y)),
+      rgba(40, 72, 82, 0.92),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at calc(12% + (var(--viewer-stage-shift-x) * 0.35)) calc(12% + (var(--viewer-stage-shift-y) * -0.2)),
+      rgba(255, 210, 122, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at calc(86% + (var(--viewer-stage-shift-x) * -0.28)) calc(16% + (var(--viewer-stage-shift-y) * -0.22)),
+      rgba(196, 169, 255, 0.13),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at calc(28% + (var(--viewer-stage-shift-x) * 0.18)) calc(92% + (var(--viewer-stage-shift-y) * 0.24)),
+      rgba(111, 255, 180, 0.08),
+      transparent 26%
+    ),
     linear-gradient(180deg, rgba(6, 12, 20, 0.2), rgba(6, 12, 20, 0.02)),
     linear-gradient(135deg, rgba(16, 18, 24, 0.96), rgba(10, 17, 22, 0.92));
   box-shadow:
@@ -2730,6 +2815,8 @@ main > .model-launchpad:first-child {
   filter: blur(1px);
   opacity: 0.88;
   animation: holoSpin 26s linear infinite;
+  transform: translate3d(calc(var(--viewer-parallax-x, 0px) * 0.2), calc(var(--viewer-parallax-y, 0px) * 0.12), 0);
+  transition: transform 220ms ease-out;
 }
 
 .viewer-stage::after {
@@ -2752,6 +2839,8 @@ main > .model-launchpad:first-child {
     ),
     radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.035), transparent 46%);
   opacity: 0.9;
+  transform: translate3d(calc(var(--viewer-parallax-x, 0px) * -0.32), calc(var(--viewer-parallax-y, 0px) * -0.18), 0);
+  transition: transform 260ms ease-out;
 }
 
 .inspector-panel {
@@ -9580,6 +9669,14 @@ kbd {
     bottom: 8px;
     width: 140px;
     height: 140px;
+  }
+
+  .viewer-ambient-c {
+    top: 12%;
+    right: 8%;
+    width: 190px;
+    height: 92px;
+    opacity: 0.22;
   }
 
   main > .viewer-section:first-child .viewer-stage {

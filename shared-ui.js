@@ -1822,6 +1822,93 @@ function buildDynamicIslandShelf() {
   document.body.prepend(shelf);
 }
 
+function buildViewerParallax() {
+  const viewerSection = document.querySelector(".viewer-section#viewer");
+  const viewerStage = viewerSection?.querySelector(".viewer-stage");
+  if (!viewerSection || !viewerStage) {
+    return;
+  }
+
+  const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+  let rafId = 0;
+  let pointerX = 0;
+  let pointerY = 0;
+
+  const applyParallax = () => {
+    rafId = 0;
+
+    if (reducedMotionQuery.matches) {
+      viewerSection.style.setProperty("--viewer-parallax-x", "0px");
+      viewerSection.style.setProperty("--viewer-parallax-y", "0px");
+      viewerStage.style.setProperty("--viewer-stage-shift-x", "0px");
+      viewerStage.style.setProperty("--viewer-stage-shift-y", "0px");
+      document.body.classList.add("motion-reduced");
+      return;
+    }
+
+    document.body.classList.remove("motion-reduced");
+
+    const rect = viewerSection.getBoundingClientRect();
+    const viewportHeight = Math.max(window.innerHeight, 1);
+    const sectionCenter = rect.top + rect.height / 2;
+    const viewportCenter = viewportHeight / 2;
+    const scrollRatio = Math.max(-1, Math.min(1, (viewportCenter - sectionCenter) / viewportHeight));
+    const scrollY = scrollRatio * 18;
+    const scrollX = scrollRatio * -8;
+
+    const pointerWeight = coarsePointerQuery.matches ? 0 : 1;
+    const totalX = scrollX + pointerX * pointerWeight;
+    const totalY = scrollY + pointerY * pointerWeight;
+
+    viewerSection.style.setProperty("--viewer-parallax-x", `${totalX.toFixed(2)}px`);
+    viewerSection.style.setProperty("--viewer-parallax-y", `${totalY.toFixed(2)}px`);
+    viewerStage.style.setProperty("--viewer-stage-shift-x", `${(totalX * 0.45).toFixed(2)}px`);
+    viewerStage.style.setProperty("--viewer-stage-shift-y", `${(totalY * 0.35).toFixed(2)}px`);
+  };
+
+  const requestParallaxFrame = () => {
+    if (!rafId) {
+      rafId = requestAnimationFrame(applyParallax);
+    }
+  };
+
+  viewerSection.querySelectorAll(".viewer-ambient-a").forEach((el) => {
+    el.style.setProperty("--viewer-parallax-depth-x", "1.15");
+    el.style.setProperty("--viewer-parallax-depth-y", "0.92");
+    el.style.setProperty("--viewer-parallax-scale", "1.04");
+  });
+  viewerSection.querySelectorAll(".viewer-ambient-b").forEach((el) => {
+    el.style.setProperty("--viewer-parallax-depth-x", "-0.78");
+    el.style.setProperty("--viewer-parallax-depth-y", "-0.58");
+    el.style.setProperty("--viewer-parallax-scale", "1.02");
+  });
+
+  viewerSection.addEventListener("pointermove", (event) => {
+    if (coarsePointerQuery.matches) {
+      return;
+    }
+    const rect = viewerSection.getBoundingClientRect();
+    const relativeX = rect.width > 0 ? (event.clientX - rect.left) / rect.width - 0.5 : 0;
+    const relativeY = rect.height > 0 ? (event.clientY - rect.top) / rect.height - 0.5 : 0;
+    pointerX = relativeX * 18;
+    pointerY = relativeY * 14;
+    requestParallaxFrame();
+  });
+
+  viewerSection.addEventListener("pointerleave", () => {
+    pointerX = 0;
+    pointerY = 0;
+    requestParallaxFrame();
+  });
+
+  window.addEventListener("scroll", requestParallaxFrame, { passive: true });
+  window.addEventListener("resize", requestParallaxFrame, { passive: true });
+  reducedMotionQuery.addEventListener?.("change", requestParallaxFrame);
+  coarsePointerQuery.addEventListener?.("change", requestParallaxFrame);
+  requestParallaxFrame();
+}
+
 function buildSectionStepper(sections) {
   if (
     !sections.length ||
@@ -4270,6 +4357,7 @@ buildBackToMapButton();
 buildScrollProgress();
 bindCompactStickyHeader();
 buildDynamicIslandShelf();
+buildViewerParallax();
 if (!isMobileNavMode) {
   buildSectionStepper(pageSections);
 }
