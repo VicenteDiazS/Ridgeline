@@ -94,7 +94,30 @@ export const searchIndex = [
       "5x120",
       "et55",
       "35 psi",
+      "tire roadside launcher",
+      "flat tire launcher",
+      "roadside tire",
       "3d tire"
+    ]
+  },
+  {
+    title: "Tire Roadside Launcher",
+    url: "tires.html#tire-roadside-launcher",
+    category: "Tools",
+    excerpt: "Near-top iPhone launcher for flat-tire action steps, jack-point map, 35 psi pressure, 94 lb-ft torque, and tire fitment planning routes.",
+    keywords: [
+      "tire roadside launcher",
+      "flat tire launcher",
+      "roadside tire",
+      "flat tire now",
+      "jack point map",
+      "wheel work",
+      "35 psi",
+      "94 lb-ft",
+      "tire pressure",
+      "wheel torque",
+      "tire buying",
+      "fitment check"
     ]
   },
   {

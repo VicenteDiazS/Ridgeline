@@ -64,6 +64,8 @@ SEARCH_EXPECTATIONS = {
     "saved maintenance notes": "Saved Maintenance Notes",
     "roadside router": "Roadside Router",
     "roadside action stack": "Roadside Action Stack",
+    "tire roadside launcher": "Tire Roadside Launcher",
+    "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
@@ -559,6 +561,71 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")
     assert_true(not mobile_state["overflow"], "rear hitch hookup flow introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_tire_roadside_launcher(page, page_name):
+    if page_name != "tires.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const launcher = document.querySelector("#tire-roadside-launcher");
+            const required = [
+                "quick-sheet.html#roadside-action-stack",
+                "index.html?system=jack-points#viewer",
+                "quick-sheet.html#tires",
+                "maintenance.html#tire-wheel-lab"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasLauncher: Boolean(launcher),
+                cardCount: launcher?.querySelectorAll(".tire-roadside-action").length || 0,
+                missing: required.filter((href) => !launcher?.querySelector(`a[href="${href}"]`)),
+                text: launcher?.innerText || "",
+                bottomHasRoadside: Boolean(document.querySelector('.context-action[href="#tire-roadside-launcher"]')),
+                bottomHasJack: Boolean(document.querySelector('.context-action[href="index.html?system=jack-points#viewer"]')),
+                heroHasRoadside: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-roadside-launcher"]')),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasLauncher"], "tires page is missing the roadside tire launcher")
+    assert_true(state["cardCount"] == 4, "tire roadside launcher should expose four route cards")
+    assert_true(not state["missing"], f"tire roadside launcher is missing routes: {state['missing']}")
+    launcher_text = state["text"].lower()
+    for phrase in ["flat tire now", "lift point", "35 psi", "94 lb-ft", "fitment"]:
+        assert_true(phrase in launcher_text, f"tire roadside launcher is missing {phrase}")
+    assert_true(state["bottomHasRoadside"], "tire page bottom bar is missing roadside launcher route")
+    assert_true(state["bottomHasJack"], "tire page bottom bar is missing direct jack map route")
+    assert_true(state["heroHasRoadside"], "tire page hero is missing roadside launcher route")
+    assert_true(not state["overflow"], "tire roadside launcher introduced horizontal overflow")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const launcher = document.querySelector("#tire-roadside-launcher");
+            const grid = launcher?.querySelector(".tire-roadside-grid");
+            const cards = [...(launcher?.querySelectorAll(".tire-roadside-action") || [])].map((card) => {
+                const rect = card.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            });
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(launcher && launcher.getBoundingClientRect().height > 0),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
+                minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
+                maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "tire roadside launcher is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 1, "tire roadside launcher should stack to one column on iPhone")
+    assert_true(mobile_state["minCardHeight"] >= 64, "tire roadside cards should remain thumb-sized on iPhone")
+    assert_true(mobile_state["maxCardWidth"] <= 390, "tire roadside cards are wider than the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "tire roadside launcher introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -1838,6 +1905,7 @@ async def smoke_page(context, root, page_name):
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_rear_hitch_flow(page, page_name)
+    await assert_tire_roadside_launcher(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
     await assert_fuse_mobile_readability(page, page_name)

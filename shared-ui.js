@@ -1925,9 +1925,9 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "tires.html": [
-      { label: "3D Tire", href: "#wheel-model", icon: "wheel" },
+      { label: "Roadside", href: "#tire-roadside-launcher", icon: "flash" },
+      { label: "Jack", href: "index.html?system=jack-points#viewer", icon: "wrench" },
       { label: "Fitment", href: "#fitment-guide", icon: "wrench" },
-      { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "nfc.html": [
