@@ -62,6 +62,7 @@ SEARCH_EXPECTATIONS = {
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
+    "capture clues": "Diagnostic Clue Capture",
 }
 
 
@@ -301,13 +302,27 @@ async def assert_diagnostics_workflow_index(page, page_name):
     state = await page.evaluate(
         """() => {
             const workflowIndex = document.querySelector("#workflow-index");
+            const handoff = document.querySelector("#diagnostic-handoff");
             const workflowCards = workflowIndex ? [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")] : [];
+            const requiredHandoffTargets = [
+                "garage.html#warning-light-template",
+                "quick-sheet.html#roadside-router",
+                "garage.html#notes",
+                "garage.html#diagnostic-activity",
+                "#quick-checks"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 hasWorkflowIndex: Boolean(workflowIndex),
                 cardCount: workflowCards.length,
                 hasTrailerCard: workflowCards.some((card) => card.hash === "#trailer-light-workflow"),
                 hasWarningCard: workflowCards.some((card) => card.hash === "#warning-light-workflow"),
-                hasWarningTemplateRoute: Boolean(document.querySelector('#warning-light-workflow a[href="garage.html#warning-light-template"]'))
+                hasWarningTemplateRoute: Boolean(document.querySelector('#warning-light-workflow a[href="garage.html#warning-light-template"]')),
+                hasHandoff: Boolean(handoff),
+                handoffCards: handoff ? handoff.querySelectorAll(".diagnostic-handoff-card").length : 0,
+                handoffText: handoff ? handoff.innerText : "",
+                missingHandoffTargets: requiredHandoffTargets.filter((href) => !handoff?.querySelector(`a[href="${href}"]`)),
+                overflow: width > window.innerWidth + 1
             };
         }"""
     )
@@ -316,6 +331,12 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
     assert_true(state["hasWarningCard"], "workflow index is missing warning-light workflow card")
     assert_true(state["hasWarningTemplateRoute"], "warning-light workflow is missing the garage note-template route")
+    assert_true(state["hasHandoff"], "diagnostics page is missing clue-capture handoff panel")
+    assert_true(state["handoffCards"] == 4, "diagnostic handoff should expose four capture cards")
+    assert_true(not state["missingHandoffTargets"], f"diagnostic handoff is missing routes: {state['missingHandoffTargets']}")
+    for phrase in ["Save Warning Note", "Roadside Router", "Garage Notes", "Recent Activity"]:
+        assert_true(phrase in state["handoffText"], f"diagnostic handoff is missing {phrase}")
+    assert_true(not state["overflow"], "diagnostics handoff introduced horizontal overflow")
     await page.evaluate("""() => document.querySelector('#workflow-index .workflow-index-card[href="#trailer-light-workflow"]').click()""")
     await page.wait_for_timeout(800)
     nav_state = await page.evaluate(

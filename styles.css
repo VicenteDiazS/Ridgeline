@@ -8408,6 +8408,54 @@ kbd {
   line-height: 1.45;
 }
 
+.diagnostic-handoff-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 145, 94, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 145, 94, 0.09), rgba(121, 212, 255, 0.055)),
+    rgba(255, 255, 255, 0.03);
+}
+
+.diagnostic-handoff-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.diagnostic-handoff-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  min-height: 206px;
+  padding: 14px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(5, 12, 20, 0.44);
+}
+
+.diagnostic-handoff-card span {
+  color: var(--accent-warm);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.diagnostic-handoff-card strong {
+  color: var(--text);
+  line-height: 1.32;
+}
+
+.diagnostic-handoff-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .diagnostics-page .section-page-grid {
   align-items: start;
 }
@@ -8593,6 +8641,7 @@ kbd {
   .job-card-grid,
   .visual-card-grid,
   .workflow-index-grid,
+  .diagnostic-handoff-grid,
   .fuse-finder-grid {
     grid-template-columns: 1fr;
   }
@@ -8621,6 +8670,43 @@ kbd {
 
   .diagnostics-page .diagnostic-workflow-index {
     gap: 10px;
+  }
+
+  .diagnostics-page .diagnostic-handoff-panel {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .diagnostics-page .diagnostic-handoff-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .diagnostics-page .diagnostic-handoff-card {
+    min-height: 0;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .diagnostics-page .diagnostic-handoff-card span {
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+  }
+
+  .diagnostics-page .diagnostic-handoff-card strong {
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .diagnostics-page .diagnostic-handoff-card p {
+    font-size: 0.82rem;
+    line-height: 1.38;
+  }
+
+  .diagnostics-page .diagnostic-handoff-card .inspector-actions {
+    gap: 6px;
+    margin-top: 2px;
   }
 
   .diagnostics-page .workflow-index-grid {

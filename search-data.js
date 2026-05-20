@@ -433,6 +433,24 @@ export const searchIndex = [
     keywords: ["workflow index", "diagnostics index", "symptom index", "diagnostic workflows", "start diagnostics"]
   },
   {
+    title: "Diagnostic Clue Capture",
+    url: "diagnostics.html#diagnostic-handoff",
+    category: "Diagnostics",
+    excerpt: "Near-top iPhone handoff panel for saving warning-light wording, no-start context, trailer or accessory electrical notes, and repeat diagnostic activity before symptoms change.",
+    keywords: [
+      "diagnostic clue capture",
+      "capture clues",
+      "save symptom",
+      "save warning note",
+      "diagnostic handoff",
+      "record warning light",
+      "intermittent issue",
+      "roadside diagnostic",
+      "repeat diagnostic",
+      "garage diagnostic activity"
+    ]
+  },
+  {
     title: "Diagnostic Quick Checks",
     url: "diagnostics.html#quick-checks",
     category: "Diagnostics",
