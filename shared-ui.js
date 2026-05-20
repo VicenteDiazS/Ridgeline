@@ -3806,6 +3806,32 @@ function buildSearchModal() {
         <button class="modal-close" type="button" data-close-search aria-label="Close search">Close</button>
       </div>
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
+      <div class="search-situation-grid" aria-label="Common situations">
+        <a href="quick-sheet.html#roadside-router">
+          <span>Roadside</span>
+          <strong>Flat tire, no-start, warning, or trailer-light route</strong>
+        </a>
+        <a href="diagnostics.html#no-start-workflow">
+          <span>No start</span>
+          <strong>Clicks, slow crank, or cranks without firing</strong>
+        </a>
+        <a href="diagnostics.html#warning-light-workflow">
+          <span>Warning light</span>
+          <strong>Red, amber, MID message, or multiple alerts</strong>
+        </a>
+        <a href="diagnostics.html#accessory-power-workflow">
+          <span>12V power</span>
+          <strong>Dead phone charger, outlet, socket, or inverter</strong>
+        </a>
+        <a href="diagnostics.html#trailer-light-workflow">
+          <span>Trailer lights</span>
+          <strong>Brake, turn, running, reverse, adapter, or plug</strong>
+        </a>
+        <a href="garage.html#maintenance-note-preview">
+          <span>Parts run</span>
+          <strong>Need-to-buy list, Counter Mode, and staged parts</strong>
+        </a>
+      </div>
       <div class="search-suggestions" aria-label="Suggested searches">
         <button type="button" data-search-suggestion="Fuses">Fuses</button>
         <button type="button" data-search-suggestion="Power outlet">Power Outlet</button>

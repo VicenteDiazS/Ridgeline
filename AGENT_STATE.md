@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
 
 ## Current Site Status
 
@@ -13,6 +13,7 @@ Last updated: 2026-05-19
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
 - The shared iPhone support strip now shows live Online/Offline state plus Offline Pack status beside local save and backup state, so roadside users can tell whether cached browsing is available without opening the full menu.
+- Global Search now opens with an iPhone-friendly Common Situations grid for Roadside, No start, Warning light, 12V power, Trailer lights, and Parts run routes before typing, keeping high-value owner workflows reachable from any page.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
 - Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
 - Diagnostics now has a Fuse Symptom Finder that routes common owner electrical symptoms into the existing Hood/Cabin/Hitch references without adding new fuse ratings or positions.
@@ -495,4 +496,11 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html','diagnostics.html','quick-sheet.html','anton.html')"`; targeted shared-shell smoke passed for home, Diagnostics, Quick Sheet, and Anton.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('index.html','diagnostics.html','quick-sheet.html','anton.html') -Tag audit-v316-offline-status -SkipScreenshots"`; internal links, Garage restore Playwright audit, and representative browser smoke passed.
-- Next safe slice: rotate to Diagnostics real-device density, Anton/home status clarity, or shared search result ergonomics before returning to Garage staging; if staying on shared navigation, make it a substantive search/offline workflow improvement rather than another tiny badge polish.
+- Rotated to shared search ergonomics and added an iPhone-friendly Common Situations grid inside Global Search. It exposes direct routes for Roadside, No start, Warning light, 12V power, Trailer lights, and Parts run before typing, updates browser-smoke coverage for routes/labels/overflow, and bumps the service-worker cache to `ridgeline-console-v317`.
+- The combined four-page browser smoke command timed out in the shell, so the changed shared search path was verified with separate targeted smoke passes instead.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html')"`; targeted Home/shared search smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html')"`; targeted Diagnostics/shared search smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('quick-sheet.html')"`; targeted Quick Sheet/shared search smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html')"`; targeted Garage/shared search smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Next safe slice: rotate to Diagnostics real-device density, Anton/home status clarity, or fuse-page iPhone clarity before returning to Garage staging; shared search can continue only if it adds a larger result-selection or offline-find workflow.

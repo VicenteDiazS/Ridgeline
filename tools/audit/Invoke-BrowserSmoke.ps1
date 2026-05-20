@@ -1435,6 +1435,33 @@ async def run_overlay_checks(page, page_name):
     active_id = await page.evaluate("() => document.activeElement?.id || ''")
     assert_true(active_id == "site-search-input", "search input did not receive focus")
     await assert_focus_trap(page, ".search-modal", "search modal")
+    quick_state = await page.evaluate(
+        """() => {
+            const grid = document.querySelector(".search-situation-grid");
+            const required = [
+                "quick-sheet.html#roadside-router",
+                "diagnostics.html#no-start-workflow",
+                "diagnostics.html#warning-light-workflow",
+                "diagnostics.html#accessory-power-workflow",
+                "diagnostics.html#trailer-light-workflow",
+                "garage.html#maintenance-note-preview"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasGrid: Boolean(grid),
+                cardCount: grid?.querySelectorAll("a").length || 0,
+                missing: required.filter((href) => !grid?.querySelector(`a[href="${href}"]`)),
+                text: grid?.textContent || "",
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(quick_state["hasGrid"], "search modal is missing the common situations grid")
+    assert_true(quick_state["cardCount"] == 6, "search common situations grid should expose six routes")
+    assert_true(not quick_state["missing"], f"search common situations grid is missing routes: {quick_state['missing']}")
+    for phrase in ["Roadside", "No start", "Warning light", "12V power", "Trailer lights", "Parts run"]:
+        assert_true(phrase in quick_state["text"], f"search common situations grid is missing {phrase}")
+    assert_true(not quick_state["overflow"], "search common situations grid introduced horizontal overflow")
     await set_search_query(page, "fuse")
     result_count = await page.locator("#site-search-results > *").count()
     assert_true(result_count > 0, "search returned no results for fuse")
