@@ -19,6 +19,13 @@ export const searchIndex = [
     keywords: ["anton status", "anton latest", "agent status", "agent impact", "latest change", "visible change", "impact score", "agent monitor", "home monitor"]
   },
   {
+    title: "Offline Launch Pad",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Navigation",
+    excerpt: "Global Search offline card with offline pack status, refresh-pack action, and quick cached routes to Roadside, Diagnostics, Fuses, and Garage Backup.",
+    keywords: ["offline launch pad", "offline pack", "offline mode", "cached site", "cached roadside", "refresh pack", "refresh offline pack", "offline diagnostics", "garage backup offline", "iphone offline"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",

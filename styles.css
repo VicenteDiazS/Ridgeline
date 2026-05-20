@@ -4132,6 +4132,83 @@ article[id],
   margin: -4px 0 12px;
 }
 
+.search-offline-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  margin: 10px 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(111, 255, 180, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(111, 255, 180, 0.08), rgba(121, 212, 255, 0.05)),
+    rgba(5, 13, 21, 0.78);
+}
+
+.search-offline-card span {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 5px;
+  padding: 4px 7px;
+  border: 1px solid rgba(111, 255, 180, 0.2);
+  border-radius: 999px;
+  color: var(--accent-green);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.search-offline-card strong {
+  display: block;
+  color: #d7ffe7;
+  font-size: 0.94rem;
+}
+
+.search-offline-card p {
+  margin: 4px 0 0;
+  color: #b6c8d8;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.search-offline-actions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.search-offline-actions a,
+.search-offline-actions button {
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(8, 18, 28, 0.78);
+  color: #dff6ff;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.search-offline-actions button {
+  cursor: pointer;
+}
+
+.search-offline-actions a:hover,
+.search-offline-actions a:focus-visible,
+.search-offline-actions button:hover,
+.search-offline-actions button:focus-visible {
+  border-color: rgba(111, 255, 180, 0.28);
+  color: #b8ffd8;
+}
+
+.search-offline-status {
+  min-height: 1em;
+}
+
 .search-situation-grid a {
   display: grid;
   align-content: start;
@@ -8965,6 +9042,20 @@ kbd {
 
   .search-results {
     max-height: min(62vh, 620px);
+  }
+
+  .search-offline-card {
+    padding: 11px;
+  }
+
+  .search-offline-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search-offline-actions a,
+  .search-offline-actions button {
+    min-height: 36px;
+    padding: 8px 6px;
   }
 
   .search-situation-grid {

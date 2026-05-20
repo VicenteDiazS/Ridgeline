@@ -27,6 +27,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 - Quick Sheet includes a Source Confidence section that exposes truck-label priority, Honda references, accessory wheel instructions, and weaker replacement-battery / fitment-reference cautions.
 - Quick Sheet has print-specific CSS for paper/PDF use, hiding injected navigation/support controls and preserving the emergency card, fuse-triage content, and source-confidence notes.
 - Search includes explicit layman fuse/electrical aliases so practical queries like power outlet, trailer brake lights, radio, and backup camera surface the existing fuse-table shortcuts quickly.
+- Global Search includes an Offline Launch Pad above Common Situations with Online/Offline state, Offline Pack readiness/loading/unavailable state, quick routes to Roadside, Diagnostics, Fuses, and Garage Backup, and a Refresh Pack action for pre-trip cache checks.
 - The sticky header includes a compact current-page chip, and the full-site menu marks the matching page with `aria-current` and a visible Current badge.
 - Diagnostics includes a Fuse Symptom Finder for common electrical symptoms, routing users to existing references without introducing new fuse data.
 - Diagnostics includes a No-Start Workflow for no-crank, slow-crank, normal-crank/no-start, recent electrical work, and roadside scenarios, routing users to existing references without changing repair specifications.
@@ -97,6 +98,7 @@ This file tracks the baseline fundamentals for the 2019 Honda Ridgeline service 
 
 ## Latest Verification Notes
 
+- 2026-05-20: Added and verified Global Search Offline Launch Pad coverage. `Invoke-BrowserSmoke.ps1 -Pages @('index.html')`, `Invoke-BrowserSmoke.ps1 -Pages @('quick-sheet.html')`, `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html')`, `Invoke-BrowserSmoke.ps1 -Pages @('garage.html')`, `Test-InternalLinks.ps1`, and `Invoke-SiteAudit.ps1 -Pages @('index.html','quick-sheet.html','diagnostics.html','garage.html') -Tag audit-v323-search-offline-launch -SkipScreenshots` passed; the smoke path checks offline-pack label, Offline Launch Pad routes, Refresh Pack status feedback, search coverage, and mobile overflow. A final Home smoke after updating `agent-last-run.json` also passed after shortening the public Anton status tile copy to preserve the iPhone height budget.
 - 2026-05-20: Added and verified iPhone fuse-readability coverage for Hood/Cabin. `Invoke-BrowserSmoke.ps1 -Pages @('hood.html','cabin.html')`, `Test-InternalLinks.ps1`, and `Invoke-SiteAudit.ps1 -Pages @('hood.html','cabin.html') -Tag audit-v318-fuse-mobile-cards -SkipScreenshots` passed; the smoke path checks tap-to-inspector behavior, stacked metadata, labeled mobile fuse rows, circuit wrapping, contained diagram panning, and no horizontal overflow.
 - Added keyboard focus behavior for Search and More in `shared-ui.js`: focus moves into the opened dialog/menu and returns to the opener when closed.
 - Improved `Invoke-BrowserSmoke.ps1` with keyboard focus checks for Search, More, Escape close behavior, and focus return.

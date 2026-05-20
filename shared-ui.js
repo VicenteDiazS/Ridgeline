@@ -3806,6 +3806,21 @@ function buildSearchModal() {
         <button class="modal-close" type="button" data-close-search aria-label="Close search">Close</button>
       </div>
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
+      <section class="search-offline-card" aria-label="Offline launch pad" data-search-offline-card>
+        <div>
+          <span data-search-network>Checking network</span>
+          <strong data-search-offline-pack>Offline pack checking</strong>
+          <p data-search-offline-message>Roadside references stay close when the pack is ready.</p>
+        </div>
+        <div class="search-offline-actions" aria-label="Offline-ready shortcuts">
+          <a href="quick-sheet.html#roadside-action-stack">Roadside</a>
+          <a href="diagnostics.html#workflow-index">Diagnostics</a>
+          <a href="hood.html#fuses">Fuses</a>
+          <a href="garage.html#diagnostic-activity">Garage Backup</a>
+          <button type="button" data-search-refresh-pack>Refresh Pack</button>
+        </div>
+        <p class="search-offline-status" data-search-refresh-status aria-live="polite"></p>
+      </section>
       <div class="search-situation-grid" aria-label="Common situations">
         <a href="quick-sheet.html#roadside-router">
           <span>Roadside</span>
@@ -4215,6 +4230,7 @@ function searchEntries(entries, query = "") {
 const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
+const searchOfflineCard = searchModal.querySelector("[data-search-offline-card]");
 let searchReturnFocus = null;
 const commandPalette = buildCommandPalette();
 document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
@@ -4397,6 +4413,42 @@ function renderResults(query = "") {
     });
 }
 
+function updateSearchOfflineCard(message = "") {
+  if (!searchOfflineCard) {
+    return;
+  }
+
+  const network = searchOfflineCard.querySelector("[data-search-network]");
+  const pack = searchOfflineCard.querySelector("[data-search-offline-pack]");
+  const detail = searchOfflineCard.querySelector("[data-search-offline-message]");
+  const refreshStatus = searchOfflineCard.querySelector("[data-search-refresh-status]");
+  const online = navigator.onLine !== false;
+  const hasServiceWorker = "serviceWorker" in navigator;
+  const serviceWorkerControlled = Boolean(navigator.serviceWorker?.controller);
+
+  if (network) {
+    network.textContent = online ? "Online" : "Offline";
+  }
+
+  if (pack) {
+    pack.textContent = hasServiceWorker
+      ? serviceWorkerControlled
+        ? "Offline pack ready"
+        : "Offline pack loading"
+      : "Offline pack unavailable";
+  }
+
+  if (detail) {
+    detail.textContent = online
+      ? "Refresh the pack before leaving signal, then jump straight into owner workflows."
+      : "Use cached quick references first; live links may wait for signal.";
+  }
+
+  if (refreshStatus && message) {
+    refreshStatus.textContent = message;
+  }
+}
+
 function openSearch(event) {
   searchReturnFocus =
     event?.currentTarget instanceof HTMLElement
@@ -4406,6 +4458,7 @@ function openSearch(event) {
         : searchReturnFocus;
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
+  updateSearchOfflineCard();
   renderResults(searchInput.value);
   focusFirstIn(searchModal, "#site-search-input");
 }
@@ -4432,10 +4485,23 @@ searchModal.querySelectorAll("[data-search-suggestion]").forEach((button) => {
     searchInput.focus();
   });
 });
+searchModal.querySelector("[data-search-refresh-pack]")?.addEventListener("click", async () => {
+  updateSearchOfflineCard("Checking offline pack...");
+  try {
+    await refreshServiceWorkerRegistrations();
+    updateSearchOfflineCard("Offline pack update check complete.");
+  } catch {
+    updateSearchOfflineCard("Could not update the offline pack in this browser session.");
+  }
+});
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {
   el.addEventListener("click", closeSearch);
 });
 searchInput.addEventListener("input", () => renderResults(searchInput.value));
+window.addEventListener("online", () => updateSearchOfflineCard("Back online."));
+window.addEventListener("offline", () => updateSearchOfflineCard("Browsing cached site."));
+navigator.serviceWorker?.addEventListener?.("controllerchange", () => updateSearchOfflineCard("Offline pack updated."));
+navigator.serviceWorker?.ready?.then(() => updateSearchOfflineCard()).catch(() => {});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "/" && !/input|textarea/i.test(document.activeElement?.tagName || "")) {
