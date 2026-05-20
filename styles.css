@@ -13268,6 +13268,48 @@ select:focus {
   margin-top: 1rem;
 }
 
+.anton-owner-check {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.anton-owner-check article {
+  align-content: start;
+  border: 1px solid rgba(104, 255, 190, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.08), rgba(104, 255, 190, 0.018)),
+    rgba(4, 16, 19, 0.74);
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.anton-owner-check span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.anton-owner-check strong {
+  color: #eafff7;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.anton-owner-check p {
+  color: #c9d7df;
+  font-size: 0.9rem;
+  line-height: 1.42;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .anton-history-item {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
@@ -13434,6 +13476,10 @@ select:focus {
 
   .anton-console-hero,
   .anton-console-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .anton-owner-check {
     grid-template-columns: 1fr;
   }
 

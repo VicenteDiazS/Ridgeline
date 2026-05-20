@@ -69,6 +69,7 @@ SEARCH_EXPECTATIONS = {
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
+    "anton owner check": "Anton Owner Check",
     "capture clues": "Diagnostic Clue Capture",
 }
 
@@ -232,6 +233,61 @@ async def assert_home_anton_status(page, page_name):
     assert_true(mobile_state["visible"], "home Anton card is not visible at iPhone width")
     assert_true(mobile_state["height"] <= 84, "home Anton card became too tall at iPhone width")
     assert_true(not mobile_state["overflow"], "home Anton card introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_anton_owner_check(page, page_name):
+    if page_name != "anton.html":
+        return
+
+    await page.wait_for_selector(".anton-owner-check", state="attached", timeout=7000)
+    await page.wait_for_timeout(500)
+    state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector(".anton-owner-check");
+            const cards = [...panel?.querySelectorAll("article") || []];
+            const link = panel?.querySelector("[data-anton-owner-check-link]");
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                cardCount: cards.length,
+                text: (panel?.innerText || "").toLowerCase(),
+                linkHref: link?.getAttribute("href") || "",
+                linkText: link?.textContent?.trim() || "",
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasPanel"], "Anton page is missing the owner check strip")
+    assert_true(state["cardCount"] == 3, "Anton owner check should have three action cards")
+    assert_true("owner check" in state["text"], "Anton owner check is missing the owner-check label")
+    assert_true("needs you?" in state["text"], "Anton owner check is missing the action-needed card")
+    assert_true("next check" in state["text"], "Anton owner check is missing the next-check card")
+    assert_true(state["linkHref"].endswith(".html"), "Anton owner check link should route to a page")
+    assert_true(state["linkText"].startswith("Open"), "Anton owner check link should be a clear open action")
+    assert_true(not state["overflow"], "Anton owner check introduced desktop horizontal overflow")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector(".anton-owner-check");
+            const cards = [...panel?.querySelectorAll("article") || []];
+            const link = panel?.querySelector("[data-anton-owner-check-link]");
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(panel && panel.getBoundingClientRect().height > 0),
+                columns: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
+                linkHeight: Math.round(link?.getBoundingClientRect().height || 0),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "Anton owner check is not visible at iPhone width")
+    assert_true(all(width >= 340 for width in mobile_state["columns"]), "Anton owner check cards should stack at iPhone width")
+    assert_true(mobile_state["linkHeight"] >= 38, "Anton owner check action is too small for touch")
+    assert_true(not mobile_state["overflow"], "Anton owner check introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -1902,6 +1958,7 @@ async def smoke_page(context, root, page_name):
     await assert_current_page_navigation(page, page_name)
     await assert_support_status_badges(page, page_name)
     await assert_home_anton_status(page, page_name)
+    await assert_anton_owner_check(page, page_name)
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_rear_hitch_flow(page, page_name)

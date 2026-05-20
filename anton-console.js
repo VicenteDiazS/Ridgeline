@@ -25,6 +25,13 @@ const els = {
   publicImpactScore: document.querySelector("[data-anton-impact-score]"),
   publicVisibleChange: document.querySelector("[data-anton-visible-change]"),
   publicImpactReason: document.querySelector("[data-anton-impact-reason]"),
+  ownerCheckTitle: document.querySelector("[data-anton-owner-check-title]"),
+  ownerCheckDetail: document.querySelector("[data-anton-owner-check-detail]"),
+  ownerCheckLink: document.querySelector("[data-anton-owner-check-link]"),
+  ownerActionTitle: document.querySelector("[data-anton-owner-action-title]"),
+  ownerActionDetail: document.querySelector("[data-anton-owner-action-detail]"),
+  ownerNextTitle: document.querySelector("[data-anton-owner-next-title]"),
+  ownerNextDetail: document.querySelector("[data-anton-owner-next-detail]"),
   publicSummary: document.querySelector("[data-anton-run-summary]"),
   publicFiles: document.querySelector("[data-anton-public-files]"),
   serverState: document.querySelector("[data-anton-server-state]"),
@@ -128,6 +135,59 @@ function firstSummaryLine(value = "") {
     .split(/\r?\n/)
     .map((line) => line.replace(/^[-*]\s*/, "").trim())
     .find((line) => line && !/^changed:?$/i.test(line) && !/^verified:?$/i.test(line)) || text;
+}
+
+function changedPageFromFiles(files = []) {
+  const htmlFile = files
+    .filter(Boolean)
+    .find((file) => /\.html$/i.test(file) && file !== "anton.html");
+  return htmlFile || "index.html";
+}
+
+function shortFileLabel(file = "") {
+  const label = file
+    .replace(/\.html$/i, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+  return label ? label.replace(/\b\w/g, (letter) => letter.toUpperCase()) : "Home";
+}
+
+function renderOwnerCheck(status) {
+  const files = Array.isArray(status.changedFiles) ? status.changedFiles.filter(Boolean) : [];
+  const changedPage = changedPageFromFiles(files);
+  const changedLabel = shortFileLabel(changedPage);
+  const isRunning = status.status === "running";
+  const actionRequired = summarizeText(status.actionRequired || "");
+  const next = describeNextRun(status.nextExpectedRunAt);
+  const visibleChange = status.visibleChange || firstSummaryLine(status.summary);
+  const score = Number.isFinite(Number(status.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored";
+
+  if (els.ownerCheckTitle) {
+    els.ownerCheckTitle.textContent = isRunning ? "Wait for finish" : `Review ${changedLabel}`;
+  }
+  if (els.ownerCheckDetail) {
+    els.ownerCheckDetail.textContent = isRunning
+      ? "Anton is still working; refresh after it finishes before judging the visible change."
+      : `${score}: ${visibleChange}`;
+  }
+  if (els.ownerCheckLink) {
+    els.ownerCheckLink.href = changedPage;
+    els.ownerCheckLink.textContent = changedPage === "index.html" ? "Open Home" : `Open ${changedLabel}`;
+  }
+  if (els.ownerActionTitle) {
+    els.ownerActionTitle.textContent = /no action needed/i.test(actionRequired) ? "No action needed" : "Check note";
+  }
+  if (els.ownerActionDetail) {
+    els.ownerActionDetail.textContent = actionRequired || "Anton has not published an action note yet.";
+  }
+  if (els.ownerNextTitle) {
+    els.ownerNextTitle.textContent = next;
+  }
+  if (els.ownerNextDetail) {
+    els.ownerNextDetail.textContent = status.pushed
+      ? "The public status is pushed; the next scheduled run can rotate to a new high-value slice."
+      : "This status is local until the run finishes and publishes its result.";
+  }
 }
 
 async function controlFetch(path, options = {}) {
@@ -279,6 +339,7 @@ async function loadAgentRunStatus() {
     if (els.publicImpactReason) {
       els.publicImpactReason.textContent = status.impactReason || "Anton will publish an impact reason after the next scored run.";
     }
+    renderOwnerCheck(status);
     if (els.publicSummary) {
       els.publicSummary.textContent = summarizeText(status.summary);
     }
