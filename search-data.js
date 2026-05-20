@@ -477,6 +477,22 @@ export const searchIndex = [
     keywords: ["workflow index", "diagnostics index", "symptom index", "diagnostic workflows", "start diagnostics"]
   },
   {
+    title: "First Minute Diagnostic Triage",
+    url: "diagnostics.html#first-minute-triage",
+    category: "Diagnostics",
+    excerpt: "Near-top iPhone triage cards for no-start, warning-light, dead electrical, and trailer-light situations with three next taps each.",
+    keywords: [
+      "first minute",
+      "first minute triage",
+      "diagnostic first minute",
+      "iphone diagnostic",
+      "roadside diagnostic triage",
+      "where do i start",
+      "dead electrical",
+      "diagnostic next steps"
+    ]
+  },
+  {
     title: "Diagnostic Clue Capture",
     url: "diagnostics.html#diagnostic-handoff",
     category: "Diagnostics",

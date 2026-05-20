@@ -35,6 +35,7 @@
           <p class="section-copy">These are fast entry points for the problems most likely to send you back to the site in the middle of a repair.</p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
+            <a class="utility-link utility-link-strong" href="#first-minute-triage">First Minute</a>
             <a class="utility-link" href="#workflow-index">Workflow Index</a>
             <a class="utility-link" href="#diagnostic-handoff">Capture Clues</a>
             <a class="utility-link" href="#quick-checks">Quick Checks</a>
@@ -44,6 +45,72 @@
           </div>
         </section>
         <section class="section-page-stack">
+          <section class="diagnostic-first-minute" id="first-minute-triage" aria-labelledby="first-minute-triage-title">
+            <div class="compact-section-head">
+              <p class="eyebrow">First minute triage</p>
+              <h2 id="first-minute-triage-title">Pick The Situation Before You Scroll</h2>
+              <p>
+                Use these roadside-sized cards when you only have one hand free and need the next three taps fast.
+              </p>
+            </div>
+            <div class="diagnostic-first-minute-grid" aria-label="First minute diagnostic action routes">
+              <article class="diagnostic-first-minute-card">
+                <span>No start</span>
+                <strong>Clicks, slow crank, or will not fire</strong>
+                <ol>
+                  <li>Open the no-start flow.</li>
+                  <li>Keep the battery and jump reference nearby.</li>
+                  <li>Save what changed if it repeats.</li>
+                </ol>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="#no-start-workflow">No-Start Flow</a>
+                  <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Roadside Stack</a>
+                </div>
+              </article>
+              <article class="diagnostic-first-minute-card">
+                <span>Warning light</span>
+                <strong>Red, amber, MID text, or multiple lights</strong>
+                <ol>
+                  <li>Record exact color and wording.</li>
+                  <li>Open the warning-light flow.</li>
+                  <li>Save the structured Garage note.</li>
+                </ol>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="#warning-light-workflow">Warning Flow</a>
+                  <a class="utility-link" href="garage.html#warning-light-template">Save Note</a>
+                </div>
+              </article>
+              <article class="diagnostic-first-minute-card">
+                <span>Dead electrical</span>
+                <strong>Outlet, radio, screen, or cabin feature quit</strong>
+                <ol>
+                  <li>Name the exact failed feature.</li>
+                  <li>Open the matching fuse path.</li>
+                  <li>Use the glossary for label shorthand.</li>
+                </ol>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="#fuse-symptom-finder">Fuse Symptoms</a>
+                  <a class="utility-link" href="cabin.html#cabin-fuse-glossary">Label Glossary</a>
+                </div>
+              </article>
+              <article class="diagnostic-first-minute-card">
+                <span>Trailer lights</span>
+                <strong>One function failed after hookup</strong>
+                <ol>
+                  <li>Name the failed light function.</li>
+                  <li>Open the trailer-light flow.</li>
+                  <li>Save adapter or tester notes.</li>
+                </ol>
+                <div class="inspector-actions">
+                  <a class="utility-link utility-link-strong" href="#trailer-light-workflow">Trailer Flow</a>
+                  <a class="utility-link" href="rear-hitch.html#trailer-hookup-flow">Hookup Flow</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              These cards route to existing site references only. Use current roadside conditions, truck labels, and the owner's manual as final authority.
+            </p>
+          </section>
           <section class="diagnostic-workflow-index" id="workflow-index" aria-labelledby="workflow-index-title">
             <div class="compact-section-head">
               <p class="eyebrow">Workflow index</p>
@@ -531,6 +598,7 @@
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#first-minute-triage">First</a>
         <a href="hood.html#fuses">Fuses</a>
         <a href="maintenance.html">Specs</a>
         <a href="index.html#viewer">Vehicle Map</a>

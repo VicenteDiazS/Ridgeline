@@ -41,6 +41,8 @@ SEARCH_EXPECTATIONS = {
     "restore garage backup": "Recent Diagnostic Activity",
     "trailer hookup": "Trailer Hookup Flow",
     "workflow index": "Diagnostics Workflow Index",
+    "first minute triage": "First Minute Diagnostic Triage",
+    "diagnostic first minute": "First Minute Diagnostic Triage",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "service run launcher": "Service Run Launcher",
@@ -364,8 +366,20 @@ async def assert_diagnostics_workflow_index(page, page_name):
         return
     state = await page.evaluate(
         """() => {
+            const firstMinute = document.querySelector("#first-minute-triage");
             const workflowIndex = document.querySelector("#workflow-index");
             const handoff = document.querySelector("#diagnostic-handoff");
+            const firstMinuteCards = firstMinute ? [...firstMinute.querySelectorAll(".diagnostic-first-minute-card")] : [];
+            const requiredFirstMinuteTargets = [
+                "#no-start-workflow",
+                "quick-sheet.html#roadside-action-stack",
+                "#warning-light-workflow",
+                "garage.html#warning-light-template",
+                "#fuse-symptom-finder",
+                "cabin.html#cabin-fuse-glossary",
+                "#trailer-light-workflow",
+                "rear-hitch.html#trailer-hookup-flow"
+            ];
             const workflowCards = workflowIndex ? [...workflowIndex.querySelectorAll(".workflow-index-card[href^='#']")] : [];
             const requiredHandoffTargets = [
                 "garage.html#warning-light-template",
@@ -376,6 +390,10 @@ async def assert_diagnostics_workflow_index(page, page_name):
             ];
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
+                hasFirstMinute: Boolean(firstMinute),
+                firstMinuteCards: firstMinuteCards.length,
+                firstMinuteText: firstMinute ? firstMinute.innerText : "",
+                firstMinuteRouteMissing: requiredFirstMinuteTargets.filter((href) => !firstMinute?.querySelector(`a[href="${href}"]`)),
                 hasWorkflowIndex: Boolean(workflowIndex),
                 cardCount: workflowCards.length,
                 hasTrailerCard: workflowCards.some((card) => card.hash === "#trailer-light-workflow"),
@@ -389,6 +407,12 @@ async def assert_diagnostics_workflow_index(page, page_name):
             };
         }"""
     )
+    assert_true(state["hasFirstMinute"], "diagnostics page is missing first-minute triage")
+    assert_true(state["firstMinuteCards"] == 4, "first-minute triage should expose four situation cards")
+    assert_true(not state["firstMinuteRouteMissing"], f"first-minute triage is missing routes: {state['firstMinuteRouteMissing']}")
+    first_minute_text = state["firstMinuteText"].lower()
+    for phrase in ["no start", "warning light", "dead electrical", "trailer lights"]:
+        assert_true(phrase in first_minute_text, f"first-minute triage is missing {phrase}")
     assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
     assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
@@ -400,6 +424,30 @@ async def assert_diagnostics_workflow_index(page, page_name):
     for phrase in ["Save Warning Note", "Roadside Router", "Garage Notes", "Recent Activity"]:
         assert_true(phrase in state["handoffText"], f"diagnostic handoff is missing {phrase}")
     assert_true(not state["overflow"], "diagnostics handoff introduced horizontal overflow")
+    await page.set_viewport_size({"width": 430, "height": 932})
+    await page.wait_for_timeout(350)
+    mobile_state = await page.evaluate(
+        """() => {
+            const triage = document.querySelector("#first-minute-triage");
+            const grid = triage?.querySelector(".diagnostic-first-minute-grid");
+            const firstActions = triage?.querySelector(".diagnostic-first-minute-card .inspector-actions");
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(triage && triage.getBoundingClientRect().height > 0),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                actionRows: firstActions
+                    ? new Set([...firstActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                overflow: width > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "first-minute triage is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 2, "first-minute triage should use two compact columns at iPhone width")
+    assert_true(mobile_state["actionRows"] == 1, "first-minute triage actions should stay on one row at iPhone width")
+    assert_true(not mobile_state["overflow"], "first-minute triage introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(350)
     await page.evaluate("""() => document.querySelector('#workflow-index .workflow-index-card[href="#trailer-light-workflow"]').click()""")
     await page.wait_for_timeout(800)
     nav_state = await page.evaluate(
