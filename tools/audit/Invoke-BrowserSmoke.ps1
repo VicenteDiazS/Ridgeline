@@ -61,6 +61,7 @@ SEARCH_EXPECTATIONS = {
     "roadside router": "Roadside Router",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
+    "anton status": "Anton Latest Impact",
 }
 
 
@@ -174,6 +175,55 @@ async def assert_support_status_badges(page, page_name):
     assert_true(mobile_state["visible"], f"{page_name} status strip is not visible at iPhone width")
     assert_true(mobile_state["badgeHeight"] <= 58, f"{page_name} status strip became too tall at iPhone width")
     assert_true(not mobile_state["overflow"], f"{page_name} status strip introduced horizontal page overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_home_anton_status(page, page_name):
+    if page_name != "index.html":
+        return
+
+    await page.wait_for_selector("[data-agent-home-card]", state="attached", timeout=7000)
+    await page.wait_for_timeout(400)
+    state = await page.evaluate(
+        """() => {
+            const card = document.querySelector("[data-agent-home-card]");
+            const title = card?.querySelector("[data-agent-home-title]");
+            const detail = card?.querySelector("[data-agent-home-detail]");
+            const rect = card?.getBoundingClientRect();
+            return {
+                hasCard: Boolean(card),
+                title: title?.textContent?.trim() || "",
+                detail: detail?.textContent?.trim() || "",
+                health: card?.dataset.agentHealth || "",
+                aria: card?.getAttribute("aria-label") || "",
+                visible: Boolean(rect && rect.width > 0 && rect.height > 0)
+            };
+        }"""
+    )
+    assert_true(state["hasCard"], "home page is missing the Anton latest-impact card")
+    assert_true(state["visible"], "home Anton latest-impact card is not visible")
+    assert_true(state["title"] and state["title"] != "Checking status...", "home Anton card did not render the latest status title")
+    assert_true(state["detail"] and ("Impact" in state["detail"] or "running" in state["detail"].lower() or "Loop" in state["detail"]), "home Anton card did not render impact or loop detail")
+    assert_true(state["health"], "home Anton card did not expose loop health")
+    assert_true("Anton status:" in state["aria"], "home Anton card aria-label does not describe the status")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const card = document.querySelector("[data-agent-home-card]");
+            const rect = card?.getBoundingClientRect();
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+                height: rect?.height || 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "home Anton card is not visible at iPhone width")
+    assert_true(mobile_state["height"] <= 84, "home Anton card became too tall at iPhone width")
+    assert_true(not mobile_state["overflow"], "home Anton card introduced horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -1617,6 +1667,7 @@ async def smoke_page(context, root, page_name):
     await assert_page_ready(page, page_name)
     await assert_current_page_navigation(page, page_name)
     await assert_support_status_badges(page, page_name)
+    await assert_home_anton_status(page, page_name)
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_maintenance_features(page, page_name)

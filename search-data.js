@@ -12,6 +12,13 @@ export const searchIndex = [
     keywords: ["vin", "2wd", "engine", "powertrain", "build info", "this truck"]
   },
   {
+    title: "Anton Latest Impact",
+    url: "index.html#agent-status",
+    category: "Navigation",
+    excerpt: "Home-page Anton monitor showing the latest visible site change, impact score, next check, and whether the agent loop needs attention.",
+    keywords: ["anton status", "anton latest", "agent status", "agent impact", "latest change", "visible change", "impact score", "agent monitor", "home monitor"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",

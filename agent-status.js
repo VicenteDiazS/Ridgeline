@@ -1,4 +1,5 @@
 const statusRoot = document.querySelector("[data-agent-status]");
+const homeAgentCard = document.querySelector("[data-agent-home-card]");
 const STALE_GRACE_MINUTES = 30;
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
@@ -178,6 +179,41 @@ function describeImpact(data) {
   };
 }
 
+function renderHomeAgentCard(data) {
+  if (!homeAgentCard) {
+    return;
+  }
+
+  const health = getLoopHealth(data);
+  const impact = describeImpact(data);
+  const titleNode = homeAgentCard.querySelector("[data-agent-home-title]");
+  const detailNode = homeAgentCard.querySelector("[data-agent-home-detail]");
+  const kickerNode = homeAgentCard.querySelector("[data-agent-home-kicker]");
+  const score = Number.isFinite(Number(data.impactScore)) ? `${Number(data.impactScore)}/5` : "";
+  const title = impact.visibleChange || data.statusTitle || health.label || "Anton status";
+  const next = describeNextRun(data.nextExpectedRunAt);
+  const detailParts = [
+    score ? `Impact ${score}` : health.label,
+    data.pushed ? "pushed" : data.status === "running" ? "running" : "local",
+    next
+  ].filter(Boolean);
+
+  homeAgentCard.dataset.agentHealth = health.state;
+  homeAgentCard.setAttribute(
+    "aria-label",
+    `Anton status: ${title}. ${impact.reason || health.copy}`
+  );
+  if (kickerNode) {
+    kickerNode.textContent = data.status === "running" ? "Anton running" : "Anton latest";
+  }
+  if (titleNode) {
+    titleNode.textContent = title;
+  }
+  if (detailNode) {
+    detailNode.textContent = detailParts.join(" - ");
+  }
+}
+
 function getLoopHealth(data) {
   const interval = Number(data.intervalMinutes) || 90;
   const heartbeat = data.lastHeartbeatAt || data.finishedAt || data.startedAt;
@@ -231,6 +267,8 @@ function getLoopHealth(data) {
 }
 
 function renderAgentStatus(data) {
+  renderHomeAgentCard(data);
+
   if (!statusRoot) {
     return;
   }

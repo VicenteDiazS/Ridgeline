@@ -2586,6 +2586,14 @@ main > .model-launchpad:first-child {
   line-height: 1.18;
 }
 
+.home-status-pill small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
 .home-quick-strip {
   position: relative;
   order: 3;
@@ -12958,6 +12966,24 @@ select:focus {
     rgba(7, 17, 26, 0.8);
   color: var(--text);
   text-decoration: none;
+}
+
+.home-status-pill-agent[data-agent-health="healthy"],
+.home-status-pill-agent[data-agent-health="running"] {
+  border-color: rgba(104, 255, 190, 0.34);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(104, 255, 190, 0.16), transparent 42%),
+    linear-gradient(180deg, rgba(104, 255, 190, 0.1), rgba(104, 255, 190, 0.025)),
+    rgba(5, 18, 16, 0.82);
+}
+
+.home-status-pill-agent[data-agent-health="attention"],
+.home-status-pill-agent[data-agent-health="stale"] {
+  border-color: rgba(255, 207, 104, 0.34);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 207, 104, 0.15), transparent 42%),
+    linear-gradient(180deg, rgba(255, 207, 104, 0.1), rgba(255, 207, 104, 0.025)),
+    rgba(24, 18, 8, 0.82);
 }
 
 .agent-status-section {
