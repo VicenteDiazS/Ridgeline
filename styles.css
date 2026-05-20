@@ -13713,6 +13713,49 @@ select:focus {
   margin-top: 18px;
 }
 
+.quick-critical-section {
+  border-color: rgba(111, 255, 180, 0.22);
+}
+
+.quick-critical-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-critical-card {
+  min-height: 92px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #f4f8ff;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 10px;
+  text-decoration: none;
+}
+
+.quick-critical-card span,
+.quick-critical-card em {
+  color: rgba(241, 247, 255, 0.72);
+  font-size: 0.72rem;
+  font-style: normal;
+  line-height: 1.25;
+}
+
+.quick-critical-card strong {
+  color: #ffffff;
+  font-size: 0.98rem;
+  line-height: 1.15;
+}
+
+.quick-critical-card:focus-visible,
+.quick-critical-card:hover {
+  border-color: rgba(111, 255, 180, 0.48);
+  background: rgba(111, 255, 180, 0.08);
+}
+
 .roadside-router-section {
   border-color: rgba(255, 122, 168, 0.2);
 }
@@ -13805,6 +13848,7 @@ select:focus {
 }
 
 @media (max-width: 860px) {
+  .quick-critical-grid,
   .roadside-action-grid,
   .quick-sheet-source-grid,
   .quick-sheet-reference-list {
@@ -13826,6 +13870,28 @@ select:focus {
 
   .roadside-router-section {
     padding: 14px;
+  }
+
+  .quick-critical-section {
+    padding: 14px;
+  }
+
+  .quick-critical-grid {
+    gap: 7px;
+  }
+
+  .quick-critical-card {
+    min-height: 78px;
+    padding: 9px;
+  }
+
+  .quick-critical-card span,
+  .quick-critical-card em {
+    font-size: 0.66rem;
+  }
+
+  .quick-critical-card strong {
+    font-size: 0.86rem;
   }
 
   .roadside-action-grid {

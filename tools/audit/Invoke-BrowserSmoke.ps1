@@ -65,6 +65,8 @@ SEARCH_EXPECTATIONS = {
     "save buy note": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
     "roadside router": "Roadside Router",
+    "critical strip": "Quick Sheet Critical Strip",
+    "quick sheet critical": "Quick Sheet Critical Strip",
     "roadside action stack": "Roadside Action Stack",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
@@ -470,9 +472,17 @@ async def assert_quick_sheet(page, page_name):
     state = await page.evaluate(
         """() => {
             const router = document.querySelector("#roadside-router");
+            const critical = document.querySelector("#critical-strip");
             const stack = document.querySelector("#roadside-action-stack");
             const triage = document.querySelector("#fuse-triage");
             const sources = document.querySelector("#source-confidence");
+            const requiredCriticalTargets = [
+                "#tires",
+                "hood.html#wiring",
+                "#fuse-triage",
+                "#towing",
+                "garage.html#warning-light-template"
+            ];
             const requiredRouterTargets = [
                 "#tires",
                 "index.html?system=jack-points#viewer",
@@ -494,6 +504,10 @@ async def assert_quick_sheet(page, page_name):
                 "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
             ];
             return {
+                hasCritical: Boolean(critical),
+                criticalCards: critical ? critical.querySelectorAll(".quick-critical-card").length : 0,
+                criticalText: critical ? critical.innerText.toLowerCase() : "",
+                missingCriticalTargets: requiredCriticalTargets.filter((href) => !critical?.querySelector(`a[href="${href}"]`)),
                 hasRouter: Boolean(router),
                 routerCards: router ? router.querySelectorAll(".roadside-action-grid .dashboard-card").length : 0,
                 routerText: router ? router.innerText.toLowerCase() : "",
@@ -524,6 +538,11 @@ async def assert_quick_sheet(page, page_name):
             };
         }"""
     )
+    assert_true(state["hasCritical"], "quick sheet is missing the critical strip")
+    assert_true(state["criticalCards"] == 6, "quick sheet critical strip should expose six compact references")
+    assert_true(not state["missingCriticalTargets"], f"critical strip is missing routes: {state['missingCriticalTargets']}")
+    for phrase in ["35 psi", "94 lb-ft", "jump path", "symptom first", "3,500 / 5,000 lb", "save exact text"]:
+        assert_true(phrase in state["criticalText"], f"critical strip is missing text: {phrase}")
     assert_true(state["hasRouter"], "quick sheet is missing roadside router section")
     assert_true(state["routerCards"] == 4, "roadside router should expose four situation cards")
     assert_true(not state["missingRouterTargets"], f"roadside router is missing routes: {state['missingRouterTargets']}")
@@ -568,6 +587,32 @@ async def assert_quick_sheet(page, page_name):
         assert_true(link["found"], f"source confidence is missing external link {link['href']}")
         assert_true(link["target"] == "_blank", f"source link should open in a new tab {link['href']}")
         assert_true("noreferrer" in link["rel"], f"source link should use noreferrer {link['href']}")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const critical = document.querySelector("#critical-strip");
+            const grid = critical?.querySelector(".quick-critical-grid");
+            const cards = [...critical?.querySelectorAll(".quick-critical-card") || []].map((card) => {
+                const rect = card.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            });
+            return {
+                visible: Boolean(critical && critical.getBoundingClientRect().height > 0),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
+                minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
+                maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
+                overflow: document.documentElement.scrollWidth > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "quick sheet critical strip is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 2, "quick sheet critical strip should use two compact columns on iPhone")
+    assert_true(mobile_state["minCardHeight"] >= 70, "quick sheet critical strip cards should stay thumb-sized on iPhone")
+    assert_true(mobile_state["maxCardWidth"] <= 195, "quick sheet critical strip cards are wider than half the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "quick sheet critical strip introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
 
 
 async def assert_fuse_mobile_readability(page, page_name):

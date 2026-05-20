@@ -727,6 +727,24 @@ export const searchIndex = [
     keywords: ["quick sheet", "emergency", "battery", "oil", "tires", "jack", "fuses", "towing"]
   },
   {
+    title: "Quick Sheet Critical Strip",
+    url: "quick-sheet.html#critical-strip",
+    category: "Navigation",
+    excerpt: "Near-top iPhone strip for pressure, wheel torque, jump notes, fuse triage, towing limits, and warning-light capture before scrolling the full quick sheet.",
+    keywords: [
+      "critical strip",
+      "quick sheet critical",
+      "quick numbers",
+      "roadside numbers",
+      "tire pressure quick",
+      "wheel torque quick",
+      "jump notes quick",
+      "tow limit quick",
+      "warning light exact text",
+      "iphone quick sheet"
+    ]
+  },
+  {
     title: "Roadside Router",
     url: "quick-sheet.html#roadside-router",
     category: "Navigation",
