@@ -356,6 +356,190 @@ const systems = [
     target: new THREE.Vector3(-0.35, 1.18, 0)
   },
   {
+    id: "diagnostic-cluster",
+    label: "Warning Lights / Diagnostics",
+    area: "Gauge cluster and driver display",
+    use: "Fast symptom routing and warning-light triage",
+    description:
+      "Jump into the diagnostic flows from the part of the truck that usually starts the question: the cluster, warning lights, and driver-facing messages.",
+    bullets: [
+      "Best starting point when a new warning light or MID message appears.",
+      "Routes into the first-minute triage cards before the deeper workflows.",
+      "Pairs well with the Garage warning-light note when you need a record."
+    ],
+    links: [
+      {
+        label: "Open diagnostics first-minute triage",
+        url: "diagnostics.html#first-minute-triage"
+      }
+    ],
+    quickFacts: [
+      ["Start here", "Warning lights or no-start clues"],
+      ["Best page", "Diagnostics"],
+      ["Save notes", "Garage warning template"]
+    ],
+    actions: [
+      {
+        label: "First Minute",
+        href: "diagnostics.html#first-minute-triage",
+        description: "Open the roadside-sized first-minute diagnostic cards."
+      },
+      {
+        label: "Workflow Index",
+        href: "diagnostics.html#workflow-index",
+        description: "Jump straight to the deeper diagnostics routes."
+      },
+      {
+        label: "Save Warning Note",
+        href: "garage.html#warning-light-template",
+        description: "Capture the exact light, color, and message in Garage."
+      }
+    ],
+    labelOffset: { x: 144, y: -104 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.92, 1.36, 0.84),
+    camera: new THREE.Vector3(-2.45, 2.18, 4.75),
+    target: new THREE.Vector3(-0.8, 1.28, 0.72)
+  },
+  {
+    id: "service-planner",
+    label: "Service Prep / Log",
+    area: "Front cabin and maintenance planning",
+    use: "Prep checklists, major service log, and saved maintenance notes",
+    description:
+      "Use this hotspot when you want to move from the truck map into actual service planning, parts staging, or the running maintenance record.",
+    bullets: [
+      "Fast route to the Prep Planner before an oil, battery, tire, or filter job.",
+      "Links directly to the Major Service Log for durable maintenance history.",
+      "Pairs with Garage when you want to review saved maintenance notes."
+    ],
+    links: [
+      {
+        label: "Open the maintenance prep planner",
+        url: "maintenance.html#service-prep"
+      }
+    ],
+    quickFacts: [
+      ["Planner", "Service Prep"],
+      ["History", "Major Service Log"],
+      ["Memory", "Garage maintenance notes"]
+    ],
+    actions: [
+      {
+        label: "Prep Planner",
+        href: "maintenance.html#service-prep",
+        description: "Open the service prep checklist cards."
+      },
+      {
+        label: "Major Service Log",
+        href: "maintenance.html#major-service-log",
+        description: "Jump to the running maintenance record."
+      },
+      {
+        label: "Garage Dashboard",
+        href: "garage.html#dashboard",
+        description: "Review saved truck history and recent maintenance notes."
+      }
+    ],
+    labelOffset: { x: 128, y: 96 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-0.12, 0.98, 0.56),
+    camera: new THREE.Vector3(-2.45, 1.92, 4.28),
+    target: new THREE.Vector3(-0.08, 1.0, 0.44)
+  },
+  {
+    id: "quick-sheet-launch",
+    label: "Emergency Quick Sheet",
+    area: "Passenger-side cabin quick reference",
+    use: "Roadside action stack and critical specs",
+    description:
+      "A fast launcher for the emergency card and roadside action stack when you want the shortest path to tire, battery, warning-light, or trailer references.",
+    bullets: [
+      "Good choice when you need the shortest route to critical specs.",
+      "Roadside router and action stack keep the next moves visible on-screen.",
+      "Pairs well with jack points, battery, and diagnostics hotspots."
+    ],
+    links: [
+      {
+        label: "Open the emergency quick sheet",
+        url: "quick-sheet.html#emergency-card"
+      }
+    ],
+    quickFacts: [
+      ["Primary page", "Quick Sheet"],
+      ["Roadside stack", "Flat, no-start, warning, trailer"],
+      ["Fast links", "Jack map, diagnostics, towing"]
+    ],
+    actions: [
+      {
+        label: "Emergency Card",
+        href: "quick-sheet.html#emergency-card",
+        description: "Open the critical at-a-glance quick sheet."
+      },
+      {
+        label: "Action Stack",
+        href: "quick-sheet.html#roadside-action-stack",
+        description: "Keep the next roadside steps on screen."
+      },
+      {
+        label: "Roadside Router",
+        href: "quick-sheet.html#roadside-router",
+        description: "Pick the situation first and route into the right references."
+      }
+    ],
+    labelOffset: { x: 158, y: 24 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(0.12, 1.12, 0.18),
+    camera: new THREE.Vector3(-2.38, 1.96, 4.12),
+    target: new THREE.Vector3(0.14, 1.06, 0.12)
+  },
+  {
+    id: "nfc-tag-console",
+    label: "NFC Tag Console",
+    area: "Driver-side entry and truck tag setup",
+    use: "Program truck tags and open tag maps",
+    description:
+      "Open the NFC console to create tap-to-open truck tags that launch the exact page, section, or service reference from around the Ridgeline.",
+    bullets: [
+      "Useful when you want physical tags around the truck to open exact pages.",
+      "Includes the writer flow, iPhone guidance, and the truck tag map.",
+      "Best fit for repeated locations like fuse covers, the bed, and service spots."
+    ],
+    links: [
+      {
+        label: "Open the NFC tag console",
+        url: "nfc.html#tag-writer"
+      }
+    ],
+    quickFacts: [
+      ["Writer", "URL / URI tags"],
+      ["iPhone", "Safari-friendly setup"],
+      ["Map", "Truck tag locations"]
+    ],
+    actions: [
+      {
+        label: "Write A Tag",
+        href: "nfc.html#tag-writer",
+        description: "Open the NFC tag writer workbench."
+      },
+      {
+        label: "Tag Map",
+        href: "nfc.html#tag-map",
+        description: "See suggested tag locations around the truck."
+      },
+      {
+        label: "iPhone Setup",
+        href: "nfc.html#iphone-nfc-workflow",
+        description: "Open the iPhone-specific NFC setup steps."
+      }
+    ],
+    labelOffset: { x: 142, y: -22 },
+    highlightMeshes: [],
+    point: new THREE.Vector3(-1.62, 1.16, 1.1),
+    camera: new THREE.Vector3(-3.12, 2.0, 5.08),
+    target: new THREE.Vector3(-1.44, 1.08, 0.98)
+  },
+  {
     id: "bed-trunk",
     label: "Bed / In-Bed Trunk",
     area: "Rear cargo section",
@@ -460,12 +644,16 @@ const systems = [
 function compactHotspotLabel(label = "") {
   const compactLabels = {
     "Battery / Jump-Start": "Battery",
+    "Warning Lights / Diagnostics": "Diagnostics",
+    "Service Prep / Log": "Service",
     "Driver-Left Fuse Box": "Driver Fuse",
     "Roadside Jack Points": "Jack Points",
     "Tires / Wheels": "Tires",
     "Trailer Hitch / Wiring": "Hitch",
     "Bed / In-Bed Trunk": "Bed Trunk",
-    "Cabin Electronics": "Cabin"
+    "Cabin Electronics": "Cabin",
+    "Emergency Quick Sheet": "Quick Sheet",
+    "NFC Tag Console": "NFC"
   };
 
   return compactLabels[label] || label;
