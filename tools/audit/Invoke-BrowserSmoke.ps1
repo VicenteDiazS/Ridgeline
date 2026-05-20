@@ -59,6 +59,7 @@ SEARCH_EXPECTATIONS = {
     "save buy note": "Saved Maintenance Notes",
     "saved maintenance notes": "Saved Maintenance Notes",
     "roadside router": "Roadside Router",
+    "roadside action stack": "Roadside Action Stack",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
@@ -359,6 +360,7 @@ async def assert_quick_sheet(page, page_name):
     state = await page.evaluate(
         """() => {
             const router = document.querySelector("#roadside-router");
+            const stack = document.querySelector("#roadside-action-stack");
             const triage = document.querySelector("#fuse-triage");
             const sources = document.querySelector("#source-confidence");
             const requiredRouterTargets = [
@@ -386,6 +388,13 @@ async def assert_quick_sheet(page, page_name):
                 routerCards: router ? router.querySelectorAll(".roadside-action-grid .dashboard-card").length : 0,
                 routerText: router ? router.innerText.toLowerCase() : "",
                 missingRouterTargets: requiredRouterTargets.filter((href) => !router?.querySelector(`a[href="${href}"]`)),
+                hasStack: Boolean(stack),
+                stackButtons: stack ? stack.querySelectorAll("[data-roadside-plan]").length : 0,
+                stackText: stack ? stack.innerText.toLowerCase() : "",
+                stackPrimary: stack?.querySelector("[data-roadside-primary]")?.getAttribute("href") || "",
+                stackSecondary: stack?.querySelector("[data-roadside-secondary]")?.getAttribute("href") || "",
+                hasStackCopy: Boolean(stack?.querySelector("[data-copy-roadside-stack]")),
+                hasStackShare: Boolean(stack?.querySelector("[data-share-roadside-stack]")),
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
@@ -410,6 +419,33 @@ async def assert_quick_sheet(page, page_name):
     assert_true(not state["missingRouterTargets"], f"roadside router is missing routes: {state['missingRouterTargets']}")
     for phrase in ["flat tire", "won't start", "warning light", "trailer light"]:
         assert_true(phrase in state["routerText"], f"roadside router is missing situation: {phrase}")
+    assert_true(state["hasStack"], "quick sheet is missing roadside action stack")
+    assert_true(state["stackButtons"] == 4, "roadside action stack should expose four situation buttons")
+    assert_true(state["stackPrimary"] == "#tires", "roadside action stack should default to tire card")
+    assert_true(state["stackSecondary"] == "index.html?system=jack-points#viewer", "roadside action stack should default to jack map")
+    assert_true(state["hasStackCopy"], "roadside action stack is missing copy control")
+    assert_true(state["hasStackShare"], "roadside action stack is missing share control")
+    for phrase in ["flat tire", "94 lb-ft", "copy handoff"]:
+        assert_true(phrase in state["stackText"], f"roadside action stack is missing default text: {phrase}")
+    await page.evaluate("""() => document.querySelector('[data-roadside-plan="warning"]').click()""")
+    warning_state = await page.evaluate(
+        """() => {
+            const stack = document.querySelector("#roadside-action-stack");
+            return {
+                text: stack?.innerText.toLowerCase() || "",
+                primary: stack?.querySelector("[data-roadside-primary]")?.getAttribute("href") || "",
+                secondary: stack?.querySelector("[data-roadside-secondary]")?.getAttribute("href") || "",
+                pressed: stack?.querySelector('[data-roadside-plan="warning"]')?.getAttribute("aria-pressed") || "",
+                overflow: document.documentElement.scrollWidth > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true(warning_state["primary"] == "diagnostics.html#warning-light-workflow", "warning stack should route to warning flow")
+    assert_true(warning_state["secondary"] == "garage.html#warning-light-template", "warning stack should route to garage warning note")
+    assert_true(warning_state["pressed"] == "true", "warning stack button should expose pressed state")
+    for phrase in ["warning light", "record exact wording", "save the structured note"]:
+        assert_true(phrase in warning_state["text"], f"warning stack is missing text: {phrase}")
+    assert_true(not warning_state["overflow"], "roadside action stack introduced horizontal overflow")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")

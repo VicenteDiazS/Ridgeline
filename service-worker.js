@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v320";
+const CACHE_NAME = "ridgeline-console-v321";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -31,6 +31,7 @@ const CORE_ASSETS = [
   "./pinout-interactive.js",
   "./photo-atlas.js",
   "./shared-ui.js",
+  "./quick-sheet.js",
   "./model-gallery.js",
   "./search-data.js",
   "./garage.js",

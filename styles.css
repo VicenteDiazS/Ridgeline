@@ -13166,6 +13166,50 @@ select:focus {
   margin-top: 4px;
 }
 
+.roadside-stack-section {
+  border-color: rgba(255, 214, 102, 0.22);
+}
+
+.roadside-stack-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.roadside-stack-picker .utility-link {
+  min-height: 42px;
+}
+
+.roadside-stack-card {
+  display: grid;
+  gap: 14px;
+}
+
+.roadside-stack-card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.roadside-step-list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.roadside-step-list li {
+  line-height: 1.45;
+}
+
+.roadside-stack-meta {
+  border-left: 3px solid rgba(255, 214, 102, 0.55);
+  color: rgba(241, 247, 255, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding-left: 10px;
+}
+
 .quick-sheet-triage-grid .dashboard-card {
   display: grid;
   align-content: start;
@@ -13222,6 +13266,28 @@ select:focus {
   .roadside-action-grid {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .roadside-stack-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .roadside-stack-picker .utility-link {
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 8px;
+    text-align: center;
+  }
+
+  .roadside-stack-card {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .roadside-step-list {
+    gap: 8px;
+    padding-left: 1.1rem;
   }
 
   .search-situation-grid {

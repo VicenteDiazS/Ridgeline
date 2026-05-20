@@ -666,6 +666,24 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Roadside Action Stack",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Navigation",
+    excerpt: "On-screen roadside next steps with copy/share handoff text for flat tire, no-start, warning-light, and trailer-light situations.",
+    keywords: [
+      "roadside action stack",
+      "roadside next steps",
+      "roadside handoff",
+      "copy roadside note",
+      "share roadside note",
+      "flat tire steps",
+      "no start steps",
+      "warning light note",
+      "trailer light steps",
+      "iphone roadside"
+    ]
+  },
+  {
     title: "Fuse Triage Quick Sheet",
     url: "quick-sheet.html#fuse-triage",
     category: "Electrical",
