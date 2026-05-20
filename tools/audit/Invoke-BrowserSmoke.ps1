@@ -39,6 +39,7 @@ SEARCH_EXPECTATIONS = {
     "recent diagnostic activity": "Recent Diagnostic Activity",
     "diagnostic activity json": "Recent Diagnostic Activity",
     "restore garage backup": "Recent Diagnostic Activity",
+    "trailer hookup": "Trailer Hookup Flow",
     "workflow index": "Diagnostics Workflow Index",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
@@ -506,6 +507,60 @@ async def assert_fuse_mobile_readability(page, page_name):
         assert_true("Pos" in state["label"], f"{key} fuse mobile table should show row labels")
         assert_true(state["diagramPans"], f"{key} fuse diagram should pan inside its panel on iPhone")
         assert_true(not state["pageOverflow"], f"{key} fuse page introduced horizontal overflow")
+
+
+async def assert_rear_hitch_flow(page, page_name):
+    if page_name != "rear-hitch.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const flow = document.querySelector("#trailer-hookup-flow");
+            const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
+            const requiredLinks = [
+                "#tow-checklist",
+                "#pinout",
+                "diagnostics.html#trailer-light-workflow",
+                "#area-journal"
+            ];
+            return {
+                hasFlow: Boolean(flow),
+                cardCount: cards.length,
+                text: flow?.innerText || "",
+                missingLinks: requiredLinks.filter((href) => !flow?.querySelector(`a[href="${href}"]`)),
+                hasSourceBoundary: Boolean(flow?.innerText.includes("does not change towing limits"))
+            };
+        }"""
+    )
+    assert_true(state["hasFlow"], "rear hitch is missing the trailer hookup flow")
+    assert_true(state["cardCount"] == 4, "rear hitch hookup flow should expose four route cards")
+    for phrase in ["Latch, pin, chain, plug", "Match the failed function", "Truck, adapter, or trailer", "Record adapter and tester notes"]:
+        assert_true(phrase in state["text"], f"rear hitch hookup flow is missing '{phrase}'")
+    assert_true(not state["missingLinks"], f"rear hitch hookup flow is missing route links: {state['missingLinks']}")
+    assert_true(state["hasSourceBoundary"], "rear hitch hookup flow is missing its no-new-facts boundary note")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(300)
+    mobile_state = await page.evaluate(
+        """() => {
+            const flow = document.querySelector("#trailer-hookup-flow");
+            const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
+            const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                flowVisible: Boolean(flow?.getBoundingClientRect().height),
+                cardsStacked: cardRects.every((rect) => rect.width <= document.documentElement.clientWidth - 16),
+                minCardHeight: Math.min(...cardRects.map((rect) => rect.height)),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["flowVisible"], "rear hitch hookup flow is not visible at iPhone width")
+    assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
+    assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")
+    assert_true(not mobile_state["overflow"], "rear hitch hookup flow introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
 
 
 async def assert_maintenance_features(page, page_name):
@@ -1782,6 +1837,7 @@ async def smoke_page(context, root, page_name):
     await assert_home_anton_status(page, page_name)
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
+    await assert_rear_hitch_flow(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
     await assert_fuse_mobile_readability(page, page_name)

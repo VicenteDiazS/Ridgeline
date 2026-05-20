@@ -633,6 +633,24 @@ export const searchIndex = [
     keywords: ["trailer", "wiring", "hitch", "connector", "7 pin", "4 flat", "adapter"]
   },
   {
+    title: "Trailer Hookup Flow",
+    url: "rear-hitch.html#trailer-hookup-flow",
+    category: "Towing",
+    excerpt: "Phone-first tow setup path for hookup, light-function naming, trailer-light diagnosis, and saved adapter notes.",
+    keywords: [
+      "trailer hookup",
+      "tow hookup",
+      "hook up trailer",
+      "trailer light check",
+      "trailer hookup flow",
+      "tow light check",
+      "check trailer lights",
+      "trailer adapter note",
+      "save trailer setup",
+      "iphone towing"
+    ]
+  },
+  {
     title: "Trailer Connector Diagram",
     url: "rear-hitch.html#connector",
     category: "Towing",

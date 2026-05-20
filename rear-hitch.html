@@ -15,7 +15,7 @@
     <title>Ridgeline Rear Hitch And Towing</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="rear-hitch-page">
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -37,6 +37,7 @@
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#connector">Open Connector Diagram</a>
+            <a class="utility-link" href="#trailer-hookup-flow">Hookup Flow</a>
             <a class="utility-link" href="#pinout">7-Way Pinout</a>
             <a class="utility-link" href="#tow-checklist">Tow Checklist</a>
             <a class="utility-link" href="#adapter-types">Adapter Types</a>
@@ -53,6 +54,44 @@
             your specific truck has the connector installed or only the hitch /
             tow-plug provision.
           </div>
+        </section>
+        <section class="section-page-stack" id="trailer-hookup-flow">
+          <article class="tech-card trailer-hookup-flow">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">iPhone Hookup Flow</p>
+                <h2>Trailer Hookup And Light Check</h2>
+                <p class="section-copy">
+                  Work from the physical hookup to the failed light function before you blame a fuse, adapter, or trailer side fault.
+                </p>
+              </div>
+            </div>
+            <div class="trailer-hookup-grid">
+              <a class="workflow-index-card trailer-hookup-card" href="#tow-checklist">
+                <span>1. Hookup</span>
+                <strong>Latch, pin, chain, plug</strong>
+                <small>Confirm the coupler, hitch pin, safety chains, connector latch, and adapter are seated before the light test.</small>
+              </a>
+              <a class="workflow-index-card trailer-hookup-card" href="#pinout">
+                <span>2. Name It</span>
+                <strong>Match the failed function</strong>
+                <small>Use the 7-way pinout for running lights, left/right turn, brake output, reverse feed, auxiliary power, or ground.</small>
+              </a>
+              <a class="workflow-index-card trailer-hookup-card" href="diagnostics.html#trailer-light-workflow">
+                <span>3. Route Fault</span>
+                <strong>Truck, adapter, or trailer</strong>
+                <small>If one side, one function, or every trailer light fails, jump to the trailer-light diagnostic flow.</small>
+              </a>
+              <a class="workflow-index-card trailer-hookup-card" href="#area-journal">
+                <span>4. Save Setup</span>
+                <strong>Record adapter and tester notes</strong>
+                <small>Store the trailer plug type, adapter, tester result, and connector photos for the next tow setup.</small>
+              </a>
+            </div>
+            <p class="source-note">
+              This flow routes to existing connector, pinout, checklist, Diagnostics, and journal references. It does not change towing limits, pin assignments, fuse ratings, or repair procedures.
+            </p>
+          </article>
         </section>
         <section class="section-page-grid">
           <article class="tech-card connector-grid">
@@ -243,6 +282,7 @@
       </main>
       <nav class="section-dock" aria-label="Quick return">
         <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#trailer-hookup-flow">Hookup</a>
         <a href="#pinout">Pinout</a>
         <a href="#tow-checklist">Checklist</a>
         <a href="#top">Top</a>
