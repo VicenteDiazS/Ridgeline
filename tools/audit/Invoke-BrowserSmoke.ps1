@@ -137,6 +137,47 @@ async def assert_current_page_navigation(page, page_name):
     assert_true(state["visibleCurrentLinks"] > 0, f"{page_name} has no visible current navigation indicator")
 
 
+async def assert_support_status_badges(page, page_name):
+    state = await page.evaluate(
+        """() => {
+            const badges = document.querySelector(".sync-status-badges");
+            return {
+                hasBadges: Boolean(badges),
+                aria: badges?.getAttribute("aria-label") || "",
+                text: badges?.innerText || "",
+                hasNetwork: Boolean(badges?.querySelector("[data-sync-network]")),
+                hasOfflinePack: Boolean(badges?.querySelector("[data-sync-offline-pack]")),
+                hasLocalMessage: Boolean(badges?.querySelector("[data-sync-local-message]"))
+            };
+        }"""
+    )
+    assert_true(state["hasBadges"], f"{page_name} is missing the shared save/offline status strip")
+    assert_true("offline" in state["aria"].lower(), f"{page_name} status strip should identify offline status")
+    assert_true(state["hasNetwork"], f"{page_name} status strip is missing live network state")
+    assert_true(state["hasOfflinePack"], f"{page_name} status strip is missing offline pack state")
+    assert_true(state["hasLocalMessage"], f"{page_name} status strip is missing local save message")
+    assert_true("Offline pack" in state["text"], f"{page_name} status strip should show the offline pack label")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const badges = document.querySelector(".sync-status-badges");
+            const rect = badges?.getBoundingClientRect();
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+                badgeHeight: rect?.height || 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], f"{page_name} status strip is not visible at iPhone width")
+    assert_true(mobile_state["badgeHeight"] <= 58, f"{page_name} status strip became too tall at iPhone width")
+    assert_true(not mobile_state["overflow"], f"{page_name} status strip introduced horizontal page overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
 async def assert_scroll_unlocked(page, label):
     state = await page.evaluate(
         """() => {
@@ -1503,6 +1544,7 @@ async def smoke_page(context, root, page_name):
 
     await assert_page_ready(page, page_name)
     await assert_current_page_navigation(page, page_name)
+    await assert_support_status_badges(page, page_name)
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_maintenance_features(page, page_name)

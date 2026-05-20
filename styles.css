@@ -10802,6 +10802,18 @@ body {
   text-transform: none;
 }
 
+.sync-status-badges [data-sync-network],
+.sync-status-badges [data-sync-offline-pack] {
+  border: 1px solid rgba(111, 255, 180, 0.18);
+  border-radius: 999px;
+  color: var(--accent-green);
+  padding: 5px 8px;
+}
+
+.sync-status-badges [data-sync-offline-pack] {
+  background: rgba(111, 255, 180, 0.06);
+}
+
 .recent-strip a,
 .page-action-bar a {
   flex: 0 0 auto;

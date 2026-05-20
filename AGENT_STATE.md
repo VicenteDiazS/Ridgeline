@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-18
+Last updated: 2026-05-19
 
 ## Current Site Status
 
@@ -12,6 +12,7 @@ Last updated: 2026-05-18
 - Browser smoke checks now use Python Playwright with the configured Chromium-compatible browser instead of the flaky Edge `--dump-dom` path, and include scoped interactions and keyboard focus behavior for Search, More, and sample in-page section links.
 - Search and More now move focus into their dialogs and restore focus to the triggering control when closed with Escape or the close control.
 - Search, More, Command Palette, Quick Capture, Sync Settings, and quick-tools drawer now keep Tab focus inside the open modal surface and restore focus on close where applicable.
+- The shared iPhone support strip now shows live Online/Offline state plus Offline Pack status beside local save and backup state, so roadside users can tell whether cached browsing is available without opening the full menu.
 - Hood and Cabin fuse sections now have explicit source-status notes for each listed fuse box/panel without changing fuse facts.
 - Site search now includes layman fuse/electrical aliases for power outlets, trailer lights, radio/audio, and backup/reverse-light terms, routing users into the existing fuse tables without changing fuse facts.
 - Diagnostics now has a Fuse Symptom Finder that routes common owner electrical symptoms into the existing Hood/Cabin/Hitch references without adding new fuse ratings or positions.
@@ -71,6 +72,7 @@ Last updated: 2026-05-18
 - Quick Sheet now includes a Roadside Router near the top with thumb-friendly flat-tire, no-start, warning-light, and trailer-light situation cards, plus a Fuse Triage section with symptom-first routes to accessory-power, trailer-light, audio/display, and fuse-label glossary references, a print/save-PDF action, print-specific styling, and a Source Confidence section that separates truck-label authority, Honda-backed facts, and weaker replacement/fitment references.
 - Browser smoke checks now include explicit Diagnostics Workflow Index coverage: seven cards, trailer-light card hash navigation, warning-light card presence, scroll-lock cleanup, and `workflow index` / `warning light` search result coverage.
 - Browser smoke checks now include Quick Sheet Roadside Router, Fuse Triage, and Source Confidence coverage: four roadside situation cards, four fuse-routing cards, required destination links, a print/save button, four source-confidence cards, external source-link attributes, and `roadside router` / `fuse quick sheet` / `quick sheet sources` search result coverage.
+- Browser smoke checks now include shared support-strip coverage for live network state, Offline Pack status, local-save messaging, iPhone-width visibility, and horizontal overflow on representative pages.
 - Browser smoke checks now include Maintenance Minder Pocket Planner coverage: planner presence, Quick Update and Garage routes, B127 checklist generation, unsupported sub-code 7 rejection, copy status, reset behavior, and `minder planner` search result coverage.
 - Screenshot capture no longer uses PowerShell `Start-Process`, avoiding duplicate `Path`/`PATH` environment failures in the current shell.
 - Site-quality audit file exists at `SITE_QUALITY_AUDIT.md`.
@@ -488,4 +490,9 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('quick-sheet.html')"`; targeted Quick Sheet smoke passed with Roadside Router, Fuse Triage, Source Confidence, and search coverage.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files after correcting the warning-note route to `garage.html#warning-light-template`.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('quick-sheet.html') -Tag audit-v315-roadside-router -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Quick Sheet browser smoke passed.
-- Next safe slice: rotate to shared iPhone navigation/offline/search status, Diagnostics real-device density, or Anton status clarity before returning to Garage staging; if staying on Quick Sheet, review the Roadside Router on a real iPhone and only then tune density or printable layout.
+- Rotated to shared iPhone navigation/offline status. The universal support strip now shows Online/Offline state, Offline Pack readiness/loading/unavailable state, and cached-browsing messaging when the browser reports offline; the service-worker cache is `ridgeline-console-v316`.
+- Added browser-smoke coverage for the shared save/offline status strip across representative pages, including iPhone-width visibility and no horizontal overflow.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html','diagnostics.html','quick-sheet.html','anton.html')"`; targeted shared-shell smoke passed for home, Diagnostics, Quick Sheet, and Anton.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('index.html','diagnostics.html','quick-sheet.html','anton.html') -Tag audit-v316-offline-status -SkipScreenshots"`; internal links, Garage restore Playwright audit, and representative browser smoke passed.
+- Next safe slice: rotate to Diagnostics real-device density, Anton/home status clarity, or shared search result ergonomics before returning to Garage staging; if staying on shared navigation, make it a substantive search/offline workflow improvement rather than another tiny badge polish.

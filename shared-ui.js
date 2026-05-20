@@ -2981,20 +2981,39 @@ function buildSyncStatusBadges() {
   const supportHost = getNavigationSupportHost();
   const badges = document.createElement("div");
   badges.className = "sync-status-badges";
-  badges.setAttribute("aria-label", "Save and backup status");
+  badges.setAttribute("aria-label", "Save, backup, and offline status");
+  let offlinePackReady = false;
   const render = (message = "Saved locally") => {
     const githubReady = Boolean(localStorage.getItem("ridgeline-github-backup-endpoint"));
     const supabaseOff = localStorage.getItem("ridgeline-remote-enabled") === "0";
+    const online = navigator.onLine !== false;
+    const hasServiceWorker = "serviceWorker" in navigator;
+    const serviceWorkerControlled = Boolean(navigator.serviceWorker?.controller);
+    const offlinePackLabel = hasServiceWorker
+      ? serviceWorkerControlled || offlinePackReady
+        ? "Offline pack ready"
+        : "Offline pack loading"
+      : "Offline pack unavailable";
+    const statusMessage = online ? message : "Browsing cached site";
     badges.innerHTML = `
       <span>Saved</span>
       <span>${supabaseOff ? "Supabase off" : "Supabase ready"}</span>
       <span>${githubReady ? "GitHub backup ready" : "GitHub backup not set"}</span>
-      <strong>${message}</strong>
+      <span data-sync-network>${online ? "Online" : "Offline"}</span>
+      <strong data-sync-offline-pack>${offlinePackLabel}</strong>
+      <strong data-sync-local-message>${statusMessage}</strong>
     `;
   };
   render();
   window.addEventListener("ridgeline:storage-hydrated", () => render("Synced from remote"));
   window.addEventListener("storage", () => render());
+  window.addEventListener("online", () => render("Back online"));
+  window.addEventListener("offline", () => render("Browsing cached site"));
+  navigator.serviceWorker?.addEventListener?.("controllerchange", () => render("Offline pack updated"));
+  navigator.serviceWorker?.ready?.then(() => {
+    offlinePackReady = true;
+    render();
+  }).catch(() => {});
   if (supportHost) {
     supportHost.appendChild(badges);
   } else {
