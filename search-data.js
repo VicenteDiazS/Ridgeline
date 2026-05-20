@@ -307,6 +307,13 @@ export const searchIndex = [
     keywords: ["quick jobs", "service quick", "oil", "atf", "coolant", "towing", "tire size"]
   },
   {
+    title: "Service Run Launcher",
+    url: "maintenance.html#service-run-launcher",
+    category: "Maintenance",
+    excerpt: "Near-top iPhone launcher for oil runs, wheel work, Maintenance Minder dash codes, battery service, and filter jobs with direct prep, spec, Garage staging, and logging routes.",
+    keywords: ["service run launcher", "start service", "maintenance launcher", "oil run", "wheel work", "dash code", "battery service run", "filter service run", "service staging", "service job picker", "pick the job", "maintenance route"]
+  },
+  {
     title: "Service Prep Planner",
     url: "maintenance.html#service-prep",
     category: "Maintenance",

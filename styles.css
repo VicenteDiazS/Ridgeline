@@ -5000,6 +5000,61 @@ kbd {
   line-height: 1.45;
 }
 
+.maintenance-run-launcher {
+  scroll-margin-top: 92px;
+}
+
+.maintenance-run-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.maintenance-run-card {
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  min-height: 100%;
+  padding: 13px;
+  border-radius: 16px;
+  border: 1px solid rgba(111, 255, 180, 0.15);
+  background:
+    linear-gradient(180deg, rgba(111, 255, 180, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(6, 12, 20, 0.68);
+}
+
+.maintenance-run-card span {
+  color: var(--accent-2);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.maintenance-run-card strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.28;
+}
+
+.maintenance-run-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.maintenance-run-card .inspector-actions {
+  align-self: end;
+  gap: 6px;
+}
+
+.maintenance-run-card .utility-link {
+  min-height: 34px;
+  flex: 1 1 68px;
+  padding-inline: 9px;
+}
+
 .service-prep-card {
   scroll-margin-top: 92px;
 }
@@ -5156,12 +5211,15 @@ kbd {
   }
 
   .maintenance-page .service-prep-card .section-head,
+  .maintenance-page .maintenance-run-launcher .section-head,
   .maintenance-page .minder-pocket-card .section-head {
     gap: 8px;
   }
 
+  .maintenance-page .maintenance-run-launcher .section-copy,
   .maintenance-page .service-prep-card .section-copy,
   .maintenance-page .minder-pocket-card .section-copy,
+  .maintenance-page .maintenance-run-launcher .source-note,
   .maintenance-page .service-prep-card .source-note,
   .maintenance-page .minder-pocket-card .source-note {
     font-size: 0.82rem;
@@ -5173,12 +5231,12 @@ kbd {
     display: none !important;
   }
 
+  .maintenance-page .section-page-hero .section-utility-nav a[href="#service-run-launcher"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#maintenance-updater"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#service-prep"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#minder-pocket-planner"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#fluids"],
-  .maintenance-page .section-page-hero .section-utility-nav a[href="#tire-wheel-lab"],
-  .maintenance-page .section-page-hero .section-utility-nav a[href="quick-sheet.html"] {
+  .maintenance-page .section-page-hero .section-utility-nav a[href="#tire-wheel-lab"] {
     display: inline-flex !important;
   }
 
@@ -5189,6 +5247,40 @@ kbd {
   .maintenance-page .section-dock a[href="#tire-wheel-lab"],
   .maintenance-page .section-dock a[href="#top"] {
     display: inline-flex !important;
+  }
+
+  .maintenance-page .maintenance-run-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .maintenance-page .maintenance-run-card {
+    gap: 7px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .maintenance-page .maintenance-run-card strong {
+    font-size: 0.86rem;
+  }
+
+  .maintenance-page .maintenance-run-card p {
+    font-size: 0.76rem;
+    line-height: 1.34;
+  }
+
+  .maintenance-page .maintenance-run-card .inspector-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .maintenance-page .maintenance-run-card .utility-link {
+    min-height: 34px;
+    min-width: 0;
+    width: auto;
+    padding-inline: 6px;
+    font-size: 0.72rem;
   }
 
   .maintenance-page .service-prep-grid {
@@ -5280,6 +5372,7 @@ kbd {
 }
 
 @media (max-width: 360px) {
+  .maintenance-page .maintenance-run-grid,
   .maintenance-page .service-prep-grid {
     grid-template-columns: 1fr;
   }

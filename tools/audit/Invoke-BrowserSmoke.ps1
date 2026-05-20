@@ -40,6 +40,7 @@ SEARCH_EXPECTATIONS = {
     "diagnostic activity json": "Recent Diagnostic Activity",
     "restore garage backup": "Recent Diagnostic Activity",
     "workflow index": "Diagnostics Workflow Index",
+    "service run launcher": "Service Run Launcher",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
@@ -511,10 +512,26 @@ async def assert_maintenance_features(page, page_name):
     state = await page.evaluate(
         """() => {
             const prep = document.querySelector("#service-prep");
+            const launcher = document.querySelector("#service-run-launcher");
+            const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
             const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
             const minder = document.querySelector("#minder-pocket-planner");
             return {
+                hasLauncher: Boolean(launcher),
+                launcherCardCount: launcherCards.length,
+                launcherText: launcher?.innerText || "",
+                launcherRoutes: launcher ? [
+                    'a[href="#service-prep"]',
+                    'a[href="#oil-service"]',
+                    'a[href="#maintenance-updater"]',
+                    'a[href="#minder-pocket-planner"]',
+                    'a[href="#minder"]',
+                    'a[href="garage.html#maintenance-note-preview"]',
+                    'a[href="hood.html#battery-service"]',
+                    'a[href="#filter-cross"]',
+                    'a[href="index.html?system=jack-points#viewer"]'
+                ].every((selector) => Boolean(launcher.querySelector(selector))) : false,
                 hasPrep: Boolean(prep),
                 cardCount: cards.length,
                 checkboxCount: checkboxLabels.length,
@@ -536,6 +553,10 @@ async def assert_maintenance_features(page, page_name):
             };
         }"""
     )
+    assert_true(state["hasLauncher"], "maintenance page is missing the service run launcher")
+    assert_true(state["launcherCardCount"] == 5, "service run launcher should expose five common service routes")
+    assert_true(state["launcherRoutes"], "service run launcher is missing prep/spec/log/Garage routes")
+    assert_true("Pick The Job Before You Scroll" in state["launcherText"], "service run launcher should explain the iPhone job-picker purpose")
     assert_true(state["hasPrep"], "maintenance page is missing the service prep planner")
     assert_true(state["cardCount"] == 4, "service prep planner should expose four job cards")
     assert_true(state["checkboxCount"] >= 16, "service prep planner should expose labeled checkbox items")
@@ -559,6 +580,8 @@ async def assert_maintenance_features(page, page_name):
     mobile_state = await page.evaluate(
         """() => {
             const prepGrid = document.querySelector("#service-prep .service-prep-grid");
+            const launcherGrid = document.querySelector("#service-run-launcher .maintenance-run-grid");
+            const firstLauncherAction = document.querySelector("#service-run-launcher .maintenance-run-card .inspector-actions");
             const firstPrepAction = document.querySelector("#service-prep [data-service-prep-card] .service-prep-actions");
             const firstPrepStageButton = firstPrepAction?.querySelector("[data-save-open-service-staging]");
             const minderStageButton = document.querySelector("#minder-pocket-planner [data-save-open-minder-staging]");
@@ -577,6 +600,10 @@ async def assert_maintenance_features(page, page_name):
                 })
                 .map((link) => link.textContent.trim());
             const prepColumns = prepGrid ? getComputedStyle(prepGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const launcherColumns = launcherGrid ? getComputedStyle(launcherGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const launcherActionRows = firstLauncherAction
+                ? new Set([...firstLauncherAction.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                : 0;
             const prepActionRows = firstPrepAction
                 ? new Set([...firstPrepAction.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
                 : 0;
@@ -593,6 +620,8 @@ async def assert_maintenance_features(page, page_name):
                 prepStageLabel: firstPrepStageButton?.getAttribute("aria-label") || "",
                 minderStageText: minderStageButton?.textContent.trim() || "",
                 minderStageLabel: minderStageButton?.getAttribute("aria-label") || "",
+                launcherColumns,
+                launcherActionRows,
                 prepColumns,
                 prepActionRows,
                 minderActionRows,
@@ -601,6 +630,8 @@ async def assert_maintenance_features(page, page_name):
         }"""
     )
     assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
+    assert_true(mobile_state["launcherColumns"] == 2, "service run launcher should keep two compact columns at iPhone width")
+    assert_true(mobile_state["launcherActionRows"] == 1, "service run launcher action buttons should stay on one compact row at iPhone width")
     assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
     assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
     assert_true(mobile_state["prepStageText"] == "Stage in Garage", "service prep Stage button should clearly state it opens Garage staging")
