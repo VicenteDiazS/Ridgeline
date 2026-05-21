@@ -37,6 +37,7 @@
           </p>
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#emergency-card">Emergency Card</a>
+            <a class="utility-link utility-link-strong" href="#print-offline-pack">Print Pack</a>
             <a class="utility-link utility-link-strong" href="#critical-strip">Critical Strip</a>
             <a class="utility-link utility-link-strong" href="#roadside-router">Roadside Router</a>
             <a class="utility-link utility-link-strong" href="#roadside-action-stack">Action Stack</a>
@@ -52,6 +53,58 @@
           <div class="inspector-actions quick-sheet-actions">
             <button class="secondary-button" type="button" data-print-page>Print / Save PDF</button>
             <a class="utility-link" href="diagnostics.html#workflow-index">Open Diagnostics Index</a>
+          </div>
+        </section>
+
+        <section class="section-page-stack quick-print-pack-section" id="print-offline-pack" data-quick-print-pack>
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Print / Offline Pack</p>
+              <h2>Make A Roadside Copy Before Signal Drops</h2>
+            </div>
+            <a class="utility-link" href="#source-confidence">Source Rules</a>
+          </div>
+          <div class="dashboard-grid quick-print-pack-grid" aria-label="Quick Sheet print and offline prep">
+            <article class="dashboard-card quick-print-pack-card">
+              <span>Paper / PDF</span>
+              <strong>Print the emergency sheet</strong>
+              <p>Use the browser print flow for a glove-box PDF or paper copy before leaving coverage.</p>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-print-page>Print / Save PDF</button>
+                <a class="utility-link" href="#emergency-card">Open Card</a>
+              </div>
+            </article>
+            <article class="dashboard-card quick-print-pack-card">
+              <span>Offline Pack</span>
+              <strong data-quick-offline-status>Checking offline pack</strong>
+              <p>Refresh the cached site while online so Quick Sheet, Diagnostics, fuses, and Garage backup routes stay close.</p>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-refresh-quick-pack>Refresh Pack</button>
+                <a class="utility-link" href="diagnostics.html#workflow-index">Diagnostics</a>
+              </div>
+            </article>
+            <article class="dashboard-card quick-print-pack-card">
+              <span>Garage Backup</span>
+              <strong>Save the current truck notes</strong>
+              <p>Download a safety copy before a trip or repair visit, then restore only after previewing the recognized sections.</p>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="garage.html#diagnostic-activity">Backup Checkpoint</a>
+                <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+              </div>
+            </article>
+            <article class="dashboard-card quick-print-pack-card">
+              <span>Handoff</span>
+              <strong>Copy the prep checklist</strong>
+              <p>Send a short note that says what is ready: offline pack, printed sheet, backup, and source authority.</p>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-print-pack>Copy Prep</button>
+                <button class="utility-link" type="button" data-share-print-pack>Share</button>
+              </div>
+              <p class="small-note" aria-live="polite" data-print-pack-status></p>
+            </article>
+          </div>
+          <div class="section-callout">
+            Print-pack rule: the saved copy is a backup index only. The truck labels, owner's manual, fuse covers, and current conditions remain final authority.
           </div>
         </section>
 
@@ -417,6 +470,7 @@
 
       <nav class="section-dock" aria-label="Quick return">
         <a href="#emergency-card">Emergency</a>
+        <a href="#print-offline-pack">Print</a>
         <a href="#roadside-router">Roadside</a>
         <a href="#roadside-action-stack">Stack</a>
         <a href="#oil">Oil</a>

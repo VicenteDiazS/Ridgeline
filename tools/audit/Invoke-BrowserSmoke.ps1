@@ -75,6 +75,8 @@ SEARCH_EXPECTATIONS = {
     "roadside router": "Roadside Router",
     "critical strip": "Quick Sheet Critical Strip",
     "quick sheet critical": "Quick Sheet Critical Strip",
+    "quick sheet print pack": "Quick Sheet Print Pack",
+    "print offline pack": "Quick Sheet Print Pack",
     "roadside action stack": "Roadside Action Stack",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
@@ -485,6 +487,7 @@ async def assert_quick_sheet(page, page_name):
     state = await page.evaluate(
         """() => {
             const router = document.querySelector("#roadside-router");
+            const printPack = document.querySelector("#print-offline-pack");
             const critical = document.querySelector("#critical-strip");
             const stack = document.querySelector("#roadside-action-stack");
             const triage = document.querySelector("#fuse-triage");
@@ -516,7 +519,22 @@ async def assert_quick_sheet(page, page_name):
                 "https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Specifications/",
                 "https://www.bernardiparts.com/Images/Install/2018_Ridgeline_18inchAluminumWheelTG7_AII06945-38.pdf"
             ];
+            const requiredPrintPackTargets = [
+                "#emergency-card",
+                "diagnostics.html#workflow-index",
+                "garage.html#diagnostic-activity",
+                "garage.html#notes",
+                "#source-confidence"
+            ];
             return {
+                hasPrintPack: Boolean(printPack),
+                printPackCards: printPack ? printPack.querySelectorAll(".quick-print-pack-grid .dashboard-card").length : 0,
+                printPackText: printPack ? printPack.innerText.toLowerCase() : "",
+                hasPrintPackRefresh: Boolean(printPack?.querySelector("[data-refresh-quick-pack]")),
+                hasPrintPackCopy: Boolean(printPack?.querySelector("[data-copy-print-pack]")),
+                hasPrintPackShare: Boolean(printPack?.querySelector("[data-share-print-pack]")),
+                hasPrintPackOfflineStatus: Boolean(printPack?.querySelector("[data-quick-offline-status]")),
+                missingPrintPackTargets: requiredPrintPackTargets.filter((href) => !printPack?.querySelector(`a[href="${href}"]`)),
                 hasCritical: Boolean(critical),
                 criticalCards: critical ? critical.querySelectorAll(".quick-critical-card").length : 0,
                 criticalText: critical ? critical.innerText.toLowerCase() : "",
@@ -551,6 +569,15 @@ async def assert_quick_sheet(page, page_name):
             };
         }"""
     )
+    assert_true(state["hasPrintPack"], "quick sheet is missing the print/offline pack")
+    assert_true(state["printPackCards"] == 4, "print/offline pack should expose four prep cards")
+    assert_true(not state["missingPrintPackTargets"], f"print/offline pack is missing routes: {state['missingPrintPackTargets']}")
+    assert_true(state["hasPrintPackRefresh"], "print/offline pack is missing refresh-pack control")
+    assert_true(state["hasPrintPackCopy"], "print/offline pack is missing copy-prep control")
+    assert_true(state["hasPrintPackShare"], "print/offline pack is missing share control")
+    assert_true(state["hasPrintPackOfflineStatus"], "print/offline pack is missing live offline status")
+    for phrase in ["print the emergency sheet", "offline pack", "garage backup", "source authority", "truck labels"]:
+        assert_true(phrase in state["printPackText"], f"print/offline pack is missing text: {phrase}")
     assert_true(state["hasCritical"], "quick sheet is missing the critical strip")
     assert_true(state["criticalCards"] == 6, "quick sheet critical strip should expose six compact references")
     assert_true(not state["missingCriticalTargets"], f"critical strip is missing routes: {state['missingCriticalTargets']}")
@@ -605,12 +632,21 @@ async def assert_quick_sheet(page, page_name):
     mobile_state = await page.evaluate(
         """() => {
             const critical = document.querySelector("#critical-strip");
+            const printPack = document.querySelector("#print-offline-pack");
             const grid = critical?.querySelector(".quick-critical-grid");
+            const printGrid = printPack?.querySelector(".quick-print-pack-grid");
+            const printCards = [...printPack?.querySelectorAll(".quick-print-pack-card") || []].map((card) => {
+                const rect = card.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            });
             const cards = [...critical?.querySelectorAll(".quick-critical-card") || []].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
             });
             return {
+                printPackVisible: Boolean(printPack && printPack.getBoundingClientRect().height > 0),
+                printPackColumns: printGrid ? getComputedStyle(printGrid).gridTemplateColumns.split(" ").length : 0,
+                minPrintPackCardHeight: printCards.length ? Math.min(...printCards.map((card) => card.height)) : 0,
                 visible: Boolean(critical && critical.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
@@ -619,6 +655,9 @@ async def assert_quick_sheet(page, page_name):
             };
         }"""
     )
+    assert_true(mobile_state["printPackVisible"], "quick sheet print/offline pack is not visible at iPhone width")
+    assert_true(mobile_state["printPackColumns"] == 1, "quick sheet print/offline pack should use one readable column on iPhone")
+    assert_true(mobile_state["minPrintPackCardHeight"] >= 90, "quick sheet print/offline pack cards should stay thumb-readable on iPhone")
     assert_true(mobile_state["visible"], "quick sheet critical strip is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 2, "quick sheet critical strip should use two compact columns on iPhone")
     assert_true(mobile_state["minCardHeight"] >= 70, "quick sheet critical strip cards should stay thumb-sized on iPhone")

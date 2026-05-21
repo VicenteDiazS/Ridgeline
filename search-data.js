@@ -860,6 +860,25 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Quick Sheet Print Pack",
+    url: "quick-sheet.html#print-offline-pack",
+    category: "Navigation",
+    excerpt: "Near-top iPhone print and offline prep for refreshing the cached site, printing the emergency card, saving a Garage backup, and copying a signal-loss handoff.",
+    keywords: [
+      "quick sheet print pack",
+      "print pack",
+      "print offline pack",
+      "print quick sheet",
+      "save quick sheet pdf",
+      "before signal drops",
+      "offline quick sheet",
+      "refresh offline pack",
+      "garage backup before trip",
+      "copy print prep",
+      "iphone print quick sheet"
+    ]
+  },
+  {
     title: "Roadside Router",
     url: "quick-sheet.html#roadside-router",
     category: "Navigation",

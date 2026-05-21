@@ -62,6 +62,16 @@ function buildHandoff(plan) {
   ].join("\n");
 }
 
+function buildPrintPackHandoff() {
+  return [
+    "Ridgeline Quick Sheet prep before signal drops",
+    "1. Refresh the offline pack while still online.",
+    "2. Print or save the Quick Sheet PDF for glove-box use.",
+    "3. Download a Garage backup from the Backup Checkpoint.",
+    "4. Use truck labels, owner's manual, fuse covers, and current conditions as final authority."
+  ].join("\n");
+}
+
 function setStatus(root, message) {
   const status = root.querySelector("[data-roadside-status]");
   if (status) {
@@ -104,6 +114,85 @@ async function copyText(text) {
   return false;
 }
 
+async function refreshServiceWorkerRegistrations() {
+  if (!("serviceWorker" in navigator)) {
+    return false;
+  }
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(registrations.map((registration) => registration.update()));
+  return registrations.length > 0;
+}
+
+function setPrintPackStatus(root, message) {
+  const status = root.querySelector("[data-print-pack-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function renderQuickOfflineStatus(root, message = "") {
+  const status = root.querySelector("[data-quick-offline-status]");
+  if (!status) {
+    return;
+  }
+  if (!("serviceWorker" in navigator)) {
+    status.textContent = "Offline pack unavailable";
+    return;
+  }
+  const ready = Boolean(navigator.serviceWorker.controller);
+  const network = navigator.onLine === false ? "Offline" : "Online";
+  status.textContent = message || `${network}; ${ready ? "offline pack ready" : "offline pack loading"}`;
+}
+
+function initQuickPrintPack() {
+  const root = document.querySelector("[data-quick-print-pack]");
+  if (!root) {
+    return;
+  }
+
+  renderQuickOfflineStatus(root);
+  navigator.serviceWorker?.ready?.then(() => renderQuickOfflineStatus(root)).catch(() => {});
+  navigator.serviceWorker?.addEventListener?.("controllerchange", () => renderQuickOfflineStatus(root, "Offline pack updated"));
+  window.addEventListener("online", () => renderQuickOfflineStatus(root));
+  window.addEventListener("offline", () => renderQuickOfflineStatus(root));
+
+  root.querySelector("[data-refresh-quick-pack]")?.addEventListener("click", async () => {
+    renderQuickOfflineStatus(root, "Checking offline pack");
+    try {
+      const hadRegistrations = await refreshServiceWorkerRegistrations();
+      renderQuickOfflineStatus(root, hadRegistrations ? "Offline pack update check complete" : "Offline pack not registered yet");
+      setPrintPackStatus(root, hadRegistrations ? "Offline pack update check complete." : "Open the site once while online to finish offline setup.");
+    } catch (error) {
+      renderQuickOfflineStatus(root, "Offline pack check failed");
+      setPrintPackStatus(root, "Could not refresh the offline pack in this browser session.");
+    }
+  });
+
+  root.querySelector("[data-copy-print-pack]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(buildPrintPackHandoff());
+      setPrintPackStatus(root, copied ? "Print prep copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setPrintPackStatus(root, "Copy failed. Select and copy the visible prep steps instead.");
+    }
+  });
+
+  root.querySelector("[data-share-print-pack]")?.addEventListener("click", async () => {
+    const text = buildPrintPackHandoff();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline Quick Sheet prep", text });
+        setPrintPackStatus(root, "Print prep shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setPrintPackStatus(root, copied ? "Share unavailable; print prep copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setPrintPackStatus(root, "Share canceled or unavailable.");
+    }
+  });
+}
+
 function initRoadsideStack() {
   const root = document.querySelector("[data-roadside-stack]");
   if (!root) {
@@ -143,4 +232,5 @@ function initRoadsideStack() {
   updateRoadsidePlan(root, "flat");
 }
 
+initQuickPrintPack();
 initRoadsideStack();

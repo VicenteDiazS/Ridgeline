@@ -14232,6 +14232,28 @@ select:focus {
   margin-top: 18px;
 }
 
+.quick-print-pack-section {
+  border-color: rgba(72, 202, 228, 0.22);
+}
+
+.quick-print-pack-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quick-print-pack-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.quick-print-pack-card .inspector-actions {
+  margin-top: 4px;
+}
+
+.quick-print-pack-card [data-quick-offline-status] {
+  color: #ffffff;
+}
+
 .quick-critical-section {
   border-color: rgba(111, 255, 180, 0.22);
 }
@@ -14367,6 +14389,7 @@ select:focus {
 }
 
 @media (max-width: 860px) {
+  .quick-print-pack-grid,
   .quick-critical-grid,
   .roadside-action-grid,
   .quick-sheet-source-grid,
@@ -14389,6 +14412,24 @@ select:focus {
 
   .roadside-router-section {
     padding: 14px;
+  }
+
+  .quick-print-pack-section {
+    padding: 14px;
+  }
+
+  .quick-print-pack-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .quick-print-pack-card {
+    padding: 13px;
+  }
+
+  .quick-print-pack-card .inspector-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .quick-critical-section {
@@ -14498,6 +14539,7 @@ select:focus {
   body.quick-sheet-page .section-dock,
   body.quick-sheet-page .quick-capture-fab,
   body.quick-sheet-page .quick-sheet-actions,
+  body.quick-sheet-page .quick-print-pack-section,
   body.quick-sheet-page .toast-stack,
   body.quick-sheet-page .search-modal,
   body.quick-sheet-page .site-menu-panel,
