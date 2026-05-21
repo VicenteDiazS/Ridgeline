@@ -126,15 +126,29 @@
           </div>
         </section>
 
-        <details class="anton-panel anton-local-details" id="anton-controls">
-          <summary>
-            <span>Advanced</span>
-            Local Laptop Controls
-          </summary>
+        <section class="anton-panel anton-local-details" id="anton-controls">
+          <div class="compact-section-head">
+            <div>
+              <p class="eyebrow">Automation</p>
+              <h2>Anton Controls</h2>
+            </div>
+          </div>
           <div class="anton-live-card" data-anton-live-card>
             <span>Laptop Helper</span>
             <strong data-anton-server-state>Checking...</strong>
             <p data-anton-server-detail>Looking for the laptop helper.</p>
+          </div>
+          <div class="anton-runtime-grid">
+            <article class="anton-runtime-card">
+              <span>Schedule</span>
+              <strong data-anton-schedule-state>Checking...</strong>
+              <p data-anton-schedule-detail>Waiting for the local helper to report whether Anton is enabled.</p>
+            </article>
+            <article class="anton-runtime-card">
+              <span>Remote Control</span>
+              <strong data-anton-remote-state>Local only</strong>
+              <p data-anton-remote-detail>Remote enable/disable works only when your iPhone can reach the laptop helper URL on your private network.</p>
+            </article>
           </div>
           <article class="anton-panel anton-controls-panel">
             <div class="compact-section-head">
@@ -157,7 +171,7 @@
             </div>
             <p class="agent-status-summary" data-anton-action-message>Controls require the laptop helper. From an iPhone, offline local controls can be normal while Anton's public agent status remains current.</p>
           </article>
-        </details>
+        </section>
 
         <section class="anton-console-grid">
           <article class="anton-panel" id="anton-note">

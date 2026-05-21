@@ -37,6 +37,10 @@ const els = {
   serverState: document.querySelector("[data-anton-server-state]"),
   serverDetail: document.querySelector("[data-anton-server-detail]"),
   liveCard: document.querySelector("[data-anton-live-card]"),
+  scheduleState: document.querySelector("[data-anton-schedule-state]"),
+  scheduleDetail: document.querySelector("[data-anton-schedule-detail]"),
+  remoteState: document.querySelector("[data-anton-remote-state]"),
+  remoteDetail: document.querySelector("[data-anton-remote-detail]"),
   taskState: document.querySelector("[data-anton-task-state]"),
   lastRun: document.querySelector("[data-anton-last-run]"),
   nextRun: document.querySelector("[data-anton-next-run]"),
@@ -113,6 +117,38 @@ function describeNextRun(value) {
 function requestHeaders() {
   const token = getControlToken();
   return token ? { "X-Anton-Token": token } : {};
+}
+
+function describeScheduleState(taskState = "", nextRunTime = "") {
+  const normalized = `${taskState}`.trim().toLowerCase();
+  if (normalized === "disabled") {
+    return {
+      label: "Paused",
+      detail: "Anton's scheduled loop is disabled. It will not auto-run until you resume the schedule."
+    };
+  }
+  if (normalized === "ready") {
+    return {
+      label: "Enabled",
+      detail: `Anton's scheduled loop is armed and waiting. ${describeNextRun(nextRunTime)}.`
+    };
+  }
+  if (normalized === "running") {
+    return {
+      label: "Running Now",
+      detail: "Anton's scheduled task is active right now."
+    };
+  }
+  if (normalized === "missing") {
+    return {
+      label: "Missing Task",
+      detail: "The Anton scheduled task was not found on this laptop."
+    };
+  }
+  return {
+    label: taskState || "Unknown",
+    detail: "The laptop helper responded, but the scheduler state was not recognized cleanly."
+  };
 }
 
 function summarizeText(value = "") {
@@ -254,13 +290,31 @@ async function loadStatus() {
 
   try {
     const status = await controlFetch("/status");
+    const controlUrl = getControlUrl();
+    const schedule = describeScheduleState(status.taskState, status.nextRunTime);
     state.serverOnline = true;
     els.liveCard?.setAttribute("data-anton-server", "online");
     if (els.serverState) {
       els.serverState.textContent = "Online";
     }
     if (els.serverDetail) {
-      els.serverDetail.textContent = `Laptop helper connected at ${getControlUrl()}.`;
+      els.serverDetail.textContent = `Laptop helper connected at ${controlUrl}.`;
+    }
+    if (els.scheduleState) {
+      els.scheduleState.textContent = schedule.label;
+    }
+    if (els.scheduleDetail) {
+      els.scheduleDetail.textContent = schedule.detail;
+    }
+    if (els.remoteState) {
+      els.remoteState.textContent = /^https?:\/\/127\.0\.0\.1/i.test(controlUrl) || /localhost/i.test(controlUrl)
+        ? "Local only"
+        : "Remote ready";
+    }
+    if (els.remoteDetail) {
+      els.remoteDetail.textContent = /^https?:\/\/127\.0\.0\.1/i.test(controlUrl) || /localhost/i.test(controlUrl)
+        ? "This browser is pointing at the laptop's localhost helper. From iPhone, set the Control URL to the laptop's private-network address and keep a token on."
+        : `This browser is pointing at ${controlUrl}. Remote enable/disable should work while your iPhone can reach that helper on your private network.`;
     }
     if (els.taskState) {
       els.taskState.textContent = status.taskState || status.status || "Online";
@@ -282,6 +336,18 @@ async function loadStatus() {
     }
     if (els.serverDetail) {
       els.serverDetail.textContent = `Local controls are unavailable from this browser. On iPhone this is normal unless the helper is exposed on your private network. ${error.message}`;
+    }
+    if (els.scheduleState) {
+      els.scheduleState.textContent = "Unavailable";
+    }
+    if (els.scheduleDetail) {
+      els.scheduleDetail.textContent = "The browser could not reach the laptop helper, so enable/disable status is unavailable here.";
+    }
+    if (els.remoteState) {
+      els.remoteState.textContent = "Unavailable";
+    }
+    if (els.remoteDetail) {
+      els.remoteDetail.textContent = "Remote toggle needs the Anton helper to be reachable from this browser.";
     }
     if (els.taskState) {
       els.taskState.textContent = "Helper offline";
