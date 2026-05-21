@@ -268,6 +268,22 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Selected Fuse Handoff",
+    url: "hood.html#fuses",
+    category: "Electrical",
+    excerpt: "Tap a Hood or Cabin fuse diagram position, then copy or share the selected panel, position, rating, circuit, and cover-label reminder.",
+    keywords: [
+      "copy fuse",
+      "share fuse",
+      "selected fuse",
+      "fuse handoff",
+      "fuse note",
+      "send fuse",
+      "save selected fuse",
+      "fuse inspector"
+    ]
+  },
+  {
     title: "Power Outlet / 12V Socket Fuses",
     url: "cabin.html#fuses",
     category: "Electrical",

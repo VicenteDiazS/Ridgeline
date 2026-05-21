@@ -395,6 +395,7 @@ function bindDiagram(diagramEl) {
   const copyEl = inspector.querySelector(".fuse-inspector-copy");
   const circuitEl = inspector.querySelector('[data-fuse-field="circuit"]');
   const saveButton = inspector.querySelector("[data-save-fuse]");
+  const actionsEl = saveButton?.closest(".inspector-actions");
   const acronymPanel = inspector.querySelector("[data-acronym-panel]");
   const acronymList = inspector.querySelector("[data-acronym-list]");
   const fieldEls = {
@@ -404,6 +405,85 @@ function bindDiagram(diagramEl) {
     rating: inspector.querySelector('[data-fuse-field="rating"]')
   };
   let activeEntry = null;
+  const copyButton = document.createElement("button");
+  const shareButton = document.createElement("button");
+  const handoffStatus = document.createElement("p");
+
+  function setHandoffStatus(message) {
+    handoffStatus.textContent = message;
+  }
+
+  function selectedFuseSummary() {
+    if (!activeEntry) {
+      return "";
+    }
+
+    const page = document.title.replace(/\s*\|\s*Ridgeline Console\s*$/i, "").trim() || "Ridgeline fuse page";
+    const url = `${location.origin}${location.pathname}#fuses`;
+    return [
+      `${page} selected fuse`,
+      `Panel: ${key.toUpperCase().replace("-", " ")}`,
+      `Position: ${activeEntry.position}`,
+      `Location: ${activeEntry.location}`,
+      `Type: ${activeEntry.type}`,
+      `Rating: ${activeEntry.rating}`,
+      `Circuit: ${activeEntry.circuit}`,
+      `Verify against the truck cover label before replacing anything.`,
+      url
+    ].join("\n");
+  }
+
+  async function copySelectedFuse(label = "Copied fuse handoff. Verify against the truck cover label before replacing anything.") {
+    const summary = selectedFuseSummary();
+    if (!summary) {
+      return false;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(summary);
+        setHandoffStatus(label);
+        return true;
+      }
+    } catch (error) {
+      // Fall back to the legacy copy path below.
+    }
+
+    try {
+      const helper = document.createElement("textarea");
+      helper.value = summary;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "fixed";
+      helper.style.opacity = "0";
+      document.body.append(helper);
+      helper.select();
+      const copied = document.execCommand("copy");
+      helper.remove();
+      setHandoffStatus(copied ? label : "Copy failed. Verify against the truck cover label before replacing anything.");
+      return copied;
+    } catch (error) {
+      setHandoffStatus("Copy failed. Verify against the truck cover label before replacing anything.");
+      return false;
+    }
+  }
+
+  if (actionsEl) {
+    copyButton.type = "button";
+    copyButton.className = "ghost-button";
+    copyButton.dataset.copyFuse = "";
+    copyButton.textContent = "Copy Handoff";
+
+    shareButton.type = "button";
+    shareButton.className = "ghost-button";
+    shareButton.dataset.shareFuse = "";
+    shareButton.textContent = "Share";
+
+    handoffStatus.className = "fuse-handoff-status";
+    handoffStatus.setAttribute("aria-live", "polite");
+
+    actionsEl.append(copyButton, shareButton);
+    actionsEl.after(handoffStatus);
+  }
 
   function renderAcronyms(entry) {
     if (!acronymPanel || !acronymList) {
@@ -431,6 +511,7 @@ function bindDiagram(diagramEl) {
     fieldEls.rating.textContent = entry.rating;
     circuitEl.textContent = entry.circuit;
     activeEntry = entry;
+    setHandoffStatus("Copy or share this selected fuse with the symptom note.");
     renderAcronyms(entry);
 
     table.querySelectorAll("tr").forEach((row) => row.classList.remove("is-active"));
@@ -480,6 +561,35 @@ function bindDiagram(diagramEl) {
     setTimeout(() => {
       saveButton.textContent = "Save Fuse";
     }, 1200);
+  });
+
+  copyButton.addEventListener("click", () => {
+    copySelectedFuse();
+  });
+
+  shareButton.addEventListener("click", async () => {
+    const summary = selectedFuseSummary();
+    if (!summary) {
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Ridgeline selected fuse",
+          text: summary
+        });
+        setHandoffStatus("Shared selected fuse.");
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          setHandoffStatus("Share canceled.");
+          return;
+        }
+      }
+    }
+
+    copySelectedFuse("Share unavailable. Copied fuse handoff instead.");
   });
 
   targets.forEach((target) => {

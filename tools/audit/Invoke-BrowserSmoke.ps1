@@ -87,6 +87,7 @@ SEARCH_EXPECTATIONS = {
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "fuse quick finder": "Hood Fuse Quick Finder",
+    "copy fuse": "Selected Fuse Handoff",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
     "cargo load planner": "Cargo Load Planner",
@@ -808,6 +809,9 @@ async def assert_fuse_mobile_readability(page, page_name):
                 return {
                     inspectorVisible: Boolean(inspector && !inspector.hidden),
                     title: inspector?.querySelector(".fuse-inspector-title")?.textContent || "",
+                    hasCopy: Boolean(inspector?.querySelector("[data-copy-fuse]")),
+                    hasShare: Boolean(inspector?.querySelector("[data-share-fuse]")),
+                    handoffText: inspector?.querySelector(".fuse-handoff-status")?.textContent || "",
                     metaColumns: inspector ? getComputedStyle(inspector.querySelector(".fuse-inspector-meta")).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                     rowDisplay: activeRow ? getComputedStyle(activeRow).display : "",
                     circuitWrap: circuitCell ? getComputedStyle(circuitCell).whiteSpace : "",
@@ -820,12 +824,29 @@ async def assert_fuse_mobile_readability(page, page_name):
         )
         assert_true(state["inspectorVisible"], f"{key} fuse inspector did not open after tapping a fuse")
         assert_true("Fuse" in state["title"], f"{key} fuse inspector title did not update")
+        assert_true(state["hasCopy"], f"{key} fuse inspector is missing Copy Handoff")
+        assert_true(state["hasShare"], f"{key} fuse inspector is missing Share")
+        assert_true("Copy or share" in state["handoffText"], f"{key} fuse handoff status should explain the selected fuse action")
         assert_true(state["metaColumns"] == 1, f"{key} fuse inspector meta should stack on iPhone")
         assert_true(state["rowDisplay"] == "block", f"{key} fuse table rows should render as mobile cards")
         assert_true(state["circuitWrap"] != "nowrap", f"{key} fuse circuit cell should wrap on iPhone")
         assert_true("Pos" in state["label"], f"{key} fuse mobile table should show row labels")
         assert_true(state["diagramPans"], f"{key} fuse diagram should pan inside its panel on iPhone")
         assert_true(not state["pageOverflow"], f"{key} fuse page introduced horizontal overflow")
+        await page.locator(f'[data-fuse-inspector="{key}"] [data-copy-fuse]').click()
+        await page.wait_for_timeout(200)
+        copy_state = await page.evaluate(
+            """(key) => {
+                const inspector = document.querySelector(`[data-fuse-inspector="${key}"]`);
+                return {
+                    status: inspector?.querySelector(".fuse-handoff-status")?.textContent || "",
+                    text: inspector?.innerText || ""
+                };
+            }""",
+            key,
+        )
+        assert_true("Copied fuse handoff" in copy_state["status"] or "Copy failed" in copy_state["status"], f"{key} Copy Handoff did not report a result")
+        assert_true("Verify against the truck cover label" in copy_state["status"], f"{key} selected fuse handoff is missing cover-label reminder")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
