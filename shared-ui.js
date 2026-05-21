@@ -3899,10 +3899,19 @@ function buildSearchModal() {
           <strong data-search-offline-pack>Offline pack checking</strong>
           <p data-search-offline-message>Roadside references stay close when the pack is ready.</p>
         </div>
+        <div class="search-offline-prep" aria-label="Signal-loss prep">
+          <strong>Before Signal Drops</strong>
+          <ol>
+            <li>Refresh the offline pack.</li>
+            <li>Open or print the Quick Sheet.</li>
+            <li>Save a Garage backup.</li>
+          </ol>
+        </div>
         <div class="search-offline-actions" aria-label="Offline-ready shortcuts">
           <a href="quick-sheet.html#roadside-action-stack">Roadside</a>
           <a href="diagnostics.html#workflow-index">Diagnostics</a>
           <a href="hood.html#fuses">Fuses</a>
+          <a href="quick-sheet.html#emergency-card">Print Sheet</a>
           <a href="garage.html#diagnostic-activity">Garage Backup</a>
           <button type="button" data-search-refresh-pack>Refresh Pack</button>
         </div>

@@ -51,6 +51,8 @@ SEARCH_EXPECTATIONS = {
     "diagnostic first minute": "First Minute Diagnostic Triage",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
+    "signal loss prep": "Signal-Loss Prep",
+    "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
@@ -2310,10 +2312,13 @@ async def run_overlay_checks(page, page_name):
                     "quick-sheet.html#roadside-action-stack",
                     "diagnostics.html#workflow-index",
                     "hood.html#fuses",
+                    "quick-sheet.html#emergency-card",
                     "garage.html#diagnostic-activity"
                 ].filter((href) => !offlineCard?.querySelector(`a[href="${href}"]`)),
                 hasOfflineRefresh: Boolean(offlineCard?.querySelector("[data-search-refresh-pack]")),
                 hasOfflineStatus: Boolean(offlineCard?.querySelector("[data-search-refresh-status]")),
+                hasOfflinePrep: Boolean(offlineCard?.querySelector(".search-offline-prep")),
+                prepSteps: offlineCard?.querySelectorAll(".search-offline-prep li").length || 0,
                 cardCount: grid?.querySelectorAll("a").length || 0,
                 missing: required.filter((href) => !grid?.querySelector(`a[href="${href}"]`)),
                 text: grid?.textContent || "",
@@ -2324,11 +2329,15 @@ async def run_overlay_checks(page, page_name):
     assert_true(quick_state["hasGrid"], "search modal is missing the common situations grid")
     assert_true(quick_state["hasOfflineCard"], "search modal is missing the offline launch pad")
     assert_true("Offline pack" in quick_state["offlineText"], "search offline launch pad should show offline pack status")
+    assert_true("Before Signal Drops" in quick_state["offlineText"], "search offline launch pad should include signal-loss prep")
+    assert_true("Print Sheet" in quick_state["offlineText"], "search offline launch pad should include the Quick Sheet print route")
     assert_true("Roadside" in quick_state["offlineText"], "search offline launch pad should include Roadside")
     assert_true("Garage Backup" in quick_state["offlineText"], "search offline launch pad should include Garage Backup")
     assert_true(not quick_state["offlineMissing"], f"search offline launch pad is missing routes: {quick_state['offlineMissing']}")
     assert_true(quick_state["hasOfflineRefresh"], "search offline launch pad is missing refresh-pack action")
     assert_true(quick_state["hasOfflineStatus"], "search offline launch pad is missing live refresh status")
+    assert_true(quick_state["hasOfflinePrep"], "search offline launch pad is missing the signal-loss prep checklist")
+    assert_true(quick_state["prepSteps"] == 3, "search signal-loss prep should expose three steps")
     assert_true(quick_state["cardCount"] == 6, "search common situations grid should expose six routes")
     assert_true(not quick_state["missing"], f"search common situations grid is missing routes: {quick_state['missing']}")
     for phrase in ["Roadside", "No start", "Warning light", "12V power", "Trailer lights", "Parts run"]:
