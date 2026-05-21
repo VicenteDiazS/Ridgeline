@@ -42,6 +42,8 @@ SEARCH_EXPECTATIONS = {
     "trailer hookup": "Trailer Hookup Flow",
     "tow day readiness": "Tow Day Readiness",
     "tow prep": "Tow Day Readiness",
+    "engine service jumpstart": "Engine Service Jumpstart",
+    "engine part picker": "Engine Service Jumpstart",
     "workflow index": "Diagnostics Workflow Index",
     "first minute triage": "First Minute Diagnostic Triage",
     "diagnostic first minute": "First Minute Diagnostic Triage",
@@ -923,6 +925,83 @@ async def assert_cargo_load_planner(page, page_name):
     assert_true(mobile_state["minCardHeight"] >= 44, "cargo load planner cards lost thumb-sized touch targets")
     assert_true(mobile_state["maxCardWidth"] <= 390, "cargo load planner cards are wider than the iPhone viewport")
     assert_true(not mobile_state["overflow"], "cargo load planner introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_engine_service_jumpstart(page, page_name):
+    if page_name != "engine.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#engine-service-jumpstart");
+            const cards = panel ? [...panel.querySelectorAll(".engine-service-route")] : [];
+            const requiredLinks = [
+                "#timing-service",
+                "#engine-part-reference",
+                "photo-atlas.html#hood-atlas",
+                "diagnostics.html#no-start-workflow"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                cardCount: cards.length,
+                text: panel?.innerText || "",
+                missingLinks: requiredLinks.filter((href) => !panel?.querySelector(`a[href="${href}"]`)),
+                heroHasRoute: Boolean(document.querySelector('.engine-utility-nav a[href="#engine-service-jumpstart"]')),
+                dockHasRoute: [...document.querySelectorAll("a")].some((link) =>
+                    link.getAttribute("href") === "#engine-service-jumpstart" && /service jump/i.test(link.textContent || "")
+                ),
+                hasPartTarget: Boolean(document.querySelector("#engine-part-reference")),
+                hasTimingTarget: Boolean(document.querySelector("#timing-service")),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasPanel"], "engine page is missing the Engine Service Jumpstart panel")
+    assert_true(state["cardCount"] == 4, "Engine Service Jumpstart should expose four route cards")
+    for phrase in ["Open the timing service facts", "Use the in-site part picker", "Match it to real hood photos", "Route no-start clues"]:
+        assert_true(phrase in state["text"], f"Engine Service Jumpstart is missing '{phrase}'")
+    assert_true(not state["missingLinks"], f"Engine Service Jumpstart is missing route links: {state['missingLinks']}")
+    assert_true("does not add repair procedures" in state["text"], "Engine Service Jumpstart is missing its no-new-facts boundary note")
+    assert_true(state["heroHasRoute"], "engine hero is missing the Service Jumpstart route")
+    assert_true(state["dockHasRoute"], "engine bottom dock is missing the Service Jump route")
+    assert_true(state["hasPartTarget"], "Engine Service Jumpstart should route to the part reference target")
+    assert_true(state["hasTimingTarget"], "Engine Service Jumpstart should route to the timing service target")
+    assert_true(not state["overflow"], "Engine Service Jumpstart introduced desktop horizontal overflow")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(300)
+    mobile_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#engine-service-jumpstart");
+            const grid = panel?.querySelector(".engine-service-grid");
+            const cards = panel ? [...panel.querySelectorAll(".engine-service-route")] : [];
+            const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const visibleHeroLinks = [...document.querySelectorAll(".engine-page-main .engine-utility-nav .utility-link")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return style.display !== "none" && rect.width > 0 && rect.height > 0;
+                }).length;
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(panel?.getBoundingClientRect().height),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                visibleHeroLinks,
+                minCardHeight: cardRects.length ? Math.min(...cardRects.map((rect) => rect.height)) : 0,
+                maxCardWidth: cardRects.length ? Math.max(...cardRects.map((rect) => rect.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "Engine Service Jumpstart is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 1, "Engine Service Jumpstart should stack to one column on iPhone")
+    assert_true(mobile_state["visibleHeroLinks"] == 5, "engine mobile hero should keep the five primary engine routes visible")
+    assert_true(mobile_state["minCardHeight"] >= 44, "Engine Service Jumpstart cards lost thumb-sized touch targets")
+    assert_true(mobile_state["maxCardWidth"] <= 390, "Engine Service Jumpstart cards are wider than the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "Engine Service Jumpstart introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -2289,6 +2368,7 @@ async def smoke_page(context, root, page_name):
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_rear_hitch_flow(page, page_name)
     await assert_cargo_load_planner(page, page_name)
+    await assert_engine_service_jumpstart(page, page_name)
     await assert_tire_roadside_launcher(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)

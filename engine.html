@@ -51,8 +51,10 @@
               exact Honda CAD file.
             </p>
             <div class="section-utility-nav engine-utility-nav" aria-label="Section shortcuts">
+              <a class="utility-link utility-link-strong" href="#engine-service-jumpstart">Service Jumpstart</a>
               <a class="utility-link utility-link-strong" href="#timing-service">Timing Service</a>
               <a class="utility-link" href="maintenance.html#major-service-log">Service Record</a>
+              <a class="utility-link" href="photo-atlas.html#hood-atlas">Hood Photos</a>
               <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
             </div>
           </div>
@@ -107,6 +109,46 @@
               <button class="viewer-toggle" type="button" data-engine-label-filter="service">Service</button>
             </div>
           </div>
+        </section>
+
+        <section class="engine-service-jumpstart" id="engine-service-jumpstart">
+          <article class="tech-card engine-service-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">iPhone Engine Path</p>
+                <h2>Pick The Engine Question First</h2>
+                <p class="section-copy">
+                  Use this before rotating the 3D model: jump to the service record, a part reference, real hood photos, or a diagnostic handoff.
+                </p>
+              </div>
+              <a class="utility-link" href="#engine-part-reference">Part Picker</a>
+            </div>
+            <div class="engine-service-grid" aria-label="Engine service jumpstart routes">
+              <a class="workflow-index-card engine-service-route" href="#timing-service">
+                <span>1. Record</span>
+                <strong>Open the timing service facts</strong>
+                <small>See the saved date, mileage, kit, and replaced timing-side components already recorded on this page.</small>
+              </a>
+              <a class="workflow-index-card engine-service-route" href="#engine-part-reference">
+                <span>2. Part</span>
+                <strong>Use the in-site part picker</strong>
+                <small>Tap a modeled component or choose a part name before checking reference numbers and fitment elsewhere.</small>
+              </a>
+              <a class="workflow-index-card engine-service-route" href="photo-atlas.html#hood-atlas">
+                <span>3. Photo</span>
+                <strong>Match it to real hood photos</strong>
+                <small>Switch from the stylized model to uploaded hood, battery, fuse-box, and jump-point reference shots.</small>
+              </a>
+              <a class="workflow-index-card engine-service-route" href="diagnostics.html#no-start-workflow">
+                <span>4. Symptom</span>
+                <strong>Route no-start clues</strong>
+                <small>Use the existing diagnostic flow before deciding whether the next stop is battery, fuse, Garage note, or service record.</small>
+              </a>
+            </div>
+            <p class="source-note">
+              This jumpstart routes to existing engine, maintenance, photo, and diagnostic references. It does not add repair procedures, torque specs, part fitment, fluid specs, or Garage storage fields.
+            </p>
+          </article>
         </section>
 
         <section class="engine-part-reference" id="engine-part-reference" tabindex="-1" aria-live="polite">
@@ -215,6 +257,7 @@
 
       <nav class="section-dock" aria-label="Quick return">
         <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#engine-service-jumpstart">Service Jump</a>
         <a href="maintenance.html#major-service-log">Service Record</a>
         <a href="garage.html#dashboard">Garage</a>
         <a href="#top">Top</a>

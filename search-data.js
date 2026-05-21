@@ -81,6 +81,23 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Engine Service Jumpstart",
+    url: "engine.html#engine-service-jumpstart",
+    category: "Tools",
+    excerpt: "Near-top iPhone route for engine service records, part picker, hood photos, and no-start diagnostic handoff.",
+    keywords: [
+      "engine service jumpstart",
+      "engine jumpstart",
+      "engine service path",
+      "engine part picker",
+      "timing service record",
+      "hood photo atlas",
+      "engine photos",
+      "no start engine",
+      "engine diagnostic handoff"
+    ]
+  },
+  {
     title: "Tire And Wheel Lab",
     url: "tires.html",
     category: "Tools",
