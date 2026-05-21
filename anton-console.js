@@ -32,6 +32,7 @@ const els = {
   ownerActionDetail: document.querySelector("[data-anton-owner-action-detail]"),
   ownerNextTitle: document.querySelector("[data-anton-owner-next-title]"),
   ownerNextDetail: document.querySelector("[data-anton-owner-next-detail]"),
+  reviewQueue: document.querySelector("[data-anton-review-queue]"),
   publicSummary: document.querySelector("[data-anton-run-summary]"),
   publicFiles: document.querySelector("[data-anton-public-files]"),
   serverState: document.querySelector("[data-anton-server-state]"),
@@ -224,6 +225,74 @@ function renderOwnerCheck(status) {
       ? "The public status is pushed; the next scheduled run can rotate to a new high-value slice."
       : "This status is local until the run finishes and publishes its result.";
   }
+  renderReviewQueue(status, {
+    changedPage,
+    changedLabel,
+    visibleChange,
+    actionRequired,
+    next,
+    score
+  });
+}
+
+function reviewToneForStatus(status) {
+  const state = status.status || "unknown";
+  if (state === "running") {
+    return {
+      label: "Wait",
+      title: "Run still active",
+      detail: "Refresh this page when Anton finishes before reviewing the changed page."
+    };
+  }
+  if (["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth", "command-error"].includes(state)) {
+    return {
+      label: "Fix",
+      title: "Loop needs attention",
+      detail: status.diagnostic || status.actionRequired || "Open the home monitor and run log before starting another slice."
+    };
+  }
+  return {
+    label: "Ready",
+    title: "Ready for iPhone check",
+    detail: status.pushed
+      ? "Review the changed page on iPhone, then let the next scheduled run rotate to a fresh slice."
+      : "The result is local until Anton publishes the completed run."
+  };
+}
+
+function renderReviewQueue(status, context) {
+  if (!els.reviewQueue) {
+    return;
+  }
+
+  const tone = reviewToneForStatus(status);
+  const logPath = status.outputLog || status.log || "";
+  const safeDetail = summarizeText(context.visibleChange || status.summary);
+  els.reviewQueue.innerHTML = `
+    <article data-anton-review-card="changed-page">
+      <span>${escapeHtml(tone.label)}</span>
+      <strong>${escapeHtml(context.changedLabel)}</strong>
+      <p>${escapeHtml(`${context.score}: ${safeDetail}`)}</p>
+      <a class="agent-control-button agent-control-button-secondary" href="${escapeHtml(context.changedPage)}">Open Changed Page</a>
+    </article>
+    <article data-anton-review-card="home-monitor">
+      <span>Confirm</span>
+      <strong>Home Monitor</strong>
+      <p>Check that the public tile shows the same visible change, impact score, and next run timing.</p>
+      <a class="agent-control-button agent-control-button-secondary" href="index.html#agent-status">Open Home Monitor</a>
+    </article>
+    <article data-anton-review-card="next-action">
+      <span>Next</span>
+      <strong>${escapeHtml(tone.title)}</strong>
+      <p>${escapeHtml(firstSummaryLine(context.actionRequired || tone.detail))}</p>
+      <a class="agent-control-button agent-control-button-secondary" href="#anton-controls">Open Controls</a>
+    </article>
+    <article data-anton-review-card="run-log">
+      <span>Trace</span>
+      <strong>${escapeHtml(logPath ? "Run Log Recorded" : "No Log Path")}</strong>
+      <p>${escapeHtml(logPath || "Anton has not published an output log path for this run yet.")}</p>
+    </article>
+  `;
 }
 
 async function controlFetch(path, options = {}) {

@@ -263,30 +263,50 @@ async def assert_anton_owner_check(page, page_name):
         return
 
     await page.wait_for_selector(".anton-owner-check", state="attached", timeout=7000)
+    await page.wait_for_selector("[data-anton-review-queue]", state="attached", timeout=7000)
     await page.wait_for_timeout(500)
     state = await page.evaluate(
         """() => {
             const panel = document.querySelector(".anton-owner-check");
+            const queue = document.querySelector("[data-anton-review-queue]");
             const cards = [...panel?.querySelectorAll("article") || []];
+            const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
+            const queueLinks = [...queue?.querySelectorAll("a") || []].map((item) => ({
+                text: item.textContent.trim(),
+                href: item.getAttribute("href") || ""
+            }));
+            const bottomLinks = [...document.querySelectorAll(".context-action-bar .context-action")].map((item) => item.textContent.trim());
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 hasPanel: Boolean(panel),
+                hasQueue: Boolean(queue),
                 cardCount: cards.length,
+                queueCardCount: queueCards.length,
                 text: (panel?.innerText || "").toLowerCase(),
+                queueText: (queue?.innerText || "").toLowerCase(),
                 linkHref: link?.getAttribute("href") || "",
                 linkText: link?.textContent?.trim() || "",
+                queueLinks,
+                bottomLinks,
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
     )
     assert_true(state["hasPanel"], "Anton page is missing the owner check strip")
+    assert_true(state["hasQueue"], "Anton page is missing the iPhone review queue")
     assert_true(state["cardCount"] == 3, "Anton owner check should have three action cards")
+    assert_true(state["queueCardCount"] == 4, "Anton review queue should have four review cards")
     assert_true("owner check" in state["text"], "Anton owner check is missing the owner-check label")
     assert_true("needs you?" in state["text"], "Anton owner check is missing the action-needed card")
     assert_true("next check" in state["text"], "Anton owner check is missing the next-check card")
+    assert_true("home monitor" in state["queueText"], "Anton review queue is missing the home monitor confirmation card")
+    assert_true("run log" in state["queueText"] or "no log path" in state["queueText"], "Anton review queue is missing the run trace card")
     assert_true(state["linkHref"].endswith(".html"), "Anton owner check link should route to a page")
     assert_true(state["linkText"].startswith("Open"), "Anton owner check link should be a clear open action")
+    assert_true(any(link["text"] == "Open Changed Page" and link["href"].endswith(".html") for link in state["queueLinks"]), "Anton review queue should open the changed page")
+    assert_true(any(link["href"] == "index.html#agent-status" for link in state["queueLinks"]), "Anton review queue should link to the home monitor")
+    assert_true({"Review", "Home", "Controls", "More"}.issubset(set(state["bottomLinks"])), "Anton bottom action bar should expose Review, Home, Controls, and More")
     assert_true(not state["overflow"], "Anton owner check introduced desktop horizontal overflow")
 
     await page.set_viewport_size({"width": 390, "height": 844})
@@ -294,20 +314,28 @@ async def assert_anton_owner_check(page, page_name):
     mobile_state = await page.evaluate(
         """() => {
             const panel = document.querySelector(".anton-owner-check");
+            const queue = document.querySelector("[data-anton-review-queue]");
             const cards = [...panel?.querySelectorAll("article") || []];
+            const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(panel && panel.getBoundingClientRect().height > 0),
+                queueVisible: Boolean(queue && queue.getBoundingClientRect().height > 0),
                 columns: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
+                queueColumns: queueCards.map((card) => Math.round(card.getBoundingClientRect().width)),
+                queueLinkHeights: [...queue?.querySelectorAll("a") || []].map((item) => Math.round(item.getBoundingClientRect().height)),
                 linkHeight: Math.round(link?.getBoundingClientRect().height || 0),
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
     )
     assert_true(mobile_state["visible"], "Anton owner check is not visible at iPhone width")
+    assert_true(mobile_state["queueVisible"], "Anton review queue is not visible at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["columns"]), "Anton owner check cards should stack at iPhone width")
+    assert_true(all(width >= 340 for width in mobile_state["queueColumns"]), "Anton review queue cards should stack at iPhone width")
     assert_true(mobile_state["linkHeight"] >= 38, "Anton owner check action is too small for touch")
+    assert_true(all(height >= 38 for height in mobile_state["queueLinkHeights"]), "Anton review queue actions are too small for touch")
     assert_true(not mobile_state["overflow"], "Anton owner check introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)

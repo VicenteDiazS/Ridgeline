@@ -14157,7 +14157,15 @@ select:focus {
   margin: 1rem 0;
 }
 
-.anton-owner-check article {
+.anton-review-queue {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.anton-owner-check article,
+.anton-review-queue article {
   align-content: start;
   border: 1px solid rgba(104, 255, 190, 0.16);
   border-radius: 16px;
@@ -14170,7 +14178,19 @@ select:focus {
   padding: 0.85rem;
 }
 
-.anton-owner-check span {
+.anton-review-queue article {
+  border-color: rgba(93, 223, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(93, 223, 255, 0.08), rgba(93, 223, 255, 0.018)),
+    rgba(4, 13, 22, 0.74);
+}
+
+.anton-review-queue article[data-anton-review-card="changed-page"] {
+  border-color: rgba(104, 255, 190, 0.28);
+}
+
+.anton-owner-check span,
+.anton-review-queue span {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 900;
@@ -14178,18 +14198,26 @@ select:focus {
   text-transform: uppercase;
 }
 
-.anton-owner-check strong {
+.anton-owner-check strong,
+.anton-review-queue strong {
   color: #eafff7;
   font-size: 1rem;
   overflow-wrap: anywhere;
 }
 
-.anton-owner-check p {
+.anton-owner-check p,
+.anton-review-queue p {
   color: #c9d7df;
   font-size: 0.9rem;
   line-height: 1.42;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.anton-review-queue .agent-control-button {
+  justify-content: center;
+  margin-top: 0.15rem;
+  min-height: 40px;
 }
 
 .anton-history-item {
@@ -14366,6 +14394,10 @@ select:focus {
   }
 
   .anton-owner-check {
+    grid-template-columns: 1fr;
+  }
+
+  .anton-review-queue {
     grid-template-columns: 1fr;
   }
 

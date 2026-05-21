@@ -2034,6 +2034,12 @@ function actionForPage(page) {
       { label: "Staging", href: "#maintenance-note-preview", icon: "wrench" },
       { label: "Backup", href: "#diagnostic-activity", icon: "save" },
       { label: "More", action: "tools", icon: "menu" }
+    ],
+    "anton.html": [
+      { label: "Review", href: "#anton-progress", icon: "check" },
+      { label: "Home", href: "index.html#agent-status", icon: "home" },
+      { label: "Controls", href: "#anton-controls", icon: "wrench" },
+      { label: "More", action: "tools", icon: "menu" }
     ]
   };
 
