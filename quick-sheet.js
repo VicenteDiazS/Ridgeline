@@ -1,3 +1,12 @@
+import {
+  initGarageCloudSync,
+  loadJson,
+  saveJson,
+  STORAGE
+} from "./garage-data.js";
+
+const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
+
 const roadsidePlans = {
   flat: {
     kicker: "Flat tire or wheel work",
@@ -62,6 +71,25 @@ function buildHandoff(plan) {
   ].join("\n");
 }
 
+function buildSavedRoadsideNote(plan) {
+  const timestamp = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+  return [
+    `[${timestamp} - Roadside Note: ${plan.kicker}]`,
+    plan.title,
+    "",
+    ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
+    "",
+    plan.reference,
+    "Saved from Quick Sheet Roadside Action Stack. Current roadside conditions, truck labels, and the owner's manual remain final authority."
+  ].join("\n");
+}
+
 function buildPrintPackHandoff() {
   return [
     "Ridgeline Quick Sheet prep before signal drops",
@@ -70,6 +98,51 @@ function buildPrintPackHandoff() {
     "3. Download a Garage backup from the Backup Checkpoint.",
     "4. Use truck labels, owner's manual, fuse covers, and current conditions as final authority."
   ].join("\n");
+}
+
+function loadRoadsideReceipt() {
+  try {
+    return JSON.parse(localStorage.getItem(ROADSIDE_RECEIPT_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveRoadsideReceipt(receipt) {
+  localStorage.setItem(ROADSIDE_RECEIPT_KEY, JSON.stringify(receipt));
+}
+
+function renderRoadsideReceipt(root) {
+  const receiptCard = root.querySelector("[data-roadside-receipt]");
+  if (!receiptCard) {
+    return;
+  }
+
+  const receipt = loadRoadsideReceipt();
+  receiptCard.hidden = !receipt;
+  if (!receipt) {
+    return;
+  }
+
+  receiptCard.querySelector("[data-roadside-receipt-title]").textContent = receipt.title || "Roadside note saved";
+  receiptCard.querySelector("[data-roadside-receipt-summary]").textContent =
+    receipt.summary || "Saved into Garage Notes from Quick Sheet.";
+  receiptCard.querySelector("[data-roadside-receipt-meta]").textContent =
+    `${receipt.savedAt || "Saved recently"} / ${receipt.reference || "Garage Notes"}`;
+}
+
+function currentReceiptText() {
+  const receipt = loadRoadsideReceipt();
+  return receipt?.text || "";
+}
+
+function prependGarageGeneralNote(noteText) {
+  const notes = loadJson(STORAGE.notes, {});
+  const existing = `${notes.general_notes || ""}`.trim();
+  saveJson(STORAGE.notes, {
+    ...notes,
+    general_notes: existing ? `${noteText}\n\n${existing}` : noteText
+  });
 }
 
 function setStatus(root, message) {
@@ -229,8 +302,73 @@ function initRoadsideStack() {
     }
   });
 
+  root.querySelector("[data-save-roadside-note]")?.addEventListener("click", () => {
+    const planKey = root.dataset.currentRoadsidePlan || "flat";
+    const plan = roadsidePlans[planKey] || roadsidePlans.flat;
+    const noteText = buildSavedRoadsideNote(plan);
+    const savedAt = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+
+    try {
+      prependGarageGeneralNote(noteText);
+      saveRoadsideReceipt({
+        planKey,
+        title: plan.kicker,
+        summary: `${plan.title} saved into Garage Notes.`,
+        reference: plan.reference.replace(/^Reference:\s*/i, ""),
+        savedAt,
+        text: noteText
+      });
+      renderRoadsideReceipt(root);
+      setStatus(root, `${plan.kicker} saved to Garage Notes.`);
+    } catch (error) {
+      setStatus(root, "Could not save the roadside note in this browser session.");
+    }
+  });
+
+  root.querySelector("[data-copy-roadside-receipt]")?.addEventListener("click", async () => {
+    const text = currentReceiptText();
+    if (!text) {
+      setStatus(root, "Save a roadside note before copying the receipt.");
+      return;
+    }
+
+    try {
+      const copied = await copyText(text);
+      setStatus(root, copied ? "Saved roadside note copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setStatus(root, "Copy failed. Open Garage Notes to select the saved note.");
+    }
+  });
+
+  root.querySelector("[data-share-roadside-receipt]")?.addEventListener("click", async () => {
+    const text = currentReceiptText();
+    if (!text) {
+      setStatus(root, "Save a roadside note before sharing the receipt.");
+      return;
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline roadside note", text });
+        setStatus(root, "Saved roadside note shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setStatus(root, copied ? "Share unavailable; saved note copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setStatus(root, "Share canceled or unavailable.");
+    }
+  });
+
   updateRoadsidePlan(root, "flat");
+  renderRoadsideReceipt(root);
 }
 
 initQuickPrintPack();
 initRoadsideStack();
+initGarageCloudSync();

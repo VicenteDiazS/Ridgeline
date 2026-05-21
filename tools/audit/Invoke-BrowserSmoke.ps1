@@ -86,6 +86,10 @@ SEARCH_EXPECTATIONS = {
     "quick sheet print pack": "Quick Sheet Print Pack",
     "print offline pack": "Quick Sheet Print Pack",
     "roadside action stack": "Roadside Action Stack",
+    "roadside note": "Roadside Note Receipt",
+    "save roadside note": "Roadside Note Receipt",
+    "owner shortcut strip": "Owner Shortcut Strip",
+    "i need to": "Owner Shortcut Strip",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
@@ -633,6 +637,9 @@ async def assert_quick_sheet(page, page_name):
                 stackSecondary: stack?.querySelector("[data-roadside-secondary]")?.getAttribute("href") || "",
                 hasStackCopy: Boolean(stack?.querySelector("[data-copy-roadside-stack]")),
                 hasStackShare: Boolean(stack?.querySelector("[data-share-roadside-stack]")),
+                hasStackSave: Boolean(stack?.querySelector("[data-save-roadside-note]")),
+                hasReceipt: Boolean(stack?.querySelector("[data-roadside-receipt]")),
+                receiptHidden: Boolean(stack?.querySelector("[data-roadside-receipt]")?.hidden),
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
@@ -677,7 +684,10 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["stackSecondary"] == "index.html?system=jack-points#viewer", "roadside action stack should default to jack map")
     assert_true(state["hasStackCopy"], "roadside action stack is missing copy control")
     assert_true(state["hasStackShare"], "roadside action stack is missing share control")
-    for phrase in ["flat tire", "94 lb-ft", "copy handoff"]:
+    assert_true(state["hasStackSave"], "roadside action stack is missing save-note control")
+    assert_true(state["hasReceipt"], "roadside action stack is missing the saved-note receipt")
+    assert_true(state["receiptHidden"], "roadside receipt should stay hidden until a note is saved")
+    for phrase in ["flat tire", "94 lb-ft", "copy handoff", "save note"]:
         assert_true(phrase in state["stackText"], f"roadside action stack is missing default text: {phrase}")
     await page.evaluate("""() => document.querySelector('[data-roadside-plan="warning"]').click()""")
     warning_state = await page.evaluate(
@@ -698,6 +708,38 @@ async def assert_quick_sheet(page, page_name):
     for phrase in ["warning light", "record exact wording", "save the structured note"]:
         assert_true(phrase in warning_state["text"], f"warning stack is missing text: {phrase}")
     assert_true(not warning_state["overflow"], "roadside action stack introduced horizontal overflow")
+    await page.locator("[data-save-roadside-note]").click()
+    await page.wait_for_timeout(350)
+    receipt_state = await page.evaluate(
+        """() => {
+            const stack = document.querySelector("#roadside-action-stack");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const receipt = JSON.parse(localStorage.getItem("ridgeline-roadside-last-handoff") || "null");
+            return {
+                hidden: Boolean(stack?.querySelector("[data-roadside-receipt]")?.hidden),
+                title: stack?.querySelector("[data-roadside-receipt-title]")?.textContent || "",
+                summary: stack?.querySelector("[data-roadside-receipt-summary]")?.textContent || "",
+                meta: stack?.querySelector("[data-roadside-receipt-meta]")?.textContent || "",
+                status: stack?.querySelector("[data-roadside-status]")?.textContent || "",
+                note: notes.general_notes || "",
+                receiptText: receipt?.text || "",
+                garageRoute: Boolean(stack?.querySelector('[data-roadside-receipt] a[href="garage.html#notes"]')),
+                hasCopyReceipt: Boolean(stack?.querySelector("[data-copy-roadside-receipt]")),
+                hasShareReceipt: Boolean(stack?.querySelector("[data-share-roadside-receipt]"))
+            };
+        }"""
+    )
+    assert_true(not receipt_state["hidden"], "roadside receipt should appear after saving a note")
+    assert_true("Warning light" in receipt_state["title"], "roadside receipt should show the saved warning-light situation")
+    assert_true("Garage Notes" in receipt_state["summary"], "roadside receipt should explain that it saved into Garage Notes")
+    assert_true("warning-light flow" in receipt_state["meta"].lower(), "roadside receipt should preserve reference context")
+    assert_true("saved to Garage Notes" in receipt_state["status"], "roadside save did not report Garage Notes status")
+    assert_true("Roadside Note: Warning light or MID message" in receipt_state["note"], "Garage Notes did not receive the roadside note")
+    assert_true("owner's manual remain final authority" in receipt_state["note"], "saved roadside note should preserve the source-authority reminder")
+    assert_true("Roadside Note: Warning light or MID message" in receipt_state["receiptText"], "roadside receipt storage did not keep the saved note text")
+    assert_true(receipt_state["garageRoute"], "roadside receipt is missing the Open Garage Notes route")
+    assert_true(receipt_state["hasCopyReceipt"], "roadside receipt is missing Copy Note")
+    assert_true(receipt_state["hasShareReceipt"], "roadside receipt is missing Share")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
@@ -716,8 +758,10 @@ async def assert_quick_sheet(page, page_name):
         """() => {
             const critical = document.querySelector("#critical-strip");
             const printPack = document.querySelector("#print-offline-pack");
+            const receipt = document.querySelector("[data-roadside-receipt]");
             const grid = critical?.querySelector(".quick-critical-grid");
             const printGrid = printPack?.querySelector(".quick-print-pack-grid");
+            const receiptActions = [...(receipt?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const printCards = [...printPack?.querySelectorAll(".quick-print-pack-card") || []].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -730,6 +774,8 @@ async def assert_quick_sheet(page, page_name):
                 printPackVisible: Boolean(printPack && printPack.getBoundingClientRect().height > 0),
                 printPackColumns: printGrid ? getComputedStyle(printGrid).gridTemplateColumns.split(" ").length : 0,
                 minPrintPackCardHeight: printCards.length ? Math.min(...printCards.map((card) => card.height)) : 0,
+                receiptVisible: Boolean(receipt && !receipt.hidden && receipt.getBoundingClientRect().height > 0),
+                minReceiptActionHeight: receiptActions.length ? Math.min(...receiptActions) : 0,
                 visible: Boolean(critical && critical.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
@@ -741,6 +787,8 @@ async def assert_quick_sheet(page, page_name):
     assert_true(mobile_state["printPackVisible"], "quick sheet print/offline pack is not visible at iPhone width")
     assert_true(mobile_state["printPackColumns"] == 1, "quick sheet print/offline pack should use one readable column on iPhone")
     assert_true(mobile_state["minPrintPackCardHeight"] >= 90, "quick sheet print/offline pack cards should stay thumb-readable on iPhone")
+    assert_true(mobile_state["receiptVisible"], "saved roadside receipt is not visible at iPhone width after save")
+    assert_true(mobile_state["minReceiptActionHeight"] >= 38, "saved roadside receipt actions should stay thumb-readable on iPhone")
     assert_true(mobile_state["visible"], "quick sheet critical strip is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 2, "quick sheet critical strip should use two compact columns on iPhone")
     assert_true(mobile_state["minCardHeight"] >= 70, "quick sheet critical strip cards should stay thumb-sized on iPhone")
@@ -2604,6 +2652,7 @@ async def run_overlay_checks(page, page_name):
         """() => {
             const grid = document.querySelector(".search-situation-grid");
             const offlineCard = document.querySelector("[data-search-offline-card]");
+            const intent = document.querySelector(".search-intent-strip");
             const required = [
                 "quick-sheet.html#roadside-router",
                 "diagnostics.html#no-start-workflow",
@@ -2617,6 +2666,15 @@ async def run_overlay_checks(page, page_name):
                 hasGrid: Boolean(grid),
                 hasOfflineCard: Boolean(offlineCard),
                 offlineText: offlineCard?.textContent || "",
+                hasIntent: Boolean(intent),
+                intentCards: intent?.querySelectorAll("a").length || 0,
+                intentText: intent?.textContent || "",
+                intentMissing: [
+                    "maintenance.html#service-closeout",
+                    "garage.html#garage-fill-in-checklist",
+                    "diagnostics.html#diagnostic-share-builder",
+                    "quick-sheet.html#print-offline-pack"
+                ].filter((href) => !intent?.querySelector(`a[href="${href}"]`)),
                 offlineMissing: [
                     "quick-sheet.html#roadside-action-stack",
                     "diagnostics.html#workflow-index",
@@ -2637,6 +2695,11 @@ async def run_overlay_checks(page, page_name):
     )
     assert_true(quick_state["hasGrid"], "search modal is missing the common situations grid")
     assert_true(quick_state["hasOfflineCard"], "search modal is missing the offline launch pad")
+    assert_true(quick_state["hasIntent"], "search modal is missing the owner shortcut strip")
+    assert_true(quick_state["intentCards"] == 4, "search owner shortcut strip should expose four routes")
+    assert_true(not quick_state["intentMissing"], f"search owner shortcut strip is missing routes: {quick_state['intentMissing']}")
+    for phrase in ["I need to", "Finish service", "Fill Garage", "Share symptom", "Prep offline"]:
+        assert_true(phrase in quick_state["intentText"], f"search owner shortcut strip is missing {phrase}")
     assert_true("Offline pack" in quick_state["offlineText"], "search offline launch pad should show offline pack status")
     assert_true("Before Signal Drops" in quick_state["offlineText"], "search offline launch pad should include signal-loss prep")
     assert_true("Print Sheet" in quick_state["offlineText"], "search offline launch pad should include the Quick Sheet print route")

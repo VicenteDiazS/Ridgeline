@@ -3923,6 +3923,30 @@ function buildSearchModal() {
         </div>
         <p class="search-offline-status" data-search-refresh-status aria-live="polite"></p>
       </section>
+      <section class="search-intent-strip" aria-label="Owner shortcuts">
+        <div class="search-intent-head">
+          <strong>I need to...</strong>
+          <span>Jump straight into the owner workflow</span>
+        </div>
+        <div class="search-intent-grid">
+          <a href="maintenance.html#service-closeout">
+            <span>Finish service</span>
+            <strong>Prefill the update form after oil, tire, battery, or filter work.</strong>
+          </a>
+          <a href="garage.html#garage-fill-in-checklist">
+            <span>Fill Garage</span>
+            <strong>See the next useful record to add before details fade.</strong>
+          </a>
+          <a href="diagnostics.html#diagnostic-share-builder">
+            <span>Share symptom</span>
+            <strong>Copy a no-start, warning, power, audio, or trailer-light handoff.</strong>
+          </a>
+          <a href="quick-sheet.html#print-offline-pack">
+            <span>Prep offline</span>
+            <strong>Print, save, refresh, or share the roadside pack.</strong>
+          </a>
+        </div>
+      </section>
       <div class="search-situation-grid" aria-label="Common situations">
         <a href="quick-sheet.html#roadside-router">
           <span>Roadside</span>

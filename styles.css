@@ -4221,6 +4221,75 @@ article[id],
   margin: -4px 0 12px;
 }
 
+.search-intent-strip {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid rgba(255, 122, 168, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 122, 168, 0.08), rgba(121, 212, 255, 0.04)),
+    rgba(7, 14, 24, 0.72);
+}
+
+.search-intent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.search-intent-head strong {
+  color: #ffc1d5;
+  font-size: 0.8rem;
+}
+
+.search-intent-head span {
+  color: #aebdca;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.search-intent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.search-intent-grid a {
+  display: grid;
+  align-content: start;
+  min-height: 72px;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid rgba(255, 122, 168, 0.14);
+  border-radius: 11px;
+  background: rgba(42, 14, 24, 0.22);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.search-intent-grid a:hover,
+.search-intent-grid a:focus-visible {
+  border-color: rgba(255, 122, 168, 0.36);
+  background: rgba(42, 14, 24, 0.38);
+}
+
+.search-intent-grid span {
+  color: #ffc1d5;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.search-intent-grid strong {
+  color: #f7f9ff;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
 .search-offline-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -10145,6 +10214,21 @@ kbd {
     padding: 8px 6px;
   }
 
+  .search-intent-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .search-intent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .search-intent-grid a {
+    min-height: 66px;
+    padding: 8px;
+  }
+
   .search-situation-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
@@ -14717,6 +14801,33 @@ select:focus {
   gap: 14px;
 }
 
+.roadside-receipt-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  border-color: rgba(111, 255, 180, 0.24);
+  background:
+    linear-gradient(135deg, rgba(111, 255, 180, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(6, 14, 23, 0.72);
+}
+
+.roadside-receipt-card[hidden] {
+  display: none;
+}
+
+.roadside-receipt-card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.roadside-receipt-meta {
+  border-left: 3px solid rgba(111, 255, 180, 0.52);
+  color: rgba(241, 247, 255, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  padding-left: 10px;
+}
+
 .roadside-stack-card strong {
   display: block;
   margin-top: 4px;
@@ -14864,6 +14975,10 @@ select:focus {
   }
 
   .search-situation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-intent-grid {
     grid-template-columns: 1fr;
   }
 

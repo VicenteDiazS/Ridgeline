@@ -47,6 +47,20 @@ export const searchIndex = [
     keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff"]
   },
   {
+    title: "Owner Shortcut Strip",
+    url: "quick-sheet.html#print-offline-pack",
+    category: "Navigation",
+    excerpt: "Global Search owner-intent shortcuts for finishing service, filling Garage records, sharing diagnostic symptoms, and prepping the Quick Sheet offline pack.",
+    keywords: ["owner shortcut strip", "i need to", "finish service", "fill garage", "share symptom", "prep offline", "owner workflow", "iphone owner shortcuts", "search owner intent"]
+  },
+  {
+    title: "Roadside Note Receipt",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet action-stack receipt that saves the selected roadside handoff into existing Garage Notes and keeps the last saved note ready to copy, share, or open in Garage.",
+    keywords: ["roadside note", "roadside receipt", "incident note", "save roadside note", "save roadside handoff", "garage roadside note", "last roadside note", "quick sheet note", "roadside action stack note"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",
