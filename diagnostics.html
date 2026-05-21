@@ -38,6 +38,7 @@
             <a class="utility-link utility-link-strong" href="#first-minute-triage">First Minute</a>
             <a class="utility-link" href="#workflow-index">Workflow Index</a>
             <a class="utility-link" href="#diagnostic-handoff">Capture Clues</a>
+            <a class="utility-link" href="#diagnostic-share-builder">Share Summary</a>
             <a class="utility-link" href="#quick-checks">Quick Checks</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -109,6 +110,47 @@
             </div>
             <p class="source-note">
               These cards route to existing site references only. Use current roadside conditions, truck labels, and the owner's manual as final authority.
+            </p>
+          </section>
+          <section class="diagnostic-share-builder" id="diagnostic-share-builder" aria-labelledby="diagnostic-share-builder-title" data-diagnostic-share-builder>
+            <div class="compact-section-head">
+              <p class="eyebrow">Share summary</p>
+              <h2 id="diagnostic-share-builder-title">Build A Diagnostic Handoff</h2>
+              <p>
+                Pick the current symptom, then copy or share a short summary with the next reference links before the details fade.
+              </p>
+            </div>
+            <div class="diagnostic-share-picker" role="group" aria-label="Choose diagnostic handoff type">
+              <button class="utility-link utility-link-strong" type="button" data-diagnostic-share-plan="start" aria-pressed="true">No Start</button>
+              <button class="utility-link" type="button" data-diagnostic-share-plan="warning" aria-pressed="false">Warning</button>
+              <button class="utility-link" type="button" data-diagnostic-share-plan="power" aria-pressed="false">12V Power</button>
+              <button class="utility-link" type="button" data-diagnostic-share-plan="audio" aria-pressed="false">Audio</button>
+              <button class="utility-link" type="button" data-diagnostic-share-plan="trailer" aria-pressed="false">Trailer</button>
+            </div>
+            <article class="diagnostic-share-card" aria-live="polite">
+              <div>
+                <span data-diagnostic-share-kicker>No start or weak battery</span>
+                <strong data-diagnostic-share-title>Separate no-crank, slow-crank, and normal-crank/no-start</strong>
+                <p data-diagnostic-share-summary>Capture starter behavior, dash behavior, recent battery work, and whether a jump or short trip changed the symptom.</p>
+              </div>
+              <ol class="diagnostic-share-steps" data-diagnostic-share-steps>
+                <li>Note whether the starter is silent, slow, clicking, or cranking normally.</li>
+                <li>Open the no-start workflow and keep the jump-point reference nearby.</li>
+                <li>Save a Garage note if the problem follows battery, accessory, fuse, or trailer work.</li>
+              </ol>
+              <div class="roadside-stack-meta">
+                <span data-diagnostic-share-reference>References: no-start workflow, battery/jump card, Garage notes.</span>
+              </div>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="#no-start-workflow" data-diagnostic-share-primary>No-Start Flow</a>
+                <a class="utility-link" href="hood.html#wiring" data-diagnostic-share-secondary>Jump Notes</a>
+                <button class="utility-link" type="button" data-copy-diagnostic-share>Copy Handoff</button>
+                <button class="utility-link" type="button" data-share-diagnostic-share>Share</button>
+              </div>
+              <p class="small-note" aria-live="polite" data-diagnostic-share-status></p>
+            </article>
+            <p class="source-note">
+              Handoff rule: this is a note starter and routing aid only. The truck, owner manual, warning state, fuse labels, and current roadside conditions remain final authority.
             </p>
           </section>
           <section class="diagnostic-workflow-index" id="workflow-index" aria-labelledby="workflow-index-title">
@@ -606,5 +648,6 @@
       </nav>
     </div>
     <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="diagnostics.js"></script>
   </body>
 </html>

@@ -40,6 +40,13 @@ export const searchIndex = [
     keywords: ["signal loss prep", "before signal drops", "leaving signal", "offline checklist", "print quick sheet", "save garage backup", "refresh offline pack", "no service prep", "iphone offline prep"]
   },
   {
+    title: "Diagnostic Handoff Builder",
+    url: "diagnostics.html#diagnostic-share-builder",
+    category: "Diagnostics",
+    excerpt: "Near-top iPhone builder for copying or sharing a no-start, warning-light, 12V power, audio/display, or trailer-light diagnostic summary with the next reference links.",
+    keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",

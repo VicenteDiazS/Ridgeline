@@ -52,6 +52,9 @@ SEARCH_EXPECTATIONS = {
     "workflow index": "Diagnostics Workflow Index",
     "first minute triage": "First Minute Diagnostic Triage",
     "diagnostic first minute": "First Minute Diagnostic Triage",
+    "diagnostic handoff builder": "Diagnostic Handoff Builder",
+    "copy diagnostic handoff": "Diagnostic Handoff Builder",
+    "share diagnostic note": "Diagnostic Handoff Builder",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "signal loss prep": "Signal-Loss Prep",
@@ -418,6 +421,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
     state = await page.evaluate(
         """() => {
             const firstMinute = document.querySelector("#first-minute-triage");
+            const shareBuilder = document.querySelector("#diagnostic-share-builder");
             const workflowIndex = document.querySelector("#workflow-index");
             const handoff = document.querySelector("#diagnostic-handoff");
             const firstMinuteCards = firstMinute ? [...firstMinute.querySelectorAll(".diagnostic-first-minute-card")] : [];
@@ -446,6 +450,13 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 firstMinuteText: firstMinute ? firstMinute.innerText : "",
                 firstMinuteRouteMissing: requiredFirstMinuteTargets.filter((href) => !firstMinute?.querySelector(`a[href="${href}"]`)),
                 hasWorkflowIndex: Boolean(workflowIndex),
+                hasShareBuilder: Boolean(shareBuilder),
+                shareButtons: shareBuilder ? shareBuilder.querySelectorAll("[data-diagnostic-share-plan]").length : 0,
+                shareText: shareBuilder ? shareBuilder.innerText : "",
+                hasShareCopy: Boolean(shareBuilder?.querySelector("[data-copy-diagnostic-share]")),
+                hasShareShare: Boolean(shareBuilder?.querySelector("[data-share-diagnostic-share]")),
+                sharePrimary: shareBuilder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
+                shareSecondary: shareBuilder?.querySelector("[data-diagnostic-share-secondary]")?.getAttribute("href") || "",
                 cardCount: workflowCards.length,
                 hasTrailerCard: workflowCards.some((card) => card.hash === "#trailer-light-workflow"),
                 hasWarningCard: workflowCards.some((card) => card.hash === "#warning-light-workflow"),
@@ -464,6 +475,33 @@ async def assert_diagnostics_workflow_index(page, page_name):
     first_minute_text = state["firstMinuteText"].lower()
     for phrase in ["no start", "warning light", "dead electrical", "trailer lights"]:
         assert_true(phrase in first_minute_text, f"first-minute triage is missing {phrase}")
+    assert_true(state["hasShareBuilder"], "diagnostics page is missing diagnostic handoff builder")
+    assert_true(state["shareButtons"] == 5, "diagnostic handoff builder should expose five symptom buttons")
+    assert_true(state["hasShareCopy"], "diagnostic handoff builder is missing copy control")
+    assert_true(state["hasShareShare"], "diagnostic handoff builder is missing share control")
+    assert_true(state["sharePrimary"] == "#no-start-workflow", "diagnostic handoff builder should default to no-start flow")
+    assert_true(state["shareSecondary"] == "hood.html#wiring", "diagnostic handoff builder should default to jump notes")
+    for phrase in ["No start", "Warning", "12V Power", "Audio", "Trailer", "Copy Handoff"]:
+        assert_true(phrase in state["shareText"], f"diagnostic handoff builder is missing {phrase}")
+    await page.evaluate("""() => document.querySelector('[data-diagnostic-share-plan="warning"]').click()""")
+    await page.wait_for_timeout(200)
+    warning_share = await page.evaluate(
+        """() => {
+            const builder = document.querySelector("#diagnostic-share-builder");
+            return {
+                primary: builder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
+                secondary: builder?.querySelector("[data-diagnostic-share-secondary]")?.getAttribute("href") || "",
+                pressed: builder?.querySelector('[data-diagnostic-share-plan="warning"]')?.getAttribute("aria-pressed") || "",
+                status: builder?.querySelector("[data-diagnostic-share-status]")?.textContent || "",
+                text: builder?.innerText || ""
+            };
+        }"""
+    )
+    assert_true(warning_share["primary"] == "#warning-light-workflow", "warning diagnostic handoff should route to warning flow")
+    assert_true(warning_share["secondary"] == "garage.html#warning-light-template", "warning diagnostic handoff should route to Garage warning note")
+    assert_true(warning_share["pressed"] == "true", "warning diagnostic handoff button should become active")
+    assert_true("Warning light or MID message handoff ready" in warning_share["status"], "warning diagnostic handoff status did not update")
+    assert_true("exact indicator name" in warning_share["text"], "warning diagnostic handoff did not render warning-specific steps")
     assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
     assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
@@ -482,12 +520,20 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const triage = document.querySelector("#first-minute-triage");
             const grid = triage?.querySelector(".diagnostic-first-minute-grid");
             const firstActions = triage?.querySelector(".diagnostic-first-minute-card .inspector-actions");
+            const shareBuilder = document.querySelector("#diagnostic-share-builder");
+            const sharePicker = shareBuilder?.querySelector(".diagnostic-share-picker");
+            const shareActions = shareBuilder?.querySelector(".diagnostic-share-card .inspector-actions");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(triage && triage.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 actionRows: firstActions
                     ? new Set([...firstActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                shareVisible: Boolean(shareBuilder && shareBuilder.getBoundingClientRect().height > 0),
+                shareColumns: sharePicker ? getComputedStyle(sharePicker).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                shareActionRows: shareActions
+                    ? new Set([...shareActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
                     : 0,
                 overflow: width > window.innerWidth + 1
             };
@@ -496,6 +542,9 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["visible"], "first-minute triage is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 2, "first-minute triage should use two compact columns at iPhone width")
     assert_true(mobile_state["actionRows"] == 1, "first-minute triage actions should stay on one row at iPhone width")
+    assert_true(mobile_state["shareVisible"], "diagnostic handoff builder is not visible at iPhone width")
+    assert_true(mobile_state["shareColumns"] == 3, "diagnostic handoff builder picker should use three compact columns at iPhone width")
+    assert_true(mobile_state["shareActionRows"] == 2, "diagnostic handoff builder actions should use two rows at iPhone width")
     assert_true(not mobile_state["overflow"], "first-minute triage introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(350)
