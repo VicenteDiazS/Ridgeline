@@ -15,7 +15,7 @@
     <title>Ridgeline Bed And Cargo</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="cargo-page">
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -36,14 +36,49 @@
             In-Bed Trunk, tie-downs, cargo dimensions, and bed-related references.
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
-            <a class="utility-link utility-link-strong" href="#bed-diagram">Open Bed Diagram</a>
+            <a class="utility-link utility-link-strong" href="#cargo-load-planner">Load Planner</a>
+            <a class="utility-link" href="#bed-diagram">Open Bed Diagram</a>
             <a class="utility-link" href="#trunk-diagram">In-Bed Trunk</a>
             <a class="utility-link" href="#area-journal">Area Notes</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="garage.html">Garage Log</a>
           </div>
         </section>
-        <section class="section-page-stack">
+        <section class="section-page-stack" id="cargo-load-planner">
+          <article class="tech-card cargo-load-planner">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">iPhone Load Planner</p>
+                <h2>Check The Load Before You Walk Outside</h2>
+              </div>
+              <a class="utility-link" href="#area-journal">Save Setup</a>
+            </div>
+            <div class="cargo-load-grid" aria-label="Cargo load planner routes">
+              <a class="workflow-index-card cargo-load-card" href="#bed-diagram">
+                <span>1. Fit</span>
+                <strong>Confirm length, width, and tailgate position</strong>
+                <small>Use the bed diagram before loading sheet goods, coolers, ramps, or bins.</small>
+              </a>
+              <a class="workflow-index-card cargo-load-card" href="#trunk-diagram">
+                <span>2. Stow</span>
+                <strong>Pick what belongs in the lockable trunk</strong>
+                <small>Route wet gear, cooler use, spare access, and smaller tools to the trunk notes.</small>
+              </a>
+              <a class="workflow-index-card cargo-load-card" href="#bed-specs">
+                <span>3. Secure</span>
+                <strong>Check cleats and bed quick specs</strong>
+                <small>Review the existing tie-down and bed-width facts before choosing strap points.</small>
+              </a>
+              <a class="workflow-index-card cargo-load-card" href="#area-journal">
+                <span>4. Record</span>
+                <strong>Save the repeat setup</strong>
+                <small>Keep the loadout, accessory, measurement, and photo notes you use again.</small>
+              </a>
+            </div>
+            <p class="source-note">
+              This planner routes to existing cargo dimensions, trunk notes, tie-down facts, and the Cargo Area Journal. It does not add payload ratings, new measurements, or cargo-securing procedures.
+            </p>
+          </article>
           <div class="section-callout">
             This page is set up like a cargo quick-reference sheet. The bed
             dimensions below are the ones you will care about when checking if
@@ -82,7 +117,7 @@
               flat.
             </p>
           </article>
-          <article class="tech-card">
+          <article class="tech-card" id="bed-specs">
             <h3>Bed Quick Specs</h3>
             <dl class="spec-list">
               <div>
@@ -187,7 +222,7 @@
       </main>
       <nav class="section-dock" aria-label="Quick return">
         <a href="index.html#viewer">Vehicle Map</a>
-        <a href="maintenance.html">Specs</a>
+        <a href="#cargo-load-planner">Load</a>
         <a href="garage.html">Garage</a>
         <a href="#top">Top</a>
       </nav>

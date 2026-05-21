@@ -74,6 +74,8 @@ SEARCH_EXPECTATIONS = {
     "fuse quick finder": "Hood Fuse Quick Finder",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
+    "cargo load planner": "Cargo Load Planner",
+    "bed load planner": "Cargo Load Planner",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
     "anton owner check": "Anton Owner Check",
@@ -798,6 +800,83 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")
     assert_true(not mobile_state["overflow"], "rear hitch hookup flow introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_cargo_load_planner(page, page_name):
+    if page_name != "cargo.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const planner = document.querySelector("#cargo-load-planner");
+            const cards = planner ? [...planner.querySelectorAll(".cargo-load-card")] : [];
+            const requiredLinks = [
+                "#bed-diagram",
+                "#trunk-diagram",
+                "#bed-specs",
+                "#area-journal"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPlanner: Boolean(planner),
+                cardCount: cards.length,
+                text: planner?.innerText || "",
+                missingLinks: requiredLinks.filter((href) => !planner?.querySelector(`a[href="${href}"]`)),
+                heroHasPlanner: Boolean(document.querySelector('.section-page-hero a[href="#cargo-load-planner"]')),
+                dockHasPlanner: [...document.querySelectorAll("a")].some((link) =>
+                    link.getAttribute("href") === "#cargo-load-planner" && /load/i.test(link.textContent || "")
+                ),
+                hasBedSpecsTarget: Boolean(document.querySelector("#bed-specs")),
+                hasCargoScope: document.body.classList.contains("cargo-page"),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasPlanner"], "cargo page is missing the cargo load planner")
+    assert_true(state["cardCount"] == 4, "cargo load planner should expose four route cards")
+    for phrase in ["Confirm length", "lockable trunk", "cleats", "Save the repeat setup"]:
+        assert_true(phrase in state["text"], f"cargo load planner is missing '{phrase}'")
+    assert_true(not state["missingLinks"], f"cargo load planner is missing route links: {state['missingLinks']}")
+    assert_true("does not add payload ratings" in state["text"], "cargo load planner is missing its no-new-facts boundary note")
+    assert_true(state["heroHasPlanner"], "cargo hero is missing the load planner route")
+    assert_true(state["dockHasPlanner"], "cargo bottom dock is missing the load planner route")
+    assert_true(state["hasBedSpecsTarget"], "cargo load planner should route to a bed specs anchor")
+    assert_true(state["hasCargoScope"], "cargo page is missing its page-scoped styling class")
+    assert_true(not state["overflow"], "cargo load planner introduced horizontal overflow")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(300)
+    mobile_state = await page.evaluate(
+        """() => {
+            const planner = document.querySelector("#cargo-load-planner");
+            const grid = planner?.querySelector(".cargo-load-grid");
+            const cards = planner ? [...planner.querySelectorAll(".cargo-load-card")] : [];
+            const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const visibleHeroLinks = [...document.querySelectorAll(".cargo-page .section-page-hero .section-utility-nav .utility-link")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return style.display !== "none" && rect.width > 0 && rect.height > 0;
+                }).length;
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(planner?.getBoundingClientRect().height),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                visibleHeroLinks,
+                minCardHeight: cardRects.length ? Math.min(...cardRects.map((rect) => rect.height)) : 0,
+                maxCardWidth: cardRects.length ? Math.max(...cardRects.map((rect) => rect.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "cargo load planner is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 1, "cargo load planner should stack to one column on iPhone")
+    assert_true(mobile_state["visibleHeroLinks"] == 6, "cargo mobile hero should keep the six primary cargo routes visible")
+    assert_true(mobile_state["minCardHeight"] >= 44, "cargo load planner cards lost thumb-sized touch targets")
+    assert_true(mobile_state["maxCardWidth"] <= 390, "cargo load planner cards are wider than the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "cargo load planner introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -2163,6 +2242,7 @@ async def smoke_page(context, root, page_name):
     await assert_scroll_unlocked(page, "initial load")
     await assert_diagnostics_workflow_index(page, page_name)
     await assert_rear_hitch_flow(page, page_name)
+    await assert_cargo_load_planner(page, page_name)
     await assert_tire_roadside_launcher(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)

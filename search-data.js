@@ -689,6 +689,25 @@ export const searchIndex = [
     keywords: ["bed", "trunk", "cargo", "dimensions", "in-bed trunk", "spare tire"]
   },
   {
+    title: "Cargo Load Planner",
+    url: "cargo.html#cargo-load-planner",
+    category: "Cargo",
+    excerpt: "Near-top iPhone planner for checking bed fit, trunk stowage, tie-down facts, and repeat cargo setup notes before loading.",
+    keywords: [
+      "cargo load planner",
+      "load planner",
+      "bed load planner",
+      "cargo setup",
+      "loadout",
+      "tie down route",
+      "strap points",
+      "cooler fit",
+      "bed fit check",
+      "save cargo setup",
+      "iphone cargo"
+    ]
+  },
+  {
     title: "Bed Diagram",
     url: "cargo.html#bed-diagram",
     category: "Cargo",

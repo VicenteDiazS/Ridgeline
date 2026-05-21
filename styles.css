@@ -6100,6 +6100,24 @@ kbd {
   margin-top: 12px;
 }
 
+.cargo-load-planner {
+  border-color: rgba(97, 223, 255, 0.2);
+}
+
+.cargo-load-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cargo-load-card {
+  min-height: 0;
+}
+
+.cargo-load-planner .source-note {
+  margin-top: 12px;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -9448,6 +9466,47 @@ kbd {
   }
 
   .rear-hitch-page .trailer-hookup-card small {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .cargo-page .section-page-hero .section-utility-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .cargo-page .section-page-hero .utility-link {
+    min-height: 38px;
+    padding: 0 8px;
+    font-size: 0.68rem;
+    line-height: 1.15;
+  }
+
+  .cargo-page .cargo-load-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .cargo-page .cargo-load-card {
+    grid-template-columns: minmax(66px, 0.3fr) minmax(0, 1fr);
+    gap: 5px 10px;
+    align-items: start;
+    padding: 10px;
+  }
+
+  .cargo-page .cargo-load-card span {
+    grid-row: span 2;
+    padding-top: 2px;
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+  }
+
+  .cargo-page .cargo-load-card strong {
+    font-size: 0.9rem;
+    line-height: 1.28;
+  }
+
+  .cargo-page .cargo-load-card small {
     font-size: 0.76rem;
     line-height: 1.35;
   }
