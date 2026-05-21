@@ -8,6 +8,7 @@ import {
 const updateForm = document.querySelector("[data-maintenance-update-form]");
 const updateStatus = document.querySelector("[data-maintenance-update-status]");
 const updateList = document.querySelector("[data-maintenance-update-list]");
+const updateReceipt = document.querySelector("[data-maintenance-save-receipt]");
 const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]")];
 const closeoutButtons = [...document.querySelectorAll("[data-closeout-service]")];
 const closeoutStatus = document.querySelector("[data-service-closeout-status]");
@@ -46,6 +47,7 @@ const minderSubItems = {
 
 let lastMinderPlanText = "";
 let lastMinderPlanCode = "";
+let lastUpdateReceiptText = "";
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -93,6 +95,30 @@ function appendGarageNote(entry) {
   const label = serviceLabels[entry.service] || "Maintenance update";
   const line = `[${entry.date} / ${entry.mileageText} - ${label}]${entry.note ? ` ${entry.note}` : ""}`;
   prependGarageGeneralNote(line);
+}
+
+function maintenanceReceiptText(entry) {
+  const label = serviceLabels[entry.service] || "Maintenance update";
+  return [
+    `Ridgeline maintenance receipt: ${label}`,
+    `Date: ${entry.date}`,
+    `Mileage: ${entry.mileageText}`,
+    entry.note ? `Note: ${entry.note}` : "Note: none entered",
+    "Saved to: Maintenance log and Garage Notes"
+  ].join("\n");
+}
+
+function renderUpdateReceipt(entry) {
+  if (!updateReceipt || !entry) {
+    return;
+  }
+
+  const label = serviceLabels[entry.service] || "Maintenance update";
+  lastUpdateReceiptText = maintenanceReceiptText(entry);
+  updateReceipt.hidden = false;
+  updateReceipt.querySelector("[data-maintenance-receipt-title]").textContent = `${label} saved`;
+  updateReceipt.querySelector("[data-maintenance-receipt-summary]").textContent = entry.note || "No note entered. The mileage and service type were still saved.";
+  updateReceipt.querySelector("[data-maintenance-receipt-meta]").textContent = `${entry.date} / ${entry.mileageText} / Garage Notes updated`;
 }
 
 function prependGarageGeneralNote(line) {
@@ -434,10 +460,32 @@ function saveQuickUpdate(event) {
   appendGarageNote(entry);
   updateForm.reset();
   renderRecentUpdates();
+  renderUpdateReceipt(entry);
   updateStatus.textContent = `${serviceLabels[service]} saved at ${mileageText} on ${date}.`;
 }
 
 updateForm?.addEventListener("submit", saveQuickUpdate);
+updateReceipt?.querySelector("[data-copy-maintenance-receipt]")?.addEventListener("click", async () => {
+  try {
+    await copyText(lastUpdateReceiptText || "No maintenance receipt is ready yet.");
+    updateStatus.textContent = "Maintenance receipt copied.";
+  } catch {
+    updateStatus.textContent = "Could not copy the maintenance receipt automatically.";
+  }
+});
+updateReceipt?.querySelector("[data-share-maintenance-receipt]")?.addEventListener("click", async () => {
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Ridgeline maintenance receipt", text: lastUpdateReceiptText });
+      updateStatus.textContent = "Maintenance receipt shared.";
+      return;
+    }
+    await copyText(lastUpdateReceiptText || "No maintenance receipt is ready yet.");
+    updateStatus.textContent = "Share unavailable; maintenance receipt copied instead.";
+  } catch {
+    updateStatus.textContent = "Share canceled or unavailable.";
+  }
+});
 initServiceCloseout();
 initServicePrepCards();
 initMinderPlanner();

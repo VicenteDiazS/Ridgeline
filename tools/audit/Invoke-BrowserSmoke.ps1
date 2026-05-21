@@ -62,6 +62,7 @@ SEARCH_EXPECTATIONS = {
     "service run launcher": "Service Run Launcher",
     "service closeout": "Service Closeout",
     "finish service": "Service Closeout",
+    "copy maintenance receipt": "Service Closeout",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
@@ -1459,6 +1460,7 @@ async def assert_maintenance_features(page, page_name):
             const prep = document.querySelector("#service-prep");
             const launcher = document.querySelector("#service-run-launcher");
             const closeout = document.querySelector("#service-closeout");
+            const receipt = document.querySelector("[data-maintenance-save-receipt]");
             const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
             const closeoutCards = closeout ? [...closeout.querySelectorAll("[data-closeout-service]")] : [];
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
@@ -1484,6 +1486,11 @@ async def assert_maintenance_features(page, page_name):
                 closeoutText: closeout?.innerText || "",
                 closeoutServices: closeoutCards.map((card) => card.dataset.closeoutService).filter(Boolean),
                 hasCloseoutUpdaterRoute: Boolean(closeout?.querySelector('a[href="#maintenance-updater"]')),
+                hasSaveReceipt: Boolean(receipt),
+                receiptInitiallyHidden: Boolean(receipt?.hidden),
+                hasReceiptCopy: Boolean(receipt?.querySelector("[data-copy-maintenance-receipt]")),
+                hasReceiptShare: Boolean(receipt?.querySelector("[data-share-maintenance-receipt]")),
+                hasReceiptGarageRoute: Boolean(receipt?.querySelector('a[href="garage.html#maintenance-note-preview"]')),
                 hasPrep: Boolean(prep),
                 cardCount: cards.length,
                 checkboxCount: checkboxLabels.length,
@@ -1513,6 +1520,11 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["closeoutCardCount"] == 4, "service closeout should expose four after-service shortcuts")
     assert_true(set(state["closeoutServices"]) == {"oil_change", "tire_rotation", "battery_install", "filters"}, "service closeout shortcuts should target existing update types")
     assert_true(state["hasCloseoutUpdaterRoute"], "service closeout is missing its Quick Maintenance Update route")
+    assert_true(state["hasSaveReceipt"], "Quick Maintenance Update is missing its saved receipt panel")
+    assert_true(state["receiptInitiallyHidden"], "maintenance saved receipt should stay hidden until an update is saved")
+    assert_true(state["hasReceiptCopy"], "maintenance saved receipt is missing Copy Receipt")
+    assert_true(state["hasReceiptShare"], "maintenance saved receipt is missing Share")
+    assert_true(state["hasReceiptGarageRoute"], "maintenance saved receipt is missing its Garage route")
     for phrase in ["AFTER THE JOB", "OIL DONE", "WHEEL DONE", "BATTERY DONE", "FILTERS DONE"]:
         assert_true(phrase in state["closeoutText"], f"service closeout is missing text: {phrase}")
     assert_true(state["hasPrep"], "maintenance page is missing the service prep planner")
@@ -1540,6 +1552,7 @@ async def assert_maintenance_features(page, page_name):
             const prepGrid = document.querySelector("#service-prep .service-prep-grid");
             const launcherGrid = document.querySelector("#service-run-launcher .maintenance-run-grid");
             const closeoutGrid = document.querySelector("#service-closeout .service-closeout-grid");
+            const receiptActions = document.querySelector("[data-maintenance-save-receipt] .maintenance-receipt-actions");
             const firstCloseoutButton = document.querySelector("#service-closeout [data-closeout-service]");
             const firstLauncherAction = document.querySelector("#service-run-launcher .maintenance-run-card .inspector-actions");
             const firstPrepAction = document.querySelector("#service-prep [data-service-prep-card] .service-prep-actions");
@@ -1571,6 +1584,9 @@ async def assert_maintenance_features(page, page_name):
             const minderActionRows = minderActions
                 ? new Set([...minderActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
                 : 0;
+            const receiptActionRows = receiptActions
+                ? new Set([...receiptActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                : 0;
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visibleMaintenanceHeroLinks,
@@ -1584,6 +1600,7 @@ async def assert_maintenance_features(page, page_name):
                 launcherColumns,
                 closeoutColumns,
                 closeoutButtonHeight: firstCloseoutButton?.getBoundingClientRect().height || 0,
+                receiptActionRows,
                 launcherActionRows,
                 prepColumns,
                 prepActionRows,
@@ -1596,6 +1613,7 @@ async def assert_maintenance_features(page, page_name):
     assert_true(mobile_state["launcherColumns"] == 2, "service run launcher should keep two compact columns at iPhone width")
     assert_true(mobile_state["closeoutColumns"] == 2, "service closeout should keep two compact columns at iPhone width")
     assert_true(mobile_state["closeoutButtonHeight"] >= 44, "service closeout shortcuts should remain thumb-sized on iPhone width")
+    assert_true(mobile_state["receiptActionRows"] == 1, "maintenance receipt actions should stay on one compact iPhone row")
     assert_true(mobile_state["launcherActionRows"] == 1, "service run launcher action buttons should stay on one compact row at iPhone width")
     assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
     assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
@@ -1629,6 +1647,42 @@ async def assert_maintenance_features(page, page_name):
     assert_true(closeout_state["activeName"] == "mileage", "service closeout should focus the mileage field after routing to Quick Maintenance Update")
     assert_true("Battery install closeout is ready" in closeout_state["closeoutStatus"], "service closeout did not report the ready state")
     assert_true("Battery install closeout selected" in closeout_state["updateStatus"], "Quick Maintenance Update did not reflect the selected closeout")
+    await page.locator("[data-maintenance-update-form] input[name='mileage']").fill("166240")
+    await page.locator("[data-maintenance-update-form] button[type='submit']").click()
+    await page.wait_for_timeout(200)
+    receipt_state = await page.evaluate(
+        """() => {
+            const receipt = document.querySelector("[data-maintenance-save-receipt]");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const log = JSON.parse(localStorage.getItem("ridgeline-maintenance-log") || "[]");
+            return {
+                visible: Boolean(receipt && !receipt.hidden && receipt.getBoundingClientRect().height > 0),
+                text: receipt?.innerText || "",
+                title: receipt?.querySelector("[data-maintenance-receipt-title]")?.textContent || "",
+                meta: receipt?.querySelector("[data-maintenance-receipt-meta]")?.textContent || "",
+                status: document.querySelector("[data-maintenance-update-status]")?.textContent || "",
+                notes: notes.general_notes || "",
+                logCount: log.length,
+                latestService: log[0]?.service || "",
+                latestMileage: log[0]?.mileage || 0,
+                preservedKey: notes.quick_capture_keep || ""
+            };
+        }"""
+    )
+    assert_true(receipt_state["visible"], "maintenance saved receipt did not appear after saving a closeout update")
+    assert_true("Battery install saved" in receipt_state["title"], "maintenance receipt should name the saved update type")
+    assert_true("166,240 miles" in receipt_state["meta"], "maintenance receipt should show the saved mileage")
+    assert_true("Garage Notes updated" in receipt_state["meta"], "maintenance receipt should confirm the Garage Notes handoff")
+    assert_true("Battery service complete" in receipt_state["text"], "maintenance receipt should show the saved closeout note")
+    assert_true("Battery install saved at 166,240 miles" in receipt_state["status"], "maintenance save status should confirm mileage and date")
+    assert_true(receipt_state["logCount"] >= 1 and receipt_state["latestService"] == "battery_install", "maintenance save did not write the selected closeout service to the log")
+    assert_true(receipt_state["latestMileage"] == 166240, "maintenance save did not write the entered mileage to the log")
+    assert_true("Battery service complete" in receipt_state["notes"], "maintenance save did not append the closeout note to Garage notes")
+    assert_true(receipt_state["preservedKey"] == "preserve me", "maintenance save dropped an unrelated Garage note key")
+    await page.locator("[data-copy-maintenance-receipt]").click()
+    await page.wait_for_timeout(100)
+    receipt_copy_status = await page.locator("[data-maintenance-update-status]").inner_text()
+    assert_true("Maintenance receipt copied" in receipt_copy_status, "maintenance receipt copy did not report success")
     await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
     await page.locator("#service-prep [data-copy-service-prep]").first.click()
     await page.wait_for_timeout(100)
