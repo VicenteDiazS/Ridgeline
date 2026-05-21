@@ -8154,6 +8154,7 @@ kbd {
 .nfc-readiness,
 .nfc-writer-grid,
 .nfc-target-grid,
+.nfc-starter-grid,
 .nfc-iphone-steps {
   display: grid;
   gap: 14px;
@@ -8166,9 +8167,11 @@ kbd {
 .nfc-readiness-card,
 .nfc-workbench,
 .nfc-targets-section,
+.nfc-starter-pack,
 .nfc-iphone-workflow,
 .nfc-writer-panel,
 .nfc-scan-panel,
+.nfc-starter-card,
 .nfc-target-card,
 .nfc-iphone-steps article {
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -8225,11 +8228,52 @@ kbd {
 
 .nfc-workbench,
 .nfc-targets-section,
+.nfc-starter-pack,
 .nfc-iphone-workflow {
   display: grid;
   gap: 16px;
   padding: 20px;
   border-radius: 24px;
+}
+
+.nfc-starter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nfc-starter-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.nfc-starter-card.is-active {
+  border-color: rgba(111, 255, 180, 0.34);
+  background:
+    linear-gradient(180deg, rgba(111, 255, 180, 0.08), rgba(255, 255, 255, 0.018)),
+    rgba(7, 15, 25, 0.94);
+}
+
+.nfc-starter-card span {
+  color: #f8dfaa;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nfc-starter-card strong {
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.nfc-starter-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .nfc-iphone-workflow:focus {
@@ -8341,6 +8385,19 @@ kbd {
   gap: 8px;
 }
 
+.nfc-card-actions > button,
+.nfc-card-actions > a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 850;
+  text-align: center;
+}
+
 .nfc-action-row > * {
   flex: 1 1 130px;
 }
@@ -8429,7 +8486,7 @@ kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 12px;
   border: 1px solid rgba(121, 212, 255, 0.16);
@@ -11009,6 +11066,8 @@ kbd {
   .nfc-readiness-card p,
   .nfc-readiness-card strong,
   .nfc-iphone-steps p,
+  .nfc-starter-card p,
+  .nfc-starter-card strong,
   .nfc-target-card p,
   .nfc-target-card dd,
   .nfc-selected-card p,
@@ -11021,6 +11080,7 @@ kbd {
   .nfc-readiness,
   .nfc-writer-grid,
   .nfc-target-grid,
+  .nfc-starter-grid,
   .nfc-iphone-steps,
   .nfc-landing-grid {
     grid-template-columns: 1fr;
@@ -11028,6 +11088,7 @@ kbd {
 
   .nfc-workbench,
   .nfc-targets-section,
+  .nfc-starter-pack,
   .nfc-iphone-workflow,
   .nfc-landing-hero,
   .nfc-landing-card,
@@ -11041,6 +11102,7 @@ kbd {
   .nfc-readiness-card,
   .nfc-writer-panel,
   .nfc-scan-panel,
+  .nfc-starter-card,
   .nfc-target-card,
   .nfc-iphone-steps article {
     padding: 14px;

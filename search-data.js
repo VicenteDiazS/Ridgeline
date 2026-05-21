@@ -158,6 +158,23 @@ export const searchIndex = [
     keywords: ["nfc", "tag", "tags", "write", "read", "iphone", "url", "fuse box tag", "truck tags"]
   },
   {
+    title: "NFC Starter Tag Pack",
+    url: "nfc.html#starter-tag-pack",
+    category: "Tools",
+    excerpt: "Near-top iPhone starter pack for battery/jump, oil service, diagnostics, and trailer connector NFC tags with a copyable placement and URL list.",
+    keywords: [
+      "nfc starter tag pack",
+      "starter tag pack",
+      "first truck tags",
+      "iphone nfc tags",
+      "battery nfc tag",
+      "oil service nfc tag",
+      "diagnostic nfc tag",
+      "trailer nfc tag",
+      "copy nfc pack"
+    ]
+  },
+  {
     title: "NFC Landing Pages",
     url: "nfc-landing.html?target=vehicle-map",
     category: "Tools",

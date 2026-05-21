@@ -44,6 +44,9 @@ SEARCH_EXPECTATIONS = {
     "tow prep": "Tow Day Readiness",
     "engine service jumpstart": "Engine Service Jumpstart",
     "engine part picker": "Engine Service Jumpstart",
+    "nfc starter tag pack": "NFC Starter Tag Pack",
+    "starter tag pack": "NFC Starter Tag Pack",
+    "first truck tags": "NFC Starter Tag Pack",
     "photo capture plan": "Photo Capture Plan",
     "truck photo checklist": "Photo Capture Plan",
     "workflow index": "Diagnostics Workflow Index",
@@ -1224,6 +1227,108 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true(mobile_state["minCardHeight"] >= 64, "tire roadside cards should remain thumb-sized on iPhone")
     assert_true(mobile_state["maxCardWidth"] <= 390, "tire roadside cards are wider than the iPhone viewport")
     assert_true(not mobile_state["overflow"], "tire roadside launcher introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_nfc_starter_pack(page, page_name):
+    if page_name != "nfc.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const pack = document.querySelector("#starter-tag-pack");
+            const required = [
+                "nfc-landing.html?target=battery-service",
+                "nfc-landing.html?target=oil-service",
+                "nfc-landing.html?target=diagnostics",
+                "nfc-landing.html?target=trailer-pinout"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPack: Boolean(pack),
+                cardCount: pack?.querySelectorAll("[data-nfc-starter-card]").length || 0,
+                selectCount: pack?.querySelectorAll("[data-nfc-starter-select]").length || 0,
+                hasCopy: Boolean(pack?.querySelector("[data-nfc-copy-starter-pack]")),
+                missing: required.filter((href) => !pack?.querySelector(`a[href="${href}"]`)),
+                text: pack?.innerText || "",
+                bottomHasStarter: Boolean(document.querySelector('.context-action[href="#starter-tag-pack"]')),
+                bottomHasWrite: Boolean(document.querySelector('.context-action[href="#tag-writer"]')),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasPack"], "NFC page is missing the starter tag pack")
+    assert_true(state["cardCount"] == 4, "NFC starter tag pack should expose four starter cards")
+    assert_true(state["selectCount"] == 4, "NFC starter tag pack should expose four select buttons")
+    assert_true(state["hasCopy"], "NFC starter tag pack is missing Copy Pack List")
+    assert_true(not state["missing"], f"NFC starter tag pack is missing landing routes: {state['missing']}")
+    for phrase in ["Battery And Jump Point", "Oil Service", "Diagnostic Quick Checks", "Trailer Connector And Hitch"]:
+        assert_true(phrase in state["text"], f"NFC starter tag pack is missing {phrase}")
+    assert_true(state["bottomHasStarter"], "NFC bottom bar is missing the starter pack route")
+    assert_true(state["bottomHasWrite"], "NFC bottom bar is missing the writer route")
+    assert_true(not state["overflow"], "NFC starter tag pack introduced horizontal overflow")
+
+    await page.locator('[data-nfc-starter-select="battery-service"]').click()
+    await page.wait_for_timeout(400)
+    select_state = await page.evaluate(
+        """() => {
+            const field = document.querySelector("#nfc-target-url");
+            const status = document.querySelector("[data-nfc-starter-status]");
+            const card = document.querySelector('[data-nfc-starter-card="battery-service"]');
+            return {
+                url: field?.value || "",
+                selectedTitle: document.querySelector("#nfc-selected-title")?.textContent || "",
+                status: status?.textContent || "",
+                active: card?.classList.contains("is-active"),
+                hash: window.location.hash
+            };
+        }"""
+    )
+    assert_true("target=battery-service" in select_state["url"], "starter select did not load the battery tag URL")
+    assert_true(select_state["selectedTitle"] == "Battery And Jump Point", "starter select did not update the writer title")
+    assert_true("Loaded Battery And Jump Point" in select_state["status"], "starter select did not report the loaded tag")
+    assert_true(select_state["active"], "starter select did not mark the selected starter card active")
+
+    await page.locator("[data-nfc-copy-starter-pack]").click()
+    await page.wait_for_timeout(250)
+    copy_state = await page.evaluate(
+        """() => ({
+            starterStatus: document.querySelector("[data-nfc-starter-status]")?.textContent || "",
+            writerStatus: document.querySelector("#nfc-status-text")?.textContent || ""
+        })"""
+    )
+    assert_true("Copied the starter tag pack list" in copy_state["starterStatus"], "copy starter pack did not update starter status")
+    assert_true("Copied the starter tag pack list" in copy_state["writerStatus"], "copy starter pack did not update writer status")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const pack = document.querySelector("#starter-tag-pack");
+            const grid = pack?.querySelector(".nfc-starter-grid");
+            const cards = [...(pack?.querySelectorAll("[data-nfc-starter-card]") || [])].map((card) => {
+                const rect = card.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            });
+            const buttons = [...(pack?.querySelectorAll("button, a") || [])].map((button) => button.getBoundingClientRect().height);
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(pack && pack.getBoundingClientRect().height > 0),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
+                maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
+                minButtonHeight: buttons.length ? Math.min(...buttons) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "NFC starter tag pack is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 1, "NFC starter tag pack should stack to one column on iPhone")
+    assert_true(mobile_state["minCardHeight"] >= 120, "NFC starter cards became too small for iPhone scanning")
+    assert_true(mobile_state["maxCardWidth"] <= 390, "NFC starter cards are wider than the iPhone viewport")
+    assert_true(mobile_state["minButtonHeight"] >= 40, "NFC starter actions are too small on iPhone")
+    assert_true(not mobile_state["overflow"], "NFC starter tag pack introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -2600,6 +2705,7 @@ async def smoke_page(context, root, page_name):
     await assert_engine_service_jumpstart(page, page_name)
     await assert_photo_capture_plan(page, page_name)
     await assert_tire_roadside_launcher(page, page_name)
+    await assert_nfc_starter_pack(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
     await assert_fuse_mobile_readability(page, page_name)

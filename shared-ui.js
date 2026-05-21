@@ -2018,9 +2018,9 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "nfc.html": [
+      { label: "Starter", href: "#starter-tag-pack", icon: "nfc" },
       { label: "Write", href: "#tag-writer", icon: "nfc" },
       { label: "Map", href: "#tag-map", icon: "map" },
-      { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "diagnostics.html": [

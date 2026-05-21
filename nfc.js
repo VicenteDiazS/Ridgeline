@@ -17,6 +17,10 @@ const writeButton = document.querySelector("[data-nfc-write]");
 const readButton = document.querySelector("[data-nfc-read]");
 const copyButton = document.querySelector("[data-nfc-copy]");
 const shareButton = document.querySelector("[data-nfc-share]");
+const starterPackButton = document.querySelector("[data-nfc-copy-starter-pack]");
+const starterPackStatus = document.querySelector("[data-nfc-starter-status]");
+
+const starterPackTargetIds = ["battery-service", "oil-service", "diagnostics", "trailer-pinout"];
 
 let selectedTarget = nfcTargets[0];
 let activeScanController = null;
@@ -160,6 +164,12 @@ function updateSelectedTarget(id = selectedTarget.id) {
     card.classList.toggle("is-active", active);
     card.setAttribute("aria-current", active ? "true" : "false");
   });
+
+  document.querySelectorAll("[data-nfc-starter-card]").forEach((card) => {
+    const active = card.dataset.nfcStarterCard === selectedTarget.id;
+    card.classList.toggle("is-active", active);
+    card.setAttribute("aria-current", active ? "true" : "false");
+  });
 }
 
 function renderTargetSelect() {
@@ -241,6 +251,34 @@ async function shareSelectedUrl() {
     url
   });
   setStatus("Shared the NFC URL.", "success");
+}
+
+function starterPackManifest() {
+  return starterPackTargetIds
+    .map((id) => nfcTargets.find((target) => target.id === id))
+    .filter(Boolean)
+    .map((target, index) => {
+      const url = absoluteUrl(target);
+      return `${index + 1}. ${target.title}\nPlace: ${target.placement}\nURL: ${url}`;
+    })
+    .join("\n\n");
+}
+
+async function copyStarterPack() {
+  const manifest = starterPackManifest();
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(manifest);
+    if (starterPackStatus) {
+      starterPackStatus.textContent = "Copied the starter tag pack list with placements and URLs.";
+    }
+    setStatus("Copied the starter tag pack list.", "success");
+    return;
+  }
+
+  if (starterPackStatus) {
+    starterPackStatus.textContent = "Starter list ready. Copy is blocked in this browser, so use the selected URL field below.";
+  }
+  setStatus("Copy is blocked in this browser. Use the selected URL field below.", "warning");
 }
 
 async function writeSelectedTag() {
@@ -347,6 +385,7 @@ setStatus(
 targetSelect?.addEventListener("change", () => updateSelectedTarget(targetSelect.value));
 copyButton?.addEventListener("click", () => copySelectedUrl().catch((error) => setStatus(error.message, "warning")));
 shareButton?.addEventListener("click", () => shareSelectedUrl().catch((error) => setStatus(error.message, "warning")));
+starterPackButton?.addEventListener("click", () => copyStarterPack().catch((error) => setStatus(error.message, "warning")));
 writeButton?.addEventListener("click", writeSelectedTag);
 readButton?.addEventListener("click", readTag);
 
@@ -356,5 +395,18 @@ targetGrid?.addEventListener("click", (event) => {
     return;
   }
   updateSelectedTarget(button.dataset.nfcSelect);
+  document.getElementById("tag-writer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-nfc-starter-select]");
+  if (!button) {
+    return;
+  }
+
+  updateSelectedTarget(button.dataset.nfcStarterSelect);
+  if (starterPackStatus) {
+    starterPackStatus.textContent = `Loaded ${selectedTarget.title}. Copy, share, or write this URL from the writer below.`;
+  }
   document.getElementById("tag-writer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });

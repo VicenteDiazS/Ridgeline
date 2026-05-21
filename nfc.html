@@ -64,6 +64,61 @@
           </article>
         </section>
 
+        <section class="nfc-starter-pack" id="starter-tag-pack" aria-labelledby="starter-tag-pack-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Starter Tag Pack</p>
+              <h2 id="starter-tag-pack-title">Write The First Four Truck Tags</h2>
+            </div>
+            <button class="secondary-button" type="button" data-nfc-copy-starter-pack>Copy Pack List</button>
+          </div>
+          <p class="section-copy">
+            Start with the tags most likely to matter on an iPhone: jump/battery, oil service, diagnostics,
+            and trailer connector.
+          </p>
+          <div class="nfc-starter-grid" aria-label="Recommended first NFC truck tags">
+            <article class="nfc-starter-card" data-nfc-starter-card="battery-service">
+              <span>1. No-start</span>
+              <strong>Battery And Jump Point</strong>
+              <p>Place near the battery or jump reference so a helper can open the right page fast.</p>
+              <div class="nfc-card-actions">
+                <button type="button" data-nfc-starter-select="battery-service">Select URL</button>
+                <a href="nfc-landing.html?target=battery-service">Open Landing</a>
+              </div>
+            </article>
+            <article class="nfc-starter-card" data-nfc-starter-card="oil-service">
+              <span>2. Service</span>
+              <strong>Oil Service</strong>
+              <p>Put this by the oil-fill/service spot for specs and quick maintenance logging.</p>
+              <div class="nfc-card-actions">
+                <button type="button" data-nfc-starter-select="oil-service">Select URL</button>
+                <a href="nfc-landing.html?target=oil-service">Open Landing</a>
+              </div>
+            </article>
+            <article class="nfc-starter-card" data-nfc-starter-card="diagnostics">
+              <span>3. Roadside</span>
+              <strong>Diagnostic Quick Checks</strong>
+              <p>Keep this in the glove box or door jamb for warning lights, no-start, and electrical symptoms.</p>
+              <div class="nfc-card-actions">
+                <button type="button" data-nfc-starter-select="diagnostics">Select URL</button>
+                <a href="nfc-landing.html?target=diagnostics">Open Landing</a>
+              </div>
+            </article>
+            <article class="nfc-starter-card" data-nfc-starter-card="trailer-pinout">
+              <span>4. Towing</span>
+              <strong>Trailer Connector And Hitch</strong>
+              <p>Place near the protected rear-hitch area for light checks and connector reference.</p>
+              <div class="nfc-card-actions">
+                <button type="button" data-nfc-starter-select="trailer-pinout">Select URL</button>
+                <a href="nfc-landing.html?target=trailer-pinout">Open Landing</a>
+              </div>
+            </article>
+          </div>
+          <p class="nfc-platform-note" data-nfc-starter-status aria-live="polite">
+            Select a card to load its URL into the writer, or copy the starter list before programming tags.
+          </p>
+        </section>
+
         <section class="nfc-iphone-workflow" id="iphone-nfc-workflow" tabindex="-1">
           <div class="section-head">
             <div>
@@ -159,9 +214,9 @@
       </main>
 
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#starter-tag-pack">Starter Pack</a>
         <a href="index.html#viewer">Vehicle Map</a>
         <a href="hood.html#fuses">Fuses</a>
-        <a href="engine.html">Engine</a>
         <a href="#top">Top</a>
       </nav>
     </div>
