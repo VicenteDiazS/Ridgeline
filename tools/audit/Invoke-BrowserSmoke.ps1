@@ -44,6 +44,8 @@ SEARCH_EXPECTATIONS = {
     "tow prep": "Tow Day Readiness",
     "engine service jumpstart": "Engine Service Jumpstart",
     "engine part picker": "Engine Service Jumpstart",
+    "photo capture plan": "Photo Capture Plan",
+    "truck photo checklist": "Photo Capture Plan",
     "workflow index": "Diagnostics Workflow Index",
     "first minute triage": "First Minute Diagnostic Triage",
     "diagnostic first minute": "First Minute Diagnostic Triage",
@@ -1002,6 +1004,90 @@ async def assert_engine_service_jumpstart(page, page_name):
     assert_true(mobile_state["minCardHeight"] >= 44, "Engine Service Jumpstart cards lost thumb-sized touch targets")
     assert_true(mobile_state["maxCardWidth"] <= 390, "Engine Service Jumpstart cards are wider than the iPhone viewport")
     assert_true(not mobile_state["overflow"], "Engine Service Jumpstart introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
+async def assert_photo_capture_plan(page, page_name):
+    if page_name != "photo-atlas.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#photo-capture-plan");
+            const cards = panel ? [...panel.querySelectorAll(".photo-capture-card")] : [];
+            const requiredLinks = [
+                "hood.html#area-journal",
+                "cabin.html#area-journal",
+                "cargo.html#area-journal",
+                "rear-hitch.html#area-journal",
+                "garage.html#areas"
+            ];
+            const atlasCards = [...document.querySelectorAll("[data-atlas-area]")];
+            const emptyStates = [...document.querySelectorAll(".atlas-empty-state")];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                cardCount: cards.length,
+                text: panel?.innerText || "",
+                missingLinks: requiredLinks.filter((href) => !panel?.querySelector(`a[href="${href}"]`)),
+                heroHasPlan: Boolean(document.querySelector('.section-page-hero a[href="#photo-capture-plan"]')),
+                dockHasPlan: [...document.querySelectorAll("a")].some((link) =>
+                    link.getAttribute("href") === "#photo-capture-plan" && /capture plan/i.test(link.textContent || "")
+                ),
+                atlasCount: atlasCards.length,
+                emptyCount: emptyStates.length,
+                emptyLinks: emptyStates.filter((state) => state.querySelector('a[href$="#area-journal"]')).length,
+                hasPageScope: document.body.classList.contains("photo-atlas-page"),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasPanel"], "Photo Atlas is missing the capture plan panel")
+    assert_true(state["cardCount"] == 4, "Photo Capture Plan should expose four route cards")
+    for phrase in ["Fuse covers", "Driver-left fuse panel", "Trunk layout", "Connector"]:
+        assert_true(phrase in state["text"], f"Photo Capture Plan is missing '{phrase}'")
+    assert_true(not state["missingLinks"], f"Photo Capture Plan is missing route links: {state['missingLinks']}")
+    assert_true("does not add repair steps" in state["text"], "Photo Capture Plan is missing its no-new-facts boundary note")
+    assert_true(state["heroHasPlan"], "Photo Atlas hero is missing the capture plan route")
+    assert_true(state["dockHasPlan"], "Photo Atlas bottom dock is missing the capture plan route")
+    assert_true(state["atlasCount"] == 4, "Photo Atlas should still render four atlas areas")
+    assert_true(state["emptyCount"] == 4, "Photo Atlas empty state should render for each empty area")
+    assert_true(state["emptyLinks"] == 4, "Photo Atlas empty states should route to area journals")
+    assert_true(state["hasPageScope"], "Photo Atlas is missing its page-scoped styling class")
+    assert_true(not state["overflow"], "Photo Capture Plan introduced horizontal overflow")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(300)
+    mobile_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#photo-capture-plan");
+            const grid = panel?.querySelector(".photo-capture-grid");
+            const cards = panel ? [...panel.querySelectorAll(".photo-capture-card")] : [];
+            const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const visibleHeroLinks = [...document.querySelectorAll(".photo-atlas-page .section-page-hero .section-utility-nav .utility-link")]
+                .filter((link) => {
+                    const style = getComputedStyle(link);
+                    const rect = link.getBoundingClientRect();
+                    return style.display !== "none" && rect.width > 0 && rect.height > 0;
+                }).length;
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(panel?.getBoundingClientRect().height),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                visibleHeroLinks,
+                minCardHeight: cardRects.length ? Math.min(...cardRects.map((rect) => rect.height)) : 0,
+                maxCardWidth: cardRects.length ? Math.max(...cardRects.map((rect) => rect.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "Photo Capture Plan is not visible at iPhone width")
+    assert_true(mobile_state["columns"] == 1, "Photo Capture Plan should stack to one column on iPhone")
+    assert_true(mobile_state["visibleHeroLinks"] == 5, "Photo Atlas mobile hero should keep five primary routes visible")
+    assert_true(mobile_state["minCardHeight"] >= 44, "Photo Capture Plan cards lost thumb-sized touch targets")
+    assert_true(mobile_state["maxCardWidth"] <= 390, "Photo Capture Plan cards are wider than the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "Photo Capture Plan introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
@@ -2369,6 +2455,7 @@ async def smoke_page(context, root, page_name):
     await assert_rear_hitch_flow(page, page_name)
     await assert_cargo_load_planner(page, page_name)
     await assert_engine_service_jumpstart(page, page_name)
+    await assert_photo_capture_plan(page, page_name)
     await assert_tire_roadside_launcher(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)

@@ -15,7 +15,7 @@
     <title>Ridgeline Photo Atlas</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="photo-atlas-page">
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -37,16 +37,56 @@
             3D model to real-world truck reference shots without leaving the site.
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#photo-capture-plan">Capture Plan</a>
             <a class="utility-link utility-link-strong" href="#hood-atlas">Hood</a>
             <a class="utility-link" href="#cabin-atlas">Cabin</a>
             <a class="utility-link" href="#cargo-atlas">Cargo</a>
             <a class="utility-link" href="#hitch-atlas">Hitch</a>
-            <a class="utility-link" href="index.html#viewer">Vehicle Map</a>
           </div>
         </section>
 
+        <section class="section-page-stack" id="photo-capture-plan">
+          <article class="tech-card photo-capture-plan">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">iPhone Photo Plan</p>
+                <h2>Capture The Four Photos Worth Having Later</h2>
+                <p class="section-copy">
+                  Start from the area journal, add the photo there, then return here to review the real-truck atlas.
+                </p>
+              </div>
+              <a class="utility-link" href="garage.html#areas">All Journals</a>
+            </div>
+            <div class="photo-capture-grid" aria-label="Photo capture routes">
+              <a class="workflow-index-card photo-capture-card" href="hood.html#area-journal" data-photo-plan-card="hood">
+                <span>1. Hood</span>
+                <strong>Fuse covers, battery label, jump points</strong>
+                <small><b data-photo-plan-count="hood">Checking photos...</b> Add the shots you will want during no-start or fuse work.</small>
+              </a>
+              <a class="workflow-index-card photo-capture-card" href="cabin.html#area-journal" data-photo-plan-card="cabin">
+                <span>2. Cabin</span>
+                <strong>Driver-left fuse panel and outlet labels</strong>
+                <small><b data-photo-plan-count="cabin">Checking photos...</b> Keep under-dash and console reference shots close to the fuse tables.</small>
+              </a>
+              <a class="workflow-index-card photo-capture-card" href="cargo.html#area-journal" data-photo-plan-card="cargo">
+                <span>3. Cargo</span>
+                <strong>Trunk layout, tie-downs, repeat loadouts</strong>
+                <small><b data-photo-plan-count="cargo">Checking photos...</b> Save the bed or trunk setup before you need to rebuild it.</small>
+              </a>
+              <a class="workflow-index-card photo-capture-card" href="rear-hitch.html#area-journal" data-photo-plan-card="rear-hitch">
+                <span>4. Hitch</span>
+                <strong>Connector, adapter, hitch label, tester result</strong>
+                <small><b data-photo-plan-count="rear-hitch">Checking photos...</b> Keep tow-day evidence next to the connector and light-check references.</small>
+              </a>
+            </div>
+            <p class="source-note">
+              This plan only routes to existing area journals and saved local photo metadata. It does not add repair steps, fitment claims, towing facts, or Garage storage fields.
+            </p>
+          </article>
+        </section>
+
         <section class="section-page-grid photo-atlas-grid">
-          <article class="tech-card atlas-card" id="hood-atlas" data-atlas-area="hood">
+          <article class="tech-card atlas-card" id="hood-atlas" data-atlas-area="hood" data-atlas-journal="hood.html#area-journal">
             <h3>Hood / Engine Bay Atlas</h3>
             <p class="small-note">Best for fuse boxes, battery, jump point, engine cover, and service labels.</p>
             <div class="atlas-legend">
@@ -58,7 +98,7 @@
             <div class="photo-grid" data-atlas-grid></div>
           </article>
 
-          <article class="tech-card atlas-card" id="cabin-atlas" data-atlas-area="cabin">
+          <article class="tech-card atlas-card" id="cabin-atlas" data-atlas-area="cabin" data-atlas-journal="cabin.html#area-journal">
             <h3>Cabin Atlas</h3>
             <p class="small-note">Best for driver-left fuse box, glove box, cabin filter access, and electronics.</p>
             <div class="atlas-legend">
@@ -69,7 +109,7 @@
             <div class="photo-grid" data-atlas-grid></div>
           </article>
 
-          <article class="tech-card atlas-card" id="cargo-atlas" data-atlas-area="cargo">
+          <article class="tech-card atlas-card" id="cargo-atlas" data-atlas-area="cargo" data-atlas-journal="cargo.html#area-journal">
             <h3>Cargo Atlas</h3>
             <p class="small-note">Best for bed dimensions, trunk opening, drain points, and stored gear layout.</p>
             <div class="atlas-legend">
@@ -80,7 +120,7 @@
             <div class="photo-grid" data-atlas-grid></div>
           </article>
 
-          <article class="tech-card atlas-card" id="hitch-atlas" data-atlas-area="rear-hitch">
+          <article class="tech-card atlas-card" id="hitch-atlas" data-atlas-area="rear-hitch" data-atlas-journal="rear-hitch.html#area-journal">
             <h3>Rear Hitch Atlas</h3>
             <p class="small-note">Best for the 7-way connector, hitch label, adapters, and coupler setup photos.</p>
             <div class="atlas-legend">
@@ -93,7 +133,7 @@
         </section>
       </main>
       <nav class="section-dock" aria-label="Quick return">
-        <a href="index.html#viewer">Vehicle Map</a>
+        <a href="#photo-capture-plan">Capture Plan</a>
         <a href="garage.html#photos">All Photos</a>
         <a href="ar-lab.html">AR Lab</a>
         <a href="#top">Top</a>

@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-20
+Last updated: 2026-05-21
 
 ## Current Site Status
 
@@ -634,3 +634,12 @@ After the next UI change:
 - Updated `agent-last-run.json` so the public Anton status reports the Engine Service Jumpstart impact with compact Home-card copy. A final Home smoke first caught the public Anton tile over its iPhone height budget, so the visible status copy was shortened to `Engine Service Jumpstart.` and Home smoke then passed.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html')"`; Home smoke passed with the completed Anton status JSON.
 - Next safe slice: shared offline/search real-iPhone review, Photo Atlas practical upload/review flow, Maintenance/Garage handoff polish outside the long staging path, or Quick Sheet source/print follow-through; avoid another narrow Engine panel unless this new jumpstart reveals a regression.
+- Rotated to Photo Atlas after comparing shared offline/search review, Photo Atlas upload/review flow, Maintenance/Garage handoff polish, and Quick Sheet source/print follow-through, avoiding another immediate Engine or towing/cargo reference-panel run. Added `photo-atlas.html#photo-capture-plan`, a near-top iPhone Photo Capture Plan with four route cards for Hood, Cabin, Cargo, and Hitch photos. The cards route to existing area journals, show live saved-photo counts from current area-journal photo metadata, and the atlas empty states now include direct Open Area Journal links; no repair steps, fitment claims, towing facts, photo-byte handling, or Garage storage fields were added.
+- Search metadata now covers `Photo Capture Plan`, `truck photo checklist`, and related area-photo checklist queries; the service-worker cache is `ridgeline-console-v339`.
+- Added browser-smoke coverage for the Photo Capture Plan, including four-card presence, required area-journal routes, no-new-facts boundary text, empty-state journal links, hero and bottom-dock access, iPhone one-column stacking, thumb-sized targets, search coverage, and mobile horizontal-overflow checks.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('photo-atlas.html')"`; targeted Photo Atlas smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('photo-atlas.html') -Tag audit-v339-photo-capture-plan -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Photo Atlas browser smoke passed.
+- Updated `agent-last-run.json` so the public Anton status reports the Photo Capture Plan impact with compact Home-card copy. A final Home smoke first caught the public Anton tile over its iPhone height budget, so `nextExpectedRunAt` was set for the next 90-minute check and Home smoke then passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html')"`; Home smoke passed with the completed Anton status JSON.
+- Next safe slice: shared offline/search real-iPhone review, Quick Sheet source/print follow-through, Maintenance/Garage handoff polish outside the long staging path, or Photo Atlas real-iPhone review after actual photos are added; avoid another narrow Photo Atlas panel unless this capture plan reveals a regression.

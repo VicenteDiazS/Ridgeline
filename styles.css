@@ -8260,6 +8260,32 @@ kbd {
   align-items: start;
 }
 
+.photo-capture-plan {
+  border-color: rgba(97, 223, 255, 0.2);
+}
+
+.photo-capture-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.photo-capture-card {
+  min-height: 0;
+}
+
+.photo-capture-card b {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.photo-capture-plan .source-note {
+  margin-top: 12px;
+}
+
 .atlas-card {
   display: grid;
   gap: 14px;
@@ -8269,6 +8295,17 @@ kbd {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.atlas-empty-state {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 112px;
+  padding: 14px;
+  border: 1px dashed rgba(121, 212, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .garage-mode {
@@ -9617,6 +9654,47 @@ kbd {
   }
 
   .engine-page-main .engine-service-route small {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .photo-atlas-page .section-utility-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .photo-atlas-page .section-utility-nav .utility-link {
+    min-height: 38px;
+    padding: 8px 9px;
+    font-size: 0.76rem;
+  }
+
+  .photo-atlas-page .photo-capture-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .photo-atlas-page .photo-capture-card {
+    grid-template-columns: minmax(70px, 0.32fr) minmax(0, 1fr);
+    gap: 5px 10px;
+    align-items: start;
+    padding: 10px;
+  }
+
+  .photo-atlas-page .photo-capture-card span {
+    grid-row: span 2;
+    padding-top: 2px;
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+  }
+
+  .photo-atlas-page .photo-capture-card strong {
+    font-size: 0.9rem;
+    line-height: 1.28;
+  }
+
+  .photo-atlas-page .photo-capture-card small,
+  .photo-atlas-page .photo-capture-card b {
     font-size: 0.76rem;
     line-height: 1.35;
   }

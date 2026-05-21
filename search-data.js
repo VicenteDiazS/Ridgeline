@@ -181,6 +181,23 @@ export const searchIndex = [
     keywords: ["photo atlas", "real truck photos", "area photos", "hood photo", "cabin photo", "hitch photo"]
   },
   {
+    title: "Photo Capture Plan",
+    url: "photo-atlas.html#photo-capture-plan",
+    category: "Tools",
+    excerpt: "Near-top iPhone route for capturing hood, cabin, cargo, and hitch reference photos from existing area journals before reviewing the Photo Atlas.",
+    keywords: [
+      "photo capture plan",
+      "capture truck photos",
+      "truck photo checklist",
+      "area photo checklist",
+      "hood photo checklist",
+      "cabin photo checklist",
+      "cargo photo checklist",
+      "hitch photo checklist",
+      "iphone photo atlas"
+    ]
+  },
+  {
     title: "Fuse Boxes",
     url: "hood.html#fuses",
     category: "Electrical",

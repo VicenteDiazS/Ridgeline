@@ -49,7 +49,7 @@ This backlog is ordered by practical value. The agent should work from the top u
 - Make the header, bottom bar, site menu, and search feel consistent on small screens.
 - Reduce duplicated navigation surfaces where they compete for attention.
 - Current-page indicator in the universal header/menu completed 2026-05-16; keep it visible during future header density tuning.
-- Improve empty states for garage data and photo atlas.
+- Improve empty states for garage data; Photo Atlas empty states now route to each matching area journal with a near-top capture plan and live saved-photo counts.
 - Add regression coverage for nested modal/drawer handoffs, such as opening Search or Sync Settings from the quick-tools drawer.
 - Add broader main-audit coverage for nested hash targets with animated parents; first targeted coverage now exists in the Garage restore audit for `garage.html#diagnostic-activity` and is included in `Invoke-SiteAudit.ps1`.
 - Continue tuning subpage helper density after real-device review; the page title should remain the first content priority.
