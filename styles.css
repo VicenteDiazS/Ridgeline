@@ -6377,6 +6377,57 @@ kbd {
     rgba(8, 16, 28, 0.86);
 }
 
+.garage-setup-checklist {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(97, 223, 255, 0.08), rgba(255, 210, 122, 0.06)),
+    rgba(8, 16, 28, 0.72);
+}
+
+.garage-setup-head {
+  margin-bottom: 8px;
+}
+
+.garage-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.garage-setup-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 13px;
+  border: 1px solid rgba(97, 223, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(4, 11, 20, 0.56);
+}
+
+.garage-setup-card span {
+  color: var(--accent);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.garage-setup-card.is-next span {
+  color: #ffd27a;
+}
+
+.garage-setup-card strong {
+  color: var(--text);
+}
+
+.garage-setup-card p,
+.garage-setup-boundary {
+  margin: 0;
+}
+
 .diagnostic-activity-panel {
   margin-top: 18px;
   padding-top: 18px;
@@ -10481,11 +10532,20 @@ kbd {
   }
 
   .dashboard-grid,
+  .garage-setup-grid,
   .diagnostic-activity-list,
   .maintenance-note-list,
   .maintenance-parts-groups,
   .photo-atlas-grid {
     grid-template-columns: 1fr;
+  }
+
+  .garage-setup-checklist {
+    padding: 13px;
+  }
+
+  .garage-setup-card {
+    min-height: 0;
   }
 
   .diagnostic-activity-tools {

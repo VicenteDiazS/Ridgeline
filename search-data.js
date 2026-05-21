@@ -979,6 +979,24 @@ export const searchIndex = [
     keywords: ["dashboard", "garage dashboard", "truck profile", "photo count", "service status"]
   },
   {
+    title: "Garage Fill-In Checklist",
+    url: "garage.html#garage-fill-in-checklist",
+    category: "Personal",
+    excerpt: "iPhone checklist for deciding what Garage record to fill in next: truck profile, service closeout, warning-light note, photos, area notes, and backup.",
+    keywords: [
+      "garage fill in",
+      "garage fill-in checklist",
+      "what to record next",
+      "garage missing records",
+      "garage checklist",
+      "service receipt",
+      "warning note",
+      "add truck photos",
+      "garage backup checklist",
+      "iphone garage records"
+    ]
+  },
+  {
     title: "Recent Diagnostic Activity",
     url: "garage.html#diagnostic-activity",
     category: "Personal",

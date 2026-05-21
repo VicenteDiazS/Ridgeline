@@ -2030,9 +2030,9 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "garage.html": [
-      { label: "Dash", href: "#dashboard", icon: "map" },
+      { label: "Fill-In", href: "#garage-fill-in-checklist", icon: "garage" },
       { label: "Staging", href: "#maintenance-note-preview", icon: "wrench" },
-      { label: "Search", action: "search", icon: "search" },
+      { label: "Backup", href: "#diagnostic-activity", icon: "save" },
       { label: "More", action: "tools", icon: "menu" }
     ]
   };

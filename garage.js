@@ -23,6 +23,7 @@ const photosGrid = document.querySelector("[data-photo-grid]");
 const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
+const garageSetupChecklist = document.querySelector("[data-garage-setup-checklist]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
@@ -2032,8 +2033,110 @@ function renderDashboard() {
     })
     .join("");
 
+  renderGarageSetupChecklist({
+    profile,
+    maintenanceLog,
+    warningLightSummary,
+    areaPhotos,
+    areaNotes,
+    maintenanceNoteItems,
+    maintenanceStagingSummary
+  });
   renderDiagnosticActivity();
   renderMaintenanceNotePreview(maintenanceNoteItems);
+}
+
+function renderGarageSetupChecklist({
+  profile,
+  maintenanceLog,
+  warningLightSummary,
+  areaPhotos,
+  areaNotes,
+  maintenanceNoteItems,
+  maintenanceStagingSummary
+} = {}) {
+  if (!garageSetupChecklist) {
+    return;
+  }
+
+  const profileReady = Boolean(profile?.vin && profile?.current_mileage && profile?.parts_notes);
+  const serviceReady = maintenanceLog?.length || maintenanceNoteItems?.length;
+  const diagnosticReady = warningLightSummary?.count > 0;
+  const photoReady = areaPhotos > 0 || areaNotes > 0;
+  const stagingReady = maintenanceStagingSummary?.total > 0;
+
+  const checklistItems = [
+    {
+      status: profileReady ? "done" : "next",
+      label: profileReady ? "Profile saved" : "Add truck identity",
+      title: "Truck Profile",
+      detail: profileReady
+        ? `${profile.vehicle || "Ridgeline"} has VIN, mileage, and parts notes ready for backups.`
+        : "Save VIN, current mileage, and verified parts notes before a parts counter or shop handoff.",
+      href: "#truck-profile",
+      action: "Open Profile"
+    },
+    {
+      status: serviceReady ? "done" : "next",
+      label: serviceReady ? "Service trail started" : "Log today's service",
+      title: "Service Closeout",
+      detail: serviceReady
+        ? `${maintenanceLog.length} quick update${maintenanceLog.length === 1 ? "" : "s"} and ${maintenanceNoteItems.length} planner note${maintenanceNoteItems.length === 1 ? "" : "s"} are visible.`
+        : "After oil, wheel, battery, or filter work, save mileage through Maintenance so Garage has the receipt.",
+      href: "maintenance.html#service-closeout",
+      action: "Open Closeout"
+    },
+    {
+      status: diagnosticReady ? "done" : "next",
+      label: diagnosticReady ? "Warning note ready" : "Capture warning wording",
+      title: "Diagnostic Memory",
+      detail: diagnosticReady
+        ? `${warningLightSummary.count} warning-light field${warningLightSummary.count === 1 ? "" : "s"} saved for repeat issues.`
+        : "Record exact dash light wording, MID text, recent service context, and next action before details fade.",
+      href: "#warning-light-template",
+      action: "Open Warning Note"
+    },
+    {
+      status: photoReady ? "done" : "next",
+      label: photoReady ? "Area context saved" : "Add area photos",
+      title: "Photo And Area Notes",
+      detail: photoReady
+        ? `${areaPhotos} area photo${areaPhotos === 1 ? "" : "s"} and ${areaNotes} area note${areaNotes === 1 ? "" : "s"} are tied to the truck.`
+        : "Capture hood labels, cabin fuse references, bed setup, or hitch adapter photos from the area journals.",
+      href: "photo-atlas.html#photo-capture-plan",
+      action: "Open Capture Plan"
+    }
+  ];
+
+  garageSetupChecklist.innerHTML = `
+    <div class="compact-section-head garage-setup-head">
+      <div>
+        <p class="eyebrow">Garage fill-in checklist</p>
+        <h4>What To Record Next</h4>
+      </div>
+      <button class="utility-link" type="button" data-garage-fill-backup>Download Backup</button>
+    </div>
+    <p class="small-note">
+      iPhone-first next steps for making Garage useful before service, diagnostics, parts runs, or phone cleanup. This checklist only reads existing Garage data.
+    </p>
+    <div class="garage-setup-grid">
+      ${checklistItems
+        .map(
+          (item) => `
+            <article class="garage-setup-card is-${item.status}">
+              <span>${escapeHtml(item.label)}</span>
+              <strong>${escapeHtml(item.title)}</strong>
+              <p>${escapeHtml(item.detail)}</p>
+              <a class="utility-link" href="${escapeHtml(item.href)}">${escapeHtml(item.action)}</a>
+            </article>
+          `
+        )
+        .join("")}
+    </div>
+    <p class="small-note garage-setup-boundary">
+      ${stagingReady ? "Parts staging remains local-only unless you save a Garage note." : "Save planner notes from Maintenance to unlock parts staging."} Download Backup exports Garage notes, tracker, logs, favorites, profile, and photo metadata.
+    </p>
+  `;
 }
 
 function renderDiagnosticActivity() {
@@ -2464,6 +2567,14 @@ diagnosticActivityCopyButton?.addEventListener("click", () => {
 
 diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticActivity);
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
+garageSetupChecklist?.addEventListener("click", (event) => {
+  const backupButton = event.target.closest("[data-garage-fill-backup]");
+  if (!backupButton) {
+    return;
+  }
+
+  downloadGarageBackup();
+});
 maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));
 maintenancePartsCopyButton?.addEventListener("click", () => copyMaintenanceStaging());
 maintenanceNeededCopyButton?.addEventListener("click", copyMaintenanceNeedList);
