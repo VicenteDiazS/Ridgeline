@@ -1040,6 +1040,7 @@ async def assert_garage_features(page, page_name):
             const stagingCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
                 .find((card) => card.textContent.includes("Parts Staging")) : null;
             const activity = document.querySelector("#diagnostic-activity [data-diagnostic-activity]");
+            const backupCheckpoint = document.querySelector("#diagnostic-activity [data-garage-backup-checkpoint]");
             const maintenanceNotes = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
             const maintenanceParts = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview]");
             const maintenanceNoteText = document.querySelector("#maintenance-note-preview")?.innerText || "";
@@ -1062,6 +1063,13 @@ async def assert_garage_features(page, page_name):
                 hasHeroStagingRoute: Boolean(document.querySelector('.section-utility-nav a[href="#maintenance-note-preview"]')),
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
+                hasBackupCheckpoint: Boolean(backupCheckpoint),
+                backupCheckpointCards: backupCheckpoint?.querySelectorAll("article").length || 0,
+                backupCheckpointText: backupCheckpoint?.innerText || "",
+                hasBackupCheckpointDownload: Boolean(backupCheckpoint?.querySelector('[data-garage-backup-quick="download"]')),
+                hasBackupCheckpointChoose: Boolean(backupCheckpoint?.querySelector('[data-garage-backup-quick="choose"]')),
+                hasBackupCheckpointRestore: Boolean(backupCheckpoint?.querySelector('[data-garage-backup-quick="restore"]')),
+                backupCheckpointRestoreDisabled: backupCheckpoint?.querySelector('[data-garage-backup-quick="restore"]')?.disabled === true,
                 hasMaintenanceNotes: Boolean(maintenanceNotes),
                 hasMaintenancePartsPreview: Boolean(maintenanceParts),
                 hasMaintenanceNoteCopy: Boolean(document.querySelector("#maintenance-note-preview [data-copy-maintenance-note]")),
@@ -1102,6 +1110,14 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasHeroStagingRoute"], "garage hero is missing the saved maintenance shortcut")
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
+    assert_true(state["hasBackupCheckpoint"], "garage page is missing the Backup Checkpoint panel")
+    assert_true(state["backupCheckpointCards"] == 3, "Garage Backup Checkpoint should expose three steps")
+    assert_true(state["hasBackupCheckpointDownload"], "Garage Backup Checkpoint is missing the safety-copy download action")
+    assert_true(state["hasBackupCheckpointChoose"], "Garage Backup Checkpoint is missing the choose-backup action")
+    assert_true(state["hasBackupCheckpointRestore"], "Garage Backup Checkpoint is missing the restore-ready action")
+    assert_true(state["backupCheckpointRestoreDisabled"], "Garage Backup Checkpoint restore action should start disabled")
+    for phrase in ["Save A Safety Copy", "Choose The Backup File", "Restore After Preview"]:
+        assert_true(phrase in state["backupCheckpointText"], f"Garage Backup Checkpoint is missing {phrase}")
     assert_true(state["hasMaintenanceNotes"], "garage dashboard is missing saved maintenance notes preview")
     assert_true(state["hasMaintenancePartsPreview"], "garage dashboard is missing maintenance parts staging preview")
     assert_true(state["hasMaintenanceNoteCopy"], "saved maintenance notes preview is missing Copy Latest")
@@ -1829,14 +1845,17 @@ async def assert_garage_features(page, page_name):
             const preview = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
             const partsPreview = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview] .maintenance-parts-groups");
             const counterPanel = document.querySelector("#maintenance-note-preview [data-maintenance-counter-panel]");
+            const backupCheckpoint = document.querySelector("#diagnostic-activity [data-garage-backup-checkpoint]");
             const counterStyle = counterPanel ? getComputedStyle(counterPanel) : null;
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const partsColumns = partsPreview ? getComputedStyle(partsPreview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const backupCheckpointColumns = backupCheckpoint ? getComputedStyle(backupCheckpoint).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             return {
                 overflow: width > document.documentElement.clientWidth + 1,
                 columns,
                 partsColumns,
+                backupCheckpointColumns,
                 counterSticky: counterStyle?.position === "sticky",
                 hasCounterSkipNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-skip-next]")),
                 hasCounterCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
@@ -1846,6 +1865,7 @@ async def assert_garage_features(page, page_name):
         }"""
     )
     assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
+    assert_true(garage_mobile_state["backupCheckpointColumns"] == 1, "Garage Backup Checkpoint should stack to one column on iPhone width")
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["counterSticky"], "Counter Mode panel should stay sticky on iPhone width")

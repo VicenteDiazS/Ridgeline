@@ -6695,6 +6695,55 @@ kbd {
   margin: 12px 0;
 }
 
+.garage-backup-checkpoint {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 12px;
+}
+
+.garage-backup-checkpoint article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.08), rgba(255, 210, 122, 0.045)),
+    rgba(8, 16, 28, 0.62);
+}
+
+.garage-backup-checkpoint span {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(121, 212, 255, 0.22);
+  border-radius: 999px;
+  color: #dff8ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.garage-backup-checkpoint strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.garage-backup-checkpoint p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.garage-backup-checkpoint .ghost-button {
+  width: 100%;
+  min-height: 38px;
+}
+
 .diagnostic-activity-tools label {
   display: grid;
   gap: 5px;
@@ -9946,6 +9995,21 @@ kbd {
 
   .diagnostic-activity-tools .ghost-button {
     width: 100%;
+  }
+
+  .garage-backup-checkpoint {
+    grid-template-columns: 1fr;
+  }
+
+  .garage-backup-checkpoint article {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+  .garage-backup-checkpoint p,
+  .garage-backup-checkpoint .ghost-button {
+    grid-column: 1 / -1;
   }
 
   .maintenance-note-actions .utility-link {

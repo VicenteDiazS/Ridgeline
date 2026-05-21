@@ -38,6 +38,7 @@ const garageBackupDownloadButton = document.querySelector("[data-download-garage
 const garageBackupImportInput = document.querySelector("[data-import-garage-backup]");
 const garageBackupImportButton = document.querySelector("[data-choose-garage-backup]");
 const garageBackupRestoreButton = document.querySelector("[data-restore-garage-backup]");
+const garageBackupQuickButtons = [...document.querySelectorAll("[data-garage-backup-quick]")];
 const garageBackupPreview = document.querySelector("[data-garage-backup-preview]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
 const cloudSyncStatus = document.querySelector("[data-cloud-sync-status]");
@@ -1592,6 +1593,11 @@ function setGarageRestoreReady(ready) {
   if (garageBackupRestoreButton) {
     garageBackupRestoreButton.disabled = !ready;
   }
+  garageBackupQuickButtons
+    .filter((button) => button.dataset.garageBackupQuick === "restore")
+    .forEach((button) => {
+      button.disabled = !ready;
+    });
 }
 
 function garageBackupValueCount(value) {
@@ -1719,6 +1725,23 @@ function readGarageBackupFile(file) {
 
 garageBackupImportButton?.addEventListener("click", () => {
   garageBackupImportInput?.click();
+});
+
+garageBackupQuickButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const action = button.dataset.garageBackupQuick;
+    if (action === "download") {
+      downloadGarageBackup();
+      return;
+    }
+    if (action === "choose") {
+      garageBackupImportInput?.click();
+      return;
+    }
+    if (action === "restore" && !button.disabled) {
+      garageBackupRestoreButton?.click();
+    }
+  });
 });
 
 garageBackupImportInput?.addEventListener("change", async () => {

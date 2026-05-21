@@ -36,6 +36,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#dashboard">Open Dashboard</a>
             <a class="utility-link utility-link-strong" href="#notes">Open Notes</a>
+            <a class="utility-link utility-link-strong" href="#diagnostic-activity">Backup / Restore</a>
             <a class="utility-link" href="#maintenance-note-preview">Saved Maintenance</a>
             <a class="utility-link" href="#favorites">Saved Fuses</a>
             <a class="utility-link" href="#photos">Reference Photos</a>
@@ -69,6 +70,26 @@
                   <h4>Warning Lights, Quick Captures, And Area Notes</h4>
                 </div>
                 <a class="utility-link" href="#warning-light-template">Add Warning Note</a>
+              </div>
+              <div class="garage-backup-checkpoint" data-garage-backup-checkpoint>
+                <article>
+                  <span>1</span>
+                  <strong>Save A Safety Copy</strong>
+                  <p>Download the full Garage backup before service, phone cleanup, or a restore test.</p>
+                  <button class="ghost-button" type="button" data-garage-backup-quick="download">Download Backup</button>
+                </article>
+                <article>
+                  <span>2</span>
+                  <strong>Choose The Backup File</strong>
+                  <p>Pick a Ridgeline Garage backup JSON and preview the recognized data areas first.</p>
+                  <button class="ghost-button" type="button" data-garage-backup-quick="choose">Choose Backup</button>
+                </article>
+                <article>
+                  <span>3</span>
+                  <strong>Restore After Preview</strong>
+                  <p>Restore only after the preview shows what will replace or merge on this iPhone.</p>
+                  <button class="ghost-button" type="button" data-garage-backup-quick="restore" disabled>Restore Ready Backup</button>
+                </article>
               </div>
               <div class="diagnostic-activity-tools" aria-label="Diagnostic activity tools">
                 <label>
