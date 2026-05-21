@@ -8483,6 +8483,67 @@ kbd {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.fuse-quick-finder {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.08), rgba(255, 145, 94, 0.04)),
+    rgba(255, 255, 255, 0.035);
+}
+
+.fuse-quick-finder h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: 0;
+}
+
+.fuse-quick-finder p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.fuse-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fuse-quick-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 190px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 16, 29, 0.72);
+}
+
+.fuse-quick-card span {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(121, 212, 255, 0.1);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.fuse-quick-card strong {
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.fuse-quick-card .inspector-actions {
+  align-self: end;
+  margin-top: 2px;
+}
+
 .fuse-inspector-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8562,6 +8623,48 @@ kbd {
   .fuse-diagram svg {
     min-width: 620px;
     max-height: 58svh;
+  }
+
+  .fuse-quick-finder {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .fuse-quick-finder h2 {
+    font-size: 1.18rem;
+  }
+
+  .fuse-quick-finder p {
+    line-height: 1.42;
+  }
+
+  .fuse-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .fuse-quick-card {
+    min-height: 172px;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .fuse-quick-card strong {
+    font-size: 0.92rem;
+  }
+
+  .fuse-quick-card p {
+    font-size: 0.82rem;
+  }
+
+  .fuse-quick-card .inspector-actions {
+    gap: 6px;
+  }
+
+  .fuse-quick-card .utility-link {
+    min-height: 40px;
+    padding: 8px 9px;
+    font-size: 0.78rem;
   }
 
   .fuse-diagram svg .fuse-hit {

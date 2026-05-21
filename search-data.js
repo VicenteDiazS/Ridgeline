@@ -170,10 +170,44 @@ export const searchIndex = [
     keywords: ["fuse", "fuses", "hood", "engine bay", "battery", "jump", "box a", "box b"]
   },
   {
+    title: "Hood Fuse Quick Finder",
+    url: "hood.html#hood-fuse-quick-finder",
+    category: "Electrical",
+    excerpt: "Near-top iPhone routes for no-start, battery work, accessory-power confusion, trailer-light checks, and under-hood fuse-label help.",
+    keywords: [
+      "fuse quick finder",
+      "hood fuse quick finder",
+      "under hood fuse finder",
+      "engine bay fuse finder",
+      "which fuse box",
+      "no crank fuse",
+      "battery fuse help",
+      "trailer light fuse route",
+      "fuse label help"
+    ]
+  },
+  {
     title: "Cabin Fuses",
     url: "cabin.html#fuses",
     category: "Electrical",
     keywords: ["fuse", "cabin", "driver-left", "kick panel", "under dash", "interior fuse"]
+  },
+  {
+    title: "Cabin Fuse Quick Finder",
+    url: "cabin.html#cabin-fuse-quick-finder",
+    category: "Electrical",
+    excerpt: "Near-top iPhone routes for dead phone chargers, 12V sockets, audio/display issues, warning-light notes, and cabin-vs-hood fuse confusion.",
+    keywords: [
+      "fuse quick finder",
+      "cabin fuse quick finder",
+      "interior fuse finder",
+      "under dash fuse finder",
+      "phone charger fuse",
+      "12v socket fuse",
+      "radio screen fuse",
+      "audio display fuse",
+      "warning light fuse note"
+    ]
   },
   {
     title: "Power Outlet / 12V Socket Fuses",

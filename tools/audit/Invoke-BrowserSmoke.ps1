@@ -71,6 +71,9 @@ SEARCH_EXPECTATIONS = {
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
+    "fuse quick finder": "Hood Fuse Quick Finder",
+    "cabin fuse quick finder": "Cabin Fuse Quick Finder",
+    "hood fuse quick finder": "Hood Fuse Quick Finder",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
     "anton owner check": "Anton Owner Check",
@@ -619,8 +622,91 @@ async def assert_fuse_mobile_readability(page, page_name):
     if page_name not in ["hood.html", "cabin.html"]:
         return
 
+    expected = {
+        "hood.html": {
+            "selector": "#hood-fuse-quick-finder",
+            "links": [
+                "diagnostics.html#no-start-workflow",
+                "#battery-service",
+                "diagnostics.html#accessory-power-workflow",
+                "cabin.html#cabin-fuse-quick-finder",
+                "rear-hitch.html#trailer-hookup-flow",
+                "diagnostics.html#trailer-light-workflow",
+                "#hood-fuse-glossary",
+                "#fuses",
+            ],
+            "phrases": [
+                "No crank",
+                "Phone charger",
+                "Trailer lights",
+                "Fuse label shorthand",
+            ],
+        },
+        "cabin.html": {
+            "selector": "#cabin-fuse-quick-finder",
+            "links": [
+                "diagnostics.html#accessory-power-workflow",
+                "#fuses",
+                "diagnostics.html#audio-display-workflow",
+                "#cabin-fuse-glossary",
+                "diagnostics.html#warning-light-workflow",
+                "garage.html#warning-light-template",
+                "diagnostics.html#fuse-symptom-finder",
+                "hood.html#hood-fuse-quick-finder",
+            ],
+            "phrases": [
+                "Phone charger",
+                "Radio",
+                "Warning light",
+                "cabin or hood",
+            ],
+        },
+    }[page_name]
+    finder_state = await page.evaluate(
+        """(expected) => {
+            const finder = document.querySelector(expected.selector);
+            const cards = finder ? [...finder.querySelectorAll(".fuse-quick-card")] : [];
+            return {
+                hasFinder: Boolean(finder),
+                cardCount: cards.length,
+                text: finder?.innerText || "",
+                missingLinks: expected.links.filter((href) => !finder?.querySelector(`a[href="${href}"]`)),
+                hasBoundary: Boolean(finder?.innerText.includes("does not change fuse ratings"))
+            };
+        }""",
+        expected,
+    )
+    assert_true(finder_state["hasFinder"], f"{page_name} is missing the fuse quick finder")
+    assert_true(finder_state["cardCount"] == 4, f"{page_name} fuse quick finder should expose four route cards")
+    assert_true(not finder_state["missingLinks"], f"{page_name} fuse quick finder is missing routes: {finder_state['missingLinks']}")
+    assert_true(finder_state["hasBoundary"], f"{page_name} fuse quick finder is missing its route-only boundary note")
+    for phrase in expected["phrases"]:
+        assert_true(phrase in finder_state["text"], f"{page_name} fuse quick finder is missing '{phrase}'")
+
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(350)
+    finder_mobile_state = await page.evaluate(
+        """(selector) => {
+            const finder = document.querySelector(selector);
+            const grid = finder?.querySelector(".fuse-quick-grid");
+            const cards = [...finder?.querySelectorAll(".fuse-quick-card") || []].map((card) => card.getBoundingClientRect());
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(finder && finder.getBoundingClientRect().height > 0),
+                columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
+                maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }""",
+        expected["selector"],
+    )
+    assert_true(finder_mobile_state["visible"], f"{page_name} fuse quick finder is not visible at iPhone width")
+    assert_true(finder_mobile_state["columns"] == 2, f"{page_name} fuse quick finder should use two compact columns on iPhone")
+    assert_true(finder_mobile_state["minCardHeight"] >= 140, f"{page_name} fuse quick finder cards should stay thumb-readable on iPhone")
+    assert_true(finder_mobile_state["maxCardWidth"] <= 195, f"{page_name} fuse quick finder cards are wider than half the iPhone viewport")
+    assert_true(not finder_mobile_state["overflow"], f"{page_name} fuse quick finder introduced iPhone horizontal overflow")
+
     keys = ["hood-a", "hood-b"] if page_name == "hood.html" else ["cabin-a", "cabin-b"]
     for key in keys:
         await page.locator(f'[data-fuse-diagram="{key}"] [data-fuse-position]').last.click()
@@ -658,6 +744,8 @@ async def assert_fuse_mobile_readability(page, page_name):
         assert_true("Pos" in state["label"], f"{key} fuse mobile table should show row labels")
         assert_true(state["diagramPans"], f"{key} fuse diagram should pan inside its panel on iPhone")
         assert_true(not state["pageOverflow"], f"{key} fuse page introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
 
 
 async def assert_rear_hitch_flow(page, page_name):
