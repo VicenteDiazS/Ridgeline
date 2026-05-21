@@ -5275,6 +5275,62 @@ kbd {
   padding-inline: 9px;
 }
 
+.service-closeout-card {
+  scroll-margin-top: 92px;
+  border-color: rgba(255, 145, 94, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(255, 145, 94, 0.12), transparent 34%),
+    rgba(6, 12, 20, 0.76);
+}
+
+.service-closeout-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.service-closeout-cardlet {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 100%;
+  padding: 14px;
+  border: 1px solid rgba(255, 145, 94, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 145, 94, 0.09), rgba(255, 255, 255, 0.025)),
+    rgba(6, 12, 20, 0.68);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.service-closeout-cardlet:focus-visible {
+  outline: 3px solid rgba(255, 145, 94, 0.72);
+  outline-offset: 3px;
+}
+
+.service-closeout-cardlet span {
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-closeout-cardlet strong {
+  color: var(--text);
+  font-size: 0.96rem;
+  line-height: 1.28;
+}
+
+.service-closeout-cardlet small {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .service-prep-card {
   scroll-margin-top: 92px;
 }
@@ -5425,21 +5481,25 @@ kbd {
 }
 
 @media (max-width: 760px) {
+  .maintenance-page .service-closeout-card,
   .maintenance-page .service-prep-card,
   .maintenance-page .minder-pocket-card {
     gap: 10px;
   }
 
   .maintenance-page .service-prep-card .section-head,
+  .maintenance-page .service-closeout-card .section-head,
   .maintenance-page .maintenance-run-launcher .section-head,
   .maintenance-page .minder-pocket-card .section-head {
     gap: 8px;
   }
 
   .maintenance-page .maintenance-run-launcher .section-copy,
+  .maintenance-page .service-closeout-card .section-copy,
   .maintenance-page .service-prep-card .section-copy,
   .maintenance-page .minder-pocket-card .section-copy,
   .maintenance-page .maintenance-run-launcher .source-note,
+  .maintenance-page .service-closeout-card .source-note,
   .maintenance-page .service-prep-card .source-note,
   .maintenance-page .minder-pocket-card .source-note {
     font-size: 0.82rem;
@@ -5452,7 +5512,7 @@ kbd {
   }
 
   .maintenance-page .section-page-hero .section-utility-nav a[href="#service-run-launcher"],
-  .maintenance-page .section-page-hero .section-utility-nav a[href="#maintenance-updater"],
+  .maintenance-page .section-page-hero .section-utility-nav a[href="#service-closeout"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#service-prep"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#minder-pocket-planner"],
   .maintenance-page .section-page-hero .section-utility-nav a[href="#fluids"],
@@ -5470,6 +5530,11 @@ kbd {
   }
 
   .maintenance-page .maintenance-run-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .maintenance-page .service-closeout-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
@@ -5501,6 +5566,27 @@ kbd {
     width: auto;
     padding-inline: 6px;
     font-size: 0.72rem;
+  }
+
+  .maintenance-page .service-closeout-cardlet {
+    gap: 6px;
+    min-height: 126px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .maintenance-page .service-closeout-cardlet span {
+    font-size: 0.68rem;
+  }
+
+  .maintenance-page .service-closeout-cardlet strong {
+    font-size: 0.86rem;
+    line-height: 1.24;
+  }
+
+  .maintenance-page .service-closeout-cardlet small {
+    font-size: 0.72rem;
+    line-height: 1.28;
   }
 
   .maintenance-page .service-prep-grid {
@@ -5593,6 +5679,7 @@ kbd {
 
 @media (max-width: 360px) {
   .maintenance-page .maintenance-run-grid,
+  .maintenance-page .service-closeout-grid,
   .maintenance-page .service-prep-grid {
     grid-template-columns: 1fr;
   }

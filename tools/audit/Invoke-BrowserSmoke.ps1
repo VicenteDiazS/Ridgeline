@@ -54,6 +54,8 @@ SEARCH_EXPECTATIONS = {
     "signal loss prep": "Signal-Loss Prep",
     "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
+    "service closeout": "Service Closeout",
+    "finish service": "Service Closeout",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
@@ -1205,7 +1207,9 @@ async def assert_maintenance_features(page, page_name):
         """() => {
             const prep = document.querySelector("#service-prep");
             const launcher = document.querySelector("#service-run-launcher");
+            const closeout = document.querySelector("#service-closeout");
             const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
+            const closeoutCards = closeout ? [...closeout.querySelectorAll("[data-closeout-service]")] : [];
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
             const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
             const minder = document.querySelector("#minder-pocket-planner");
@@ -1224,6 +1228,11 @@ async def assert_maintenance_features(page, page_name):
                     'a[href="#filter-cross"]',
                     'a[href="index.html?system=jack-points#viewer"]'
                 ].every((selector) => Boolean(launcher.querySelector(selector))) : false,
+                hasCloseout: Boolean(closeout),
+                closeoutCardCount: closeoutCards.length,
+                closeoutText: closeout?.innerText || "",
+                closeoutServices: closeoutCards.map((card) => card.dataset.closeoutService).filter(Boolean),
+                hasCloseoutUpdaterRoute: Boolean(closeout?.querySelector('a[href="#maintenance-updater"]')),
                 hasPrep: Boolean(prep),
                 cardCount: cards.length,
                 checkboxCount: checkboxLabels.length,
@@ -1249,6 +1258,12 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["launcherCardCount"] == 5, "service run launcher should expose five common service routes")
     assert_true(state["launcherRoutes"], "service run launcher is missing prep/spec/log/Garage routes")
     assert_true("Pick The Job Before You Scroll" in state["launcherText"], "service run launcher should explain the iPhone job-picker purpose")
+    assert_true(state["hasCloseout"], "maintenance page is missing the service closeout panel")
+    assert_true(state["closeoutCardCount"] == 4, "service closeout should expose four after-service shortcuts")
+    assert_true(set(state["closeoutServices"]) == {"oil_change", "tire_rotation", "battery_install", "filters"}, "service closeout shortcuts should target existing update types")
+    assert_true(state["hasCloseoutUpdaterRoute"], "service closeout is missing its Quick Maintenance Update route")
+    for phrase in ["AFTER THE JOB", "OIL DONE", "WHEEL DONE", "BATTERY DONE", "FILTERS DONE"]:
+        assert_true(phrase in state["closeoutText"], f"service closeout is missing text: {phrase}")
     assert_true(state["hasPrep"], "maintenance page is missing the service prep planner")
     assert_true(state["cardCount"] == 4, "service prep planner should expose four job cards")
     assert_true(state["checkboxCount"] >= 16, "service prep planner should expose labeled checkbox items")
@@ -1273,6 +1288,8 @@ async def assert_maintenance_features(page, page_name):
         """() => {
             const prepGrid = document.querySelector("#service-prep .service-prep-grid");
             const launcherGrid = document.querySelector("#service-run-launcher .maintenance-run-grid");
+            const closeoutGrid = document.querySelector("#service-closeout .service-closeout-grid");
+            const firstCloseoutButton = document.querySelector("#service-closeout [data-closeout-service]");
             const firstLauncherAction = document.querySelector("#service-run-launcher .maintenance-run-card .inspector-actions");
             const firstPrepAction = document.querySelector("#service-prep [data-service-prep-card] .service-prep-actions");
             const firstPrepStageButton = firstPrepAction?.querySelector("[data-save-open-service-staging]");
@@ -1293,6 +1310,7 @@ async def assert_maintenance_features(page, page_name):
                 .map((link) => link.textContent.trim());
             const prepColumns = prepGrid ? getComputedStyle(prepGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const launcherColumns = launcherGrid ? getComputedStyle(launcherGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const closeoutColumns = closeoutGrid ? getComputedStyle(closeoutGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const launcherActionRows = firstLauncherAction
                 ? new Set([...firstLauncherAction.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
                 : 0;
@@ -1313,6 +1331,8 @@ async def assert_maintenance_features(page, page_name):
                 minderStageText: minderStageButton?.textContent.trim() || "",
                 minderStageLabel: minderStageButton?.getAttribute("aria-label") || "",
                 launcherColumns,
+                closeoutColumns,
+                closeoutButtonHeight: firstCloseoutButton?.getBoundingClientRect().height || 0,
                 launcherActionRows,
                 prepColumns,
                 prepActionRows,
@@ -1323,6 +1343,8 @@ async def assert_maintenance_features(page, page_name):
     )
     assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
     assert_true(mobile_state["launcherColumns"] == 2, "service run launcher should keep two compact columns at iPhone width")
+    assert_true(mobile_state["closeoutColumns"] == 2, "service closeout should keep two compact columns at iPhone width")
+    assert_true(mobile_state["closeoutButtonHeight"] >= 44, "service closeout shortcuts should remain thumb-sized on iPhone width")
     assert_true(mobile_state["launcherActionRows"] == 1, "service run launcher action buttons should stay on one compact row at iPhone width")
     assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
     assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
@@ -1337,6 +1359,25 @@ async def assert_maintenance_features(page, page_name):
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
     await page.evaluate("""() => localStorage.setItem('ridgeline-notes', JSON.stringify({ general_notes: 'Existing garage note', quick_capture_keep: 'preserve me' }))""")
+    await page.locator("#service-closeout [data-closeout-service='battery_install']").click()
+    await page.wait_for_timeout(450)
+    closeout_state = await page.evaluate(
+        """() => {
+            const form = document.querySelector("[data-maintenance-update-form]");
+            return {
+                service: form?.elements.service?.value || "",
+                note: form?.elements.note?.value || "",
+                activeName: document.activeElement?.getAttribute("name") || "",
+                closeoutStatus: document.querySelector("[data-service-closeout-status]")?.textContent || "",
+                updateStatus: document.querySelector("[data-maintenance-update-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true(closeout_state["service"] == "battery_install", "service closeout did not preselect the existing battery install update type")
+    assert_true("Battery service complete" in closeout_state["note"], "service closeout did not prefill the battery completion note")
+    assert_true(closeout_state["activeName"] == "mileage", "service closeout should focus the mileage field after routing to Quick Maintenance Update")
+    assert_true("Battery install closeout is ready" in closeout_state["closeoutStatus"], "service closeout did not report the ready state")
+    assert_true("Battery install closeout selected" in closeout_state["updateStatus"], "Quick Maintenance Update did not reflect the selected closeout")
     await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.check()
     await page.locator("#service-prep [data-copy-service-prep]").first.click()
     await page.wait_for_timeout(100)

@@ -9,6 +9,8 @@ const updateForm = document.querySelector("[data-maintenance-update-form]");
 const updateStatus = document.querySelector("[data-maintenance-update-status]");
 const updateList = document.querySelector("[data-maintenance-update-list]");
 const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]")];
+const closeoutButtons = [...document.querySelectorAll("[data-closeout-service]")];
+const closeoutStatus = document.querySelector("[data-service-closeout-status]");
 const minderPlanner = document.querySelector("#minder-pocket-planner");
 const minderInput = document.querySelector("[data-minder-code-input]");
 const minderOutput = document.querySelector("[data-minder-plan-output]");
@@ -273,6 +275,40 @@ function initServicePrepCards() {
   });
 }
 
+function initServiceCloseout() {
+  if (!updateForm || !closeoutButtons.length) {
+    return;
+  }
+
+  closeoutButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const service = button.dataset.closeoutService || "general_note";
+      const note = button.dataset.closeoutNote || "";
+      const serviceField = updateForm.elements.service;
+      const noteField = updateForm.elements.note;
+      const mileageField = updateForm.elements.mileage;
+
+      if (serviceField) {
+        serviceField.value = service;
+      }
+      if (noteField && note) {
+        noteField.value = note;
+      }
+
+      updateForm.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => mileageField?.focus(), 350);
+
+      const label = serviceLabels[service] || "Maintenance update";
+      if (closeoutStatus) {
+        closeoutStatus.textContent = `${label} closeout is ready. Enter mileage, edit the note if needed, then save the update.`;
+      }
+      if (updateStatus) {
+        updateStatus.textContent = `${label} closeout selected from the Service Closeout panel.`;
+      }
+    });
+  });
+}
+
 function initMinderPlanner() {
   if (!minderPlanner || !minderInput) {
     return;
@@ -402,6 +438,7 @@ function saveQuickUpdate(event) {
 }
 
 updateForm?.addEventListener("submit", saveQuickUpdate);
+initServiceCloseout();
 initServicePrepCards();
 initMinderPlanner();
 

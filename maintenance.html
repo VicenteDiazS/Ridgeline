@@ -36,6 +36,7 @@
           <div class="section-utility-nav">
             <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
             <a class="utility-link utility-link-strong" href="#service-run-launcher">Start Service</a>
+            <a class="utility-link utility-link-strong" href="#service-closeout">Closeout</a>
             <a class="utility-link utility-link-strong" href="#maintenance-updater">Update Log</a>
             <a class="utility-link utility-link-strong" href="#service-prep">Prep Planner</a>
             <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
@@ -126,6 +127,46 @@
             </div>
             <p class="source-note">
               This launcher only routes to existing Ridgeline maintenance, Garage, and reference sections. Verify the truck labels, part fitment, and current conditions before service.
+            </p>
+          </article>
+
+          <article class="tech-card span-2 service-closeout-card" id="service-closeout">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">After The Job</p>
+                <h3>Service Closeout</h3>
+                <p class="section-copy">
+                  Tap the job you just finished, then enter mileage once in Quick Maintenance Update.
+                  The note stays on the existing Garage maintenance log path.
+                </p>
+              </div>
+              <a class="utility-link" href="#maintenance-updater">Open Update</a>
+            </div>
+            <div class="service-closeout-grid" aria-label="Maintenance service closeout shortcuts">
+              <button class="service-closeout-cardlet" type="button" data-closeout-service="oil_change" data-closeout-note="Oil change complete. Confirm final dipstick level, filter/washer used, and reset reminder status.">
+                <span>Oil done</span>
+                <strong>Log oil, filter, washer, and final level</strong>
+                <small>Prefills the oil-change update note.</small>
+              </button>
+              <button class="service-closeout-cardlet" type="button" data-closeout-service="tire_rotation" data-closeout-note="Wheel/tire work complete. Confirm 94 lb-ft wheel-nut torque, cold pressure, and rotation or flat-tire follow-up.">
+                <span>Wheel done</span>
+                <strong>Log torque, pressure, and rotation follow-up</strong>
+                <small>Uses the tire-rotation update type.</small>
+              </button>
+              <button class="service-closeout-cardlet" type="button" data-closeout-service="battery_install" data-closeout-note="Battery service complete. Record battery label, install date, warranty, terminal condition, and any no-start follow-up.">
+                <span>Battery done</span>
+                <strong>Log label, warranty, terminals, and symptoms</strong>
+                <small>Keeps battery details in Garage notes.</small>
+              </button>
+              <button class="service-closeout-cardlet" type="button" data-closeout-service="filters" data-closeout-note="Filter service complete. Record engine/cabin filter part numbers, mileage, and any access notes.">
+                <span>Filters done</span>
+                <strong>Log part numbers, mileage, and access notes</strong>
+                <small>Routes back through the existing update form.</small>
+              </button>
+            </div>
+            <p class="small-note" data-service-closeout-status aria-live="polite"></p>
+            <p class="source-note">
+              Closeout shortcuts only prefill the existing Quick Maintenance Update form. Verify the work on the truck before saving the mileage note.
             </p>
           </article>
 

@@ -426,6 +426,13 @@ export const searchIndex = [
     keywords: ["service run launcher", "start service", "maintenance launcher", "oil run", "wheel work", "dash code", "battery service run", "filter service run", "service staging", "service job picker", "pick the job", "maintenance route"]
   },
   {
+    title: "Service Closeout",
+    url: "maintenance.html#service-closeout",
+    category: "Maintenance",
+    excerpt: "After-service iPhone shortcuts for oil, wheel, battery, and filter work that prefill Quick Maintenance Update notes before saving mileage to the existing Garage log.",
+    keywords: ["service closeout", "finish service", "after service", "log completed service", "maintenance closeout", "oil done", "wheel done", "battery done", "filters done", "prefill maintenance update", "service receipt", "save mileage note", "garage service log"]
+  },
+  {
     title: "Service Prep Planner",
     url: "maintenance.html#service-prep",
     category: "Maintenance",
