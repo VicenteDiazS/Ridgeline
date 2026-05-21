@@ -40,6 +40,8 @@ SEARCH_EXPECTATIONS = {
     "diagnostic activity json": "Recent Diagnostic Activity",
     "restore garage backup": "Recent Diagnostic Activity",
     "trailer hookup": "Trailer Hookup Flow",
+    "tow day readiness": "Tow Day Readiness",
+    "tow prep": "Tow Day Readiness",
     "workflow index": "Diagnostics Workflow Index",
     "first minute triage": "First Minute Diagnostic Triage",
     "diagnostic first minute": "First Minute Diagnostic Triage",
@@ -754,6 +756,40 @@ async def assert_rear_hitch_flow(page, page_name):
     if page_name != "rear-hitch.html":
         return
 
+    readiness_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#tow-day-readiness");
+            const cards = panel ? [...panel.querySelectorAll(".tow-day-card")] : [];
+            const requiredLinks = [
+                "#connector",
+                "#tow-checklist",
+                "#trailer-hookup-flow",
+                "#area-journal"
+            ];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                cardCount: cards.length,
+                text: panel?.innerText || "",
+                missingLinks: requiredLinks.filter((href) => !panel?.querySelector(`a[href="${href}"]`)),
+                heroHasRoute: Boolean(document.querySelector('.section-page-hero a[href="#tow-day-readiness"]')),
+                dockHasRoute: [...document.querySelectorAll("a")].some((link) =>
+                    link.getAttribute("href") === "#tow-day-readiness" && /tow day/i.test(link.textContent || "")
+                ),
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(readiness_state["hasPanel"], "rear hitch is missing the Tow Day Readiness panel")
+    assert_true(readiness_state["cardCount"] == 4, "Tow Day Readiness should expose four route cards")
+    for phrase in ["Confirm this truck first", "Pin, latch, chains, plug", "Name the failed light", "Keep the setup note"]:
+        assert_true(phrase in readiness_state["text"], f"Tow Day Readiness is missing '{phrase}'")
+    assert_true(not readiness_state["missingLinks"], f"Tow Day Readiness is missing route links: {readiness_state['missingLinks']}")
+    assert_true("does not add towing limits" in readiness_state["text"], "Tow Day Readiness is missing its no-new-facts boundary note")
+    assert_true(readiness_state["heroHasRoute"], "rear hitch hero is missing the Tow Day route")
+    assert_true(readiness_state["dockHasRoute"], "rear hitch bottom dock is missing the Tow Day route")
+    assert_true(not readiness_state["overflow"], "Tow Day Readiness introduced desktop horizontal overflow")
+
     state = await page.evaluate(
         """() => {
             const flow = document.querySelector("#trailer-hookup-flow");
@@ -784,11 +820,18 @@ async def assert_rear_hitch_flow(page, page_name):
     await page.wait_for_timeout(300)
     mobile_state = await page.evaluate(
         """() => {
+            const readiness = document.querySelector("#tow-day-readiness");
+            const readinessGrid = readiness?.querySelector(".tow-day-grid");
+            const readinessCards = readiness ? [...readiness.querySelectorAll(".tow-day-card")] : [];
+            const readinessRects = readinessCards.map((card) => card.getBoundingClientRect());
             const flow = document.querySelector("#trailer-hookup-flow");
             const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
             const cardRects = cards.map((card) => card.getBoundingClientRect());
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
+                readinessVisible: Boolean(readiness?.getBoundingClientRect().height),
+                readinessColumns: readinessGrid ? getComputedStyle(readinessGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                readinessMinCardHeight: readinessRects.length ? Math.min(...readinessRects.map((rect) => rect.height)) : 0,
                 flowVisible: Boolean(flow?.getBoundingClientRect().height),
                 cardsStacked: cardRects.every((rect) => rect.width <= document.documentElement.clientWidth - 16),
                 minCardHeight: Math.min(...cardRects.map((rect) => rect.height)),
@@ -796,6 +839,9 @@ async def assert_rear_hitch_flow(page, page_name):
             };
         }"""
     )
+    assert_true(mobile_state["readinessVisible"], "Tow Day Readiness is not visible at iPhone width")
+    assert_true(mobile_state["readinessColumns"] == 1, "Tow Day Readiness should stack to one column on iPhone")
+    assert_true(mobile_state["readinessMinCardHeight"] >= 44, "Tow Day Readiness cards lost thumb-sized touch targets")
     assert_true(mobile_state["flowVisible"], "rear hitch hookup flow is not visible at iPhone width")
     assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")

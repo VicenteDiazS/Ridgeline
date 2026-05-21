@@ -6086,6 +6086,24 @@ kbd {
   border-color: rgba(255, 214, 102, 0.2);
 }
 
+.tow-day-readiness {
+  border-color: rgba(111, 255, 180, 0.22);
+}
+
+.tow-day-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tow-day-card {
+  min-height: 0;
+}
+
+.tow-day-readiness .source-note {
+  margin-top: 12px;
+}
+
 .trailer-hookup-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -9444,6 +9462,35 @@ kbd {
   .rear-hitch-page .trailer-hookup-grid {
     grid-template-columns: 1fr;
     gap: 7px;
+  }
+
+  .rear-hitch-page .tow-day-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .rear-hitch-page .tow-day-card {
+    grid-template-columns: minmax(74px, 0.34fr) minmax(0, 1fr);
+    gap: 5px 10px;
+    align-items: start;
+    padding: 10px;
+  }
+
+  .rear-hitch-page .tow-day-card span {
+    grid-row: span 2;
+    padding-top: 2px;
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+  }
+
+  .rear-hitch-page .tow-day-card strong {
+    font-size: 0.9rem;
+    line-height: 1.28;
+  }
+
+  .rear-hitch-page .tow-day-card small {
+    font-size: 0.76rem;
+    line-height: 1.35;
   }
 
   .rear-hitch-page .trailer-hookup-card {

@@ -750,6 +750,27 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tow Day Readiness",
+    url: "rear-hitch.html#tow-day-readiness",
+    category: "Towing",
+    excerpt: "Near-top iPhone tow-day path for checking this truck's limit, hookup checklist, trailer-light flow, and saved trailer setup notes.",
+    keywords: [
+      "tow day",
+      "tow day readiness",
+      "towing readiness",
+      "ready to tow",
+      "tow prep",
+      "trailer prep",
+      "before towing",
+      "towing checklist",
+      "trailer checklist",
+      "hitch checklist",
+      "tow setup note",
+      "save tow setup",
+      "iphone towing"
+    ]
+  },
+  {
     title: "Trailer Connector Diagram",
     url: "rear-hitch.html#connector",
     category: "Towing",
