@@ -126,6 +126,9 @@ SEARCH_EXPECTATIONS = {
     "tire handoff builder": "Tire Handoff Builder",
     "copy tire handoff": "Tire Handoff Builder",
     "save tire note": "Tire Handoff Builder",
+    "tire pressure sweep": "Tire Pressure Sweep",
+    "tpms note": "Tire Pressure Sweep",
+    "copy tire pressure": "Tire Pressure Sweep",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
     "cargo load planner": "Cargo Load Planner",
@@ -1675,6 +1678,7 @@ async def assert_tire_roadside_launcher(page, page_name):
         """() => {
             const launcher = document.querySelector("#tire-roadside-launcher");
             const builder = document.querySelector("#tire-handoff-builder");
+            const sweep = document.querySelector("#tire-pressure-sweep");
             const required = [
                 "quick-sheet.html#roadside-action-stack",
                 "index.html?system=jack-points#viewer",
@@ -1695,11 +1699,20 @@ async def assert_tire_roadside_launcher(page, page_name):
                 hasBuilderCopy: Boolean(builder?.querySelector("[data-copy-tire-handoff]")),
                 hasBuilderShare: Boolean(builder?.querySelector("[data-share-tire-handoff]")),
                 hasBuilderSave: Boolean(builder?.querySelector("[data-save-tire-handoff]")),
+                hasSweep: Boolean(sweep),
+                sweepInputs: sweep?.querySelectorAll("[data-tire-corner]").length || 0,
+                sweepSelects: sweep?.querySelectorAll("[data-tire-corner-status]").length || 0,
+                sweepText: sweep?.innerText || "",
+                hasSweepCopy: Boolean(sweep?.querySelector("[data-copy-tire-pressure]")),
+                hasSweepShare: Boolean(sweep?.querySelector("[data-share-tire-pressure]")),
+                hasSweepSave: Boolean(sweep?.querySelector("[data-save-tire-pressure]")),
+                hasSweepReset: Boolean(sweep?.querySelector("[data-reset-tire-pressure]")),
                 bottomHasRoadside: Boolean(document.querySelector('.context-action[href="#tire-roadside-launcher"]')),
                 bottomHasHandoff: Boolean(document.querySelector('.context-action[href="#tire-handoff-builder"]')),
-                bottomHasJack: Boolean(document.querySelector('.context-action[href="index.html?system=jack-points#viewer"]')),
+                bottomHasPressure: Boolean(document.querySelector('.context-action[href="#tire-pressure-sweep"]')),
                 heroHasRoadside: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-roadside-launcher"]')),
                 heroHasHandoff: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-handoff-builder"]')),
+                heroHasPressure: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-pressure-sweep"]')),
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
@@ -1719,11 +1732,21 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true(state["hasBuilderSave"], "tire handoff builder is missing Save Note")
     for phrase in ["tire handoff builder", "flat", "pressure", "after work", "buying", "garage notes"]:
         assert_true(phrase in state["builderText"].lower(), f"tire handoff builder is missing {phrase}")
+    assert_true(state["hasSweep"], "tires page is missing pressure sweep")
+    assert_true(state["sweepInputs"] == 4, "pressure sweep should expose four PSI inputs")
+    assert_true(state["sweepSelects"] == 4, "pressure sweep should expose four status selectors")
+    assert_true(state["hasSweepCopy"], "pressure sweep is missing Copy")
+    assert_true(state["hasSweepShare"], "pressure sweep is missing Share")
+    assert_true(state["hasSweepSave"], "pressure sweep is missing Save Note")
+    assert_true(state["hasSweepReset"], "pressure sweep is missing Reset")
+    for phrase in ["tire pressure sweep", "front left", "rear right", "garage notes", "35 psi"]:
+        assert_true(phrase in state["sweepText"].lower(), f"pressure sweep is missing {phrase}")
     assert_true(state["bottomHasRoadside"], "tire page bottom bar is missing roadside launcher route")
     assert_true(state["bottomHasHandoff"], "tire page bottom bar is missing tire handoff route")
-    assert_true(state["bottomHasJack"], "tire page bottom bar is missing direct jack map route")
+    assert_true(state["bottomHasPressure"], "tire page bottom bar is missing pressure sweep route")
     assert_true(state["heroHasRoadside"], "tire page hero is missing roadside launcher route")
     assert_true(state["heroHasHandoff"], "tire page hero is missing tire handoff route")
+    assert_true(state["heroHasPressure"], "tire page hero is missing pressure sweep route")
     assert_true(not state["overflow"], "tire roadside launcher introduced horizontal overflow")
     await page.evaluate("""() => document.querySelector('[data-tire-handoff-plan="buying"]').click()""")
     await page.wait_for_timeout(150)
@@ -1757,6 +1780,44 @@ async def assert_tire_roadside_launcher(page, page_name):
     )
     assert_true("Tire Handoff" in saved_state["notes"], "Save Note should write a tire handoff into Garage Notes")
     assert_true("Tire handoff saved to Garage Notes" in saved_state["status"], "Save Note should report the Garage Notes save")
+    await page.evaluate(
+        """() => {
+            const sweep = document.querySelector("#tire-pressure-sweep");
+            sweep.querySelector('[data-tire-corner="Front left"]').value = "31";
+            sweep.querySelector('[data-tire-corner="Front left"]').dispatchEvent(new Event("input", { bubbles: true }));
+            sweep.querySelector('[data-tire-corner-status="Front left"]').value = "low";
+            sweep.querySelector('[data-tire-corner-status="Front left"]').dispatchEvent(new Event("change", { bubbles: true }));
+            sweep.querySelector('[data-tire-corner="Rear right"]').value = "35";
+            sweep.querySelector('[data-tire-corner="Rear right"]').dispatchEvent(new Event("input", { bubbles: true }));
+            sweep.querySelector('[data-tire-corner-status="Rear right"]').value = "ok";
+            sweep.querySelector('[data-tire-corner-status="Rear right"]').dispatchEvent(new Event("change", { bubbles: true }));
+            sweep.querySelector("[data-tire-pressure-note]").value = "TPMS came on after cold morning";
+            sweep.querySelector("[data-tire-pressure-note]").dispatchEvent(new Event("input", { bubbles: true }));
+        }"""
+    )
+    await page.wait_for_timeout(150)
+    pressure_state = await page.evaluate(
+        """() => {
+            document.querySelector("[data-save-tire-pressure]").click();
+            const sweep = document.querySelector("#tire-pressure-sweep");
+            const saved = JSON.parse(localStorage.getItem("ridgeline-tire-pressure-sweep") || "{}");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                summary: sweep.querySelector("[data-tire-pressure-summary]")?.textContent || "",
+                status: sweep.querySelector("[data-tire-pressure-status]")?.textContent || "",
+                savedCorner: saved.corners?.find((item) => item.corner === "Front left") || {},
+                notes: notes.general_notes || ""
+            };
+        }"""
+    )
+    assert_true("2/4 corners recorded" in pressure_state["summary"], "pressure sweep should summarize recorded corners")
+    assert_true("1 flagged" in pressure_state["summary"], "pressure sweep should summarize flagged corners")
+    assert_true(pressure_state["savedCorner"].get("psi") == "31", "pressure sweep should persist PSI locally")
+    assert_true(pressure_state["savedCorner"].get("status") == "low", "pressure sweep should persist status locally")
+    assert_true("Pressure sweep saved to Garage Notes" in pressure_state["status"], "pressure sweep Save Note should report Garage save")
+    assert_true("Tire Pressure Sweep" in pressure_state["notes"], "pressure sweep Save Note should write Garage Notes")
+    assert_true("Front left: 31 psi; Low" in pressure_state["notes"], "pressure sweep Garage note should include corner reading")
+    assert_true("TPMS came on after cold morning" in pressure_state["notes"], "pressure sweep Garage note should include context")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     mobile_state = await page.evaluate(
@@ -1766,6 +1827,13 @@ async def assert_tire_roadside_launcher(page, page_name):
             const builder = document.querySelector("#tire-handoff-builder");
             const picker = builder?.querySelector(".tire-handoff-picker");
             const actions = builder?.querySelector(".tire-handoff-actions");
+            const sweep = document.querySelector("#tire-pressure-sweep");
+            const sweepGrid = sweep?.querySelector(".tire-pressure-grid");
+            const sweepActions = sweep?.querySelector(".tire-pressure-actions");
+            const sweepCells = [...(sweep?.querySelectorAll(".tire-pressure-cell") || [])].map((cell) => {
+                const rect = cell.getBoundingClientRect();
+                return { width: rect.width, height: rect.height };
+            });
             const cards = [...(launcher?.querySelectorAll(".tire-roadside-action") || [])].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -1777,6 +1845,11 @@ async def assert_tire_roadside_launcher(page, page_name):
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
                 pickerColumns: picker ? getComputedStyle(picker).gridTemplateColumns.split(" ").length : 0,
                 actionRows: actions ? new Set([...actions.children].map((button) => Math.round(button.getBoundingClientRect().top))).size : 0,
+                sweepVisible: Boolean(sweep && sweep.getBoundingClientRect().height > 0),
+                sweepColumns: sweepGrid ? getComputedStyle(sweepGrid).gridTemplateColumns.split(" ").length : 0,
+                sweepActionRows: sweepActions ? new Set([...sweepActions.children].map((button) => Math.round(button.getBoundingClientRect().top))).size : 0,
+                minSweepCellHeight: sweepCells.length ? Math.min(...sweepCells.map((cell) => cell.height)) : 0,
+                maxSweepCellWidth: sweepCells.length ? Math.max(...sweepCells.map((cell) => cell.width)) : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
                 maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
                 overflow: width > document.documentElement.clientWidth + 1
@@ -1788,6 +1861,11 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true(mobile_state["columns"] == 1, "tire roadside launcher should stack to one column on iPhone")
     assert_true(mobile_state["pickerColumns"] == 4, "tire handoff picker should use four compact columns on iPhone")
     assert_true(mobile_state["actionRows"] == 2, "tire handoff actions should use two rows on iPhone")
+    assert_true(mobile_state["sweepVisible"], "pressure sweep is not visible at iPhone width")
+    assert_true(mobile_state["sweepColumns"] == 2, "pressure sweep should use two compact columns on iPhone")
+    assert_true(mobile_state["sweepActionRows"] == 2, "pressure sweep actions should use two rows on iPhone")
+    assert_true(mobile_state["minSweepCellHeight"] >= 92, "pressure sweep cells should remain thumb-readable on iPhone")
+    assert_true(mobile_state["maxSweepCellWidth"] <= 190, "pressure sweep cells are wider than half the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 64, "tire roadside cards should remain thumb-sized on iPhone")
     assert_true(mobile_state["maxCardWidth"] <= 390, "tire roadside cards are wider than the iPhone viewport")
     assert_true(not mobile_state["overflow"], "tire roadside launcher introduced iPhone horizontal overflow")

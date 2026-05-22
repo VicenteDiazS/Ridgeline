@@ -53,6 +53,7 @@
             <div class="section-utility-nav wheel-utility-nav" aria-label="Section shortcuts">
               <a class="utility-link utility-link-strong" href="#tire-roadside-launcher">Roadside</a>
               <a class="utility-link utility-link-strong" href="#tire-handoff-builder">Handoff</a>
+              <a class="utility-link utility-link-strong" href="#tire-pressure-sweep">Pressure Sweep</a>
               <a class="utility-link utility-link-strong" href="#fitment-guide">Fitment Guide</a>
               <a class="utility-link" href="#wheel-well">Wheel Well</a>
               <a class="utility-link" href="#source-audit">Sources</a>
@@ -171,6 +172,91 @@
             <p class="source-note">
               This launcher only routes to existing verified tire, jack, torque, pressure, and fitment references;
               it does not add new lifting procedures or wheel/tire specifications.
+            </p>
+          </article>
+        </section>
+
+        <section class="section-page-stack tire-pressure-section" id="tire-pressure-sweep">
+          <article class="tech-card tire-pressure-card" data-tire-pressure-sweep>
+            <div class="tire-handoff-head">
+              <div>
+                <p class="eyebrow">iPhone Tire Pressure Sweep</p>
+                <h2>Record All Four Corners Before The Warning Gets Fuzzy</h2>
+              </div>
+              <span data-tire-pressure-status aria-live="polite">Pressure sweep ready.</span>
+            </div>
+            <p class="section-copy">
+              Tap through each corner, mark the current reading/status, then copy or save one Garage note for the
+              recheck. This keeps the live iPhone note separate from fitment facts and repair steps.
+            </p>
+            <div class="tire-pressure-grid" aria-label="Tire pressure readings">
+              <label class="tire-pressure-cell">
+                <span>Front Left</span>
+                <input type="number" inputmode="decimal" min="0" max="99" step="0.5" placeholder="psi" data-tire-corner="Front left" />
+                <select data-tire-corner-status="Front left" aria-label="Front left tire status">
+                  <option value="not checked">Not checked</option>
+                  <option value="ok">OK</option>
+                  <option value="low">Low</option>
+                  <option value="high">High</option>
+                  <option value="damage">Damage seen</option>
+                </select>
+              </label>
+              <label class="tire-pressure-cell">
+                <span>Front Right</span>
+                <input type="number" inputmode="decimal" min="0" max="99" step="0.5" placeholder="psi" data-tire-corner="Front right" />
+                <select data-tire-corner-status="Front right" aria-label="Front right tire status">
+                  <option value="not checked">Not checked</option>
+                  <option value="ok">OK</option>
+                  <option value="low">Low</option>
+                  <option value="high">High</option>
+                  <option value="damage">Damage seen</option>
+                </select>
+              </label>
+              <label class="tire-pressure-cell">
+                <span>Rear Left</span>
+                <input type="number" inputmode="decimal" min="0" max="99" step="0.5" placeholder="psi" data-tire-corner="Rear left" />
+                <select data-tire-corner-status="Rear left" aria-label="Rear left tire status">
+                  <option value="not checked">Not checked</option>
+                  <option value="ok">OK</option>
+                  <option value="low">Low</option>
+                  <option value="high">High</option>
+                  <option value="damage">Damage seen</option>
+                </select>
+              </label>
+              <label class="tire-pressure-cell">
+                <span>Rear Right</span>
+                <input type="number" inputmode="decimal" min="0" max="99" step="0.5" placeholder="psi" data-tire-corner="Rear right" />
+                <select data-tire-corner-status="Rear right" aria-label="Rear right tire status">
+                  <option value="not checked">Not checked</option>
+                  <option value="ok">OK</option>
+                  <option value="low">Low</option>
+                  <option value="high">High</option>
+                  <option value="damage">Damage seen</option>
+                </select>
+              </label>
+            </div>
+            <label class="tire-pressure-note">
+              <span>Context / recheck note</span>
+              <textarea rows="3" placeholder="Example: TPMS came on after cold morning; recheck after drive." data-tire-pressure-note></textarea>
+            </label>
+            <div class="tire-pressure-summary" data-tire-pressure-summary>
+              No readings recorded yet.
+            </div>
+            <div class="inspector-actions tire-pressure-actions">
+              <button class="utility-link utility-link-strong" type="button" data-copy-tire-pressure>Copy Sweep</button>
+              <button class="utility-link" type="button" data-share-tire-pressure>Share</button>
+              <button class="utility-link" type="button" data-save-tire-pressure>Save Note</button>
+              <button class="utility-link" type="button" data-reset-tire-pressure>Reset</button>
+              <a class="utility-link" href="quick-sheet.html#tires">Tire Card</a>
+              <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+            </div>
+            <p class="small-note">
+              Local entries stay on this iPhone in <code>ridgeline-tire-pressure-sweep</code>. Saved notes prepend
+              the current sweep to the existing Garage Notes field without changing the Garage storage schema.
+            </p>
+            <p class="source-note">
+              The saved 35 psi baseline is a quick reference only. The door placard, installed tire sidewall,
+              current load, and owner manual remain final authority.
             </p>
           </article>
         </section>
@@ -451,6 +537,7 @@
         <a href="index.html#viewer">Vehicle Map</a>
         <a href="#tire-roadside-launcher">Roadside</a>
         <a href="#tire-handoff-builder">Handoff</a>
+        <a href="#tire-pressure-sweep">Pressure</a>
         <a href="#fitment-guide">Fitment</a>
       </nav>
     </div>
@@ -628,6 +715,180 @@
         });
 
         renderPlan(currentPlanKey);
+      })();
+
+      (() => {
+        const root = document.querySelector("[data-tire-pressure-sweep]");
+        if (!root) return;
+
+        const STORAGE_KEY = "ridgeline-tire-pressure-sweep";
+        const STORAGE_NOTES = "ridgeline-notes";
+        const baselinePsi = 35;
+        const statusLabels = {
+          "not checked": "Not checked",
+          ok: "OK",
+          low: "Low",
+          high: "High",
+          damage: "Damage seen"
+        };
+
+        const fields = {
+          status: root.querySelector("[data-tire-pressure-status]"),
+          summary: root.querySelector("[data-tire-pressure-summary]"),
+          note: root.querySelector("[data-tire-pressure-note]")
+        };
+        const inputs = [...root.querySelectorAll("[data-tire-corner]")];
+        const selects = [...root.querySelectorAll("[data-tire-corner-status]")];
+
+        function setStatus(message) {
+          if (fields.status) fields.status.textContent = message;
+        }
+
+        function loadSweep() {
+          try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+          } catch {
+            return {};
+          }
+        }
+
+        function writeSweep(data) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function readSweep() {
+          const corners = inputs.map((input) => {
+            const corner = input.dataset.tireCorner;
+            const select = root.querySelector(`[data-tire-corner-status="${corner}"]`);
+            return {
+              corner,
+              psi: input.value.trim(),
+              status: select?.value || "not checked"
+            };
+          });
+          return {
+            updatedAt: new Date().toISOString(),
+            note: fields.note?.value.trim() || "",
+            corners
+          };
+        }
+
+        function hydrateSweep() {
+          const data = loadSweep();
+          inputs.forEach((input) => {
+            const saved = data.corners?.find((item) => item.corner === input.dataset.tireCorner);
+            input.value = saved?.psi || "";
+          });
+          selects.forEach((select) => {
+            const saved = data.corners?.find((item) => item.corner === select.dataset.tireCornerStatus);
+            select.value = saved?.status || "not checked";
+          });
+          if (fields.note) fields.note.value = data.note || "";
+        }
+
+        function summarize(data) {
+          const checked = data.corners.filter((item) => item.psi || item.status !== "not checked");
+          const flagged = checked.filter((item) => !["ok", "not checked"].includes(item.status));
+          const missing = data.corners.length - checked.length;
+          if (!checked.length) return "No readings recorded yet.";
+          const flaggedLabel = flagged.length ? `${flagged.length} flagged` : "no flagged corners";
+          const missingLabel = missing ? `${missing} unchecked` : "all four checked";
+          return `${checked.length}/4 corners recorded, ${flaggedLabel}, ${missingLabel}. Baseline reference: ${baselinePsi} psi cold.`;
+        }
+
+        function renderSummary() {
+          const data = readSweep();
+          if (fields.summary) fields.summary.textContent = summarize(data);
+          writeSweep(data);
+        }
+
+        function buildSweepText() {
+          const data = readSweep();
+          const lines = data.corners.map((item) => {
+            const reading = item.psi ? `${item.psi} psi` : "no psi entered";
+            return `- ${item.corner}: ${reading}; ${statusLabels[item.status] || item.status}`;
+          });
+          const context = data.note ? `\nContext: ${data.note}` : "";
+          return `Ridgeline Tire Pressure Sweep\nBaseline reference: ${baselinePsi} psi cold; verify against placard/sidewall/manual.\n${lines.join("\n")}${context}\nNext: recheck any flagged or unchecked corner and save follow-up in Garage Notes.`;
+        }
+
+        function loadNotes() {
+          try {
+            return JSON.parse(localStorage.getItem(STORAGE_NOTES) || "{}") || {};
+          } catch {
+            return {};
+          }
+        }
+
+        function saveGarageNote(text) {
+          const notes = loadNotes();
+          const stamp = new Date().toLocaleDateString();
+          const note = `[${stamp} - Tire Pressure Sweep]\n${text}`;
+          const existing = `${notes.general_notes || ""}`.trim();
+          localStorage.setItem(
+            STORAGE_NOTES,
+            JSON.stringify({
+              ...notes,
+              general_notes: existing ? `${note}\n\n${existing}` : note
+            })
+          );
+        }
+
+        async function copyText(text) {
+          if (!navigator.clipboard?.writeText) return false;
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+
+        [...inputs, ...selects, fields.note].filter(Boolean).forEach((field) => {
+          field.addEventListener("input", renderSummary);
+          field.addEventListener("change", renderSummary);
+        });
+
+        root.querySelector("[data-copy-tire-pressure]")?.addEventListener("click", async () => {
+          const copied = await copyText(buildSweepText());
+          setStatus(copied ? "Pressure sweep copied." : "Copy unavailable; use the visible readings.");
+        });
+
+        root.querySelector("[data-share-tire-pressure]")?.addEventListener("click", async () => {
+          const text = buildSweepText();
+          try {
+            if (navigator.share) {
+              await navigator.share({ title: "Ridgeline tire pressure sweep", text });
+              setStatus("Pressure sweep shared.");
+              return;
+            }
+            const copied = await copyText(text);
+            setStatus(copied ? "Share unavailable; pressure sweep copied instead." : "Share unavailable on this browser.");
+          } catch {
+            setStatus("Share canceled or unavailable.");
+          }
+        });
+
+        root.querySelector("[data-save-tire-pressure]")?.addEventListener("click", () => {
+          saveGarageNote(buildSweepText());
+          setStatus("Pressure sweep saved to Garage Notes.");
+        });
+
+        root.querySelector("[data-reset-tire-pressure]")?.addEventListener("click", () => {
+          localStorage.removeItem(STORAGE_KEY);
+          inputs.forEach((input) => {
+            input.value = "";
+          });
+          selects.forEach((select) => {
+            select.value = "not checked";
+          });
+          if (fields.note) fields.note.value = "";
+          renderSummary();
+          setStatus("Pressure sweep reset on this iPhone.");
+        });
+
+        hydrateSweep();
+        renderSummary();
       })();
     </script>
     <script type="module" src="shared-ui.js"></script>

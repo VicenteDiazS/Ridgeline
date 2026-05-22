@@ -220,6 +220,27 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tire Pressure Sweep",
+    url: "tires.html#tire-pressure-sweep",
+    category: "Tools",
+    excerpt: "iPhone four-corner tire pressure sweep for recording PSI/status, copying or sharing the check, and saving a Garage Notes recheck without changing Garage schema.",
+    keywords: [
+      "tire pressure sweep",
+      "pressure sweep",
+      "four corner pressure",
+      "tpms note",
+      "low tire note",
+      "save pressure note",
+      "copy tire pressure",
+      "share tire pressure",
+      "front left psi",
+      "rear right psi",
+      "garage pressure note",
+      "iphone tire check",
+      "35 psi recheck"
+    ]
+  },
+  {
     title: "NFC Tag Console",
     url: "nfc.html",
     category: "Tools",
