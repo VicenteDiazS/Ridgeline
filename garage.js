@@ -2065,6 +2065,12 @@ function renderGarageSetupChecklist({
   const diagnosticReady = warningLightSummary?.count > 0;
   const photoReady = areaPhotos > 0 || areaNotes > 0;
   const stagingReady = maintenanceStagingSummary?.total > 0;
+  const latestMaintenanceNote = maintenanceNoteItems?.[0] || null;
+  const latestMaintenanceNeed = latestMaintenanceNote
+    ? (latestMaintenanceNote.stagingItems || []).filter(
+        (line) => maintenanceStagingStatus(latestMaintenanceNote.title, line) !== "staged"
+      )
+    : [];
   const latestService = Array.isArray(maintenanceLog) ? maintenanceLog[0] : null;
 
   const checklistItems = [
@@ -2151,6 +2157,9 @@ function renderGarageSetupChecklist({
       `Complete: ${completedItems.length}/${checklistItems.length}`,
       `Next: ${nextItem.title} - ${nextItem.detail}`,
       `Latest: ${latestRecord.title} - ${latestRecord.detail}`,
+      latestMaintenanceNote
+        ? `Latest maintenance handoff: ${latestMaintenanceNote.title} - ${latestMaintenanceNeed.length} need-to-buy line${latestMaintenanceNeed.length === 1 ? "" : "s"} remain.`
+        : "Latest maintenance handoff: none saved yet.",
       "Backup note: Download Backup exports Garage notes, tracker, logs, favorites, profile, and photo metadata."
     ].join("\n")
   };
@@ -2183,6 +2192,33 @@ function renderGarageSetupChecklist({
         <button class="utility-link" type="button" data-garage-fill-share>Share Plan</button>
       </div>
     </article>
+    ${
+      latestMaintenanceNote
+        ? `
+          <article class="garage-setup-maintenance-handoff" data-garage-maintenance-handoff>
+            <div>
+              <span>Latest Maintenance Handoff</span>
+              <strong>${escapeHtml(latestMaintenanceNote.title)}</strong>
+              <p>${escapeHtml(latestMaintenanceNote.detail)}</p>
+              <p class="small-note">
+                ${escapeHtml(
+                  latestMaintenanceNeed.length
+                    ? `${latestMaintenanceNeed.length} need-to-buy line${latestMaintenanceNeed.length === 1 ? "" : "s"} still open on this iPhone.`
+                    : latestMaintenanceNote.stagingItems?.length
+                      ? "All detected staging lines for this saved note are marked staged on this iPhone."
+                      : "This saved note did not produce parts or supplies staging lines."
+                )}
+              </p>
+            </div>
+            <div class="garage-setup-actions">
+              <button class="utility-link" type="button" data-garage-fill-copy-latest-maintenance>Copy Note</button>
+              <button class="utility-link" type="button" data-garage-fill-copy-latest-buy ${latestMaintenanceNeed.length ? "" : "disabled"}>Copy Need</button>
+              <a class="utility-link" href="#maintenance-note-preview">Open Staging</a>
+            </div>
+          </article>
+        `
+        : ""
+    }
     <div class="garage-setup-grid">
       ${checklistItems
         .map(
@@ -2251,6 +2287,32 @@ function shareGarageFillPlan() {
   copyText(currentGarageFillPlan.text)
     .then(() => setGarageFillStatus("Share is unavailable here, so the Garage record plan was copied."))
     .catch(() => setGarageFillStatus("Could not share or copy the Garage record plan automatically."));
+}
+
+function copyGarageLatestMaintenanceNote() {
+  const item = getMaintenanceNoteItems()[0];
+  if (!item) {
+    setGarageFillStatus("No saved maintenance planner note is ready to copy yet.");
+    return;
+  }
+
+  copyText(item.copyText)
+    .then(() => setGarageFillStatus(`Copied latest maintenance handoff: ${item.title}.`))
+    .catch(() => setGarageFillStatus("Could not copy the latest maintenance handoff automatically."));
+}
+
+function copyGarageLatestMaintenanceNeed() {
+  const { text, count } = maintenanceStagingExport({ index: 0, status: "need" });
+  if (!text) {
+    setGarageFillStatus("No need-to-buy lines remain on the latest maintenance handoff.");
+    return;
+  }
+
+  copyText(text)
+    .then(() =>
+      setGarageFillStatus(`Copied latest maintenance need list with ${count} item${count === 1 ? "" : "s"}.`)
+    )
+    .catch(() => setGarageFillStatus("Could not copy the latest maintenance need list automatically."));
 }
 
 function renderDiagnosticActivity() {
@@ -2697,6 +2759,18 @@ garageSetupChecklist?.addEventListener("click", (event) => {
   const shareButton = event.target.closest("[data-garage-fill-share]");
   if (shareButton) {
     shareGarageFillPlan();
+    return;
+  }
+
+  const latestMaintenanceCopyButton = event.target.closest("[data-garage-fill-copy-latest-maintenance]");
+  if (latestMaintenanceCopyButton) {
+    copyGarageLatestMaintenanceNote();
+    return;
+  }
+
+  const latestMaintenanceNeedButton = event.target.closest("[data-garage-fill-copy-latest-buy]");
+  if (latestMaintenanceNeedButton) {
+    copyGarageLatestMaintenanceNeed();
   }
 });
 maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));

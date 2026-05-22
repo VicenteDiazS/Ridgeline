@@ -106,6 +106,8 @@ SEARCH_EXPECTATIONS = {
     "latest service receipt": "Recent Work Search Strip",
     "garage record snapshot": "Garage Fill-In Checklist",
     "copy garage plan": "Garage Fill-In Checklist",
+    "latest maintenance handoff": "Garage Fill-In Checklist",
+    "copy latest buy list": "Garage Fill-In Checklist",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
@@ -2307,6 +2309,7 @@ async def assert_garage_features(page, page_name):
     populated_state = await page.evaluate(
         """() => {
             const panel = document.querySelector("#maintenance-note-preview");
+            const fillChecklist = document.querySelector("#garage-fill-in-checklist");
             const copyLatest = panel?.querySelector("[data-copy-maintenance-note]");
             const copyStaging = panel?.querySelector("[data-copy-maintenance-parts]");
             const copyNeeded = panel?.querySelector("[data-copy-maintenance-needed]");
@@ -2351,6 +2354,11 @@ async def assert_garage_features(page, page_name):
                 shareButtonCount: shareButtons.length,
                 hasStagingRun: Boolean(stagingRun),
                 stagingRunText: stagingRun?.innerText || "",
+                hasFillMaintenanceHandoff: Boolean(fillChecklist?.querySelector("[data-garage-maintenance-handoff]")),
+                fillMaintenanceHandoffText: fillChecklist?.querySelector("[data-garage-maintenance-handoff]")?.innerText || "",
+                hasFillCopyLatestMaintenance: Boolean(fillChecklist?.querySelector("[data-garage-fill-copy-latest-maintenance]")),
+                hasFillCopyLatestBuy: Boolean(fillChecklist?.querySelector("[data-garage-fill-copy-latest-buy]")),
+                fillCopyLatestBuyEnabled: fillChecklist?.querySelector("[data-garage-fill-copy-latest-buy]")?.disabled === false,
                 hasFinalPartsPanel: Boolean(finalPartsPanel),
                 finalPartsText: finalPartsPanel?.innerText || "",
                 hasStagingGuide: Boolean(stagingGuide),
@@ -2388,6 +2396,13 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["stagingGroupSaveButtonCount"] >= 2, "saved maintenance notes staging preview should expose per-note Save Need controls")
     assert_true(populated_state["shareButtonCount"] >= 1, "saved maintenance notes staging preview should expose Share Buy List")
     assert_true(populated_state["hasStagingRun"], "saved maintenance notes staging preview is missing the store-run summary")
+    assert_true(populated_state["hasFillMaintenanceHandoff"], "garage fill-in checklist should surface the latest Maintenance handoff")
+    assert_true("latest maintenance handoff" in populated_state["fillMaintenanceHandoffText"].lower(), "Garage fill-in Maintenance handoff should be labeled")
+    assert_true("Maintenance Minder A1 planner" in populated_state["fillMaintenanceHandoffText"], "Garage fill-in Maintenance handoff should name the latest saved planner note")
+    assert_true("2 need-to-buy" in populated_state["fillMaintenanceHandoffText"], "Garage fill-in Maintenance handoff should summarize open latest-note need lines")
+    assert_true(populated_state["hasFillCopyLatestMaintenance"], "Garage fill-in Maintenance handoff is missing Copy Note")
+    assert_true(populated_state["hasFillCopyLatestBuy"], "Garage fill-in Maintenance handoff is missing Copy Need")
+    assert_true(populated_state["fillCopyLatestBuyEnabled"], "Garage fill-in Maintenance handoff Copy Need should enable when latest note has open need lines")
     assert_true(populated_state["hasFinalPartsPanel"], "saved maintenance notes staging preview is missing the final part-number profile handoff")
     assert_true(populated_state["hasStagingGuide"], "saved maintenance notes staging preview is missing the local-only staging guide")
     assert_true("3 need to buy" in populated_state["stagingRunText"], "saved maintenance notes staging run summary should show need-to-buy count")
@@ -2405,6 +2420,14 @@ async def assert_garage_features(page, page_name):
     assert_true(populated_state["hasFullNoteRoute"], "saved maintenance notes preview is missing the full notes route on populated notes")
     assert_true(populated_state["hasStagingLineChip"], "saved maintenance notes preview should mark notes that produce staging lines")
     assert_true(populated_state["hasNoStagingChip"], "saved maintenance notes preview should explain saved notes without detected staging lines")
+    await page.locator("#garage-fill-in-checklist [data-garage-fill-copy-latest-maintenance]").click()
+    await page.wait_for_timeout(150)
+    fill_latest_status = await page.locator("#garage-fill-in-checklist [data-garage-fill-status]").inner_text()
+    assert_true("Copied latest maintenance handoff: Maintenance Minder A1 planner" in fill_latest_status, "Garage fill-in latest Maintenance copy did not report the copied note")
+    await page.locator("#garage-fill-in-checklist [data-garage-fill-copy-latest-buy]").click()
+    await page.wait_for_timeout(150)
+    fill_need_status = await page.locator("#garage-fill-in-checklist [data-garage-fill-status]").inner_text()
+    assert_true("Copied latest maintenance need list with 2 items" in fill_need_status, "Garage fill-in latest Maintenance need copy did not report the open need count")
     await page.locator("#maintenance-note-preview [data-copy-maintenance-note]").click()
     await page.wait_for_timeout(150)
     latest_status = await page.locator("#maintenance-note-preview [data-maintenance-note-status]").inner_text()
