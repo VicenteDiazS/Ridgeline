@@ -396,6 +396,21 @@
                   positions, ratings, and source-status notes are unchanged.
                 </p>
               </div>
+              <div class="fuse-label-decoder" data-fuse-label-decoder>
+                <label for="cabin-fuse-label-input">Decode a cover-label word</label>
+                <div class="fuse-label-input-row">
+                  <input id="cabin-fuse-label-input" type="search" inputmode="search" placeholder="Try ACC, AUDIO, METER, MICU" data-fuse-label-input />
+                  <button class="ghost-button" type="button" data-fuse-label-copy>Copy Decode</button>
+                </div>
+                <div class="fuse-label-chips" aria-label="Common cabin labels">
+                  <button type="button" data-fuse-label-chip="ACC">ACC</button>
+                  <button type="button" data-fuse-label-chip="AUDIO">AUDIO</button>
+                  <button type="button" data-fuse-label-chip="METER">METER</button>
+                  <button type="button" data-fuse-label-chip="MICU">MICU</button>
+                </div>
+                <p class="fuse-label-status" data-fuse-label-status aria-live="polite">Type a label from the cover or tap a chip.</p>
+                <div class="fuse-label-results" data-fuse-label-results></div>
+              </div>
               <div class="acronym-list fuse-glossary-list" data-fuse-glossary-list></div>
             </section>
           </article>

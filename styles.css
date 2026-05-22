@@ -9153,6 +9153,111 @@ kbd {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.fuse-label-decoder {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 16, 29, 0.66);
+}
+
+.fuse-label-decoder label {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.fuse-label-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.fuse-label-input-row input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(121, 212, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.fuse-label-input-row .ghost-button {
+  min-height: 44px;
+}
+
+.fuse-label-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.fuse-label-chips button,
+.fuse-label-result {
+  min-height: 40px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(121, 212, 255, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fuse-label-chips button {
+  padding: 8px 10px;
+}
+
+.fuse-label-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.fuse-label-results,
+.fuse-label-result-group {
+  display: grid;
+  gap: 8px;
+}
+
+.fuse-label-result-group {
+  padding-top: 4px;
+}
+
+.fuse-label-result-group > strong {
+  color: var(--accent);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fuse-label-result-group p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.fuse-label-result {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.fuse-label-result span {
+  color: var(--text);
+}
+
+.fuse-label-result small {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
 .fuse-quick-finder {
   display: grid;
   gap: 16px;
@@ -9335,6 +9440,30 @@ kbd {
     min-height: 40px;
     padding: 8px 9px;
     font-size: 0.78rem;
+  }
+
+  .fuse-label-decoder {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .fuse-label-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .fuse-label-input-row .ghost-button {
+    min-height: 44px;
+  }
+
+  .fuse-label-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .fuse-label-chips button {
+    padding: 8px;
+    font-size: 0.82rem;
   }
 
   .fuse-diagram svg .fuse-hit {

@@ -104,6 +104,8 @@ SEARCH_EXPECTATIONS = {
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "fuse quick finder": "Hood Fuse Quick Finder",
     "copy fuse": "Selected Fuse Handoff",
+    "fuse label decoder": "Fuse Label Decoder",
+    "copy fuse decode": "Fuse Label Decoder",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
     "cargo load planner": "Cargo Load Planner",
@@ -915,6 +917,57 @@ async def assert_fuse_mobile_readability(page, page_name):
     assert_true(finder_mobile_state["minCardHeight"] >= 140, f"{page_name} fuse quick finder cards should stay thumb-readable on iPhone")
     assert_true(finder_mobile_state["maxCardWidth"] <= 195, f"{page_name} fuse quick finder cards are wider than half the iPhone viewport")
     assert_true(not finder_mobile_state["overflow"], f"{page_name} fuse quick finder introduced iPhone horizontal overflow")
+
+    glossary_id = "#hood-fuse-glossary" if page_name == "hood.html" else "#cabin-fuse-glossary"
+    decode_query = "IG MAIN" if page_name == "hood.html" else "MICU"
+    await page.locator(f"{glossary_id} [data-fuse-label-input]").fill(decode_query)
+    await page.wait_for_timeout(250)
+    decoder_state = await page.evaluate(
+        """(glossaryId) => {
+            const glossary = document.querySelector(glossaryId);
+            const decoder = glossary?.querySelector("[data-fuse-label-decoder]");
+            const result = decoder?.querySelector("[data-fuse-label-result]");
+            const inputRect = decoder?.querySelector("[data-fuse-label-input]")?.getBoundingClientRect();
+            const copyRect = decoder?.querySelector("[data-fuse-label-copy]")?.getBoundingClientRect();
+            const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasDecoder: Boolean(decoder),
+                status: decoder?.querySelector("[data-fuse-label-status]")?.textContent || "",
+                resultCount: decoder?.querySelectorAll("[data-fuse-label-result]").length || 0,
+                text: decoder?.innerText || "",
+                inputHeight: inputRect?.height || 0,
+                copyHeight: copyRect?.height || 0,
+                overflow: docWidth > document.documentElement.clientWidth + 1,
+                firstResultText: result?.innerText || ""
+            };
+        }""",
+        glossary_id,
+    )
+    assert_true(decoder_state["hasDecoder"], f"{page_name} is missing the fuse label decoder")
+    assert_true("row" in decoder_state["status"], f"{page_name} decoder did not report matching fuse rows")
+    assert_true(decoder_state["resultCount"] > 0, f"{page_name} decoder did not show matching fuse rows")
+    assert_true(decode_query.split(" ")[0] in decoder_state["text"], f"{page_name} decoder did not include the typed label")
+    assert_true(decoder_state["inputHeight"] >= 40, f"{page_name} decoder input is too small for iPhone")
+    assert_true(decoder_state["copyHeight"] >= 40, f"{page_name} decoder copy button is too small for iPhone")
+    assert_true(not decoder_state["overflow"], f"{page_name} fuse label decoder introduced iPhone horizontal overflow")
+    await page.locator(f"{glossary_id} [data-fuse-label-result]").first.click()
+    await page.wait_for_timeout(250)
+    selected_state = await page.evaluate(
+        """() => ({
+            selectedRows: document.querySelectorAll(".fuse-table tr.is-active").length,
+            visibleInspectors: [...document.querySelectorAll("[data-fuse-inspector]")].filter((inspector) => !inspector.hidden).length
+        })"""
+    )
+    assert_true(selected_state["selectedRows"] > 0, f"{page_name} decoder result did not highlight a fuse row")
+    assert_true(selected_state["visibleInspectors"] > 0, f"{page_name} decoder result did not open a fuse inspector")
+    await page.locator(f"{glossary_id} [data-fuse-label-copy]").click()
+    await page.wait_for_timeout(200)
+    copy_decode_state = await page.evaluate(
+        """(glossaryId) => document.querySelector(`${glossaryId} [data-fuse-label-status]`)?.textContent || ''""",
+        glossary_id,
+    )
+    assert_true("Copied label decode" in copy_decode_state or "Copy failed" in copy_decode_state, f"{page_name} decoder Copy Decode did not report a result")
+    assert_true("Verify against the truck cover label" in copy_decode_state, f"{page_name} decoder copy status is missing cover-label reminder")
 
     keys = ["hood-a", "hood-b"] if page_name == "hood.html" else ["cabin-a", "cabin-b"]
     for key in keys:

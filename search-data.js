@@ -319,6 +319,23 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Fuse Label Decoder",
+    url: "hood.html#hood-fuse-glossary",
+    category: "Electrical",
+    excerpt: "iPhone decoder for cover-label words like ACC, IG MAIN, TRL, AUDIO, METER, and MICU, with copyable meanings and matching fuse rows.",
+    keywords: [
+      "fuse label decoder",
+      "decode fuse label",
+      "cover label decoder",
+      "what does acc mean",
+      "what does micu mean",
+      "what does ig main mean",
+      "fuse acronym lookup",
+      "copy fuse decode",
+      "fuse label meaning"
+    ]
+  },
+  {
     title: "Power Outlet / 12V Socket Fuses",
     url: "cabin.html#fuses",
     category: "Electrical",

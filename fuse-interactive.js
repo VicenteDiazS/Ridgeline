@@ -299,6 +299,31 @@ function renderDefinitionItems(container, definitions) {
   });
 }
 
+function copyText(text) {
+  if (!text) {
+    return Promise.resolve(false);
+  }
+
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+  }
+
+  try {
+    const helper = document.createElement("textarea");
+    helper.value = text;
+    helper.setAttribute("readonly", "");
+    helper.style.position = "fixed";
+    helper.style.opacity = "0";
+    document.body.append(helper);
+    helper.select();
+    const copied = document.execCommand("copy");
+    helper.remove();
+    return Promise.resolve(copied);
+  } catch (error) {
+    return Promise.resolve(false);
+  }
+}
+
 function distanceBetween(a, b) {
   const ax = a.x + a.width / 2;
   const ay = a.y + a.height / 2;
@@ -439,32 +464,9 @@ function bindDiagram(diagramEl) {
       return false;
     }
 
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(summary);
-        setHandoffStatus(label);
-        return true;
-      }
-    } catch (error) {
-      // Fall back to the legacy copy path below.
-    }
-
-    try {
-      const helper = document.createElement("textarea");
-      helper.value = summary;
-      helper.setAttribute("readonly", "");
-      helper.style.position = "fixed";
-      helper.style.opacity = "0";
-      document.body.append(helper);
-      helper.select();
-      const copied = document.execCommand("copy");
-      helper.remove();
-      setHandoffStatus(copied ? label : "Copy failed. Verify against the truck cover label before replacing anything.");
-      return copied;
-    } catch (error) {
-      setHandoffStatus("Copy failed. Verify against the truck cover label before replacing anything.");
-      return false;
-    }
+    const copied = await copyText(summary);
+    setHandoffStatus(copied ? label : "Copy failed. Verify against the truck cover label before replacing anything.");
+    return copied;
   }
 
   if (actionsEl) {
@@ -626,22 +628,138 @@ document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
   }
 
   const panelKeys = (glossaryEl.dataset.fuseGlossaryPanels || "").split(/\s+/).filter(Boolean);
-  const text = panelKeys
-    .map((panelKey) => {
-      const table = document.querySelector(`[data-fuse-table="${panelKey}"]`);
-      if (!table) {
-        return "";
-      }
+  const panelEntries = panelKeys.flatMap((panelKey) => {
+    const table = document.querySelector(`[data-fuse-table="${panelKey}"]`);
+    if (!table) {
+      return [];
+    }
 
-      return [...table.querySelectorAll("tr")]
-        .slice(1)
-        .map((row) => row.querySelector("td:nth-child(5)")?.textContent || "")
-        .join(" ");
-    })
-    .join(" ");
+    return [...buildTableMap(table).values()].map((entry) => ({ ...entry, panel: panelKey }));
+  });
+  const text = panelEntries.map((entry) => entry.circuit).join(" ");
 
   const found = findDefinitions(text);
   glossaryEl.hidden = !found.size;
   renderDefinitionItems(listEl, found);
+
+  const decoderEl = glossaryEl.querySelector("[data-fuse-label-decoder]");
+  const inputEl = decoderEl?.querySelector("[data-fuse-label-input]");
+  const statusEl = decoderEl?.querySelector("[data-fuse-label-status]");
+  const resultsEl = decoderEl?.querySelector("[data-fuse-label-results]");
+  const copyButton = decoderEl?.querySelector("[data-fuse-label-copy]");
+  let latestSummary = "";
+
+  if (!decoderEl || !inputEl || !statusEl || !resultsEl) {
+    return;
+  }
+
+  function panelLabel(panel) {
+    return panel.toUpperCase().replace("-", " ");
+  }
+
+  function buildDecode(query) {
+    const normalizedQuery = query.trim().toUpperCase();
+    if (!normalizedQuery) {
+      return { definitions: [], matches: [] };
+    }
+
+    const definitions = [...found.entries()]
+      .filter(([key, definition]) => key.includes(normalizedQuery) || definition.toUpperCase().includes(normalizedQuery))
+      .map(([key, definition]) => ({ key, definition }));
+    const matches = panelEntries
+      .filter((entry) => `${entry.position} ${entry.rating} ${entry.type} ${entry.circuit}`.toUpperCase().includes(normalizedQuery))
+      .slice(0, 5);
+
+    return { definitions, matches };
+  }
+
+  function selectDecodedFuse(entry) {
+    const escapedPosition = window.CSS?.escape ? CSS.escape(entry.position) : entry.position.replace(/"/g, '\\"');
+    const target = document.querySelector(`[data-fuse-diagram="${entry.panel}"] [data-fuse-position="${escapedPosition}"]`);
+    if (target) {
+      target.dispatchEvent(new Event("click", { bubbles: true }));
+      return;
+    }
+
+    entry.row.classList.add("is-active");
+    entry.row.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+
+  function renderDecode() {
+    const query = inputEl.value.trim();
+    const decode = buildDecode(query);
+    resultsEl.innerHTML = "";
+    latestSummary = "";
+
+    if (!query) {
+      statusEl.textContent = "Type a label from the cover or tap a chip.";
+      return;
+    }
+
+    const summaryLines = [
+      `${document.title.replace(/\s*\|\s*Ridgeline Console\s*$/i, "").trim()} fuse label decode`,
+      `Label: ${query}`
+    ];
+
+    if (decode.definitions.length) {
+      const defList = document.createElement("div");
+      defList.className = "fuse-label-result-group";
+      defList.innerHTML = "<strong>Label Meaning</strong>";
+      decode.definitions.forEach((item) => {
+        const row = document.createElement("p");
+        row.innerHTML = `<b>${escapeHtml(item.key)}</b>: ${escapeHtml(item.definition)}`;
+        defList.append(row);
+        summaryLines.push(`${item.key}: ${item.definition}`);
+      });
+      resultsEl.append(defList);
+    }
+
+    if (decode.matches.length) {
+      const matchList = document.createElement("div");
+      matchList.className = "fuse-label-result-group";
+      matchList.innerHTML = "<strong>Matching Fuse Rows</strong>";
+      decode.matches.forEach((entry) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "fuse-label-result";
+        item.dataset.fuseLabelResult = `${entry.panel}:${entry.position}`;
+        item.innerHTML = `
+          <span>${escapeHtml(panelLabel(entry.panel))} ${escapeHtml(entry.position)} · ${escapeHtml(entry.rating)}</span>
+          <small>${escapeHtml(entry.circuit)}</small>
+        `;
+        item.addEventListener("click", () => selectDecodedFuse(entry));
+        matchList.append(item);
+        summaryLines.push(`${panelLabel(entry.panel)} ${entry.position} (${entry.rating}): ${entry.circuit}`);
+      });
+      resultsEl.append(matchList);
+    }
+
+    if (!decode.definitions.length && !decode.matches.length) {
+      statusEl.textContent = "No local glossary or fuse-table match. Check the truck cover label and try another word.";
+      resultsEl.innerHTML = `<p class="small-note">No match in the current local tables. This decoder does not add new fuse facts.</p>`;
+      latestSummary = summaryLines.concat("No local match. Verify against the truck cover label.").join("\n");
+      return;
+    }
+
+    statusEl.textContent = `${decode.definitions.length} meaning${decode.definitions.length === 1 ? "" : "s"} and ${decode.matches.length} row${decode.matches.length === 1 ? "" : "s"} found.`;
+    summaryLines.push("Verify against the truck cover label before replacing anything.");
+    summaryLines.push(`${location.origin}${location.pathname}#${glossaryEl.id || "fuses"}`);
+    latestSummary = summaryLines.join("\n");
+  }
+
+  inputEl.addEventListener("input", renderDecode);
+  decoderEl.querySelectorAll("[data-fuse-label-chip]").forEach((button) => {
+    button.addEventListener("click", () => {
+      inputEl.value = button.dataset.fuseLabelChip || "";
+      renderDecode();
+    });
+  });
+  copyButton?.addEventListener("click", async () => {
+    renderDecode();
+    const copied = await copyText(latestSummary);
+    statusEl.textContent = copied
+      ? "Copied label decode. Verify against the truck cover label before replacing anything."
+      : "Copy failed. Verify against the truck cover label before replacing anything.";
+  });
 });
 initGarageCloudSync();
