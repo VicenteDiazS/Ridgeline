@@ -43,8 +43,8 @@ export const searchIndex = [
     title: "Offline Route Check",
     url: "quick-sheet.html#print-offline-pack",
     category: "Quick Sheet",
-    excerpt: "Quick Sheet offline route checker for confirming cached Roadside, Diagnostics, Fuses, and Garage Backup routes before leaving signal.",
-    keywords: ["offline route check", "check cached routes", "cached roadside routes", "offline readiness", "offline quick sheet check", "garage backup cache", "diagnostics cache", "fuses cache", "before leaving signal"]
+    excerpt: "Quick Sheet offline route checker for confirming cached Roadside, Diagnostics, Fuses, Rear Hitch, 7-way Pinout, and Garage Backup routes before leaving signal.",
+    keywords: ["offline route check", "check cached routes", "cached roadside routes", "offline readiness", "offline quick sheet check", "garage backup cache", "diagnostics cache", "fuses cache", "rear hitch cache", "pinout cache", "offline pinout", "tow route cache", "before leaving signal"]
   },
   {
     title: "Diagnostic Handoff Builder",

@@ -67,6 +67,8 @@ SEARCH_EXPECTATIONS = {
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
     "check cached routes": "Offline Route Check",
+    "offline pinout": "Offline Route Check",
+    "tow route cache": "Offline Route Check",
     "signal loss prep": "Signal-Loss Prep",
     "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
@@ -800,12 +802,12 @@ async def assert_quick_sheet(page, page_name):
     assert_true(not state["missingPrintPackTargets"], f"print/offline pack is missing routes: {state['missingPrintPackTargets']}")
     assert_true(state["hasPrintPackRefresh"], "print/offline pack is missing refresh-pack control")
     assert_true(state["hasOfflineRouteCheck"], "print/offline pack is missing route-check control")
-    assert_true(state["offlineRouteItems"] == 4, "print/offline pack route check should expose four key routes")
+    assert_true(state["offlineRouteItems"] == 6, "print/offline pack route check should expose six key routes")
     assert_true("cached routes" in state["offlineRouteSummary"].lower(), "print/offline pack route check should explain cached routes")
     assert_true(state["hasPrintPackCopy"], "print/offline pack is missing copy-prep control")
     assert_true(state["hasPrintPackShare"], "print/offline pack is missing share control")
     assert_true(state["hasPrintPackOfflineStatus"], "print/offline pack is missing live offline status")
-    for phrase in ["print the emergency sheet", "offline pack", "garage backup", "source authority", "truck labels"]:
+    for phrase in ["print the emergency sheet", "offline pack", "rear hitch", "pinout", "garage backup", "source authority", "truck labels"]:
         assert_true(phrase in state["printPackText"], f"print/offline pack is missing text: {phrase}")
     await page.locator("[data-check-offline-routes]").click()
     await page.wait_for_timeout(400)
@@ -3212,6 +3214,7 @@ async def run_overlay_checks(page, page_name):
                 at: "2026-05-21T15:30:00.000Z"
             }]));
             localStorage.setItem("ridgeline-last-section:quick-sheet.html", "roadside-action-stack");
+            localStorage.setItem("ridgeline-last-section:rear-hitch.html", "pinout");
         }"""
     )
     await page.locator("[data-open-search]").first.focus()
@@ -3249,9 +3252,12 @@ async def run_overlay_checks(page, page_name):
                 resumeText: resume?.textContent || "",
                 resumeMissing: [
                     "diagnostics.html#diagnostic-share-builder",
-                    "maintenance.html#service-closeout",
-                    "quick-sheet.html#roadside-action-stack"
+                    "maintenance.html#service-closeout"
                 ].filter((href) => !resume?.querySelector(`a[href="${href}"]`)),
+                resumeHasSavedSection: Boolean(
+                    resume?.querySelector('a[href="quick-sheet.html#roadside-action-stack"]') ||
+                    resume?.querySelector('a[href="rear-hitch.html#pinout"]')
+                ),
                 hasRecent: Boolean(recent && !recent.hidden),
                 recentCards: recent?.querySelectorAll("a").length || 0,
                 recentText: recent?.textContent || "",
@@ -3294,6 +3300,7 @@ async def run_overlay_checks(page, page_name):
     assert_true(quick_state["hasResume"], "search modal is missing the seeded resume strip")
     assert_true(quick_state["resumeCards"] == 3, "search resume strip should expose three seeded routes")
     assert_true(not quick_state["resumeMissing"], f"search resume strip is missing routes: {quick_state['resumeMissing']}")
+    assert_true(quick_state["resumeHasSavedSection"], "search resume strip is missing a seeded saved-section route")
     for phrase in ["Resume", "Last task", "Recent page", "Last section", "Diagnostic Handoff Builder", "Service Closeout"]:
         assert_true(phrase in quick_state["resumeText"], f"search resume strip is missing {phrase}")
     assert_true(quick_state["hasRecent"], "search modal is missing the seeded recent work strip")

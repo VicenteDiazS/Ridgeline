@@ -11,6 +11,8 @@ const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
   { label: "Diagnostics", path: "diagnostics.html" },
   { label: "Fuses", path: "hood.html" },
+  { label: "Rear Hitch", path: "rear-hitch.html" },
+  { label: "7-Way Pinout", path: "rear-hitch.html#pinout" },
   { label: "Garage Backup", path: "garage.html" }
 ];
 let lastOfflineRouteResults = [];
