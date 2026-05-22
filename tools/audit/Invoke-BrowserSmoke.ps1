@@ -106,6 +106,9 @@ SEARCH_EXPECTATIONS = {
     "copy fuse": "Selected Fuse Handoff",
     "fuse label decoder": "Fuse Label Decoder",
     "copy fuse decode": "Fuse Label Decoder",
+    "tire handoff builder": "Tire Handoff Builder",
+    "copy tire handoff": "Tire Handoff Builder",
+    "save tire note": "Tire Handoff Builder",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
     "cargo load planner": "Cargo Load Planner",
@@ -1439,6 +1442,7 @@ async def assert_tire_roadside_launcher(page, page_name):
     state = await page.evaluate(
         """() => {
             const launcher = document.querySelector("#tire-roadside-launcher");
+            const builder = document.querySelector("#tire-handoff-builder");
             const required = [
                 "quick-sheet.html#roadside-action-stack",
                 "index.html?system=jack-points#viewer",
@@ -1451,9 +1455,19 @@ async def assert_tire_roadside_launcher(page, page_name):
                 cardCount: launcher?.querySelectorAll(".tire-roadside-action").length || 0,
                 missing: required.filter((href) => !launcher?.querySelector(`a[href="${href}"]`)),
                 text: launcher?.innerText || "",
+                hasBuilder: Boolean(builder),
+                builderButtons: builder?.querySelectorAll("[data-tire-handoff-plan]").length || 0,
+                builderText: builder?.innerText || "",
+                builderPrimary: builder?.querySelector("[data-tire-handoff-primary]")?.getAttribute("href") || "",
+                builderSecondary: builder?.querySelector("[data-tire-handoff-secondary]")?.getAttribute("href") || "",
+                hasBuilderCopy: Boolean(builder?.querySelector("[data-copy-tire-handoff]")),
+                hasBuilderShare: Boolean(builder?.querySelector("[data-share-tire-handoff]")),
+                hasBuilderSave: Boolean(builder?.querySelector("[data-save-tire-handoff]")),
                 bottomHasRoadside: Boolean(document.querySelector('.context-action[href="#tire-roadside-launcher"]')),
+                bottomHasHandoff: Boolean(document.querySelector('.context-action[href="#tire-handoff-builder"]')),
                 bottomHasJack: Boolean(document.querySelector('.context-action[href="index.html?system=jack-points#viewer"]')),
                 heroHasRoadside: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-roadside-launcher"]')),
+                heroHasHandoff: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-handoff-builder"]')),
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
@@ -1464,16 +1478,62 @@ async def assert_tire_roadside_launcher(page, page_name):
     launcher_text = state["text"].lower()
     for phrase in ["flat tire now", "lift point", "35 psi", "94 lb-ft", "fitment"]:
         assert_true(phrase in launcher_text, f"tire roadside launcher is missing {phrase}")
+    assert_true(state["hasBuilder"], "tires page is missing tire handoff builder")
+    assert_true(state["builderButtons"] == 4, "tire handoff builder should expose four scenario buttons")
+    assert_true(state["builderPrimary"] == "index.html?system=jack-points#viewer", "tire handoff builder should default to jack map")
+    assert_true(state["builderSecondary"] == "quick-sheet.html#tires", "tire handoff builder should default to tire card")
+    assert_true(state["hasBuilderCopy"], "tire handoff builder is missing Copy")
+    assert_true(state["hasBuilderShare"], "tire handoff builder is missing Share")
+    assert_true(state["hasBuilderSave"], "tire handoff builder is missing Save Note")
+    for phrase in ["tire handoff builder", "flat", "pressure", "after work", "buying", "garage notes"]:
+        assert_true(phrase in state["builderText"].lower(), f"tire handoff builder is missing {phrase}")
     assert_true(state["bottomHasRoadside"], "tire page bottom bar is missing roadside launcher route")
+    assert_true(state["bottomHasHandoff"], "tire page bottom bar is missing tire handoff route")
     assert_true(state["bottomHasJack"], "tire page bottom bar is missing direct jack map route")
     assert_true(state["heroHasRoadside"], "tire page hero is missing roadside launcher route")
+    assert_true(state["heroHasHandoff"], "tire page hero is missing tire handoff route")
     assert_true(not state["overflow"], "tire roadside launcher introduced horizontal overflow")
+    await page.evaluate("""() => document.querySelector('[data-tire-handoff-plan="buying"]').click()""")
+    await page.wait_for_timeout(150)
+    buying_state = await page.evaluate(
+        """() => {
+            const builder = document.querySelector("#tire-handoff-builder");
+            return {
+                primary: builder?.querySelector("[data-tire-handoff-primary]")?.getAttribute("href") || "",
+                secondary: builder?.querySelector("[data-tire-handoff-secondary]")?.getAttribute("href") || "",
+                pressed: builder?.querySelector('[data-tire-handoff-plan="buying"]')?.getAttribute("aria-pressed") || "",
+                status: builder?.querySelector("[data-tire-handoff-status]")?.textContent || "",
+                text: builder?.innerText || ""
+            };
+        }"""
+    )
+    assert_true(buying_state["primary"] == "#fitment-guide", "buying tire handoff should route to fitment guide")
+    assert_true(buying_state["secondary"] == "garage.html#truck-profile", "buying tire handoff should route to Garage profile")
+    assert_true(buying_state["pressed"] == "true", "buying tire handoff button should become active")
+    assert_true("Buying handoff ready" in buying_state["status"], "buying tire handoff status did not update")
+    assert_true("265/60R18" in buying_state["text"], "buying tire handoff should include fitment caution")
+    await page.evaluate("""() => document.querySelector("[data-save-tire-handoff]").click()""")
+    await page.wait_for_timeout(150)
+    saved_state = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                notes: notes.general_notes || "",
+                status: document.querySelector("[data-tire-handoff-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true("Tire Handoff" in saved_state["notes"], "Save Note should write a tire handoff into Garage Notes")
+    assert_true("Tire handoff saved to Garage Notes" in saved_state["status"], "Save Note should report the Garage Notes save")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     mobile_state = await page.evaluate(
         """() => {
             const launcher = document.querySelector("#tire-roadside-launcher");
             const grid = launcher?.querySelector(".tire-roadside-grid");
+            const builder = document.querySelector("#tire-handoff-builder");
+            const picker = builder?.querySelector(".tire-handoff-picker");
+            const actions = builder?.querySelector(".tire-handoff-actions");
             const cards = [...(launcher?.querySelectorAll(".tire-roadside-action") || [])].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -1481,7 +1541,10 @@ async def assert_tire_roadside_launcher(page, page_name):
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(launcher && launcher.getBoundingClientRect().height > 0),
+                builderVisible: Boolean(builder && builder.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
+                pickerColumns: picker ? getComputedStyle(picker).gridTemplateColumns.split(" ").length : 0,
+                actionRows: actions ? new Set([...actions.children].map((button) => Math.round(button.getBoundingClientRect().top))).size : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
                 maxCardWidth: cards.length ? Math.max(...cards.map((card) => card.width)) : 0,
                 overflow: width > document.documentElement.clientWidth + 1
@@ -1489,7 +1552,10 @@ async def assert_tire_roadside_launcher(page, page_name):
         }"""
     )
     assert_true(mobile_state["visible"], "tire roadside launcher is not visible at iPhone width")
+    assert_true(mobile_state["builderVisible"], "tire handoff builder is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 1, "tire roadside launcher should stack to one column on iPhone")
+    assert_true(mobile_state["pickerColumns"] == 4, "tire handoff picker should use four compact columns on iPhone")
+    assert_true(mobile_state["actionRows"] == 2, "tire handoff actions should use two rows on iPhone")
     assert_true(mobile_state["minCardHeight"] >= 64, "tire roadside cards should remain thumb-sized on iPhone")
     assert_true(mobile_state["maxCardWidth"] <= 390, "tire roadside cards are wider than the iPhone viewport")
     assert_true(not mobile_state["overflow"], "tire roadside launcher introduced iPhone horizontal overflow")

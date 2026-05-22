@@ -52,6 +52,7 @@
             </p>
             <div class="section-utility-nav wheel-utility-nav" aria-label="Section shortcuts">
               <a class="utility-link utility-link-strong" href="#tire-roadside-launcher">Roadside</a>
+              <a class="utility-link utility-link-strong" href="#tire-handoff-builder">Handoff</a>
               <a class="utility-link utility-link-strong" href="#fitment-guide">Fitment Guide</a>
               <a class="utility-link" href="#wheel-well">Wheel Well</a>
               <a class="utility-link" href="#source-audit">Sources</a>
@@ -125,6 +126,47 @@
                 <strong>Check fitment before ordering</strong>
                 <p>Route to the stock-size, pressure, torque, and fitment notes before buying tires or wheels.</p>
               </a>
+            </div>
+            <div class="tire-handoff-builder" id="tire-handoff-builder" data-tire-handoff-builder>
+              <div class="tire-handoff-head">
+                <div>
+                  <p class="eyebrow">Tire Handoff Builder</p>
+                  <h3>Copy The Wheel Situation Before You Move On</h3>
+                </div>
+                <span data-tire-handoff-status aria-live="polite">Flat-tire handoff ready.</span>
+              </div>
+              <div class="tire-handoff-picker" role="group" aria-label="Choose tire or wheel handoff">
+                <button class="utility-link utility-link-strong" type="button" data-tire-handoff-plan="flat" aria-pressed="true">Flat</button>
+                <button class="utility-link" type="button" data-tire-handoff-plan="pressure" aria-pressed="false">Pressure</button>
+                <button class="utility-link" type="button" data-tire-handoff-plan="after" aria-pressed="false">After Work</button>
+                <button class="utility-link" type="button" data-tire-handoff-plan="buying" aria-pressed="false">Buying</button>
+              </div>
+              <article class="dashboard-card tire-handoff-card">
+                <div>
+                  <span data-tire-handoff-kicker>Flat tire or wheel swap</span>
+                  <strong data-tire-handoff-title>Open jack points, pressure, and torque</strong>
+                  <p data-tire-handoff-summary>Use the closest jack point, keep the tire card visible, and verify pressure/torque before driving away.</p>
+                </div>
+                <ol class="tire-handoff-steps" data-tire-handoff-steps>
+                  <li>Open the jack-point map before lifting the truck.</li>
+                  <li>Keep the Quick Sheet tire card visible for pressure and wheel nut torque.</li>
+                  <li>Save a Garage note with wheel position, spare/road tire status, and what still needs checking.</li>
+                </ol>
+                <div class="tire-handoff-meta">
+                  <span data-tire-handoff-reference>References: jack map, Quick Sheet tire card, Tire Lab fitment guide.</span>
+                </div>
+                <div class="inspector-actions tire-handoff-actions">
+                  <a class="utility-link utility-link-strong" href="index.html?system=jack-points#viewer" data-tire-handoff-primary>Jack Map</a>
+                  <a class="utility-link" href="quick-sheet.html#tires" data-tire-handoff-secondary>Tire Card</a>
+                  <button class="utility-link" type="button" data-copy-tire-handoff>Copy</button>
+                  <button class="utility-link" type="button" data-share-tire-handoff>Share</button>
+                  <button class="utility-link" type="button" data-save-tire-handoff>Save Note</button>
+                </div>
+              </article>
+              <p class="small-note">
+                Saved notes use the existing Garage Notes field. The door placard, installed tire sidewall,
+                current road conditions, and owner manual remain final authority.
+              </p>
             </div>
             <p class="source-note">
               This launcher only routes to existing verified tire, jack, torque, pressure, and fitment references;
@@ -408,11 +450,186 @@
       <nav class="section-dock" aria-label="Quick return">
         <a href="index.html#viewer">Vehicle Map</a>
         <a href="#tire-roadside-launcher">Roadside</a>
+        <a href="#tire-handoff-builder">Handoff</a>
         <a href="#fitment-guide">Fitment</a>
-        <a href="#wheel-well">Wheel Well</a>
       </nav>
     </div>
 
+    <script>
+      (() => {
+        const root = document.querySelector("[data-tire-handoff-builder]");
+        if (!root) return;
+
+        const STORAGE_NOTES = "ridgeline-notes";
+        const plans = {
+          flat: {
+            status: "Flat-tire handoff ready.",
+            kicker: "Flat tire or wheel swap",
+            title: "Open jack points, pressure, and torque",
+            summary: "Use the closest jack point, keep the tire card visible, and verify pressure/torque before driving away.",
+            steps: [
+              "Open the jack-point map before lifting the truck.",
+              "Keep the Quick Sheet tire card visible for pressure and wheel nut torque.",
+              "Save a Garage note with wheel position, spare/road tire status, and what still needs checking."
+            ],
+            reference: "References: jack map, Quick Sheet tire card, Tire Lab fitment guide.",
+            primary: ["Jack Map", "index.html?system=jack-points#viewer"],
+            secondary: ["Tire Card", "quick-sheet.html#tires"]
+          },
+          pressure: {
+            status: "Pressure handoff ready.",
+            kicker: "Low tire or pressure check",
+            title: "Confirm cold pressure before chasing fitment",
+            summary: "Start with the door placard/current tire, then use the Quick Sheet tire card for the saved 35 psi baseline.",
+            steps: [
+              "Check the tire when cold if possible and compare against the truck placard.",
+              "Open the Quick Sheet tire card for the saved pressure baseline.",
+              "Record which tire was low, current pressure, and whether the warning returned."
+            ],
+            reference: "References: door placard, Quick Sheet tire card, Garage notes.",
+            primary: ["Tire Card", "quick-sheet.html#tires"],
+            secondary: ["Garage Notes", "garage.html#notes"]
+          },
+          after: {
+            status: "After-work handoff ready.",
+            kicker: "After wheel work",
+            title: "Close out torque, pressure, and note",
+            summary: "Use the tire card and maintenance closeout so the next owner check is not trapped in memory.",
+            steps: [
+              "Confirm wheel nut torque and cold pressure after the wheel work.",
+              "Use Maintenance closeout for tire rotation or wheel service notes.",
+              "Save what was touched, mileage, and any recheck reminder into Garage Notes."
+            ],
+            reference: "References: Quick Sheet tire card, Maintenance closeout, Garage notes.",
+            primary: ["Tire Card", "quick-sheet.html#tires"],
+            secondary: ["Maintenance", "maintenance.html#service-closeout"]
+          },
+          buying: {
+            status: "Buying handoff ready.",
+            kicker: "Buying tires or wheels",
+            title: "Check size, offset, and rub risk first",
+            summary: "Use the fitment guide before ordering and keep any final tire SKU in Garage profile notes.",
+            steps: [
+              "Compare the candidate size against stock 245/60R18 and the listed stock wheel specs.",
+              "Review the 265/60R18 owner-report caution before assuming no-rub fitment.",
+              "Save the confirmed tire, wheel, or store SKU in Garage profile notes after fitment is verified."
+            ],
+            reference: "References: Tire Lab fitment guide, source audit, Garage profile parts notes.",
+            primary: ["Fitment Guide", "#fitment-guide"],
+            secondary: ["Garage Profile", "garage.html#truck-profile"]
+          }
+        };
+
+        const fields = {
+          status: root.querySelector("[data-tire-handoff-status]"),
+          kicker: root.querySelector("[data-tire-handoff-kicker]"),
+          title: root.querySelector("[data-tire-handoff-title]"),
+          summary: root.querySelector("[data-tire-handoff-summary]"),
+          steps: root.querySelector("[data-tire-handoff-steps]"),
+          reference: root.querySelector("[data-tire-handoff-reference]"),
+          primary: root.querySelector("[data-tire-handoff-primary]"),
+          secondary: root.querySelector("[data-tire-handoff-secondary]")
+        };
+
+        let currentPlanKey = "flat";
+
+        function setStatus(message) {
+          if (fields.status) fields.status.textContent = message;
+        }
+
+        function renderPlan(key) {
+          const plan = plans[key] || plans.flat;
+          currentPlanKey = key;
+          root.querySelectorAll("[data-tire-handoff-plan]").forEach((button) => {
+            const active = button.dataset.tireHandoffPlan === key;
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+            button.classList.toggle("utility-link-strong", active);
+          });
+          fields.kicker.textContent = plan.kicker;
+          fields.title.textContent = plan.title;
+          fields.summary.textContent = plan.summary;
+          fields.steps.innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join("");
+          fields.reference.textContent = plan.reference;
+          fields.primary.textContent = plan.primary[0];
+          fields.primary.setAttribute("href", plan.primary[1]);
+          fields.secondary.textContent = plan.secondary[0];
+          fields.secondary.setAttribute("href", plan.secondary[1]);
+          setStatus(plan.status);
+        }
+
+        function buildHandoff() {
+          const plan = plans[currentPlanKey] || plans.flat;
+          const steps = plan.steps.map((step, index) => `${index + 1}. ${step}`).join("\n");
+          return `Ridgeline Tire Handoff - ${plan.kicker}\n${plan.title}\n${plan.summary}\n\n${steps}\n\n${plan.reference}\nAuthority reminder: door placard, installed tire sidewall, current conditions, and owner manual stay final.`;
+        }
+
+        function loadNotes() {
+          try {
+            return JSON.parse(localStorage.getItem(STORAGE_NOTES) || "{}") || {};
+          } catch {
+            return {};
+          }
+        }
+
+        function saveNote(text) {
+          const notes = loadNotes();
+          const stamp = new Date().toLocaleDateString();
+          const note = `[${stamp} - Tire Handoff]\n${text}`;
+          const existing = `${notes.general_notes || ""}`.trim();
+          localStorage.setItem(
+            STORAGE_NOTES,
+            JSON.stringify({
+              ...notes,
+              general_notes: existing ? `${note}\n\n${existing}` : note
+            })
+          );
+        }
+
+        async function copyText(text) {
+          if (navigator.clipboard?.writeText) {
+            try {
+              await navigator.clipboard.writeText(text);
+              return true;
+            } catch {
+              return false;
+            }
+          }
+          return false;
+        }
+
+        root.querySelectorAll("[data-tire-handoff-plan]").forEach((button) => {
+          button.addEventListener("click", () => renderPlan(button.dataset.tireHandoffPlan));
+        });
+
+        root.querySelector("[data-copy-tire-handoff]")?.addEventListener("click", async () => {
+          setStatus("Tire handoff copied.");
+          const copied = await copyText(buildHandoff());
+          if (!copied) setStatus("Copy unavailable; select the visible handoff text instead.");
+        });
+
+        root.querySelector("[data-share-tire-handoff]")?.addEventListener("click", async () => {
+          const text = buildHandoff();
+          try {
+            if (navigator.share) {
+              await navigator.share({ title: "Ridgeline tire handoff", text });
+              setStatus("Tire handoff shared.");
+              return;
+            }
+            const copied = await copyText(text);
+            setStatus(copied ? "Share unavailable; tire handoff copied instead." : "Share unavailable on this browser.");
+          } catch {
+            setStatus("Share canceled or unavailable.");
+          }
+        });
+
+        root.querySelector("[data-save-tire-handoff]")?.addEventListener("click", () => {
+          saveNote(buildHandoff());
+          setStatus("Tire handoff saved to Garage Notes.");
+        });
+
+        renderPlan(currentPlanKey);
+      })();
+    </script>
     <script type="module" src="shared-ui.js"></script>
     <script type="module" src="wheel-viewer.js"></script>
   </body>

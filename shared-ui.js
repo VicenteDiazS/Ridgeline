@@ -2014,7 +2014,7 @@ function actionForPage(page) {
     "tires.html": [
       { label: "Roadside", href: "#tire-roadside-launcher", icon: "flash" },
       { label: "Jack", href: "index.html?system=jack-points#viewer", icon: "wrench" },
-      { label: "Fitment", href: "#fitment-guide", icon: "wrench" },
+      { label: "Handoff", href: "#tire-handoff-builder", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "nfc.html": [

@@ -187,6 +187,25 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tire Handoff Builder",
+    url: "tires.html#tire-handoff-builder",
+    category: "Tools",
+    excerpt: "iPhone tire and wheel handoff builder for flat tire, low pressure, after-work, and buying scenarios with copy, share, and Garage Notes save actions.",
+    keywords: [
+      "tire handoff builder",
+      "copy tire handoff",
+      "share tire handoff",
+      "save tire note",
+      "flat tire handoff",
+      "low tire pressure note",
+      "after wheel work",
+      "tire buying handoff",
+      "wheel situation note",
+      "garage tire note",
+      "iphone tire handoff"
+    ]
+  },
+  {
     title: "NFC Tag Console",
     url: "nfc.html",
     category: "Tools",
