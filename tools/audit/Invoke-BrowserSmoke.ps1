@@ -59,6 +59,8 @@ SEARCH_EXPECTATIONS = {
     "share diagnostic note": "Diagnostic Handoff Builder",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
+    "offline route check": "Offline Route Check",
+    "check cached routes": "Offline Route Check",
     "signal loss prep": "Signal-Loss Prep",
     "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
@@ -625,6 +627,9 @@ async def assert_quick_sheet(page, page_name):
                 printPackCards: printPack ? printPack.querySelectorAll(".quick-print-pack-grid .dashboard-card").length : 0,
                 printPackText: printPack ? printPack.innerText.toLowerCase() : "",
                 hasPrintPackRefresh: Boolean(printPack?.querySelector("[data-refresh-quick-pack]")),
+                hasOfflineRouteCheck: Boolean(printPack?.querySelector("[data-check-offline-routes]")),
+                offlineRouteItems: printPack ? printPack.querySelectorAll("[data-offline-route-list] li").length : 0,
+                offlineRouteSummary: printPack?.querySelector("[data-offline-route-summary]")?.textContent || "",
                 hasPrintPackCopy: Boolean(printPack?.querySelector("[data-copy-print-pack]")),
                 hasPrintPackShare: Boolean(printPack?.querySelector("[data-share-print-pack]")),
                 hasPrintPackOfflineStatus: Boolean(printPack?.querySelector("[data-quick-offline-status]")),
@@ -670,11 +675,28 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["printPackCards"] == 4, "print/offline pack should expose four prep cards")
     assert_true(not state["missingPrintPackTargets"], f"print/offline pack is missing routes: {state['missingPrintPackTargets']}")
     assert_true(state["hasPrintPackRefresh"], "print/offline pack is missing refresh-pack control")
+    assert_true(state["hasOfflineRouteCheck"], "print/offline pack is missing route-check control")
+    assert_true(state["offlineRouteItems"] == 4, "print/offline pack route check should expose four key routes")
+    assert_true("cached routes" in state["offlineRouteSummary"].lower(), "print/offline pack route check should explain cached routes")
     assert_true(state["hasPrintPackCopy"], "print/offline pack is missing copy-prep control")
     assert_true(state["hasPrintPackShare"], "print/offline pack is missing share control")
     assert_true(state["hasPrintPackOfflineStatus"], "print/offline pack is missing live offline status")
     for phrase in ["print the emergency sheet", "offline pack", "garage backup", "source authority", "truck labels"]:
         assert_true(phrase in state["printPackText"], f"print/offline pack is missing text: {phrase}")
+    await page.locator("[data-check-offline-routes]").click()
+    await page.wait_for_timeout(400)
+    route_state = await page.evaluate(
+        """() => {
+            const printPack = document.querySelector("#print-offline-pack");
+            return {
+                status: printPack?.querySelector("[data-print-pack-status]")?.textContent || "",
+                summary: printPack?.querySelector("[data-offline-route-summary]")?.textContent || "",
+                statuses: [...printPack?.querySelectorAll("[data-offline-route-list] li") || []].map((item) => item.dataset.routeStatus || "")
+            };
+        }"""
+    )
+    assert_true("key offline routes" in route_state["status"].lower(), "route-check action did not report offline route count")
+    assert_true(route_state["statuses"] and all(status in ["ready", "missing"] for status in route_state["statuses"]), "route-check action did not update route item states")
     assert_true(state["hasCritical"], "quick sheet is missing the critical strip")
     assert_true(state["criticalCards"] == 6, "quick sheet critical strip should expose six compact references")
     assert_true(not state["missingCriticalTargets"], f"critical strip is missing routes: {state['missingCriticalTargets']}")

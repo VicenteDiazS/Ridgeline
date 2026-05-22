@@ -40,6 +40,13 @@ export const searchIndex = [
     keywords: ["signal loss prep", "before signal drops", "leaving signal", "offline checklist", "print quick sheet", "save garage backup", "refresh offline pack", "no service prep", "iphone offline prep"]
   },
   {
+    title: "Offline Route Check",
+    url: "quick-sheet.html#print-offline-pack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet offline route checker for confirming cached Roadside, Diagnostics, Fuses, and Garage Backup routes before leaving signal.",
+    keywords: ["offline route check", "check cached routes", "cached roadside routes", "offline readiness", "offline quick sheet check", "garage backup cache", "diagnostics cache", "fuses cache", "before leaving signal"]
+  },
+  {
     title: "Diagnostic Handoff Builder",
     url: "diagnostics.html#diagnostic-share-builder",
     category: "Diagnostics",
