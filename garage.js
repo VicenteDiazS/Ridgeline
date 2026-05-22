@@ -73,6 +73,7 @@ let maintenanceCounterLastStaged = null;
 let maintenanceCounterSkippedKeys = [];
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
+let currentGarageFillPlan = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const MAINTENANCE_CUSTOM_STAGING_KEY = "ridgeline-maintenance-custom-staging";
 const MAINTENANCE_CUSTOM_STAGING_TITLE = "One-Off Store Items";
@@ -2064,6 +2065,7 @@ function renderGarageSetupChecklist({
   const diagnosticReady = warningLightSummary?.count > 0;
   const photoReady = areaPhotos > 0 || areaNotes > 0;
   const stagingReady = maintenanceStagingSummary?.total > 0;
+  const latestService = Array.isArray(maintenanceLog) ? maintenanceLog[0] : null;
 
   const checklistItems = [
     {
@@ -2107,6 +2109,51 @@ function renderGarageSetupChecklist({
       action: "Open Capture Plan"
     }
   ];
+  const completedItems = checklistItems.filter((item) => item.status === "done");
+  const nextItem = checklistItems.find((item) => item.status !== "done") || checklistItems[0];
+  const latestRecord = latestService
+    ? {
+        title: "Latest Service Record",
+        detail: `${latestService.service ? latestService.service.replace(/_/g, " ") : "Service"}${
+          latestService.mileage ? ` at ${Number(latestService.mileage).toLocaleString("en-US")} miles` : ""
+        }`,
+        href: "#maintenance-note-preview",
+        action: "Review Maintenance"
+      }
+    : diagnosticReady
+      ? {
+          title: "Latest Diagnostic Memory",
+          detail: `${warningLightSummary.title} - ${warningLightSummary.detail}`,
+          href: "#diagnostic-activity",
+          action: "Review Diagnostics"
+        }
+      : profileReady
+        ? {
+            title: "Truck Profile Ready",
+            detail: `${profile.vehicle || "Ridgeline"} identity and parts notes are saved.`,
+            href: "#truck-profile",
+            action: "Review Profile"
+          }
+        : {
+            title: "No fresh record yet",
+            detail: "Use the next checklist card to start the Garage memory trail.",
+            href: nextItem.href,
+            action: nextItem.action
+          };
+
+  currentGarageFillPlan = {
+    completed: completedItems.length,
+    total: checklistItems.length,
+    nextItem,
+    latestRecord,
+    text: [
+      "Ridgeline Garage record plan",
+      `Complete: ${completedItems.length}/${checklistItems.length}`,
+      `Next: ${nextItem.title} - ${nextItem.detail}`,
+      `Latest: ${latestRecord.title} - ${latestRecord.detail}`,
+      "Backup note: Download Backup exports Garage notes, tracker, logs, favorites, profile, and photo metadata."
+    ].join("\n")
+  };
 
   garageSetupChecklist.innerHTML = `
     <div class="compact-section-head garage-setup-head">
@@ -2119,6 +2166,23 @@ function renderGarageSetupChecklist({
     <p class="small-note">
       iPhone-first next steps for making Garage useful before service, diagnostics, parts runs, or phone cleanup. This checklist only reads existing Garage data.
     </p>
+    <article class="garage-setup-snapshot" data-garage-fill-snapshot>
+      <div>
+        <span>Garage snapshot</span>
+        <strong>${completedItems.length}/${checklistItems.length} record paths started</strong>
+        <p>${escapeHtml(latestRecord.title)}: ${escapeHtml(latestRecord.detail)}</p>
+      </div>
+      <div class="garage-setup-next">
+        <span>Next on this iPhone</span>
+        <strong>${escapeHtml(nextItem.title)}</strong>
+        <p>${escapeHtml(nextItem.detail)}</p>
+      </div>
+      <div class="garage-setup-actions">
+        <a class="utility-link" href="${escapeHtml(nextItem.href)}" data-garage-fill-next>${escapeHtml(nextItem.action)}</a>
+        <button class="utility-link" type="button" data-garage-fill-copy>Copy Plan</button>
+        <button class="utility-link" type="button" data-garage-fill-share>Share Plan</button>
+      </div>
+    </article>
     <div class="garage-setup-grid">
       ${checklistItems
         .map(
@@ -2136,7 +2200,57 @@ function renderGarageSetupChecklist({
     <p class="small-note garage-setup-boundary">
       ${stagingReady ? "Parts staging remains local-only unless you save a Garage note." : "Save planner notes from Maintenance to unlock parts staging."} Download Backup exports Garage notes, tracker, logs, favorites, profile, and photo metadata.
     </p>
+    <p class="small-note garage-setup-status" data-garage-fill-status aria-live="polite"></p>
   `;
+}
+
+function setGarageFillStatus(message = "") {
+  const status = garageSetupChecklist?.querySelector("[data-garage-fill-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function copyGarageFillPlan() {
+  if (!currentGarageFillPlan?.text) {
+    setGarageFillStatus("Garage record plan is not ready yet.");
+    return;
+  }
+
+  setGarageFillStatus("Copying Garage record plan...");
+  copyText(currentGarageFillPlan.text)
+    .then(() => setGarageFillStatus("Garage record plan copied."))
+    .catch(() => setGarageFillStatus("Could not copy the Garage record plan automatically."));
+}
+
+function shareGarageFillPlan() {
+  if (!currentGarageFillPlan?.text) {
+    setGarageFillStatus("Garage record plan is not ready yet.");
+    return;
+  }
+
+  if (navigator.share) {
+    navigator
+      .share({
+        title: "Ridgeline Garage record plan",
+        text: currentGarageFillPlan.text
+      })
+      .then(() => setGarageFillStatus("Garage record plan shared."))
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          setGarageFillStatus("Share canceled.");
+          return;
+        }
+        copyText(currentGarageFillPlan.text)
+          .then(() => setGarageFillStatus("Share was unavailable, so the Garage record plan was copied."))
+          .catch(() => setGarageFillStatus("Could not share or copy the Garage record plan automatically."));
+      });
+    return;
+  }
+
+  copyText(currentGarageFillPlan.text)
+    .then(() => setGarageFillStatus("Share is unavailable here, so the Garage record plan was copied."))
+    .catch(() => setGarageFillStatus("Could not share or copy the Garage record plan automatically."));
 }
 
 function renderDiagnosticActivity() {
@@ -2569,11 +2683,21 @@ diagnosticActivityDownloadButton?.addEventListener("click", downloadDiagnosticAc
 garageBackupDownloadButton?.addEventListener("click", downloadGarageBackup);
 garageSetupChecklist?.addEventListener("click", (event) => {
   const backupButton = event.target.closest("[data-garage-fill-backup]");
-  if (!backupButton) {
+  if (backupButton) {
+    downloadGarageBackup();
     return;
   }
 
-  downloadGarageBackup();
+  const copyButton = event.target.closest("[data-garage-fill-copy]");
+  if (copyButton) {
+    copyGarageFillPlan();
+    return;
+  }
+
+  const shareButton = event.target.closest("[data-garage-fill-share]");
+  if (shareButton) {
+    shareGarageFillPlan();
+  }
 });
 maintenanceNoteCopyButton?.addEventListener("click", () => copyMaintenanceNote(0));
 maintenancePartsCopyButton?.addEventListener("click", () => copyMaintenanceStaging());

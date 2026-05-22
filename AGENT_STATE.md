@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-21
+Last updated: 2026-05-22
 
 ## Current Site Status
 
@@ -733,3 +733,12 @@ After the next UI change:
 - Updated `agent-last-run.json` so the public Anton status reports the Maintenance receipt impact with compact Home-card copy. A final Home smoke first caught the public Anton tile over its iPhone height budget, so the public `visibleChange` copy was shortened to `Service receipt.` and Home smoke then passed.
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html')"`; final Home smoke passed with the completed Anton status JSON.
 - Next safe slice: Garage first-record empty-state polish, shared Search real-iPhone review after recent owner shortcuts, real-iPhone review of the Maintenance receipt share sheet, or a practical fuse/reference follow-up; avoid another Maintenance closeout-only run unless the receipt reveals a regression.
+- Rotated to Garage first-record guidance after comparing Garage dashboard completion, shared Search owner-shortcut review, Maintenance receipt review, and fuse/reference follow-up, avoiding another Maintenance/Quick Sheet/Diagnostics narrow panel. Added a Garage Fill-In snapshot inside `garage.html#garage-fill-in-checklist` that summarizes completed record paths, shows the latest available Garage record, routes to the next missing record, and exposes Copy Plan plus Share Plan controls. The snapshot only reads existing Garage profile, notes, maintenance log, warning-light, photo, and area-journal data; it does not add Garage storage schema, vehicle facts, service intervals, repair procedures, or backup contents.
+- Search metadata now covers `Garage record snapshot`, `Garage record plan`, `copy garage plan`, and related next-record phrases; the service-worker cache is `ridgeline-console-v350`.
+- Browser smoke coverage now verifies the Garage Fill-In snapshot, Copy Plan status, Share Plan/next-route controls, iPhone one-column snapshot layout, one-row iPhone snapshot actions, touch-sized controls, and no horizontal overflow.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('garage.html')"`; targeted Garage smoke passed. The first run only exposed a case-sensitive assertion against CSS-transformed text, and the scoped audit later exposed clipboard permission timing after the Garage restore audit, so the copy status now reports immediately before clipboard resolution.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('garage.html') -Tag audit-v350-garage-record-snapshot -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Garage browser smoke passed.
+- Updated `agent-last-run.json` so the public Anton status reports the Garage snapshot impact with compact Home-card copy. The first Home smoke caught the public Anton tile over its iPhone height budget, so the public `visibleChange` copy was shortened to `Garage snapshot.` and Home smoke then passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('index.html')"`; final Home smoke passed with the completed Anton status JSON.
+- Next safe slice: shared Search real-iPhone review after the owner shortcuts and Garage snapshot, real-iPhone review of the Maintenance receipt share sheet, or a practical fuse/reference follow-up; avoid another Garage dashboard panel unless the snapshot reveals a bug.

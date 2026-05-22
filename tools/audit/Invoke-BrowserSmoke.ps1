@@ -91,6 +91,8 @@ SEARCH_EXPECTATIONS = {
     "save roadside note": "Roadside Note Receipt",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
+    "garage record snapshot": "Garage Fill-In Checklist",
+    "copy garage plan": "Garage Fill-In Checklist",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
@@ -1834,6 +1836,11 @@ async def assert_garage_features(page, page_name):
                 hasStagingDashboardRoute: Boolean(stagingCard?.querySelector('a[href="#maintenance-note-preview"]')),
                 hasFillChecklist: Boolean(fillChecklist),
                 fillChecklistCards: fillChecklist?.querySelectorAll(".garage-setup-card").length || 0,
+                hasFillSnapshot: Boolean(fillChecklist?.querySelector("[data-garage-fill-snapshot]")),
+                fillSnapshotText: fillChecklist?.querySelector("[data-garage-fill-snapshot]")?.innerText || "",
+                hasFillCopy: Boolean(fillChecklist?.querySelector("[data-garage-fill-copy]")),
+                hasFillShare: Boolean(fillChecklist?.querySelector("[data-garage-fill-share]")),
+                hasFillNext: Boolean(fillChecklist?.querySelector("[data-garage-fill-next]")),
                 fillChecklistText: fillChecklist?.innerText || "",
                 fillChecklistMissingRoutes: fillChecklistLinks.filter((href) => !fillChecklist?.querySelector(`a[href="${href}"]`)),
                 hasFillChecklistBackup: Boolean(fillChecklist?.querySelector("[data-garage-fill-backup]")),
@@ -1888,12 +1895,23 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasStagingDashboardRoute"], "garage dashboard parts staging card is missing the staging route")
     assert_true(state["hasFillChecklist"], "garage dashboard is missing the fill-in checklist")
     assert_true(state["fillChecklistCards"] == 4, "garage fill-in checklist should expose four record cards")
+    assert_true(state["hasFillSnapshot"], "garage fill-in checklist is missing the record snapshot")
+    assert_true(state["hasFillCopy"], "garage fill-in checklist is missing Copy Plan")
+    assert_true(state["hasFillShare"], "garage fill-in checklist is missing Share Plan")
+    assert_true(state["hasFillNext"], "garage fill-in checklist is missing the next-record route")
     assert_true(not state["fillChecklistMissingRoutes"], f"garage fill-in checklist is missing routes: {state['fillChecklistMissingRoutes']}")
     assert_true(state["hasFillChecklistBackup"], "garage fill-in checklist is missing the backup action")
     assert_true(state["dockHasFillChecklist"], "garage bottom dock is missing the fill-in route")
     assert_true(state["dockHasBackup"], "garage bottom dock is missing the backup route")
-    for phrase in ["What To Record Next", "Truck Profile", "Service Closeout", "Diagnostic Memory", "Photo And Area Notes", "only reads existing Garage data"]:
-        assert_true(phrase in state["fillChecklistText"], f"garage fill-in checklist is missing {phrase}")
+    fill_checklist_lower = state["fillChecklistText"].lower()
+    for phrase in ["what to record next", "garage snapshot", "next on this iphone", "copy plan", "share plan", "truck profile", "service closeout", "diagnostic memory", "photo and area notes", "only reads existing garage data"]:
+        assert_true(phrase in fill_checklist_lower, f"garage fill-in checklist is missing {phrase}")
+    fill_snapshot_lower = state["fillSnapshotText"].lower()
+    for phrase in ["record paths started", "truck profile ready"]:
+        assert_true(phrase in fill_snapshot_lower, f"garage fill-in snapshot is missing {phrase}")
+    await page.locator("#garage-fill-in-checklist [data-garage-fill-copy]").click()
+    fill_copy_status = await page.locator("#garage-fill-in-checklist [data-garage-fill-status]").inner_text()
+    assert_true("Garage record plan" in fill_copy_status, "garage fill-in Copy Plan did not report status")
     assert_true(state["hasHeroStagingRoute"], "garage hero is missing the saved maintenance shortcut")
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
@@ -2634,18 +2652,26 @@ async def assert_garage_features(page, page_name):
             const counterPanel = document.querySelector("#maintenance-note-preview [data-maintenance-counter-panel]");
             const backupCheckpoint = document.querySelector("#diagnostic-activity [data-garage-backup-checkpoint]");
             const fillChecklist = document.querySelector("#garage-fill-in-checklist .garage-setup-grid");
+            const fillSnapshot = document.querySelector("#garage-fill-in-checklist [data-garage-fill-snapshot]");
+            const fillActions = document.querySelector("#garage-fill-in-checklist .garage-setup-actions");
             const counterStyle = counterPanel ? getComputedStyle(counterPanel) : null;
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             const columns = preview ? getComputedStyle(preview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const partsColumns = partsPreview ? getComputedStyle(partsPreview).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const backupCheckpointColumns = backupCheckpoint ? getComputedStyle(backupCheckpoint).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
             const fillChecklistColumns = fillChecklist ? getComputedStyle(fillChecklist).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const fillSnapshotColumns = fillSnapshot ? getComputedStyle(fillSnapshot).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const fillActionColumns = fillActions ? getComputedStyle(fillActions).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+            const fillActionMinHeight = fillActions ? Math.min(...[...fillActions.querySelectorAll(".utility-link")].map((action) => action.getBoundingClientRect().height)) : 0;
             return {
                 overflow: width > document.documentElement.clientWidth + 1,
                 columns,
                 partsColumns,
                 backupCheckpointColumns,
                 fillChecklistColumns,
+                fillSnapshotColumns,
+                fillActionColumns,
+                fillActionMinHeight,
                 counterSticky: counterStyle?.position === "sticky",
                 hasCounterSkipNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-skip-next]")),
                 hasCounterCopyNext: Boolean(counterPanel?.querySelector("[data-maintenance-counter-copy-next]")),
@@ -2657,6 +2683,9 @@ async def assert_garage_features(page, page_name):
     assert_true(not garage_mobile_state["overflow"], "saved maintenance notes preview introduced garage mobile horizontal overflow")
     assert_true(garage_mobile_state["backupCheckpointColumns"] == 1, "Garage Backup Checkpoint should stack to one column on iPhone width")
     assert_true(garage_mobile_state["fillChecklistColumns"] == 1, "Garage Fill-In Checklist should stack to one column on iPhone width")
+    assert_true(garage_mobile_state["fillSnapshotColumns"] == 1, "Garage Fill-In snapshot should stack to one column on iPhone width")
+    assert_true(garage_mobile_state["fillActionColumns"] == 3, "Garage Fill-In snapshot actions should stay in one compact iPhone row")
+    assert_true(garage_mobile_state["fillActionMinHeight"] >= 40, "Garage Fill-In snapshot actions should stay thumb-sized on iPhone width")
     assert_true(garage_mobile_state["columns"] == 1, "saved maintenance notes preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["partsColumns"] == 1, "maintenance staging preview should stack to one column on iPhone width")
     assert_true(garage_mobile_state["counterSticky"], "Counter Mode panel should stay sticky on iPhone width")

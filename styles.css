@@ -6550,6 +6550,55 @@ kbd {
   margin-top: 12px;
 }
 
+.garage-setup-snapshot {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr auto;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid rgba(255, 210, 122, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 210, 122, 0.08), rgba(97, 223, 255, 0.06)),
+    rgba(4, 11, 20, 0.68);
+}
+
+.garage-setup-snapshot > div {
+  min-width: 0;
+}
+
+.garage-setup-snapshot span {
+  display: block;
+  color: var(--accent-2);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.garage-setup-snapshot strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.garage-setup-snapshot p {
+  margin: 6px 0 0;
+}
+
+.garage-setup-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-width: 138px;
+}
+
+.garage-setup-actions .utility-link {
+  min-height: 38px;
+  width: 100%;
+}
+
 .garage-setup-card {
   display: grid;
   gap: 8px;
@@ -6576,7 +6625,8 @@ kbd {
 }
 
 .garage-setup-card p,
-.garage-setup-boundary {
+.garage-setup-boundary,
+.garage-setup-status {
   margin: 0;
 }
 
@@ -10907,6 +10957,21 @@ kbd {
 
   .garage-setup-checklist {
     padding: 13px;
+  }
+
+  .garage-setup-snapshot {
+    grid-template-columns: 1fr;
+  }
+
+  .garage-setup-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  .garage-setup-actions .utility-link {
+    min-width: 0;
+    min-height: 42px;
+    padding-inline: 8px;
   }
 
   .garage-setup-card {
