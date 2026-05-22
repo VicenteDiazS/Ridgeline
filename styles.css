@@ -15555,6 +15555,55 @@ select:focus {
   padding-left: 10px;
 }
 
+.roadside-live-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  border-color: rgba(112, 193, 255, 0.24);
+  background:
+    linear-gradient(135deg, rgba(112, 193, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(6, 14, 23, 0.72);
+}
+
+.roadside-live-card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.roadside-live-meter {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.roadside-live-meter span,
+.roadside-live-checks span {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(241, 247, 255, 0.82);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  padding: 8px 10px;
+}
+
+.roadside-live-checks {
+  display: grid;
+  gap: 7px;
+}
+
+.roadside-live-checks small {
+  display: block;
+  color: rgba(241, 247, 255, 0.58);
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+.roadside-live-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .roadside-stack-card strong {
   display: block;
   margin-top: 4px;
@@ -15698,6 +15747,19 @@ select:focus {
   .roadside-stack-card {
     gap: 12px;
     padding: 14px;
+  }
+
+  .roadside-live-card {
+    padding: 14px;
+  }
+
+  .roadside-live-meter {
+    grid-template-columns: 1fr;
+  }
+
+  .roadside-live-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roadside-step-list {

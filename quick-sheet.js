@@ -6,6 +6,7 @@ import {
 } from "./garage-data.js";
 
 const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
+const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
   { label: "Diagnostics", path: "diagnostics.html" },
@@ -124,6 +125,22 @@ function saveRoadsideReceipt(receipt) {
   localStorage.setItem(ROADSIDE_RECEIPT_KEY, JSON.stringify(receipt));
 }
 
+function loadRoadsideSession() {
+  try {
+    return JSON.parse(localStorage.getItem(ROADSIDE_SESSION_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveRoadsideSession(session) {
+  localStorage.setItem(ROADSIDE_SESSION_KEY, JSON.stringify(session));
+}
+
+function clearRoadsideSession() {
+  localStorage.removeItem(ROADSIDE_SESSION_KEY);
+}
+
 function renderRoadsideReceipt(root) {
   const receiptCard = root.querySelector("[data-roadside-receipt]");
   if (!receiptCard) {
@@ -146,6 +163,91 @@ function renderRoadsideReceipt(root) {
 function currentReceiptText() {
   const receipt = loadRoadsideReceipt();
   return receipt?.text || "";
+}
+
+function formatSessionTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "recently";
+  }
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function formatElapsed(startedAt) {
+  const started = Date.parse(startedAt);
+  if (Number.isNaN(started)) {
+    return "Elapsed: not started";
+  }
+  const minutes = Math.max(0, Math.floor((Date.now() - started) / 60000));
+  if (minutes < 1) {
+    return "Elapsed: under 1 min";
+  }
+  const hours = Math.floor(minutes / 60);
+  const remaining = minutes % 60;
+  return hours ? `Elapsed: ${hours}h ${remaining}m` : `Elapsed: ${minutes} min`;
+}
+
+function buildRoadsideSessionText(session) {
+  const plan = roadsidePlans[session?.planKey] || roadsidePlans.flat;
+  const checkpoints = Array.isArray(session?.checkpoints) ? session.checkpoints : [];
+  const checkpointLines = checkpoints.length
+    ? checkpoints.map((item, index) => `${index + 1}. ${item.label} - ${formatSessionTime(item.at)}`)
+    : ["1. No checkpoints marked yet."];
+  return [
+    `Ridgeline live roadside update: ${plan.kicker}`,
+    `${plan.title}`,
+    `Started: ${formatSessionTime(session?.startedAt)}`,
+    formatElapsed(session?.startedAt),
+    "Checkpoints:",
+    ...checkpointLines,
+    plan.reference,
+    "Current roadside conditions, truck labels, and the owner's manual remain final authority."
+  ].join("\n");
+}
+
+function renderRoadsideSession(root) {
+  const card = root.querySelector("[data-roadside-live-session]");
+  if (!card) {
+    return;
+  }
+
+  const session = loadRoadsideSession();
+  const title = card.querySelector("[data-roadside-live-title]");
+  const summary = card.querySelector("[data-roadside-live-summary]");
+  const elapsed = card.querySelector("[data-roadside-live-elapsed]");
+  const count = card.querySelector("[data-roadside-live-count]");
+  const checks = card.querySelector("[data-roadside-live-checks]");
+  const startButton = card.querySelector("[data-start-roadside-session]");
+  const plan = roadsidePlans[session?.planKey] || roadsidePlans[root.dataset.currentRoadsidePlan] || roadsidePlans.flat;
+  const checkpoints = Array.isArray(session?.checkpoints) ? session.checkpoints : [];
+
+  title.textContent = session ? `${plan.kicker} session running` : "No session running";
+  summary.textContent = session
+    ? "Copy a live update or save the session log when the roadside event is stable."
+    : "Start when stopped safely, then mark major checkpoints so the next update is ready to copy or save.";
+  elapsed.textContent = session ? formatElapsed(session.startedAt) : "Elapsed: not started";
+  count.textContent = `${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"}`;
+  startButton.textContent = session ? "Restart Session" : "Start Session";
+  checks.replaceChildren();
+  if (checkpoints.length) {
+    checkpoints.forEach((item) => {
+      const row = document.createElement("span");
+      const time = document.createElement("small");
+      row.textContent = item.label || "Roadside checkpoint";
+      time.textContent = formatSessionTime(item.at);
+      row.appendChild(time);
+      checks.appendChild(row);
+    });
+    return;
+  }
+  const empty = document.createElement("span");
+  empty.textContent = "No checkpoints yet";
+  checks.appendChild(empty);
 }
 
 function prependGarageGeneralNote(noteText) {
@@ -189,6 +291,7 @@ function updateRoadsidePlan(root, key) {
   });
 
   setStatus(root, `${plan.kicker} handoff ready.`);
+  renderRoadsideSession(root);
 }
 
 async function copyText(text) {
@@ -439,8 +542,78 @@ function initRoadsideStack() {
     }
   });
 
+  root.querySelector("[data-start-roadside-session]")?.addEventListener("click", () => {
+    const planKey = root.dataset.currentRoadsidePlan || "flat";
+    saveRoadsideSession({
+      planKey,
+      startedAt: new Date().toISOString(),
+      checkpoints: [{
+        label: "Session started",
+        at: new Date().toISOString()
+      }]
+    });
+    renderRoadsideSession(root);
+    setStatus(root, "Live roadside session started on this iPhone.");
+  });
+
+  root.querySelectorAll("[data-roadside-checkpoint]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const planKey = root.dataset.currentRoadsidePlan || "flat";
+      const session = loadRoadsideSession() || {
+        planKey,
+        startedAt: new Date().toISOString(),
+        checkpoints: []
+      };
+      session.planKey = session.planKey || planKey;
+      session.checkpoints = Array.isArray(session.checkpoints) ? session.checkpoints : [];
+      session.checkpoints.push({
+        label: button.dataset.roadsideCheckpoint,
+        at: new Date().toISOString()
+      });
+      saveRoadsideSession(session);
+      renderRoadsideSession(root);
+      setStatus(root, `${button.dataset.roadsideCheckpoint} checkpoint added.`);
+    });
+  });
+
+  root.querySelector("[data-copy-roadside-session]")?.addEventListener("click", async () => {
+    const session = loadRoadsideSession();
+    if (!session) {
+      setStatus(root, "Start a live roadside session before copying an update.");
+      return;
+    }
+    try {
+      const copied = await copyText(buildRoadsideSessionText(session));
+      setStatus(root, copied ? "Live roadside update copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setStatus(root, "Copy failed. Keep the session card visible for reference.");
+    }
+  });
+
+  root.querySelector("[data-save-roadside-session]")?.addEventListener("click", () => {
+    const session = loadRoadsideSession();
+    if (!session) {
+      setStatus(root, "Start a live roadside session before saving a log.");
+      return;
+    }
+    try {
+      prependGarageGeneralNote(buildRoadsideSessionText(session));
+      setStatus(root, "Live roadside session saved to Garage Notes.");
+    } catch (error) {
+      setStatus(root, "Could not save the live roadside session in this browser.");
+    }
+  });
+
+  root.querySelector("[data-reset-roadside-session]")?.addEventListener("click", () => {
+    clearRoadsideSession();
+    renderRoadsideSession(root);
+    setStatus(root, "Live roadside session reset on this iPhone.");
+  });
+
   updateRoadsidePlan(root, "flat");
   renderRoadsideReceipt(root);
+  renderRoadsideSession(root);
+  window.setInterval(() => renderRoadsideSession(root), 60000);
 }
 
 initQuickPrintPack();

@@ -95,6 +95,9 @@ SEARCH_EXPECTATIONS = {
     "roadside action stack": "Roadside Action Stack",
     "roadside note": "Roadside Note Receipt",
     "save roadside note": "Roadside Note Receipt",
+    "roadside live session": "Roadside Live Session",
+    "roadside checkpoint": "Roadside Live Session",
+    "copy roadside update": "Roadside Live Session",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
     "recent owner work": "Recent Work Search Strip",
@@ -722,6 +725,13 @@ async def assert_quick_sheet(page, page_name):
                 hasStackSave: Boolean(stack?.querySelector("[data-save-roadside-note]")),
                 hasReceipt: Boolean(stack?.querySelector("[data-roadside-receipt]")),
                 receiptHidden: Boolean(stack?.querySelector("[data-roadside-receipt]")?.hidden),
+                hasLiveSession: Boolean(stack?.querySelector("[data-roadside-live-session]")),
+                liveSessionText: stack?.querySelector("[data-roadside-live-session]")?.innerText.toLowerCase() || "",
+                liveCheckpointButtons: stack ? stack.querySelectorAll("[data-roadside-checkpoint]").length : 0,
+                hasStartSession: Boolean(stack?.querySelector("[data-start-roadside-session]")),
+                hasCopySession: Boolean(stack?.querySelector("[data-copy-roadside-session]")),
+                hasSaveSession: Boolean(stack?.querySelector("[data-save-roadside-session]")),
+                hasResetSession: Boolean(stack?.querySelector("[data-reset-roadside-session]")),
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
@@ -786,6 +796,14 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["hasStackSave"], "roadside action stack is missing save-note control")
     assert_true(state["hasReceipt"], "roadside action stack is missing the saved-note receipt")
     assert_true(state["receiptHidden"], "roadside receipt should stay hidden until a note is saved")
+    assert_true(state["hasLiveSession"], "roadside action stack is missing the live session panel")
+    assert_true(state["liveCheckpointButtons"] == 3, "roadside live session should expose three checkpoint buttons")
+    assert_true(state["hasStartSession"], "roadside live session is missing Start Session")
+    assert_true(state["hasCopySession"], "roadside live session is missing Copy Update")
+    assert_true(state["hasSaveSession"], "roadside live session is missing Save Log")
+    assert_true(state["hasResetSession"], "roadside live session is missing Reset")
+    for phrase in ["live roadside session", "safe stop", "help called", "moving again"]:
+        assert_true(phrase in state["liveSessionText"], f"roadside live session is missing text: {phrase}")
     for phrase in ["flat tire", "94 lb-ft", "copy handoff", "save note"]:
         assert_true(phrase in state["stackText"], f"roadside action stack is missing default text: {phrase}")
     await page.evaluate("""() => document.querySelector('[data-roadside-plan="warning"]').click()""")
@@ -839,6 +857,38 @@ async def assert_quick_sheet(page, page_name):
     assert_true(receipt_state["garageRoute"], "roadside receipt is missing the Open Garage Notes route")
     assert_true(receipt_state["hasCopyReceipt"], "roadside receipt is missing Copy Note")
     assert_true(receipt_state["hasShareReceipt"], "roadside receipt is missing Share")
+    await page.locator("[data-start-roadside-session]").click()
+    await page.wait_for_timeout(150)
+    await page.locator('[data-roadside-checkpoint="Stopped safely"]').click()
+    await page.wait_for_timeout(150)
+    await page.locator("[data-save-roadside-session]").click()
+    await page.wait_for_timeout(250)
+    session_state = await page.evaluate(
+        """() => {
+            const stack = document.querySelector("#roadside-action-stack");
+            const session = JSON.parse(localStorage.getItem("ridgeline-roadside-live-session") || "null");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                title: stack?.querySelector("[data-roadside-live-title]")?.textContent || "",
+                elapsed: stack?.querySelector("[data-roadside-live-elapsed]")?.textContent || "",
+                count: stack?.querySelector("[data-roadside-live-count]")?.textContent || "",
+                checks: stack?.querySelector("[data-roadside-live-checks]")?.textContent || "",
+                status: stack?.querySelector("[data-roadside-status]")?.textContent || "",
+                storedPlan: session?.planKey || "",
+                checkpointCount: session?.checkpoints?.length || 0,
+                note: notes.general_notes || ""
+            };
+        }"""
+    )
+    assert_true("Warning light" in session_state["title"], "roadside live session should preserve the selected situation")
+    assert_true("Elapsed:" in session_state["elapsed"], "roadside live session should show elapsed time")
+    assert_true("2 checkpoints" in session_state["count"], "roadside live session should count session start plus safe stop")
+    assert_true("Stopped safely" in session_state["checks"], "roadside live session should render the marked checkpoint")
+    assert_true("saved to Garage Notes" in session_state["status"], "roadside live session save did not report Garage Notes status")
+    assert_true(session_state["storedPlan"] == "warning", "roadside live session storage should keep the selected plan")
+    assert_true(session_state["checkpointCount"] == 2, "roadside live session storage should keep checkpoints")
+    assert_true("Ridgeline live roadside update" in session_state["note"], "Garage Notes did not receive the live roadside session log")
+    assert_true("Current roadside conditions" in session_state["note"], "live roadside session log should preserve source-authority reminder")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
@@ -858,9 +908,12 @@ async def assert_quick_sheet(page, page_name):
             const critical = document.querySelector("#critical-strip");
             const printPack = document.querySelector("#print-offline-pack");
             const receipt = document.querySelector("[data-roadside-receipt]");
+            const live = document.querySelector("[data-roadside-live-session]");
             const grid = critical?.querySelector(".quick-critical-grid");
             const printGrid = printPack?.querySelector(".quick-print-pack-grid");
             const receiptActions = [...(receipt?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
+            const liveActions = [...(live?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
+            const liveGrid = live?.querySelector(".roadside-live-actions");
             const printCards = [...printPack?.querySelectorAll(".quick-print-pack-card") || []].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -875,6 +928,9 @@ async def assert_quick_sheet(page, page_name):
                 minPrintPackCardHeight: printCards.length ? Math.min(...printCards.map((card) => card.height)) : 0,
                 receiptVisible: Boolean(receipt && !receipt.hidden && receipt.getBoundingClientRect().height > 0),
                 minReceiptActionHeight: receiptActions.length ? Math.min(...receiptActions) : 0,
+                liveVisible: Boolean(live && live.getBoundingClientRect().height > 0),
+                liveActionColumns: liveGrid ? getComputedStyle(liveGrid).gridTemplateColumns.split(" ").length : 0,
+                minLiveActionHeight: liveActions.length ? Math.min(...liveActions) : 0,
                 visible: Boolean(critical && critical.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
@@ -888,6 +944,9 @@ async def assert_quick_sheet(page, page_name):
     assert_true(mobile_state["minPrintPackCardHeight"] >= 90, "quick sheet print/offline pack cards should stay thumb-readable on iPhone")
     assert_true(mobile_state["receiptVisible"], "saved roadside receipt is not visible at iPhone width after save")
     assert_true(mobile_state["minReceiptActionHeight"] >= 38, "saved roadside receipt actions should stay thumb-readable on iPhone")
+    assert_true(mobile_state["liveVisible"], "roadside live session is not visible at iPhone width")
+    assert_true(mobile_state["liveActionColumns"] == 2, "roadside live session actions should use two compact columns on iPhone")
+    assert_true(mobile_state["minLiveActionHeight"] >= 38, "roadside live session actions should stay thumb-readable on iPhone")
     assert_true(mobile_state["visible"], "quick sheet critical strip is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 2, "quick sheet critical strip should use two compact columns on iPhone")
     assert_true(mobile_state["minCardHeight"] >= 70, "quick sheet critical strip cards should stay thumb-sized on iPhone")

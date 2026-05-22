@@ -75,6 +75,13 @@ export const searchIndex = [
     keywords: ["roadside note", "roadside receipt", "incident note", "save roadside note", "save roadside handoff", "garage roadside note", "last roadside note", "quick sheet note", "roadside action stack note"]
   },
   {
+    title: "Roadside Live Session",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet live roadside session panel for starting a local incident timer, marking safe-stop/help-called/moving-again checkpoints, copying a live update, and saving the log into Garage Notes.",
+    keywords: ["roadside live session", "roadside session", "roadside timer", "roadside checkpoint", "safe stop", "help called", "moving again", "copy roadside update", "save roadside log", "incident timeline", "iphone roadside session"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",
@@ -1025,13 +1032,16 @@ export const searchIndex = [
     title: "Roadside Action Stack",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Navigation",
-    excerpt: "On-screen roadside next steps with copy/share handoff text for flat tire, no-start, warning-light, and trailer-light situations.",
+    excerpt: "On-screen roadside next steps with copy/share handoff text, save-note receipt, and local live-session checkpoints for flat tire, no-start, warning-light, and trailer-light situations.",
     keywords: [
       "roadside action stack",
       "roadside next steps",
       "roadside handoff",
       "copy roadside note",
       "share roadside note",
+      "roadside live session",
+      "roadside checkpoint",
+      "copy roadside update",
       "flat tire steps",
       "no start steps",
       "warning light note",
