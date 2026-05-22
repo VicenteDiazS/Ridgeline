@@ -42,6 +42,8 @@ SEARCH_EXPECTATIONS = {
     "trailer hookup": "Trailer Hookup Flow",
     "tow day readiness": "Tow Day Readiness",
     "tow prep": "Tow Day Readiness",
+    "copy pinout handoff": "7-Way Pinout",
+    "trailer pin handoff": "7-Way Pinout",
     "engine service jumpstart": "Engine Service Jumpstart",
     "engine part picker": "Engine Service Jumpstart",
     "nfc starter tag pack": "NFC Starter Tag Pack",
@@ -995,6 +997,8 @@ async def assert_rear_hitch_flow(page, page_name):
         """() => {
             const flow = document.querySelector("#trailer-hookup-flow");
             const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
+            const pinout = document.querySelector("#pinout");
+            const handoff = document.querySelector("[data-pinout-handoff]");
             const requiredLinks = [
                 "#tow-checklist",
                 "#pinout",
@@ -1006,7 +1010,18 @@ async def assert_rear_hitch_flow(page, page_name):
                 cardCount: cards.length,
                 text: flow?.innerText || "",
                 missingLinks: requiredLinks.filter((href) => !flow?.querySelector(`a[href="${href}"]`)),
-                hasSourceBoundary: Boolean(flow?.innerText.includes("does not change towing limits"))
+                hasSourceBoundary: Boolean(flow?.innerText.includes("does not change towing limits")),
+                hasPinout: Boolean(pinout),
+                hasHandoff: Boolean(handoff),
+                pinChoiceCount: handoff ? handoff.querySelectorAll("[data-pinout-choice]").length : 0,
+                hasCopyPin: Boolean(handoff?.querySelector("[data-copy-pinout-handoff]")),
+                hasSharePin: Boolean(handoff?.querySelector("[data-share-pinout-handoff]")),
+                hasTrailerFlowRoute: Boolean(handoff?.querySelector('a[href="diagnostics.html#trailer-light-workflow"]')),
+                hasJournalRoute: Boolean(handoff?.querySelector('a[href="#area-journal"]')),
+                handoffText: handoff?.innerText || "",
+                hasBottomPinoutRoute: [...document.querySelectorAll(".context-action-bar a")].some((link) =>
+                    link.getAttribute("href") === "#pinout" && /pinout/i.test(link.textContent || "")
+                )
             };
         }"""
     )
@@ -1016,6 +1031,45 @@ async def assert_rear_hitch_flow(page, page_name):
         assert_true(phrase in state["text"], f"rear hitch hookup flow is missing '{phrase}'")
     assert_true(not state["missingLinks"], f"rear hitch hookup flow is missing route links: {state['missingLinks']}")
     assert_true(state["hasSourceBoundary"], "rear hitch hookup flow is missing its no-new-facts boundary note")
+    assert_true(state["hasPinout"], "rear hitch page is missing the pinout panel")
+    assert_true(state["hasHandoff"], "rear hitch pinout is missing the trailer-light handoff card")
+    assert_true(state["pinChoiceCount"] == 7, "pinout handoff should expose seven selectable functions")
+    assert_true(state["hasCopyPin"], "pinout handoff is missing Copy Pin")
+    assert_true(state["hasSharePin"], "pinout handoff is missing Share")
+    assert_true(state["hasTrailerFlowRoute"], "pinout handoff is missing the Trailer Flow route")
+    assert_true(state["hasJournalRoute"], "pinout handoff is missing the Save Setup route")
+    assert_true("Copy the selected pin" in state["handoffText"], "pinout handoff is missing its action hint")
+    assert_true(state["hasBottomPinoutRoute"], "rear hitch iPhone bottom bar is missing the Pinout route")
+
+    await page.locator('[data-pinout-choice="running"]').click()
+    running_state = await page.evaluate(
+        """() => {
+            const handoff = document.querySelector("[data-pinout-handoff]");
+            return {
+                title: handoff?.querySelector("[data-pinout-handoff-title]")?.textContent || "",
+                copy: handoff?.querySelector("[data-pinout-handoff-copy]")?.textContent || "",
+                activePressed: handoff?.querySelector('[data-pinout-choice="running"]')?.getAttribute("aria-pressed"),
+                activePin: document.querySelector('[data-pin="running"]')?.classList.contains("is-active"),
+                status: handoff?.querySelector("[data-pinout-handoff-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true("11:00 Pin" in running_state["title"], "running-light handoff did not select the 11:00 pin")
+    assert_true("Running lights" in running_state["title"], "running-light handoff did not name the function")
+    assert_true("marker lights" in running_state["copy"], "running-light handoff did not describe the selected pin")
+    assert_true(running_state["activePressed"] == "true", "running-light handoff button did not expose active state")
+    assert_true(running_state["activePin"], "running-light handoff did not sync the diagram active pin")
+    assert_true("Function selected" in running_state["status"], "pinout handoff did not report selection status")
+
+    await page.locator("[data-copy-pinout-handoff]").click()
+    pin_copy_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("[data-pinout-handoff-status]")?.textContent || "",
+            text: document.querySelector("[data-pinout-handoff]")?.innerText || ""
+        })"""
+    )
+    assert_true("Selected trailer pin handoff copied" in pin_copy_state["status"] or "Copy is unavailable" in pin_copy_state["status"], "pinout handoff copy did not report a result")
+    assert_true("Trailer Flow" in pin_copy_state["text"], "pinout handoff should keep the trailer-flow route visible")
 
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(300)
@@ -1028,6 +1082,10 @@ async def assert_rear_hitch_flow(page, page_name):
             const flow = document.querySelector("#trailer-hookup-flow");
             const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
             const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const handoff = document.querySelector("[data-pinout-handoff]");
+            const choiceRects = handoff ? [...handoff.querySelectorAll("[data-pinout-choice]")].map((button) => button.getBoundingClientRect()) : [];
+            const actionRects = handoff ? [...handoff.querySelectorAll(".pinout-handoff-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
+            const dockLinks = [...document.querySelectorAll(".context-action-bar a, .context-action-bar button")].map((link) => (link.textContent || "").trim());
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 readinessVisible: Boolean(readiness?.getBoundingClientRect().height),
@@ -1036,6 +1094,11 @@ async def assert_rear_hitch_flow(page, page_name):
                 flowVisible: Boolean(flow?.getBoundingClientRect().height),
                 cardsStacked: cardRects.every((rect) => rect.width <= document.documentElement.clientWidth - 16),
                 minCardHeight: Math.min(...cardRects.map((rect) => rect.height)),
+                handoffVisible: Boolean(handoff?.getBoundingClientRect().height),
+                choiceMinHeight: choiceRects.length ? Math.min(...choiceRects.map((rect) => rect.height)) : 0,
+                actionMinHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
+                actionRows: new Set(actionRects.map((rect) => Math.round(rect.top))).size,
+                dockLinks,
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
@@ -1046,6 +1109,11 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(mobile_state["flowVisible"], "rear hitch hookup flow is not visible at iPhone width")
     assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")
+    assert_true(mobile_state["handoffVisible"], "pinout handoff is not visible at iPhone width")
+    assert_true(mobile_state["choiceMinHeight"] >= 44, "pinout handoff choices lost thumb-sized touch targets")
+    assert_true(mobile_state["actionMinHeight"] >= 44, "pinout handoff actions lost thumb-sized touch targets")
+    assert_true(mobile_state["actionRows"] <= 2, "pinout handoff actions should stay compact on iPhone")
+    assert_true(mobile_state["dockLinks"] == ["Tow Day", "Pinout", "Hookup", "More"], "rear hitch mobile bottom bar should prioritize Tow Day, Pinout, Hookup, and More")
     assert_true(not mobile_state["overflow"], "rear hitch hookup flow introduced horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)

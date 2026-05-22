@@ -2029,6 +2029,12 @@ function actionForPage(page) {
       { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ],
+    "rear-hitch.html": [
+      { label: "Tow Day", href: "#tow-day-readiness", icon: "wrench" },
+      { label: "Pinout", href: "#pinout", icon: "bolt" },
+      { label: "Hookup", href: "#trailer-hookup-flow", icon: "check" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
     "garage.html": [
       { label: "Fill-In", href: "#garage-fill-in-checklist", icon: "garage" },
       { label: "Staging", href: "#maintenance-note-preview", icon: "wrench" },

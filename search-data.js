@@ -895,7 +895,22 @@ export const searchIndex = [
     title: "7-Way Pinout",
     url: "rear-hitch.html#pinout",
     category: "Towing",
-    keywords: ["7-way", "pinout", "reverse lights", "12v power", "left turn", "right turn", "brake output", "running lights"]
+    excerpt: "Interactive 7-way blade pinout with a copy/share trailer-light handoff for the selected function.",
+    keywords: [
+      "7-way",
+      "pinout",
+      "reverse lights",
+      "12v power",
+      "left turn",
+      "right turn",
+      "brake output",
+      "running lights",
+      "copy pinout handoff",
+      "share trailer pin",
+      "trailer pin handoff",
+      "selected trailer pin",
+      "trailer connector handoff"
+    ]
   },
   {
     title: "Towing Checklist",

@@ -6442,6 +6442,41 @@ kbd {
   line-height: 1.7;
 }
 
+.pinout-handoff-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 214, 102, 0.2);
+  background: rgba(255, 214, 102, 0.06);
+}
+
+.pinout-handoff-card h4 {
+  margin: 6px 0;
+}
+
+.pinout-handoff-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pinout-choice-grid,
+.pinout-handoff-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pinout-choice-grid .utility-link,
+.pinout-handoff-actions .utility-link {
+  min-height: 42px;
+  padding: 0 10px;
+  text-align: center;
+}
+
 .pinout-node {
   fill: rgba(220, 232, 245, 0.22);
   stroke: #9bd8ff;
@@ -10247,6 +10282,40 @@ kbd {
   .rear-hitch-page .trailer-hookup-card small {
     font-size: 0.76rem;
     line-height: 1.35;
+  }
+
+  .rear-hitch-page .pinout-handoff-card {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .rear-hitch-page .pinout-handoff-card h4 {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .rear-hitch-page .pinout-handoff-card p {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .rear-hitch-page .pinout-choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rear-hitch-page .pinout-handoff-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rear-hitch-page .pinout-choice-grid .utility-link,
+  .rear-hitch-page .pinout-handoff-actions .utility-link {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 0.72rem;
+    line-height: 1.15;
   }
 
   .cargo-page .section-page-hero .section-utility-nav {
