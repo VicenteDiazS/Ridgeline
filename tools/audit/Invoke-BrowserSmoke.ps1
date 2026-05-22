@@ -91,6 +91,8 @@ SEARCH_EXPECTATIONS = {
     "save roadside note": "Roadside Note Receipt",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
+    "recent owner work": "Recent Work Search Strip",
+    "latest service receipt": "Recent Work Search Strip",
     "garage record snapshot": "Garage Fill-In Checklist",
     "copy garage plan": "Garage Fill-In Checklist",
     "tire roadside launcher": "Tire Roadside Launcher",
@@ -2724,6 +2726,24 @@ async def set_search_query(page, query):
 
 
 async def run_overlay_checks(page, page_name):
+    await page.evaluate(
+        """() => {
+            localStorage.setItem("ridgeline-roadside-last-handoff", JSON.stringify({
+                title: "Warning light roadside note",
+                summary: "Saved warning-light roadside handoff",
+                savedAt: "2026-05-21T18:30:00.000Z"
+            }));
+            localStorage.setItem("ridgeline-maintenance-log", JSON.stringify([{
+                createdAt: "2026-05-21T17:30:00.000Z",
+                service: "battery",
+                mileageText: "45,123 mi",
+                note: "Battery closeout saved"
+            }]));
+            localStorage.setItem("ridgeline-notes", JSON.stringify({
+                general_notes: "Garage note from smoke check"
+            }));
+        }"""
+    )
     await page.locator("[data-open-search]").first.focus()
     await page.locator("[data-open-search]").first.click()
     await page.wait_for_timeout(300)
@@ -2736,6 +2756,7 @@ async def run_overlay_checks(page, page_name):
             const grid = document.querySelector(".search-situation-grid");
             const offlineCard = document.querySelector("[data-search-offline-card]");
             const intent = document.querySelector(".search-intent-strip");
+            const recent = document.querySelector("[data-search-recent-work]");
             const required = [
                 "quick-sheet.html#roadside-router",
                 "diagnostics.html#no-start-workflow",
@@ -2752,6 +2773,14 @@ async def run_overlay_checks(page, page_name):
                 hasIntent: Boolean(intent),
                 intentCards: intent?.querySelectorAll("a").length || 0,
                 intentText: intent?.textContent || "",
+                hasRecent: Boolean(recent && !recent.hidden),
+                recentCards: recent?.querySelectorAll("a").length || 0,
+                recentText: recent?.textContent || "",
+                recentMissing: [
+                    "quick-sheet.html#roadside-action-stack",
+                    "maintenance.html#maintenance-updater",
+                    "garage.html#notes"
+                ].filter((href) => !recent?.querySelector(`a[href="${href}"]`)),
                 intentMissing: [
                     "maintenance.html#service-closeout",
                     "garage.html#garage-fill-in-checklist",
@@ -2783,6 +2812,11 @@ async def run_overlay_checks(page, page_name):
     assert_true(not quick_state["intentMissing"], f"search owner shortcut strip is missing routes: {quick_state['intentMissing']}")
     for phrase in ["I need to", "Finish service", "Fill Garage", "Share symptom", "Prep offline"]:
         assert_true(phrase in quick_state["intentText"], f"search owner shortcut strip is missing {phrase}")
+    assert_true(quick_state["hasRecent"], "search modal is missing the seeded recent work strip")
+    assert_true(quick_state["recentCards"] == 3, "search recent work strip should expose three seeded routes")
+    assert_true(not quick_state["recentMissing"], f"search recent work strip is missing routes: {quick_state['recentMissing']}")
+    for phrase in ["Recent Work", "Roadside note", "Service receipt", "Garage notes"]:
+        assert_true(phrase in quick_state["recentText"], f"search recent work strip is missing {phrase}")
     assert_true("Offline pack" in quick_state["offlineText"], "search offline launch pad should show offline pack status")
     assert_true("Before Signal Drops" in quick_state["offlineText"], "search offline launch pad should include signal-loss prep")
     assert_true("Print Sheet" in quick_state["offlineText"], "search offline launch pad should include the Quick Sheet print route")

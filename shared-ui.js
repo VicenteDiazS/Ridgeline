@@ -3947,6 +3947,13 @@ function buildSearchModal() {
           </a>
         </div>
       </section>
+      <section class="search-recent-strip" aria-label="Recent owner work" data-search-recent-work hidden>
+        <div class="search-recent-head">
+          <strong>Recent Work</strong>
+          <span>Continue from this iPhone</span>
+        </div>
+        <div class="search-recent-grid" data-search-recent-list></div>
+      </section>
       <div class="search-situation-grid" aria-label="Common situations">
         <a href="quick-sheet.html#roadside-router">
           <span>Roadside</span>
@@ -4357,6 +4364,8 @@ const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 const searchOfflineCard = searchModal.querySelector("[data-search-offline-card]");
+const searchRecentWork = searchModal.querySelector("[data-search-recent-work]");
+const searchRecentList = searchModal.querySelector("[data-search-recent-list]");
 let searchReturnFocus = null;
 const commandPalette = buildCommandPalette();
 document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
@@ -4576,6 +4585,98 @@ function updateSearchOfflineCard(message = "") {
   }
 }
 
+function readSearchStorage(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function shortSearchText(value = "", maxLength = 86) {
+  const compact = `${value}`.replace(/\s+/g, " ").trim();
+  if (compact.length <= maxLength) {
+    return compact;
+  }
+  return `${compact.slice(0, maxLength - 1).trim()}...`;
+}
+
+function formatSearchRecentDate(value = "") {
+  if (!value) {
+    return "Saved recently";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return `${value}`;
+  }
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function buildSearchRecentItems() {
+  const items = [];
+  const roadside = readSearchStorage("ridgeline-roadside-last-handoff", null);
+  const maintenanceLog = readSearchStorage("ridgeline-maintenance-log", []);
+  const notes = readSearchStorage("ridgeline-notes", {});
+
+  if (roadside?.title || roadside?.summary) {
+    items.push({
+      label: "Roadside note",
+      detail: shortSearchText(roadside.summary || roadside.title || "Last saved roadside handoff"),
+      meta: formatSearchRecentDate(roadside.savedAt),
+      href: "quick-sheet.html#roadside-action-stack"
+    });
+  }
+
+  const latestService = Array.isArray(maintenanceLog) ? maintenanceLog[0] : null;
+  if (latestService?.service || latestService?.mileageText || latestService?.note) {
+    const serviceLabel = `${latestService.service || "Service"}`.replace(/_/g, " ");
+    items.push({
+      label: "Service receipt",
+      detail: shortSearchText(`${serviceLabel}${latestService.mileageText ? ` at ${latestService.mileageText}` : ""}`),
+      meta: formatSearchRecentDate(latestService.createdAt || latestService.date),
+      href: "maintenance.html#maintenance-updater"
+    });
+  }
+
+  if (notes?.general_notes) {
+    items.push({
+      label: "Garage notes",
+      detail: shortSearchText(notes.general_notes),
+      meta: "Open saved notes",
+      href: "garage.html#notes"
+    });
+  }
+
+  return items.slice(0, 3);
+}
+
+function renderSearchRecentWork() {
+  if (!searchRecentWork || !searchRecentList) {
+    return;
+  }
+  const items = buildSearchRecentItems();
+  searchRecentWork.hidden = !items.length;
+  searchRecentList.innerHTML = "";
+
+  items.forEach((item) => {
+    const link = document.createElement("a");
+    link.href = item.href;
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+
+    const detail = document.createElement("strong");
+    detail.textContent = item.detail;
+
+    const meta = document.createElement("em");
+    meta.textContent = item.meta;
+
+    link.append(label, detail, meta);
+    searchRecentList.append(link);
+  });
+}
+
 function openSearch(event) {
   searchReturnFocus =
     event?.currentTarget instanceof HTMLElement
@@ -4586,6 +4687,7 @@ function openSearch(event) {
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
   updateSearchOfflineCard();
+  renderSearchRecentWork();
   renderResults(searchInput.value);
   focusFirstIn(searchModal, "#site-search-input");
 }

@@ -54,6 +54,13 @@ export const searchIndex = [
     keywords: ["owner shortcut strip", "i need to", "finish service", "fill garage", "share symptom", "prep offline", "owner workflow", "iphone owner shortcuts", "search owner intent"]
   },
   {
+    title: "Recent Work Search Strip",
+    url: "garage.html#notes",
+    category: "Navigation",
+    excerpt: "Global Search strip that appears when this iPhone has saved roadside handoffs, service receipts, or Garage notes, letting the owner resume recent work from any page.",
+    keywords: ["recent work search strip", "recent owner work", "continue recent work", "last roadside note", "latest service receipt", "garage notes shortcut", "recent handoff", "iphone recent work"]
+  },
+  {
     title: "Roadside Note Receipt",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Quick Sheet",
