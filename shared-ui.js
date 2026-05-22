@@ -4753,9 +4753,36 @@ function renderSearchResumeWork() {
 
 function buildSearchRecentItems() {
   const items = [];
+  const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
   const roadside = readSearchStorage("ridgeline-roadside-last-handoff", null);
   const maintenanceLog = readSearchStorage("ridgeline-maintenance-log", []);
   const notes = readSearchStorage("ridgeline-notes", {});
+
+  if (diagnostic?.title || diagnostic?.summary || diagnostic?.reference) {
+    items.push({
+      label: "Diagnostic note",
+      detail: shortSearchText(diagnostic.summary || diagnostic.title || "Last saved diagnostic handoff"),
+      meta: formatSearchRecentDate(diagnostic.savedAt),
+      href: "garage.html#diagnostic-activity"
+    });
+  } else if (
+    notes?.warning_light_indicator ||
+    notes?.warning_light_mid_message ||
+    notes?.warning_light_behavior ||
+    notes?.warning_light_next_action
+  ) {
+    items.push({
+      label: "Warning note",
+      detail: shortSearchText(
+        notes.warning_light_indicator ||
+          notes.warning_light_mid_message ||
+          notes.warning_light_behavior ||
+          "Saved warning-light diagnostic memory"
+      ),
+      meta: "Open diagnostics",
+      href: "garage.html#diagnostic-activity"
+    });
+  }
 
   if (roadside?.title || roadside?.summary) {
     items.push({

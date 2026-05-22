@@ -110,6 +110,8 @@ SEARCH_EXPECTATIONS = {
     "continue where i left off": "Resume Search Strip",
     "recent owner work": "Recent Work Search Strip",
     "latest service receipt": "Recent Work Search Strip",
+    "latest diagnostic note": "Recent Work Search Strip",
+    "saved diagnostic note": "Recent Work Search Strip",
     "garage record snapshot": "Garage Fill-In Checklist",
     "copy garage plan": "Garage Fill-In Checklist",
     "latest maintenance handoff": "Garage Fill-In Checklist",
@@ -3193,6 +3195,13 @@ async def run_overlay_checks(page, page_name):
                 summary: "Saved warning-light roadside handoff",
                 savedAt: "2026-05-21T18:30:00.000Z"
             }));
+            localStorage.setItem("ridgeline-diagnostic-last-handoff", JSON.stringify({
+                planKey: "warning",
+                title: "Warning light or MID message",
+                summary: "Record color, exact wording, and what happened before it appeared saved into Garage Notes.",
+                reference: "warning-light flow, emergency card, Garage warning note",
+                savedAt: "2026-05-21T18:45:00.000Z"
+            }));
             localStorage.setItem("ridgeline-maintenance-log", JSON.stringify([{
                 createdAt: "2026-05-21T17:30:00.000Z",
                 service: "battery",
@@ -3262,9 +3271,9 @@ async def run_overlay_checks(page, page_name):
                 recentCards: recent?.querySelectorAll("a").length || 0,
                 recentText: recent?.textContent || "",
                 recentMissing: [
+                    "garage.html#diagnostic-activity",
                     "quick-sheet.html#roadside-action-stack",
-                    "maintenance.html#maintenance-updater",
-                    "garage.html#notes"
+                    "maintenance.html#maintenance-updater"
                 ].filter((href) => !recent?.querySelector(`a[href="${href}"]`)),
                 intentMissing: [
                     "maintenance.html#service-closeout",
@@ -3306,7 +3315,7 @@ async def run_overlay_checks(page, page_name):
     assert_true(quick_state["hasRecent"], "search modal is missing the seeded recent work strip")
     assert_true(quick_state["recentCards"] == 3, "search recent work strip should expose three seeded routes")
     assert_true(not quick_state["recentMissing"], f"search recent work strip is missing routes: {quick_state['recentMissing']}")
-    for phrase in ["Recent Work", "Roadside note", "Service receipt", "Garage notes"]:
+    for phrase in ["Recent Work", "Diagnostic note", "Roadside note", "Service receipt"]:
         assert_true(phrase in quick_state["recentText"], f"search recent work strip is missing {phrase}")
     assert_true("Offline pack" in quick_state["offlineText"], "search offline launch pad should show offline pack status")
     assert_true("Before Signal Drops" in quick_state["offlineText"], "search offline launch pad should include signal-loss prep")
