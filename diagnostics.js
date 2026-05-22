@@ -19,7 +19,8 @@ const diagnosticSharePlans = {
     ],
     reference: "References: no-start workflow, battery/jump card, Garage notes.",
     primary: { label: "No-Start Flow", href: "#no-start-workflow" },
-    secondary: { label: "Jump Notes", href: "hood.html#wiring" }
+    secondary: { label: "Jump Notes", href: "hood.html#wiring" },
+    dock: { primary: "No-Start", secondary: "Jump" }
   },
   warning: {
     kicker: "Warning light or MID message",
@@ -32,7 +33,8 @@ const diagnosticSharePlans = {
     ],
     reference: "References: warning-light flow, emergency card, Garage warning note.",
     primary: { label: "Warning Flow", href: "#warning-light-workflow" },
-    secondary: { label: "Save Warning Note", href: "garage.html#warning-light-template" }
+    secondary: { label: "Save Warning Note", href: "garage.html#warning-light-template" },
+    dock: { primary: "Warning", secondary: "Note" }
   },
   power: {
     kicker: "12V socket or accessory power",
@@ -45,7 +47,8 @@ const diagnosticSharePlans = {
     ],
     reference: "References: accessory-power flow, Cabin fuses, Garage notes.",
     primary: { label: "12V Power Flow", href: "#accessory-power-workflow" },
-    secondary: { label: "Cabin Fuses", href: "cabin.html#fuses" }
+    secondary: { label: "Cabin Fuses", href: "cabin.html#fuses" },
+    dock: { primary: "12V", secondary: "Fuses" }
   },
   audio: {
     kicker: "Audio, radio, or display issue",
@@ -58,7 +61,8 @@ const diagnosticSharePlans = {
     ],
     reference: "References: audio/display flow, Cabin Audio / ACC, Garage notes.",
     primary: { label: "Audio Flow", href: "#audio-display-workflow" },
-    secondary: { label: "Cabin Audio", href: "cabin.html#cabin-fuse-box-b" }
+    secondary: { label: "Cabin Audio", href: "cabin.html#cabin-fuse-box-b" },
+    dock: { primary: "Audio", secondary: "Cabin" }
   },
   trailer: {
     kicker: "Trailer light or connector issue",
@@ -71,7 +75,8 @@ const diagnosticSharePlans = {
     ],
     reference: "References: trailer-light flow, 7-way pinout, Garage or hitch journal.",
     primary: { label: "Trailer Flow", href: "#trailer-light-workflow" },
-    secondary: { label: "7-Way Pinout", href: "rear-hitch.html#pinout" }
+    secondary: { label: "7-Way Pinout", href: "rear-hitch.html#pinout" },
+    dock: { primary: "Trailer", secondary: "Pinout" }
   }
 };
 
@@ -160,6 +165,38 @@ function setDiagnosticShareStatus(root, message) {
   }
 }
 
+function updateDiagnosticDock(plan) {
+  const dock = document.querySelector("[data-diagnostic-dock]");
+  const contextBar = document.querySelector(".context-action-bar");
+  if (!plan) {
+    return;
+  }
+
+  const primary = dock?.querySelector("[data-diagnostic-dock-primary]");
+  const secondary = dock?.querySelector("[data-diagnostic-dock-secondary]");
+  if (primary) {
+    primary.textContent = plan.dock?.primary || plan.primary.label;
+    primary.setAttribute("href", plan.primary.href);
+  }
+  if (secondary) {
+    secondary.textContent = plan.dock?.secondary || plan.secondary.label;
+    secondary.setAttribute("href", plan.secondary.href);
+  }
+  dock?.setAttribute("aria-label", `Diagnostic quick return for ${plan.kicker}`);
+
+  const contextPrimary = contextBar?.querySelector('[data-diagnostic-context="primary"]');
+  const contextSecondary = contextBar?.querySelector('[data-diagnostic-context="secondary"]');
+  if (contextPrimary) {
+    contextPrimary.querySelector("span").textContent = plan.dock?.primary || plan.primary.label;
+    contextPrimary.setAttribute("href", plan.primary.href);
+  }
+  if (contextSecondary) {
+    contextSecondary.querySelector("span").textContent = plan.dock?.secondary || plan.secondary.label;
+    contextSecondary.setAttribute("href", plan.secondary.href);
+  }
+  contextBar?.setAttribute("aria-label", `Context actions for ${plan.kicker}`);
+}
+
 function updateDiagnosticSharePlan(root, key) {
   const plan = diagnosticSharePlans[key] || diagnosticSharePlans.start;
   root.dataset.currentDiagnosticSharePlan = key;
@@ -186,6 +223,7 @@ function updateDiagnosticSharePlan(root, key) {
   });
 
   setDiagnosticShareStatus(root, `${plan.kicker} handoff ready.`);
+  updateDiagnosticDock(plan);
 }
 
 async function copyText(text) {

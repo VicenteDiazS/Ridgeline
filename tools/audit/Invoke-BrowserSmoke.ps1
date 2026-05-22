@@ -62,6 +62,7 @@ SEARCH_EXPECTATIONS = {
     "share diagnostic note": "Diagnostic Handoff Builder",
     "save diagnostic note": "Diagnostic Handoff Builder",
     "diagnostic note receipt": "Diagnostic Handoff Builder",
+    "diagnostic smart dock": "Diagnostic Handoff Builder",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
@@ -508,6 +509,16 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 receiptHidden: Boolean(shareBuilder?.querySelector("[data-diagnostic-save-receipt]")?.hidden),
                 sharePrimary: shareBuilder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
                 shareSecondary: shareBuilder?.querySelector("[data-diagnostic-share-secondary]")?.getAttribute("href") || "",
+                dockPrimary: document.querySelector("[data-diagnostic-dock-primary]")?.getAttribute("href") || "",
+                dockPrimaryText: document.querySelector("[data-diagnostic-dock-primary]")?.textContent.trim() || "",
+                dockSecondary: document.querySelector("[data-diagnostic-dock-secondary]")?.getAttribute("href") || "",
+                dockSecondaryText: document.querySelector("[data-diagnostic-dock-secondary]")?.textContent.trim() || "",
+                dockLabel: document.querySelector("[data-diagnostic-dock]")?.getAttribute("aria-label") || "",
+                contextPrimary: document.querySelector('[data-diagnostic-context="primary"]')?.getAttribute("href") || "",
+                contextPrimaryText: document.querySelector('[data-diagnostic-context="primary"] span')?.textContent.trim() || "",
+                contextSecondary: document.querySelector('[data-diagnostic-context="secondary"]')?.getAttribute("href") || "",
+                contextSecondaryText: document.querySelector('[data-diagnostic-context="secondary"] span')?.textContent.trim() || "",
+                contextLabel: document.querySelector(".context-action-bar")?.getAttribute("aria-label") || "",
                 cardCount: workflowCards.length,
                 hasTrailerCard: workflowCards.some((card) => card.hash === "#trailer-light-workflow"),
                 hasWarningCard: workflowCards.some((card) => card.hash === "#warning-light-workflow"),
@@ -535,6 +546,11 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(state["receiptHidden"], "diagnostic saved-note receipt should stay hidden until a note is saved")
     assert_true(state["sharePrimary"] == "#no-start-workflow", "diagnostic handoff builder should default to no-start flow")
     assert_true(state["shareSecondary"] == "hood.html#wiring", "diagnostic handoff builder should default to jump notes")
+    assert_true(state["contextPrimary"] == "#no-start-workflow", "diagnostic bottom bar should default to no-start flow")
+    assert_true(state["contextPrimaryText"] == "No-Start", "diagnostic bottom bar should label the default flow")
+    assert_true(state["contextSecondary"] == "hood.html#wiring", "diagnostic bottom bar should default to jump notes")
+    assert_true(state["contextSecondaryText"] == "Jump", "diagnostic bottom bar should label the default reference")
+    assert_true("No start or weak battery" in state["contextLabel"], "diagnostic bottom bar should announce the selected default handoff")
     for phrase in ["No start", "Warning", "12V Power", "Audio", "Trailer", "Copy Handoff", "Save Note"]:
         assert_true(phrase in state["shareText"], f"diagnostic handoff builder is missing {phrase}")
     await page.evaluate("""() => document.querySelector('[data-diagnostic-share-plan="warning"]').click()""")
@@ -545,6 +561,16 @@ async def assert_diagnostics_workflow_index(page, page_name):
             return {
                 primary: builder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
                 secondary: builder?.querySelector("[data-diagnostic-share-secondary]")?.getAttribute("href") || "",
+                dockPrimary: document.querySelector("[data-diagnostic-dock-primary]")?.getAttribute("href") || "",
+                dockPrimaryText: document.querySelector("[data-diagnostic-dock-primary]")?.textContent.trim() || "",
+                dockSecondary: document.querySelector("[data-diagnostic-dock-secondary]")?.getAttribute("href") || "",
+                dockSecondaryText: document.querySelector("[data-diagnostic-dock-secondary]")?.textContent.trim() || "",
+                dockLabel: document.querySelector("[data-diagnostic-dock]")?.getAttribute("aria-label") || "",
+                contextPrimary: document.querySelector('[data-diagnostic-context="primary"]')?.getAttribute("href") || "",
+                contextPrimaryText: document.querySelector('[data-diagnostic-context="primary"] span')?.textContent.trim() || "",
+                contextSecondary: document.querySelector('[data-diagnostic-context="secondary"]')?.getAttribute("href") || "",
+                contextSecondaryText: document.querySelector('[data-diagnostic-context="secondary"] span')?.textContent.trim() || "",
+                contextLabel: document.querySelector(".context-action-bar")?.getAttribute("aria-label") || "",
                 pressed: builder?.querySelector('[data-diagnostic-share-plan="warning"]')?.getAttribute("aria-pressed") || "",
                 status: builder?.querySelector("[data-diagnostic-share-status]")?.textContent || "",
                 text: builder?.innerText || ""
@@ -553,6 +579,11 @@ async def assert_diagnostics_workflow_index(page, page_name):
     )
     assert_true(warning_share["primary"] == "#warning-light-workflow", "warning diagnostic handoff should route to warning flow")
     assert_true(warning_share["secondary"] == "garage.html#warning-light-template", "warning diagnostic handoff should route to Garage warning note")
+    assert_true(warning_share["contextPrimary"] == "#warning-light-workflow", "diagnostic bottom bar should follow the selected warning flow")
+    assert_true(warning_share["contextPrimaryText"] == "Warning", "diagnostic bottom bar should label the selected warning flow")
+    assert_true(warning_share["contextSecondary"] == "garage.html#warning-light-template", "diagnostic bottom bar should follow the selected warning reference")
+    assert_true(warning_share["contextSecondaryText"] == "Note", "diagnostic bottom bar should label the selected warning reference")
+    assert_true("Warning light or MID message" in warning_share["contextLabel"], "diagnostic bottom bar should announce the selected warning handoff")
     assert_true(warning_share["pressed"] == "true", "warning diagnostic handoff button should become active")
     assert_true("Warning light or MID message handoff ready" in warning_share["status"], "warning diagnostic handoff status did not update")
     assert_true("exact indicator name" in warning_share["text"], "warning diagnostic handoff did not render warning-specific steps")
@@ -623,6 +654,10 @@ async def assert_diagnostics_workflow_index(page, page_name):
                     ? new Set([...shareActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
                     : 0,
                 receiptVisible: Boolean(receipt && receipt.getBoundingClientRect().height > 0),
+                dockPrimaryVisible: Boolean(document.querySelector("[data-diagnostic-dock-primary]")?.getBoundingClientRect().height >= 38),
+                dockSecondaryVisible: Boolean(document.querySelector("[data-diagnostic-dock-secondary]")?.getBoundingClientRect().height >= 38),
+                contextPrimaryVisible: Boolean(document.querySelector('[data-diagnostic-context="primary"]')?.getBoundingClientRect().height >= 38),
+                contextSecondaryVisible: Boolean(document.querySelector('[data-diagnostic-context="secondary"]')?.getBoundingClientRect().height >= 38),
                 minReceiptActionHeight: receipt
                     ? Math.min(...[...receipt.querySelectorAll(".utility-link")].map((link) => link.getBoundingClientRect().height))
                     : 0,
@@ -637,6 +672,8 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["shareColumns"] == 3, "diagnostic handoff builder picker should use three compact columns at iPhone width")
     assert_true(mobile_state["shareActionRows"] == 3, "diagnostic handoff builder actions should use three compact rows at iPhone width")
     assert_true(mobile_state["receiptVisible"], "saved diagnostic receipt is not visible at iPhone width after save")
+    assert_true(mobile_state["contextPrimaryVisible"], "diagnostic bottom-bar selected-flow action should stay thumb-readable on iPhone")
+    assert_true(mobile_state["contextSecondaryVisible"], "diagnostic bottom-bar selected-reference action should stay thumb-readable on iPhone")
     assert_true(mobile_state["minReceiptActionHeight"] >= 38, "saved diagnostic receipt actions should stay thumb-readable on iPhone")
     assert_true(not mobile_state["overflow"], "first-minute triage introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})

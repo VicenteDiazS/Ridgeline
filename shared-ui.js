@@ -2024,9 +2024,9 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "diagnostics.html": [
-      { label: "Flows", href: "#workflow-index", icon: "diag" },
-      { label: "Fuses", href: "hood.html#fuses", icon: "bolt" },
-      { label: "Search", action: "search", icon: "search" },
+      { label: "Share", href: "#diagnostic-share-builder", icon: "note" },
+      { label: "No-Start", href: "#no-start-workflow", icon: "diag", diagnosticContext: "primary" },
+      { label: "Jump", href: "hood.html#wiring", icon: "bolt", diagnosticContext: "secondary" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "rear-hitch.html": [
@@ -2112,7 +2112,8 @@ function buildContextualBottomBar() {
       const attrs = item.action
         ? `href="#" data-context-action="${item.action}"`
         : `href="${item.href}"`;
-      return `<a class="context-action" ${attrs} data-nav-icon="${item.icon || getNavIcon(item.label, item.href || item.action)}"><span>${item.label}</span></a>`;
+      const diagnosticContext = item.diagnosticContext ? ` data-diagnostic-context="${item.diagnosticContext}"` : "";
+      return `<a class="context-action" ${attrs}${diagnosticContext} data-nav-icon="${item.icon || getNavIcon(item.label, item.href || item.action)}"><span>${item.label}</span></a>`;
     })
     .join("");
 

@@ -6124,6 +6124,22 @@ kbd {
   font-weight: 600;
 }
 
+.diagnostics-page .diagnostic-dock a[data-diagnostic-dock-primary],
+.diagnostics-page .diagnostic-dock a[data-diagnostic-dock-secondary] {
+  border-color: rgba(255, 184, 108, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 184, 108, 0.12), rgba(121, 212, 255, 0.05)),
+    rgba(255, 255, 255, 0.05);
+}
+
+.diagnostics-page .context-action[data-diagnostic-context="primary"],
+.diagnostics-page .context-action[data-diagnostic-context="secondary"] {
+  border-color: rgba(255, 184, 108, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 184, 108, 0.12), rgba(121, 212, 255, 0.06)),
+    rgba(255, 255, 255, 0.06);
+}
+
 .related-strip {
   position: relative;
   margin-top: 18px;
@@ -11397,6 +11413,15 @@ kbd {
     min-height: 44px;
     scroll-snap-align: start;
     font-size: 0.78rem;
+  }
+
+  .diagnostics-page .diagnostic-dock a {
+    min-width: 86px;
+  }
+
+  .diagnostics-page .diagnostic-dock a[data-diagnostic-dock-primary],
+  .diagnostics-page .diagnostic-dock a[data-diagnostic-dock-secondary] {
+    min-width: 96px;
   }
 
   .back-to-map-fab {
