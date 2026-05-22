@@ -25,6 +25,7 @@ const els = {
   publicImpactScore: document.querySelector("[data-anton-impact-score]"),
   publicVisibleChange: document.querySelector("[data-anton-visible-change]"),
   publicImpactReason: document.querySelector("[data-anton-impact-reason]"),
+  runSnapshot: document.querySelector("[data-anton-run-snapshot]"),
   ownerCheckTitle: document.querySelector("[data-anton-owner-check-title]"),
   ownerCheckDetail: document.querySelector("[data-anton-owner-check-detail]"),
   ownerCheckLink: document.querySelector("[data-anton-owner-check-link]"),
@@ -113,6 +114,30 @@ function describeNextRun(value) {
     return "due now";
   }
   return `next check in about ${minutes} min`;
+}
+
+function minutesSince(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+}
+
+function compactAge(value, fallback = "Not recorded") {
+  const minutes = minutesSince(value);
+  if (minutes === null) {
+    return fallback;
+  }
+  if (minutes <= 1) {
+    return "just now";
+  }
+  return `${minutes} min ago`;
 }
 
 function requestHeaders() {
@@ -233,6 +258,49 @@ function renderOwnerCheck(status) {
     next,
     score
   });
+}
+
+function renderRunSnapshot(status) {
+  if (!els.runSnapshot) {
+    return;
+  }
+
+  const state = status.status || "unknown";
+  const phase = status.phase || state || "Unknown";
+  const startedAge = compactAge(status.startedAt, "Start not recorded");
+  const heartbeatAge = compactAge(status.lastHeartbeatAt, "Heartbeat not recorded");
+  const isRunning = state === "running";
+  const needsFix = ["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth", "command-error"].includes(state);
+  const score = Number.isFinite(Number(status.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored";
+  const visibleChange = status.visibleChange || firstSummaryLine(status.summary);
+  const ownerTitle = isRunning ? "Wait for finish" : needsFix ? "Fix before next run" : "Review on iPhone";
+  const ownerDetail = isRunning
+    ? "Refresh this page after the run finishes before judging the site change."
+    : needsFix
+      ? summarizeText(status.actionRequired || status.diagnostic || "Check the run log before starting another slice.")
+      : `${score}: ${visibleChange}`;
+  const heartbeatDetail = isRunning
+    ? `Started ${startedAge}; latest heartbeat ${heartbeatAge}.`
+    : `Finished ${compactAge(status.finishedAt || status.lastHeartbeatAt, "finish not recorded")}; next check ${describeNextRun(status.nextExpectedRunAt)}.`;
+
+  els.runSnapshot.dataset.antonRunState = state;
+  els.runSnapshot.innerHTML = `
+    <article>
+      <span>Stage</span>
+      <strong>${escapeHtml(phase)}</strong>
+      <p>${escapeHtml(status.statusTitle || state || "Anton status")}</p>
+    </article>
+    <article>
+      <span>Heartbeat</span>
+      <strong>${escapeHtml(heartbeatAge)}</strong>
+      <p>${escapeHtml(heartbeatDetail)}</p>
+    </article>
+    <article>
+      <span>Owner Move</span>
+      <strong>${escapeHtml(ownerTitle)}</strong>
+      <p>${escapeHtml(ownerDetail)}</p>
+    </article>
+  `;
 }
 
 function reviewToneForStatus(status) {
@@ -474,6 +542,7 @@ async function loadAgentRunStatus() {
     if (els.publicImpactReason) {
       els.publicImpactReason.textContent = status.impactReason || "Anton will publish an impact reason after the next scored run.";
     }
+    renderRunSnapshot(status);
     renderOwnerCheck(status);
     if (els.publicSummary) {
       els.publicSummary.textContent = summarizeText(status.summary);
@@ -497,6 +566,16 @@ async function loadAgentRunStatus() {
     }
     if (els.publicSummary) {
       els.publicSummary.textContent = `Could not load Anton's pushed status. ${error.message}`;
+    }
+    if (els.runSnapshot) {
+      els.runSnapshot.dataset.antonRunState = "unavailable";
+      els.runSnapshot.innerHTML = `
+        <article>
+          <span>Stage</span>
+          <strong>Status unavailable</strong>
+          <p>${escapeHtml(error.message)}</p>
+        </article>
+      `;
     }
   }
 }

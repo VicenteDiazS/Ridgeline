@@ -118,6 +118,7 @@ SEARCH_EXPECTATIONS = {
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
     "anton owner check": "Anton Owner Check",
+    "anton run snapshot": "Anton Owner Check",
     "capture clues": "Diagnostic Clue Capture",
 }
 
@@ -291,12 +292,15 @@ async def assert_anton_owner_check(page, page_name):
 
     await page.wait_for_selector(".anton-owner-check", state="attached", timeout=7000)
     await page.wait_for_selector("[data-anton-review-queue]", state="attached", timeout=7000)
+    await page.wait_for_selector("[data-anton-run-snapshot]", state="attached", timeout=7000)
     await page.wait_for_timeout(500)
     state = await page.evaluate(
         """() => {
             const panel = document.querySelector(".anton-owner-check");
+            const snapshot = document.querySelector("[data-anton-run-snapshot]");
             const queue = document.querySelector("[data-anton-review-queue]");
             const cards = [...panel?.querySelectorAll("article") || []];
+            const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
             const queueLinks = [...queue?.querySelectorAll("a") || []].map((item) => ({
@@ -307,9 +311,12 @@ async def assert_anton_owner_check(page, page_name):
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 hasPanel: Boolean(panel),
+                hasSnapshot: Boolean(snapshot),
                 hasQueue: Boolean(queue),
                 cardCount: cards.length,
+                snapshotCardCount: snapshotCards.length,
                 queueCardCount: queueCards.length,
+                snapshotText: (snapshot?.innerText || "").toLowerCase(),
                 text: (panel?.innerText || "").toLowerCase(),
                 queueText: (queue?.innerText || "").toLowerCase(),
                 linkHref: link?.getAttribute("href") || "",
@@ -321,9 +328,14 @@ async def assert_anton_owner_check(page, page_name):
         }"""
     )
     assert_true(state["hasPanel"], "Anton page is missing the owner check strip")
+    assert_true(state["hasSnapshot"], "Anton page is missing the live run snapshot")
     assert_true(state["hasQueue"], "Anton page is missing the iPhone review queue")
     assert_true(state["cardCount"] == 3, "Anton owner check should have three action cards")
+    assert_true(state["snapshotCardCount"] == 3, "Anton run snapshot should have three cards")
     assert_true(state["queueCardCount"] == 4, "Anton review queue should have four review cards")
+    assert_true("stage" in state["snapshotText"], "Anton run snapshot is missing the stage card")
+    assert_true("heartbeat" in state["snapshotText"], "Anton run snapshot is missing the heartbeat card")
+    assert_true("owner move" in state["snapshotText"], "Anton run snapshot is missing the owner-move card")
     assert_true("owner check" in state["text"], "Anton owner check is missing the owner-check label")
     assert_true("needs you?" in state["text"], "Anton owner check is missing the action-needed card")
     assert_true("next check" in state["text"], "Anton owner check is missing the next-check card")
@@ -341,15 +353,19 @@ async def assert_anton_owner_check(page, page_name):
     mobile_state = await page.evaluate(
         """() => {
             const panel = document.querySelector(".anton-owner-check");
+            const snapshot = document.querySelector("[data-anton-run-snapshot]");
             const queue = document.querySelector("[data-anton-review-queue]");
             const cards = [...panel?.querySelectorAll("article") || []];
+            const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(panel && panel.getBoundingClientRect().height > 0),
+                snapshotVisible: Boolean(snapshot && snapshot.getBoundingClientRect().height > 0),
                 queueVisible: Boolean(queue && queue.getBoundingClientRect().height > 0),
                 columns: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
+                snapshotColumns: snapshotCards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 queueColumns: queueCards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 queueLinkHeights: [...queue?.querySelectorAll("a") || []].map((item) => Math.round(item.getBoundingClientRect().height)),
                 linkHeight: Math.round(link?.getBoundingClientRect().height || 0),
@@ -358,8 +374,10 @@ async def assert_anton_owner_check(page, page_name):
         }"""
     )
     assert_true(mobile_state["visible"], "Anton owner check is not visible at iPhone width")
+    assert_true(mobile_state["snapshotVisible"], "Anton run snapshot is not visible at iPhone width")
     assert_true(mobile_state["queueVisible"], "Anton review queue is not visible at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["columns"]), "Anton owner check cards should stack at iPhone width")
+    assert_true(all(width >= 340 for width in mobile_state["snapshotColumns"]), "Anton run snapshot cards should stack at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["queueColumns"]), "Anton review queue cards should stack at iPhone width")
     assert_true(mobile_state["linkHeight"] >= 38, "Anton owner check action is too small for touch")
     assert_true(all(height >= 38 for height in mobile_state["queueLinkHeights"]), "Anton review queue actions are too small for touch")

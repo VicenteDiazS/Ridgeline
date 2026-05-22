@@ -130,6 +130,30 @@ function minutesUntil(value) {
   return Math.round((date.getTime() - Date.now()) / 60000);
 }
 
+function minutesSince(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+}
+
+function compactAge(value, fallback = "") {
+  const minutes = minutesSince(value);
+  if (minutes === null) {
+    return fallback;
+  }
+  if (minutes <= 1) {
+    return "now";
+  }
+  return `${minutes} min`;
+}
+
 function describeNextRun(value) {
   const minutes = minutesUntil(value);
   if (minutes === null) {
@@ -190,13 +214,23 @@ function renderHomeAgentCard(data) {
   const detailNode = homeAgentCard.querySelector("[data-agent-home-detail]");
   const kickerNode = homeAgentCard.querySelector("[data-agent-home-kicker]");
   const score = Number.isFinite(Number(data.impactScore)) ? `${Number(data.impactScore)}/5` : "";
-  const title = impact.visibleChange || data.statusTitle || health.label || "Anton status";
+  const running = data.status === "running";
+  const title = running
+    ? (data.statusTitle || "Anton is working")
+    : (impact.visibleChange || data.statusTitle || health.label || "Anton status");
   const next = describeNextRun(data.nextExpectedRunAt);
-  const detailParts = [
-    score ? `Impact ${score}` : health.label,
-    data.pushed ? "pushed" : data.status === "running" ? "running" : "local",
-    next
-  ].filter(Boolean);
+  const detailParts = running
+    ? [
+        data.phase || health.label,
+        "running",
+        compactAge(data.startedAt, "active"),
+        compactAge(data.lastHeartbeatAt, "heartbeat")
+      ]
+    : [
+        score ? `Impact ${score}` : health.label,
+        data.pushed ? "pushed" : "local",
+        next
+      ].filter(Boolean);
 
   homeAgentCard.dataset.agentHealth = health.state;
   homeAgentCard.setAttribute(
