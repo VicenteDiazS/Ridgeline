@@ -6579,6 +6579,41 @@ kbd {
   border-color: rgba(255, 214, 102, 0.2);
 }
 
+.tow-setup-saver {
+  border-color: rgba(111, 255, 180, 0.22);
+}
+
+.tow-setup-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tow-setup-result-picker {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tow-setup-preview {
+  margin-top: 4px;
+  border-color: rgba(111, 255, 180, 0.18);
+  background: rgba(111, 255, 180, 0.055);
+}
+
+.tow-setup-preview strong {
+  display: block;
+  margin: 6px 0;
+  color: var(--text);
+}
+
+.tow-setup-preview p {
+  margin: 0;
+}
+
+.tow-setup-actions {
+  margin-top: 12px;
+}
+
 .tow-day-readiness {
   border-color: rgba(111, 255, 180, 0.22);
 }
@@ -10627,6 +10662,40 @@ kbd {
   .rear-hitch-page .trailer-hookup-card small {
     font-size: 0.76rem;
     line-height: 1.35;
+  }
+
+  .rear-hitch-page .tow-setup-saver {
+    padding: 12px;
+  }
+
+  .rear-hitch-page .tow-setup-picker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rear-hitch-page .tow-setup-result-picker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .rear-hitch-page .tow-setup-picker .utility-link {
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    line-height: 1.15;
+  }
+
+  .rear-hitch-page .tow-setup-preview {
+    padding: 12px;
+  }
+
+  .rear-hitch-page .tow-setup-preview strong {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .rear-hitch-page .tow-setup-preview p {
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
 
   .rear-hitch-page .pinout-handoff-card {

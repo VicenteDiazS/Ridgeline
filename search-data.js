@@ -937,6 +937,27 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tow Setup Saver",
+    url: "rear-hitch.html#tow-setup-saver",
+    category: "Towing",
+    excerpt: "iPhone tow setup saver for selecting the trailer plug or adapter, recording the light-check result, and saving the note into the existing Rear Hitch Journal.",
+    keywords: [
+      "tow setup saver",
+      "save tow setup",
+      "copy tow setup",
+      "share tow setup",
+      "trailer setup note",
+      "save trailer setup",
+      "adapter light check",
+      "tow journal",
+      "rear hitch journal",
+      "7 way setup",
+      "4 flat setup",
+      "trailer light passed",
+      "trailer light issue"
+    ]
+  },
+  {
     title: "Trailer Connector Diagram",
     url: "rear-hitch.html#connector",
     category: "Towing",

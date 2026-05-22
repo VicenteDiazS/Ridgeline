@@ -42,6 +42,9 @@ SEARCH_EXPECTATIONS = {
     "trailer hookup": "Trailer Hookup Flow",
     "tow day readiness": "Tow Day Readiness",
     "tow prep": "Tow Day Readiness",
+    "tow setup saver": "Tow Setup Saver",
+    "copy tow setup": "Tow Setup Saver",
+    "trailer setup note": "Tow Setup Saver",
     "copy pinout handoff": "7-Way Pinout",
     "trailer pin handoff": "7-Way Pinout",
     "engine service jumpstart": "Engine Service Jumpstart",
@@ -1205,6 +1208,7 @@ async def assert_rear_hitch_flow(page, page_name):
             const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
             const pinout = document.querySelector("#pinout");
             const handoff = document.querySelector("[data-pinout-handoff]");
+            const saver = document.querySelector("#tow-setup-saver");
             const requiredLinks = [
                 "#tow-checklist",
                 "#pinout",
@@ -1225,6 +1229,15 @@ async def assert_rear_hitch_flow(page, page_name):
                 hasTrailerFlowRoute: Boolean(handoff?.querySelector('a[href="diagnostics.html#trailer-light-workflow"]')),
                 hasJournalRoute: Boolean(handoff?.querySelector('a[href="#area-journal"]')),
                 handoffText: handoff?.innerText || "",
+                hasSaver: Boolean(saver),
+                saverText: saver?.innerText || "",
+                saverPlugButtons: saver?.querySelectorAll("[data-tow-setup-plug]").length || 0,
+                saverResultButtons: saver?.querySelectorAll("[data-tow-setup-result]").length || 0,
+                hasCopySetup: Boolean(saver?.querySelector("[data-copy-tow-setup]")),
+                hasShareSetup: Boolean(saver?.querySelector("[data-share-tow-setup]")),
+                hasSaveSetup: Boolean(saver?.querySelector("[data-save-tow-setup]")),
+                hasOpenJournal: Boolean(saver?.querySelector('a[href="#area-journal"]')),
+                heroHasSaverRoute: Boolean(document.querySelector('.section-page-hero a[href="#tow-setup-saver"]')),
                 hasBottomPinoutRoute: [...document.querySelectorAll(".context-action-bar a")].some((link) =>
                     link.getAttribute("href") === "#pinout" && /pinout/i.test(link.textContent || "")
                 )
@@ -1245,6 +1258,16 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(state["hasTrailerFlowRoute"], "pinout handoff is missing the Trailer Flow route")
     assert_true(state["hasJournalRoute"], "pinout handoff is missing the Save Setup route")
     assert_true("Copy the selected pin" in state["handoffText"], "pinout handoff is missing its action hint")
+    assert_true(state["hasSaver"], "rear hitch is missing the Tow Setup Saver")
+    assert_true(state["saverPlugButtons"] == 4, "Tow Setup Saver should expose four plug choices")
+    assert_true(state["saverResultButtons"] == 3, "Tow Setup Saver should expose three light-check results")
+    assert_true(state["hasCopySetup"], "Tow Setup Saver is missing Copy Setup")
+    assert_true(state["hasShareSetup"], "Tow Setup Saver is missing Share")
+    assert_true(state["hasSaveSetup"], "Tow Setup Saver is missing Save Journal")
+    assert_true(state["hasOpenJournal"], "Tow Setup Saver is missing Open Journal")
+    assert_true(state["heroHasSaverRoute"], "rear hitch hero is missing the Tow Setup Saver route")
+    for phrase in ["Save The Trailer Setup", "7-Way", "4-Flat", "Passed", "Issue", "existing Rear Hitch Journal", "does not add towing limits"]:
+        assert_true(phrase in state["saverText"], f"Tow Setup Saver is missing '{phrase}'")
     assert_true(state["hasBottomPinoutRoute"], "rear hitch iPhone bottom bar is missing the Pinout route")
 
     await page.locator('[data-pinout-choice="running"]').click()
@@ -1277,6 +1300,35 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true("Selected trailer pin handoff copied" in pin_copy_state["status"] or "Copy is unavailable" in pin_copy_state["status"], "pinout handoff copy did not report a result")
     assert_true("Trailer Flow" in pin_copy_state["text"], "pinout handoff should keep the trailer-flow route visible")
 
+    await page.locator('[data-tow-setup-plug="7-way to 4-flat adapter"]').click()
+    await page.locator('[data-tow-setup-result^="Issue found"]').click()
+    await page.locator("[data-save-tow-setup]").click()
+    setup_state = await page.evaluate(
+        """() => {
+            const saver = document.querySelector("#tow-setup-saver");
+            const area = JSON.parse(localStorage.getItem("ridgeline-area-journal") || "{}");
+            const form = document.querySelector('[data-area-journal="rear-hitch"] [data-area-form]');
+            return {
+                title: saver?.querySelector("[data-tow-setup-title]")?.textContent || "",
+                copy: saver?.querySelector("[data-tow-setup-copy]")?.textContent || "",
+                status: saver?.querySelector("[data-tow-setup-status]")?.textContent || "",
+                activePlug: saver?.querySelector('[data-tow-setup-plug="7-way to 4-flat adapter"]')?.getAttribute("aria-pressed") || "",
+                activeResult: saver?.querySelector('[data-tow-setup-result^="Issue found"]')?.getAttribute("aria-pressed") || "",
+                savedPrimary: area?.["rear-hitch"]?.notes?.primary_setup || "",
+                savedTowNotes: area?.["rear-hitch"]?.notes?.tow_notes || "",
+                formTowNotes: form?.elements?.tow_notes?.value || ""
+            };
+        }"""
+    )
+    assert_true("4-flat" in setup_state["title"], "Tow Setup Saver did not select the 4-flat adapter")
+    assert_true("Issue found" in setup_state["copy"], "Tow Setup Saver did not select the issue result")
+    assert_true(setup_state["activePlug"] == "true", "Tow Setup Saver plug choice did not expose active state")
+    assert_true(setup_state["activeResult"] == "true", "Tow Setup Saver result choice did not expose active state")
+    assert_true("saved into the existing Rear Hitch Journal" in setup_state["status"], "Tow Setup Saver did not report journal save")
+    assert_true("7-way to 4-flat adapter" in setup_state["savedPrimary"], "Tow Setup Saver did not save the selected adapter")
+    assert_true("Issue found" in setup_state["savedTowNotes"], "Tow Setup Saver did not save the light-check result")
+    assert_true("Issue found" in setup_state["formTowNotes"], "Tow Setup Saver did not refresh the visible journal form")
+
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(300)
     mobile_state = await page.evaluate(
@@ -1288,6 +1340,9 @@ async def assert_rear_hitch_flow(page, page_name):
             const flow = document.querySelector("#trailer-hookup-flow");
             const cards = flow ? [...flow.querySelectorAll(".trailer-hookup-card")] : [];
             const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const saver = document.querySelector("#tow-setup-saver");
+            const saverPlugRects = saver ? [...saver.querySelectorAll("[data-tow-setup-plug]")].map((button) => button.getBoundingClientRect()) : [];
+            const saverActionRects = saver ? [...saver.querySelectorAll(".tow-setup-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
             const handoff = document.querySelector("[data-pinout-handoff]");
             const choiceRects = handoff ? [...handoff.querySelectorAll("[data-pinout-choice]")].map((button) => button.getBoundingClientRect()) : [];
             const actionRects = handoff ? [...handoff.querySelectorAll(".pinout-handoff-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
@@ -1300,6 +1355,10 @@ async def assert_rear_hitch_flow(page, page_name):
                 flowVisible: Boolean(flow?.getBoundingClientRect().height),
                 cardsStacked: cardRects.every((rect) => rect.width <= document.documentElement.clientWidth - 16),
                 minCardHeight: Math.min(...cardRects.map((rect) => rect.height)),
+                saverVisible: Boolean(saver?.getBoundingClientRect().height),
+                saverPlugMinHeight: saverPlugRects.length ? Math.min(...saverPlugRects.map((rect) => rect.height)) : 0,
+                saverActionMinHeight: saverActionRects.length ? Math.min(...saverActionRects.map((rect) => rect.height)) : 0,
+                saverActionRows: new Set(saverActionRects.map((rect) => Math.round(rect.top))).size,
                 handoffVisible: Boolean(handoff?.getBoundingClientRect().height),
                 choiceMinHeight: choiceRects.length ? Math.min(...choiceRects.map((rect) => rect.height)) : 0,
                 actionMinHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
@@ -1315,6 +1374,10 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(mobile_state["flowVisible"], "rear hitch hookup flow is not visible at iPhone width")
     assert_true(mobile_state["cardsStacked"], "rear hitch hookup cards did not stack inside the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 44, "rear hitch hookup cards lost thumb-sized touch targets")
+    assert_true(mobile_state["saverVisible"], "Tow Setup Saver is not visible at iPhone width")
+    assert_true(mobile_state["saverPlugMinHeight"] >= 44, "Tow Setup Saver plug choices lost thumb-sized touch targets")
+    assert_true(mobile_state["saverActionMinHeight"] >= 44, "Tow Setup Saver actions lost thumb-sized touch targets")
+    assert_true(mobile_state["saverActionRows"] <= 2, "Tow Setup Saver actions should stay compact on iPhone")
     assert_true(mobile_state["handoffVisible"], "pinout handoff is not visible at iPhone width")
     assert_true(mobile_state["choiceMinHeight"] >= 44, "pinout handoff choices lost thumb-sized touch targets")
     assert_true(mobile_state["actionMinHeight"] >= 44, "pinout handoff actions lost thumb-sized touch targets")

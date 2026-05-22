@@ -39,6 +39,7 @@
             <a class="utility-link utility-link-strong" href="#connector">Open Connector Diagram</a>
             <a class="utility-link" href="#tow-day-readiness">Tow Day</a>
             <a class="utility-link" href="#trailer-hookup-flow">Hookup Flow</a>
+            <a class="utility-link" href="#tow-setup-saver">Setup Saver</a>
             <a class="utility-link" href="#pinout">7-Way Pinout</a>
             <a class="utility-link" href="#tow-checklist">Tow Checklist</a>
             <a class="utility-link" href="#adapter-types">Adapter Types</a>
@@ -129,6 +130,45 @@
             </div>
             <p class="source-note">
               This flow routes to existing connector, pinout, checklist, Diagnostics, and journal references. It does not change towing limits, pin assignments, fuse ratings, or repair procedures.
+            </p>
+          </article>
+          <article class="tech-card tow-setup-saver" id="tow-setup-saver" data-tow-setup-saver>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Tow Setup Saver</p>
+                <h2>Save The Trailer Setup Before You Forget</h2>
+                <p class="section-copy">
+                  Pick the adapter and light-check result, then copy, share, or save a short setup note into the existing Rear Hitch Journal.
+                </p>
+              </div>
+            </div>
+            <div class="tow-setup-picker" role="group" aria-label="Choose trailer plug or adapter">
+              <button class="utility-link utility-link-strong" type="button" data-tow-setup-plug="7-way blade" aria-pressed="true">7-Way</button>
+              <button class="utility-link" type="button" data-tow-setup-plug="7-way to 4-flat adapter" aria-pressed="false">4-Flat</button>
+              <button class="utility-link" type="button" data-tow-setup-plug="7-way to 5-flat adapter" aria-pressed="false">5-Flat</button>
+              <button class="utility-link" type="button" data-tow-setup-plug="7-way to 6-pole adapter" aria-pressed="false">6-Pole</button>
+            </div>
+            <div class="tow-setup-picker tow-setup-result-picker" role="group" aria-label="Choose trailer light-check result">
+              <button class="utility-link utility-link-strong" type="button" data-tow-setup-result="Lights passed: running, left, right, brake, and reverse if used." aria-pressed="true">Passed</button>
+              <button class="utility-link" type="button" data-tow-setup-result="Issue found: route to the Trailer-Light Flow before blaming the truck, adapter, or trailer side." aria-pressed="false">Issue</button>
+              <button class="utility-link" type="button" data-tow-setup-result="Not checked yet: run the light check before moving the trailer." aria-pressed="false">Not Checked</button>
+            </div>
+            <article class="dashboard-card tow-setup-preview" aria-live="polite">
+              <span data-tow-setup-kicker>Adapter / light check</span>
+              <strong data-tow-setup-title>7-way blade setup ready to save</strong>
+              <p data-tow-setup-copy>Lights passed: running, left, right, brake, and reverse if used.</p>
+              <div class="pinout-handoff-actions tow-setup-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-tow-setup>Copy Setup</button>
+                <button class="utility-link" type="button" data-share-tow-setup>Share</button>
+                <button class="utility-link" type="button" data-save-tow-setup>Save Journal</button>
+                <a class="utility-link" href="#area-journal">Open Journal</a>
+              </div>
+              <p class="small-note" data-tow-setup-status>
+                Saved setup notes use the existing Rear Hitch Journal fields. Confirm the real truck, trailer, and adapter before towing.
+              </p>
+            </article>
+            <p class="source-note">
+              This saver records the selected plug/adapter and light-check result only. It does not add towing limits, pin assignments, lighting diagnoses, fuse data, repair procedures, or Garage storage fields.
             </p>
           </article>
         </section>
