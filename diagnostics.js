@@ -1,3 +1,12 @@
+import {
+  initGarageCloudSync,
+  loadJson,
+  saveJson,
+  STORAGE
+} from "./garage-data.js";
+
+const DIAGNOSTIC_RECEIPT_KEY = "ridgeline-diagnostic-last-handoff";
+
 const diagnosticSharePlans = {
   start: {
     kicker: "No start or weak battery",
@@ -75,6 +84,73 @@ function buildDiagnosticHandoff(plan) {
     plan.reference,
     "Use the truck, owner manual, warning state, fuse labels, and current conditions as final authority."
   ].join("\n");
+}
+
+function buildSavedDiagnosticNote(plan) {
+  const timestamp = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+  return [
+    `[${timestamp} - Diagnostic Note: ${plan.kicker}]`,
+    plan.title,
+    "",
+    plan.summary,
+    "",
+    ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
+    "",
+    plan.reference,
+    "Saved from Diagnostics Handoff Builder. The truck, owner manual, warning state, fuse labels, and current conditions remain final authority."
+  ].join("\n");
+}
+
+function loadDiagnosticReceipt() {
+  try {
+    return JSON.parse(localStorage.getItem(DIAGNOSTIC_RECEIPT_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveDiagnosticReceipt(receipt) {
+  localStorage.setItem(DIAGNOSTIC_RECEIPT_KEY, JSON.stringify(receipt));
+}
+
+function currentDiagnosticReceiptText() {
+  const receipt = loadDiagnosticReceipt();
+  return receipt?.text || "";
+}
+
+function prependGarageGeneralNote(noteText) {
+  const notes = loadJson(STORAGE.notes, {});
+  const existing = `${notes.general_notes || ""}`.trim();
+  saveJson(STORAGE.notes, {
+    ...notes,
+    general_notes: existing ? `${noteText}\n\n${existing}` : noteText
+  });
+}
+
+function renderDiagnosticReceipt(root) {
+  const receiptCard = root.querySelector("[data-diagnostic-save-receipt]");
+  if (!receiptCard) {
+    return;
+  }
+
+  const receipt = loadDiagnosticReceipt();
+  receiptCard.hidden = !receipt;
+  if (!receipt) {
+    return;
+  }
+
+  receiptCard.querySelector("[data-diagnostic-receipt-title]").textContent = receipt.title || "Diagnostic note saved";
+  receiptCard.querySelector("[data-diagnostic-receipt-summary]").textContent =
+    receipt.summary || "Saved into Garage Notes from Diagnostics.";
+  receiptCard.querySelector("[data-diagnostic-receipt-meta]").textContent =
+    `${receipt.savedAt || "Saved recently"} / ${receipt.reference || "Garage Notes"}`;
 }
 
 function setDiagnosticShareStatus(root, message) {
@@ -156,7 +232,72 @@ function initDiagnosticShareBuilder() {
     }
   });
 
+  root.querySelector("[data-save-diagnostic-note]")?.addEventListener("click", () => {
+    const planKey = root.dataset.currentDiagnosticSharePlan || "start";
+    const plan = diagnosticSharePlans[planKey] || diagnosticSharePlans.start;
+    const noteText = buildSavedDiagnosticNote(plan);
+    const savedAt = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+
+    try {
+      prependGarageGeneralNote(noteText);
+      saveDiagnosticReceipt({
+        planKey,
+        title: plan.kicker,
+        summary: `${plan.title} saved into Garage Notes.`,
+        reference: plan.reference.replace(/^References:\s*/i, ""),
+        savedAt,
+        text: noteText
+      });
+      renderDiagnosticReceipt(root);
+      setDiagnosticShareStatus(root, `${plan.kicker} saved to Garage Notes.`);
+    } catch (error) {
+      setDiagnosticShareStatus(root, "Could not save the diagnostic note in this browser session.");
+    }
+  });
+
+  root.querySelector("[data-copy-diagnostic-receipt]")?.addEventListener("click", async () => {
+    const text = currentDiagnosticReceiptText();
+    if (!text) {
+      setDiagnosticShareStatus(root, "Save a diagnostic note before copying the receipt.");
+      return;
+    }
+
+    try {
+      const copied = await copyText(text);
+      setDiagnosticShareStatus(root, copied ? "Saved diagnostic note copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticShareStatus(root, "Copy failed. Open Garage Notes to select the saved note.");
+    }
+  });
+
+  root.querySelector("[data-share-diagnostic-receipt]")?.addEventListener("click", async () => {
+    const text = currentDiagnosticReceiptText();
+    if (!text) {
+      setDiagnosticShareStatus(root, "Save a diagnostic note before sharing the receipt.");
+      return;
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline diagnostic note", text });
+        setDiagnosticShareStatus(root, "Saved diagnostic note shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setDiagnosticShareStatus(root, copied ? "Share unavailable; saved note copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticShareStatus(root, "Share canceled or unavailable.");
+    }
+  });
+
   updateDiagnosticSharePlan(root, "start");
+  renderDiagnosticReceipt(root);
 }
 
 initDiagnosticShareBuilder();
+initGarageCloudSync();

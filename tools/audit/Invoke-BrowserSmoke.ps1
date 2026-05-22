@@ -57,6 +57,8 @@ SEARCH_EXPECTATIONS = {
     "diagnostic handoff builder": "Diagnostic Handoff Builder",
     "copy diagnostic handoff": "Diagnostic Handoff Builder",
     "share diagnostic note": "Diagnostic Handoff Builder",
+    "save diagnostic note": "Diagnostic Handoff Builder",
+    "diagnostic note receipt": "Diagnostic Handoff Builder",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
@@ -473,6 +475,9 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 shareText: shareBuilder ? shareBuilder.innerText : "",
                 hasShareCopy: Boolean(shareBuilder?.querySelector("[data-copy-diagnostic-share]")),
                 hasShareShare: Boolean(shareBuilder?.querySelector("[data-share-diagnostic-share]")),
+                hasShareSave: Boolean(shareBuilder?.querySelector("[data-save-diagnostic-note]")),
+                hasShareReceipt: Boolean(shareBuilder?.querySelector("[data-diagnostic-save-receipt]")),
+                receiptHidden: Boolean(shareBuilder?.querySelector("[data-diagnostic-save-receipt]")?.hidden),
                 sharePrimary: shareBuilder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
                 shareSecondary: shareBuilder?.querySelector("[data-diagnostic-share-secondary]")?.getAttribute("href") || "",
                 cardCount: workflowCards.length,
@@ -497,9 +502,12 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(state["shareButtons"] == 5, "diagnostic handoff builder should expose five symptom buttons")
     assert_true(state["hasShareCopy"], "diagnostic handoff builder is missing copy control")
     assert_true(state["hasShareShare"], "diagnostic handoff builder is missing share control")
+    assert_true(state["hasShareSave"], "diagnostic handoff builder is missing save-note control")
+    assert_true(state["hasShareReceipt"], "diagnostic handoff builder is missing saved-note receipt")
+    assert_true(state["receiptHidden"], "diagnostic saved-note receipt should stay hidden until a note is saved")
     assert_true(state["sharePrimary"] == "#no-start-workflow", "diagnostic handoff builder should default to no-start flow")
     assert_true(state["shareSecondary"] == "hood.html#wiring", "diagnostic handoff builder should default to jump notes")
-    for phrase in ["No start", "Warning", "12V Power", "Audio", "Trailer", "Copy Handoff"]:
+    for phrase in ["No start", "Warning", "12V Power", "Audio", "Trailer", "Copy Handoff", "Save Note"]:
         assert_true(phrase in state["shareText"], f"diagnostic handoff builder is missing {phrase}")
     await page.evaluate("""() => document.querySelector('[data-diagnostic-share-plan="warning"]').click()""")
     await page.wait_for_timeout(200)
@@ -520,6 +528,38 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(warning_share["pressed"] == "true", "warning diagnostic handoff button should become active")
     assert_true("Warning light or MID message handoff ready" in warning_share["status"], "warning diagnostic handoff status did not update")
     assert_true("exact indicator name" in warning_share["text"], "warning diagnostic handoff did not render warning-specific steps")
+    await page.locator("[data-save-diagnostic-note]").click()
+    await page.wait_for_timeout(250)
+    receipt_state = await page.evaluate(
+        """() => {
+            const builder = document.querySelector("#diagnostic-share-builder");
+            const receipt = JSON.parse(localStorage.getItem("ridgeline-diagnostic-last-handoff") || "null");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                hidden: Boolean(builder?.querySelector("[data-diagnostic-save-receipt]")?.hidden),
+                title: builder?.querySelector("[data-diagnostic-receipt-title]")?.textContent || "",
+                summary: builder?.querySelector("[data-diagnostic-receipt-summary]")?.textContent || "",
+                meta: builder?.querySelector("[data-diagnostic-receipt-meta]")?.textContent || "",
+                status: builder?.querySelector("[data-diagnostic-share-status]")?.textContent || "",
+                note: notes.general_notes || "",
+                receiptText: receipt?.text || "",
+                garageRoute: Boolean(builder?.querySelector('[data-diagnostic-save-receipt] a[href="garage.html#notes"]')),
+                hasCopyReceipt: Boolean(builder?.querySelector("[data-copy-diagnostic-receipt]")),
+                hasShareReceipt: Boolean(builder?.querySelector("[data-share-diagnostic-receipt]"))
+            };
+        }"""
+    )
+    assert_true(not receipt_state["hidden"], "diagnostic receipt should appear after saving a note")
+    assert_true("Warning light" in receipt_state["title"], "diagnostic receipt should show the saved warning-light situation")
+    assert_true("Garage Notes" in receipt_state["summary"], "diagnostic receipt should explain that it saved into Garage Notes")
+    assert_true("warning-light flow" in receipt_state["meta"].lower(), "diagnostic receipt should preserve reference context")
+    assert_true("saved to Garage Notes" in receipt_state["status"], "diagnostic save did not report Garage Notes status")
+    assert_true("Diagnostic Note: Warning light or MID message" in receipt_state["note"], "Garage Notes did not receive the diagnostic note")
+    assert_true("current conditions remain final authority" in receipt_state["note"], "saved diagnostic note should preserve the source-authority reminder")
+    assert_true("Diagnostic Note: Warning light or MID message" in receipt_state["receiptText"], "diagnostic receipt storage did not keep the saved note text")
+    assert_true(receipt_state["garageRoute"], "diagnostic receipt is missing the Open Garage Notes route")
+    assert_true(receipt_state["hasCopyReceipt"], "diagnostic receipt is missing Copy Note")
+    assert_true(receipt_state["hasShareReceipt"], "diagnostic receipt is missing Share")
     assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
     assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
@@ -541,6 +581,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
             const sharePicker = shareBuilder?.querySelector(".diagnostic-share-picker");
             const shareActions = shareBuilder?.querySelector(".diagnostic-share-card .inspector-actions");
+            const receipt = shareBuilder?.querySelector("[data-diagnostic-save-receipt]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(triage && triage.getBoundingClientRect().height > 0),
@@ -553,6 +594,10 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 shareActionRows: shareActions
                     ? new Set([...shareActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
                     : 0,
+                receiptVisible: Boolean(receipt && receipt.getBoundingClientRect().height > 0),
+                minReceiptActionHeight: receipt
+                    ? Math.min(...[...receipt.querySelectorAll(".utility-link")].map((link) => link.getBoundingClientRect().height))
+                    : 0,
                 overflow: width > window.innerWidth + 1
             };
         }"""
@@ -562,7 +607,9 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["actionRows"] == 1, "first-minute triage actions should stay on one row at iPhone width")
     assert_true(mobile_state["shareVisible"], "diagnostic handoff builder is not visible at iPhone width")
     assert_true(mobile_state["shareColumns"] == 3, "diagnostic handoff builder picker should use three compact columns at iPhone width")
-    assert_true(mobile_state["shareActionRows"] == 2, "diagnostic handoff builder actions should use two rows at iPhone width")
+    assert_true(mobile_state["shareActionRows"] == 3, "diagnostic handoff builder actions should use three compact rows at iPhone width")
+    assert_true(mobile_state["receiptVisible"], "saved diagnostic receipt is not visible at iPhone width after save")
+    assert_true(mobile_state["minReceiptActionHeight"] >= 38, "saved diagnostic receipt actions should stay thumb-readable on iPhone")
     assert_true(not mobile_state["overflow"], "first-minute triage introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(350)

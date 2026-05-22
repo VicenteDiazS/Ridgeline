@@ -50,8 +50,8 @@ export const searchIndex = [
     title: "Diagnostic Handoff Builder",
     url: "diagnostics.html#diagnostic-share-builder",
     category: "Diagnostics",
-    excerpt: "Near-top iPhone builder for copying or sharing a no-start, warning-light, 12V power, audio/display, or trailer-light diagnostic summary with the next reference links.",
-    keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff"]
+    excerpt: "Near-top iPhone builder for copying, sharing, or saving a no-start, warning-light, 12V power, audio/display, or trailer-light diagnostic summary into Garage Notes.",
+    keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "save diagnostic note", "diagnostic note receipt", "garage diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff"]
   },
   {
     title: "Owner Shortcut Strip",
