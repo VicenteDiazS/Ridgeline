@@ -61,6 +61,13 @@ export const searchIndex = [
     keywords: ["owner shortcut strip", "i need to", "finish service", "fill garage", "share symptom", "prep offline", "owner workflow", "iphone owner shortcuts", "search owner intent"]
   },
   {
+    title: "Resume Search Strip",
+    url: "index.html?search=resume",
+    category: "Navigation",
+    excerpt: "Global Search resume strip that appears when this iPhone has a last task, recent page, or saved section target, letting the owner return to the exact workflow spot from any page.",
+    keywords: ["resume search strip", "resume owner workflow", "last task", "recent page", "last section", "continue where i left off", "return to last spot", "iphone resume", "search resume"]
+  },
+  {
     title: "Recent Work Search Strip",
     url: "garage.html#notes",
     category: "Navigation",

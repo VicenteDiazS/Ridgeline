@@ -3905,6 +3905,13 @@ function buildSearchModal() {
         <button class="modal-close" type="button" data-close-search aria-label="Close search">Close</button>
       </div>
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
+      <section class="search-resume-strip" aria-label="Resume owner workflow" data-search-resume-work hidden>
+        <div class="search-resume-head">
+          <strong>Resume</strong>
+          <span>Return to the last useful spot on this iPhone</span>
+        </div>
+        <div class="search-resume-grid" data-search-resume-list></div>
+      </section>
       <section class="search-offline-card" aria-label="Offline launch pad" data-search-offline-card>
         <div>
           <span data-search-network>Checking network</span>
@@ -4370,6 +4377,8 @@ const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 const searchOfflineCard = searchModal.querySelector("[data-search-offline-card]");
+const searchResumeWork = searchModal.querySelector("[data-search-resume-work]");
+const searchResumeList = searchModal.querySelector("[data-search-resume-list]");
 const searchRecentWork = searchModal.querySelector("[data-search-recent-work]");
 const searchRecentList = searchModal.querySelector("[data-search-recent-list]");
 let searchReturnFocus = null;
@@ -4619,6 +4628,128 @@ function formatSearchRecentDate(value = "") {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function safeSearchHref(value = "") {
+  try {
+    const url = new URL(value, location.href);
+    if (url.origin !== location.origin) {
+      return "";
+    }
+    const page = url.pathname.split("/").pop() || "index.html";
+    return `${page}${url.search || ""}${url.hash || ""}`;
+  } catch {
+    return "";
+  }
+}
+
+function labelFromResumeHref(value = "") {
+  const page = `${value}`.split(/[?#]/)[0] || "index.html";
+  const matched = menuLinks.find((link) => link.match === page);
+  return matched?.label || page.replace(".html", "").replace(/[-_]/g, " ") || "Saved page";
+}
+
+function buildStoredSectionResumeItem() {
+  const prefix = LAST_SECTION_STORAGE_PREFIX;
+  const candidates = [];
+
+  try {
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index) || "";
+      if (!key.startsWith(prefix)) {
+        continue;
+      }
+      const page = key.slice(prefix.length);
+      const section = localStorage.getItem(key);
+      const href = safeSearchHref(`${page}#${section}`);
+      if (!href || !section) {
+        continue;
+      }
+      candidates.push({
+        page,
+        label: "Last section",
+        detail: `Open ${labelFromResumeHref(href)} at ${section.replace(/-/g, " ")}`,
+        meta: "Saved section",
+        href
+      });
+    }
+  } catch {
+    return null;
+  }
+
+  return candidates.find((item) => item.page !== currentPageName()) || candidates[0] || null;
+}
+
+function buildSearchResumeItems() {
+  const items = [];
+  const seen = new Set();
+  const pushItem = (item) => {
+    const href = safeSearchHref(item?.href || "");
+    if (!href || seen.has(href)) {
+      return;
+    }
+    seen.add(href);
+    items.push({
+      label: item.label,
+      detail: shortSearchText(item.detail || labelFromResumeHref(href), 72),
+      meta: item.meta,
+      href
+    });
+  };
+
+  const lastTask = getLastTask();
+  if (lastTask?.href && lastTask?.label) {
+    pushItem({
+      label: "Last task",
+      detail: lastTask.label,
+      meta: formatSearchRecentDate(lastTask.at),
+      href: lastTask.href
+    });
+  }
+
+  const recentPage = loadRecentNav().find((item) => item?.href && item?.label);
+  if (recentPage) {
+    pushItem({
+      label: "Recent page",
+      detail: recentPage.label,
+      meta: formatSearchRecentDate(recentPage.at),
+      href: recentPage.href
+    });
+  }
+
+  const sectionItem = buildStoredSectionResumeItem();
+  if (sectionItem) {
+    pushItem(sectionItem);
+  }
+
+  return items.slice(0, 3);
+}
+
+function renderSearchResumeWork() {
+  if (!searchResumeWork || !searchResumeList) {
+    return;
+  }
+
+  const items = buildSearchResumeItems();
+  searchResumeWork.hidden = !items.length;
+  searchResumeList.innerHTML = "";
+
+  items.forEach((item) => {
+    const link = document.createElement("a");
+    link.href = item.href;
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+
+    const detail = document.createElement("strong");
+    detail.textContent = item.detail;
+
+    const meta = document.createElement("em");
+    meta.textContent = item.meta;
+
+    link.append(label, detail, meta);
+    searchResumeList.append(link);
+  });
+}
+
 function buildSearchRecentItems() {
   const items = [];
   const roadside = readSearchStorage("ridgeline-roadside-last-handoff", null);
@@ -4693,6 +4824,7 @@ function openSearch(event) {
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
   updateSearchOfflineCard();
+  renderSearchResumeWork();
   renderSearchRecentWork();
   renderResults(searchInput.value);
   focusFirstIn(searchModal, "#site-search-input");

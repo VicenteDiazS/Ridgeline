@@ -100,6 +100,8 @@ SEARCH_EXPECTATIONS = {
     "copy roadside update": "Roadside Live Session",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
+    "resume last task": "Resume Search Strip",
+    "continue where i left off": "Resume Search Strip",
     "recent owner work": "Recent Work Search Strip",
     "latest service receipt": "Recent Work Search Strip",
     "garage record snapshot": "Garage Fill-In Checklist",
@@ -3075,6 +3077,18 @@ async def run_overlay_checks(page, page_name):
             localStorage.setItem("ridgeline-notes", JSON.stringify({
                 general_notes: "Garage note from smoke check"
             }));
+            localStorage.setItem("ridgeline-last-task", JSON.stringify({
+                href: "diagnostics.html#diagnostic-share-builder",
+                label: "Diagnostic Handoff Builder",
+                kind: "workflow",
+                at: "2026-05-21T16:30:00.000Z"
+            }));
+            localStorage.setItem("ridgeline-recent-nav", JSON.stringify([{
+                href: "maintenance.html#service-closeout",
+                label: "Service Closeout",
+                at: "2026-05-21T15:30:00.000Z"
+            }]));
+            localStorage.setItem("ridgeline-last-section:quick-sheet.html", "roadside-action-stack");
         }"""
     )
     await page.locator("[data-open-search]").first.focus()
@@ -3089,6 +3103,7 @@ async def run_overlay_checks(page, page_name):
             const grid = document.querySelector(".search-situation-grid");
             const offlineCard = document.querySelector("[data-search-offline-card]");
             const intent = document.querySelector(".search-intent-strip");
+            const resume = document.querySelector("[data-search-resume-work]");
             const recent = document.querySelector("[data-search-recent-work]");
             const required = [
                 "quick-sheet.html#roadside-router",
@@ -3106,6 +3121,14 @@ async def run_overlay_checks(page, page_name):
                 hasIntent: Boolean(intent),
                 intentCards: intent?.querySelectorAll("a").length || 0,
                 intentText: intent?.textContent || "",
+                hasResume: Boolean(resume && !resume.hidden),
+                resumeCards: resume?.querySelectorAll("a").length || 0,
+                resumeText: resume?.textContent || "",
+                resumeMissing: [
+                    "diagnostics.html#diagnostic-share-builder",
+                    "maintenance.html#service-closeout",
+                    "quick-sheet.html#roadside-action-stack"
+                ].filter((href) => !resume?.querySelector(`a[href="${href}"]`)),
                 hasRecent: Boolean(recent && !recent.hidden),
                 recentCards: recent?.querySelectorAll("a").length || 0,
                 recentText: recent?.textContent || "",
@@ -3145,6 +3168,11 @@ async def run_overlay_checks(page, page_name):
     assert_true(not quick_state["intentMissing"], f"search owner shortcut strip is missing routes: {quick_state['intentMissing']}")
     for phrase in ["I need to", "Finish service", "Fill Garage", "Share symptom", "Prep offline"]:
         assert_true(phrase in quick_state["intentText"], f"search owner shortcut strip is missing {phrase}")
+    assert_true(quick_state["hasResume"], "search modal is missing the seeded resume strip")
+    assert_true(quick_state["resumeCards"] == 3, "search resume strip should expose three seeded routes")
+    assert_true(not quick_state["resumeMissing"], f"search resume strip is missing routes: {quick_state['resumeMissing']}")
+    for phrase in ["Resume", "Last task", "Recent page", "Last section", "Diagnostic Handoff Builder", "Service Closeout"]:
+        assert_true(phrase in quick_state["resumeText"], f"search resume strip is missing {phrase}")
     assert_true(quick_state["hasRecent"], "search modal is missing the seeded recent work strip")
     assert_true(quick_state["recentCards"] == 3, "search recent work strip should expose three seeded routes")
     assert_true(not quick_state["recentMissing"], f"search recent work strip is missing routes: {quick_state['recentMissing']}")

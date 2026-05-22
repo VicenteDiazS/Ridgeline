@@ -4290,6 +4290,87 @@ article[id],
   line-height: 1.25;
 }
 
+.search-resume-strip {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(121, 212, 255, 0.09), rgba(111, 255, 180, 0.04)),
+    rgba(5, 13, 21, 0.76);
+}
+
+.search-resume-strip[hidden] {
+  display: none;
+}
+
+.search-resume-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.search-resume-head strong {
+  color: #aee9ff;
+  font-size: 0.8rem;
+}
+
+.search-resume-head span {
+  color: #aebdca;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.search-resume-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.search-resume-grid a {
+  display: grid;
+  align-content: start;
+  min-height: 72px;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid rgba(121, 212, 255, 0.14);
+  border-radius: 11px;
+  background: rgba(8, 29, 42, 0.26);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.search-resume-grid a:hover,
+.search-resume-grid a:focus-visible {
+  border-color: rgba(121, 212, 255, 0.36);
+  background: rgba(8, 29, 42, 0.42);
+}
+
+.search-resume-grid span {
+  color: #aee9ff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.search-resume-grid strong {
+  color: #f7f9ff;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.search-resume-grid em {
+  color: #b6c8d8;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .search-recent-strip {
   display: grid;
   gap: 8px;
@@ -10753,6 +10834,21 @@ kbd {
 
   .search-intent-grid a {
     min-height: 66px;
+    padding: 8px;
+  }
+
+  .search-resume-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .search-resume-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search-resume-grid a {
+    min-height: 58px;
     padding: 8px;
   }
 
