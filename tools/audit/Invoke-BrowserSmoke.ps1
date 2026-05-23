@@ -222,6 +222,37 @@ async def assert_current_page_navigation(page, page_name):
     assert_true(state["hasCurrentMenuLink"], f"{page_name} site menu is missing a current-page link")
     assert_true(state["hasCurrentBadge"], f"{page_name} site menu current-page link is missing its badge")
     assert_true(state["visibleCurrentLinks"] > 0, f"{page_name} has no visible current navigation indicator")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.evaluate("window.scrollTo(0, 0);")
+    await page.mouse.wheel(0, 920)
+    await page.wait_for_timeout(250)
+    compact_state = await page.evaluate(
+        """() => {
+            const topbar = document.querySelector(".topbar");
+            const current = document.querySelector(".header-current-page");
+            const section = current?.querySelector("[data-header-section-label]");
+            const topbarRect = topbar?.getBoundingClientRect();
+            return {
+                compact: Boolean(topbar?.classList.contains("is-compact")),
+                hasSection: Boolean(section && !section.hidden && section.textContent.trim()),
+                sectionText: section?.textContent.trim() || "",
+                href: current?.getAttribute("href") || "",
+                topbarHeight: topbarRect?.height || 0,
+                canScroll: document.documentElement.scrollHeight > window.innerHeight + 160,
+                overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    if compact_state["canScroll"]:
+        assert_true(compact_state["compact"], f"{page_name} header did not collapse after iPhone scroll")
+        assert_true(compact_state["hasSection"], f"{page_name} compact header is missing the active section label")
+        assert_true("#" in compact_state["href"], f"{page_name} compact header should link to the active section")
+        assert_true(compact_state["topbarHeight"] <= 82, f"{page_name} compact header is too tall on iPhone")
+        assert_true(not compact_state["overflow"], f"{page_name} compact header introduced horizontal overflow")
+    await page.evaluate("window.scrollTo(0, 0);")
+    await page.wait_for_timeout(120)
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(120)
 
 
 async def assert_support_status_badges(page, page_name):
@@ -3805,10 +3836,13 @@ async def main():
             headless=True,
             args=["--allow-file-access-from-files", "--disable-web-security"],
         )
-        context = await browser.new_context()
         try:
             for page_name in args.pages:
-                await smoke_page(context, args.root, page_name)
+                context = await browser.new_context()
+                try:
+                    await smoke_page(context, args.root, page_name)
+                finally:
+                    await context.close()
         finally:
             await browser.close()
 

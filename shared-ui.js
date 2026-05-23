@@ -941,8 +941,33 @@ function buildUniversalHeaderActions() {
     currentPage.href = currentLocationHref();
     currentPage.setAttribute("aria-current", "page");
     currentPage.setAttribute("aria-label", `Current page: ${currentPageDisplayLabel()}`);
-    currentPage.innerHTML = `<span>Current</span><strong>${currentPageDisplayLabel()}</strong>`;
+    currentPage.innerHTML = `
+      <span data-header-current-kicker>Current</span>
+      <strong data-header-page-label>${currentPageDisplayLabel()}</strong>
+      <small data-header-section-label hidden></small>
+    `;
     topbar.insertBefore(currentPage, topbarActions);
+
+    window.addEventListener("ridgeline:active-section", (event) => {
+      const label = `${event.detail?.label || ""}`.trim();
+      const id = `${event.detail?.id || ""}`.trim();
+      if (!label || !id) {
+        return;
+      }
+
+      const sectionLabel = currentPage.querySelector("[data-header-section-label]");
+      const kicker = currentPage.querySelector("[data-header-current-kicker]");
+      const index = Number(event.detail?.index || 0);
+      const total = Number(event.detail?.total || 0);
+      const progress = index > 0 && total > 1 ? `${index}/${total} ` : "";
+      sectionLabel.textContent = `${progress}${label}`;
+      sectionLabel.hidden = false;
+      if (kicker) {
+        kicker.textContent = "Viewing";
+      }
+      currentPage.href = `${currentPageName()}${location.search || ""}#${id}`;
+      currentPage.setAttribute("aria-label", `Viewing ${label} on ${currentPageDisplayLabel()}`);
+    });
   }
 }
 
@@ -1692,6 +1717,8 @@ function syncActiveSectionUi(sections, rail) {
     : new Map();
 
   const setActive = (id) => {
+    const activeIndex = sections.findIndex((section) => section.id === id);
+    const activeSection = sections[activeIndex] || sections[0];
     if (linkMap.size) {
       linkMap.forEach((link, key) => {
         const active = key === id;
@@ -1700,7 +1727,14 @@ function syncActiveSectionUi(sections, rail) {
       });
     }
     saveLastSection(id);
-    window.dispatchEvent(new CustomEvent("ridgeline:active-section", { detail: { id } }));
+    window.dispatchEvent(new CustomEvent("ridgeline:active-section", {
+      detail: {
+        id,
+        label: activeSection?.label || "",
+        index: activeIndex + 1,
+        total: sections.length
+      }
+    }));
   };
 
   setActive(sections[0].id);

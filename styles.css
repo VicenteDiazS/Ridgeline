@@ -13439,6 +13439,21 @@ body {
   white-space: nowrap;
 }
 
+.header-current-page small {
+  min-width: 0;
+  overflow: hidden;
+  color: #a9bbca;
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-current-page small[hidden] {
+  display: none;
+}
+
 @media (min-width: 761px) {
   .topbar {
     display: grid;
@@ -13544,8 +13559,8 @@ body {
 
   .topbar.is-compact {
     grid-template-columns: minmax(0, 1fr);
-    gap: 4px;
-    padding: 4px;
+    gap: 3px;
+    padding: 3px;
     border-radius: 15px;
     background:
       linear-gradient(135deg, rgba(17, 25, 34, 0.98), rgba(6, 10, 16, 0.94)),
@@ -13561,8 +13576,11 @@ body {
   }
 
   .topbar.is-compact .header-current-page {
-    min-height: 28px;
-    padding: 3px 8px;
+    grid-template-columns: minmax(52px, auto) minmax(0, 1fr);
+    align-items: center;
+    min-height: 26px;
+    gap: 0 7px;
+    padding: 2px 8px;
   }
 
   .topbar.is-compact .header-current-page span {
@@ -13570,7 +13588,13 @@ body {
   }
 
   .topbar.is-compact .header-current-page strong {
-    font-size: 0.7rem;
+    color: #8fffd0;
+    font-size: 0.66rem;
+  }
+
+  .topbar.is-compact .header-current-page small {
+    color: var(--text);
+    font-size: 0.69rem;
   }
 
   .topbar.is-compact .topbar-actions {
@@ -13579,7 +13603,7 @@ body {
 
   .topbar.is-compact .topbar-actions > .header-nav-button,
   .topbar.is-compact .topbar-actions > .search-button {
-    min-height: 31px;
+    min-height: 28px;
     border-radius: 10px;
   }
 
