@@ -867,6 +867,24 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Service Job Note Template",
+    url: "garage.html#job-note-template",
+    category: "Personal",
+    excerpt: "Garage job-note template for recording a completed or in-progress service job, parts used, area checked, result, follow-up, and a copyable General Notes handoff.",
+    keywords: [
+      "service job note",
+      "job note template",
+      "garage job note",
+      "copy job note",
+      "append job note",
+      "service record note",
+      "parts used note",
+      "follow up note",
+      "work performed note",
+      "iphone service note"
+    ]
+  },
+  {
     title: "Trailer-Light Issue Flow",
     url: "diagnostics.html#trailer-light-workflow",
     category: "Diagnostics",

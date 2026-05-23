@@ -122,6 +122,9 @@ SEARCH_EXPECTATIONS = {
     "latest service receipt": "Recent Work Search Strip",
     "latest diagnostic note": "Recent Work Search Strip",
     "saved diagnostic note": "Recent Work Search Strip",
+    "service job note": "Service Job Note Template",
+    "copy job note": "Service Job Note Template",
+    "append job note": "Service Job Note Template",
     "garage record snapshot": "Garage Fill-In Checklist",
     "copy garage plan": "Garage Fill-In Checklist",
     "latest maintenance handoff": "Garage Fill-In Checklist",
@@ -2679,6 +2682,7 @@ async def assert_garage_features(page, page_name):
             const maintenanceNoteText = document.querySelector("#maintenance-note-preview")?.innerText || "";
             const activityText = document.querySelector("#diagnostic-activity")?.innerText || "";
             const template = document.querySelector("#warning-light-template");
+            const jobTemplate = document.querySelector("#job-note-template");
             const requiredFields = [
                 "warning_light_date_mileage",
                 "warning_light_indicator",
@@ -2686,6 +2690,14 @@ async def assert_garage_features(page, page_name):
                 "warning_light_context",
                 "warning_light_mid_message",
                 "warning_light_next_action"
+            ];
+            const requiredJobFields = [
+                "job_note_date_mileage",
+                "job_note_title",
+                "job_note_parts",
+                "job_note_area",
+                "job_note_result",
+                "job_note_followup"
             ];
             return {
                 hasDashboard: Boolean(dashboard),
@@ -2743,7 +2755,14 @@ async def assert_garage_features(page, page_name):
                 previewHidden: document.querySelector("#diagnostic-activity [data-garage-backup-preview]")?.hidden === true,
                 hasTemplate: Boolean(template),
                 missingFields: requiredFields.filter((name) => !template?.querySelector(`[name="${name}"]`)),
-                hasTemplateRoute: Boolean(template?.querySelector('a[href="diagnostics.html#warning-light-workflow"]'))
+                hasTemplateRoute: Boolean(template?.querySelector('a[href="diagnostics.html#warning-light-workflow"]')),
+                hasJobTemplate: Boolean(jobTemplate),
+                missingJobFields: requiredJobFields.filter((name) => !jobTemplate?.querySelector(`[name="${name}"]`)),
+                hasJobTemplateCloseoutRoute: Boolean(jobTemplate?.querySelector('a[href="maintenance.html#service-closeout"]')),
+                hasJobTemplateStagingRoute: Boolean(jobTemplate?.querySelector('a[href="#maintenance-note-preview"]')),
+                hasJobCopy: Boolean(jobTemplate?.querySelector("[data-copy-job-note]")),
+                hasJobAppend: Boolean(jobTemplate?.querySelector("[data-append-job-note]")),
+                jobTemplateText: jobTemplate?.innerText || ""
             };
         }"""
     )
@@ -2811,9 +2830,47 @@ async def assert_garage_features(page, page_name):
         ("previewHidden", "garage backup preview should start hidden"),
         ("hasTemplate", "garage page is missing warning-light note template"),
         ("hasTemplateRoute", "warning-light template is missing diagnostics route"),
+        ("hasJobTemplate", "garage page is missing service job note template"),
+        ("hasJobTemplateCloseoutRoute", "service job note template is missing closeout route"),
+        ("hasJobTemplateStagingRoute", "service job note template is missing staging route"),
+        ("hasJobCopy", "service job note template is missing copy action"),
+        ("hasJobAppend", "service job note template is missing append action"),
     ]:
         assert_true(state[key], message)
     assert_true(not state["missingFields"], f"warning-light template is missing fields: {state['missingFields']}")
+    assert_true(not state["missingJobFields"], f"service job note template is missing fields: {state['missingJobFields']}")
+    for phrase in ["Service Job Note", "Parts / supplies", "Work performed / result", "Follow-up / next buy", "Copy Job Note", "Append To General Notes"]:
+        assert_true(phrase in state["jobTemplateText"], f"service job note template is missing {phrase}")
+    await page.locator("#job-note-template [name='job_note_date_mileage']").fill("5/23/2026 / 166,420 miles")
+    await page.locator("#job-note-template [name='job_note_title']").fill("Battery terminal cleaning")
+    await page.locator("#job-note-template [name='job_note_parts']").fill("terminal brush, gloves")
+    await page.locator("#job-note-template [name='job_note_area']").fill("Hood")
+    await page.locator("#job-note-template [name='job_note_result']").fill("Cleaned corrosion and photographed positive terminal cover.")
+    await page.locator("#job-note-template [name='job_note_followup']").fill("Recheck starting after next cold morning.")
+    await page.locator("#job-note-template [data-copy-job-note]").click()
+    await page.wait_for_timeout(150)
+    job_copy_status = await page.locator("#job-note-template [data-job-note-status]").inner_text()
+    assert_true("Service job note copied" in job_copy_status, "service job note Copy action did not report copied status")
+    await page.locator("#job-note-template [data-append-job-note]").click()
+    await page.wait_for_timeout(150)
+    job_append_state = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const general = notes.general_notes || "";
+            return {
+                status: document.querySelector("#job-note-template [data-job-note-status]")?.textContent || "",
+                general,
+                storedTitle: notes.job_note_title || "",
+                storedParts: notes.job_note_parts || ""
+            };
+        }"""
+    )
+    assert_true("Appended Battery terminal cleaning to General Notes" in job_append_state["status"], "service job note append action did not report the appended job")
+    assert_true("Ridgeline Service Job Note - Battery terminal cleaning" in job_append_state["general"], "service job note append did not add the job note block")
+    assert_true("terminal brush, gloves" in job_append_state["general"], "service job note append did not preserve parts text")
+    assert_true("Recheck starting after next cold morning" in job_append_state["general"], "service job note append did not preserve follow-up text")
+    assert_true(job_append_state["storedTitle"] == "Battery terminal cleaning", "service job note title should persist in the existing Garage notes object")
+    assert_true(job_append_state["storedParts"] == "terminal brush, gloves", "service job note parts should persist in the existing Garage notes object")
     await page.evaluate("""() => {
         localStorage.removeItem('ridgeline-maintenance-custom-staging');
         localStorage.setItem('ridgeline-notes', JSON.stringify({

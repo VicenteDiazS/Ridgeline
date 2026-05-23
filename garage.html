@@ -262,6 +262,32 @@
                 <label><span>Exact MID message / symptoms</span><textarea name="warning_light_mid_message" rows="4" placeholder="Write the exact message text, when it appeared, driving conditions, and any other lights that came on."></textarea></label>
                 <label><span>Next action / result</span><textarea name="warning_light_next_action" rows="3" placeholder="Photo taken, code read, manual checked, battery voltage noted, appointment made, resolved..."></textarea></label>
               </div>
+              <div class="note-template-panel" id="job-note-template">
+                <div class="compact-section-head">
+                  <div>
+                    <p class="eyebrow">Job template</p>
+                    <h4>Service Job Note</h4>
+                  </div>
+                  <a class="utility-link" href="maintenance.html#service-closeout">Open Closeout</a>
+                </div>
+                <p class="small-note">
+                  Capture a finished or in-progress job with the parts, photo/check result, and follow-up you want to remember later.
+                </p>
+                <div class="form-grid">
+                  <label><span>Date / mileage</span><input name="job_note_date_mileage" type="text" placeholder="5/23/2026 / 166,420 miles" /></label>
+                  <label><span>Job</span><input name="job_note_title" type="text" placeholder="Oil change, tire rotation, battery install..." /></label>
+                  <label><span>Parts / supplies</span><input name="job_note_parts" type="text" placeholder="Filter, washer, battery, cleaner, tool..." /></label>
+                  <label><span>Area / system</span><input name="job_note_area" type="text" placeholder="Hood, cabin, tires, rear hitch, cargo..." /></label>
+                </div>
+                <label><span>Work performed / result</span><textarea name="job_note_result" rows="4" placeholder="What was done, what was checked, and any photo or label details worth keeping."></textarea></label>
+                <label><span>Follow-up / next buy</span><textarea name="job_note_followup" rows="3" placeholder="Recheck, part number to verify, item to buy, appointment, or no follow-up needed."></textarea></label>
+                <div class="inspector-actions">
+                  <button class="ghost-button" type="button" data-copy-job-note>Copy Job Note</button>
+                  <button class="utility-link utility-link-strong" type="button" data-append-job-note>Append To General Notes</button>
+                  <a class="utility-link" href="#maintenance-note-preview">Open Staging</a>
+                </div>
+                <p class="small-note" data-job-note-status aria-live="polite"></p>
+              </div>
             </form>
           </article>
 

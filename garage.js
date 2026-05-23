@@ -48,6 +48,9 @@ const quickMileageInput = document.querySelector("[data-quick-mileage]");
 const quickServiceSelect = document.querySelector("[data-quick-service]");
 const quickLogButton = document.querySelector("[data-quick-log-button]");
 const quickLogStatus = document.querySelector("[data-quick-log-status]");
+const jobNoteCopyButton = document.querySelector("[data-copy-job-note]");
+const jobNoteAppendButton = document.querySelector("[data-append-job-note]");
+const jobNoteStatus = document.querySelector("[data-job-note-status]");
 const defaultNotes = {
   timing_service:
     "Timing belt service completed 4/25/2026 at 165,980 miles using the AISIN TKH-002 Timing Belt Replacement Kit from RockAuto.com: timing belt, crankshaft sprocket, timing belt tensioner, timing belt pulleys, timing cover seal, and water pump replaced."
@@ -153,6 +156,68 @@ if (notesForm) {
     renderDashboard();
   });
 }
+
+function setJobNoteStatus(message = "") {
+  if (jobNoteStatus) {
+    jobNoteStatus.textContent = message;
+  }
+}
+
+function buildJobNoteText() {
+  const notes = notesForm ? formPayload(notesForm) : loadJson(STORAGE.notes, {});
+  const dateMileage = `${notes.job_note_date_mileage || ""}`.trim() || "Date / mileage not recorded";
+  const title = `${notes.job_note_title || ""}`.trim() || "Service job";
+  const lines = [
+    `Ridgeline Service Job Note - ${title}`,
+    `Date / mileage: ${dateMileage}`,
+    `Area / system: ${`${notes.job_note_area || ""}`.trim() || "Not recorded"}`,
+    `Parts / supplies: ${`${notes.job_note_parts || ""}`.trim() || "Not recorded"}`,
+    `Work performed / result: ${`${notes.job_note_result || ""}`.trim() || "Not recorded"}`,
+    `Follow-up / next buy: ${`${notes.job_note_followup || ""}`.trim() || "Not recorded"}`
+  ];
+
+  return lines.join("\n");
+}
+
+function appendJobNoteToGeneralNotes() {
+  if (!notesForm) {
+    return;
+  }
+
+  const payload = formPayload(notesForm);
+  const title = `${payload.job_note_title || ""}`.trim() || "Service job";
+  const date = new Date().toLocaleDateString("en-US");
+  const block = `[${date} - ${title}]\n${buildJobNoteText()}`;
+  const generalInput = notesForm.querySelector("[name='general_notes']");
+  const currentGeneral = `${payload.general_notes || ""}`.trim();
+  const nextGeneral = currentGeneral ? `${block}\n\n${currentGeneral}` : block;
+
+  if (generalInput) {
+    generalInput.value = nextGeneral;
+  }
+
+  saveJson(STORAGE.notes, {
+    ...loadJson(STORAGE.notes, {}),
+    ...payload,
+    general_notes: nextGeneral
+  });
+  renderDashboard();
+  renderMaintenancePartsPreview();
+  renderDiagnosticActivity();
+  setJobNoteStatus(`Appended ${title} to General Notes.`);
+}
+
+jobNoteCopyButton?.addEventListener("click", () => {
+  copyText(buildJobNoteText())
+    .then(() => {
+      setJobNoteStatus("Service job note copied.");
+    })
+    .catch(() => {
+      setJobNoteStatus("Could not copy automatically. Select the job note text and copy it manually.");
+    });
+});
+
+jobNoteAppendButton?.addEventListener("click", appendJobNoteToGeneralNotes);
 
 if (trackerForm) {
   trackerForm.addEventListener("input", () => {
