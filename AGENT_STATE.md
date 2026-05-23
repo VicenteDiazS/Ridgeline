@@ -1,10 +1,11 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-22
+Last updated: 2026-05-23
 
 ## Current Site Status
 
 - Static Ridgeline service site with shared UI, offline service worker, interactive fuse diagrams, search, menu, adaptive motion, garage/service tools, and reference pages.
+- Maintenance now includes an inline iPhone Service Closeout tray inside `maintenance.html#service-closeout`. Tapping Oil/Wheel/Battery/Filters reveals a mileage input and editable note, can copy/share the closeout note, and saves directly into the existing Maintenance log plus Garage Notes path without adding service facts, intervals, or Garage schema; the Maintenance bottom bar now starts with Done, and the service-worker cache is `ridgeline-console-v369`.
 - Quick Sheet now includes a compact iPhone Fuse Check Note inside `quick-sheet.html#fuse-triage`. It lets the owner choose 12V, Trailer, Audio, or Start context, add fuse-cover/photo detail, copy/share the note, or save it into existing Garage Notes with a local last-note receipt; the service-worker cache is `ridgeline-console-v368`.
 - Photo Atlas now includes an iPhone Capture Mission inside `photo-atlas.html#photo-capture-plan`. It reads existing hood/cabin/cargo/hitch area-journal photo counts, marks saved versus missing groups, and can copy/share/save the missing-photo checklist into existing Garage Notes without adding vehicle facts, repair steps, Garage schema, or photo storage fields; the service-worker cache is `ridgeline-console-v366`.
 - Rear Hitch now includes `rear-hitch.html#tow-setup-saver`, a compact iPhone Tow Setup Saver for selecting 7-way/4-flat/5-flat/6-pole adapter setup, marking the trailer light-check result, copying/sharing the setup, and saving it into the existing Rear Hitch Journal without adding vehicle facts or storage schema; the service-worker cache is `ridgeline-console-v361`.
@@ -916,3 +917,11 @@ After the next UI change:
 - Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('quick-sheet.html') -Tag audit-v368-fuse-check-note -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Quick Sheet browser smoke passed.
 - Updated `agent-last-run.json` so the public Anton status reports the Fuse Check Note impact with compact Home-card copy.
 - Next safe slice: real-iPhone review of the Quick Sheet Fuse Check Note with an actual fuse-cover label/photo, Garage/Maintenance visibility outside staging, shared iPhone header/Dynamic Island review, or practical fuse reference recovery on Hood/Cabin; avoid another Quick Sheet-only run unless the Fuse Check Note reveals a regression.
+- Rotated to Maintenance closeout after comparing Maintenance after-service logging, Garage/Maintenance visibility outside staging, shared iPhone header/offline behavior, and Hood/Cabin fuse-reference recovery, avoiding another Quick Sheet/NFC/Photo continuation. The Maintenance Service Closeout panel now reveals an inline iPhone closeout tray after selecting Oil, Wheel, Battery, or Filters, with mileage entry, editable note, Copy Note, Share, and Save Closeout. Save Closeout writes through the same existing Maintenance log, tracker, Garage Notes, and receipt path as Quick Maintenance Update; no Garage schema, vehicle facts, service intervals, fuse data, repair procedures, towing limits, or new saved-owner data were added.
+- The Maintenance shared iPhone bottom bar now starts with `Done` and routes to `maintenance.html#service-closeout`; Search metadata now covers inline/save/copy/share closeout phrases; the service-worker cache is `ridgeline-console-v369`.
+- Browser smoke coverage now verifies the hidden-until-selected closeout tray, selected pressed state, inline mileage focus, copy action, direct Save Closeout persistence to Maintenance log/Garage Notes, receipt rendering, iPhone action-row density, bottom-bar Done route, and no horizontal overflow while preserving existing Service Prep, Minder Planner, staging handoff, and receipt checks.
+- Node syntax checks could not run because `node` is not installed in this workspace.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')"`; targeted Maintenance smoke passed.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\audit\Test-InternalLinks.ps1`; internal link/anchor audit passed for 16 HTML files.
+- Ran `powershell -NoProfile -ExecutionPolicy Bypass -Command "& .\tools\audit\Invoke-SiteAudit.ps1 -Pages @('maintenance.html') -Tag audit-v369-maintenance-inline-closeout -SkipScreenshots"`; internal links, Garage restore Playwright audit, and Maintenance browser smoke passed.
+- Next safe slice: real-iPhone review of the Maintenance inline closeout after an actual service, shared iPhone header/Dynamic Island review, or Hood/Cabin fuse-reference recovery; avoid another Maintenance-only run unless the inline closeout reveals a regression.

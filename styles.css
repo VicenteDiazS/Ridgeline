@@ -5545,6 +5545,13 @@ kbd {
   outline-offset: 3px;
 }
 
+.service-closeout-cardlet.is-selected {
+  border-color: rgba(255, 145, 94, 0.72);
+  background:
+    linear-gradient(180deg, rgba(255, 145, 94, 0.16), rgba(255, 255, 255, 0.035)),
+    rgba(6, 12, 20, 0.72);
+}
+
 .service-closeout-cardlet span {
   color: var(--orange);
   font-size: 0.72rem;
@@ -5563,6 +5570,72 @@ kbd {
   color: var(--muted);
   font-size: 0.8rem;
   line-height: 1.35;
+}
+
+.service-closeout-tray {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(240px, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 145, 94, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 145, 94, 0.08);
+}
+
+.service-closeout-tray[hidden] {
+  display: none;
+}
+
+.service-closeout-tray-head,
+.service-closeout-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.service-closeout-tray-head span {
+  display: block;
+  color: var(--orange);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.service-closeout-tray-head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+}
+
+.service-closeout-tray label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.service-closeout-tray input,
+.service-closeout-tray textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(155, 216, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(4, 10, 18, 0.8);
+  color: var(--text);
+  font: inherit;
+}
+
+.service-closeout-tray textarea {
+  resize: vertical;
+}
+
+.service-closeout-actions .utility-link {
+  min-height: 38px;
+  flex: 1 1 132px;
 }
 
 .maintenance-save-receipt {
@@ -5872,6 +5945,25 @@ kbd {
   .maintenance-page .service-closeout-cardlet small {
     font-size: 0.72rem;
     line-height: 1.28;
+  }
+
+  .maintenance-page .service-closeout-tray {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .maintenance-page .service-closeout-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .maintenance-page .service-closeout-actions .utility-link {
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 8px;
+    font-size: 0.74rem;
   }
 
   .maintenance-page .maintenance-save-receipt {

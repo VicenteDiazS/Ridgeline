@@ -136,8 +136,7 @@
                 <p class="eyebrow">After The Job</p>
                 <h3>Service Closeout</h3>
                 <p class="section-copy">
-                  Tap the job you just finished, then enter mileage once in Quick Maintenance Update.
-                  The note stays on the existing Garage maintenance log path.
+                  Tap the job you just finished, enter mileage here, and save the closeout to the same Garage maintenance log.
                 </p>
               </div>
               <a class="utility-link" href="#maintenance-updater">Open Update</a>
@@ -164,9 +163,31 @@
                 <small>Routes back through the existing update form.</small>
               </button>
             </div>
+            <form class="service-closeout-tray" data-service-closeout-form hidden>
+              <div class="service-closeout-tray-head">
+                <div>
+                  <span>Ready to save</span>
+                  <strong data-service-closeout-title>Select a completed job</strong>
+                </div>
+                <a class="utility-link" href="#maintenance-updater">Full Update</a>
+              </div>
+              <label>
+                <span>Mileage</span>
+                <input name="closeout_mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="166240" autocomplete="off" data-service-closeout-mileage />
+              </label>
+              <label>
+                <span>Closeout note</span>
+                <textarea name="closeout_note" rows="3" data-service-closeout-note></textarea>
+              </label>
+              <div class="service-closeout-actions">
+                <button class="utility-link utility-link-strong" type="submit">Save Closeout</button>
+                <button class="utility-link" type="button" data-copy-service-closeout>Copy Note</button>
+                <button class="utility-link" type="button" data-share-service-closeout>Share</button>
+              </div>
+            </form>
             <p class="small-note" data-service-closeout-status aria-live="polite"></p>
             <p class="source-note">
-              Closeout shortcuts only prefill the existing Quick Maintenance Update form. Verify the work on the truck before saving the mileage note.
+              Closeout shortcuts use the existing Quick Maintenance Update storage path. Verify the work on the truck before saving the mileage note.
             </p>
           </article>
 

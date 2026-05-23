@@ -11,6 +11,7 @@ const updateList = document.querySelector("[data-maintenance-update-list]");
 const updateReceipt = document.querySelector("[data-maintenance-save-receipt]");
 const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]")];
 const closeoutButtons = [...document.querySelectorAll("[data-closeout-service]")];
+const closeoutForm = document.querySelector("[data-service-closeout-form]");
 const closeoutStatus = document.querySelector("[data-service-closeout-status]");
 const minderPlanner = document.querySelector("#minder-pocket-planner");
 const minderInput = document.querySelector("[data-minder-code-input]");
@@ -48,6 +49,7 @@ const minderSubItems = {
 let lastMinderPlanText = "";
 let lastMinderPlanCode = "";
 let lastUpdateReceiptText = "";
+let selectedCloseout = null;
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -119,6 +121,39 @@ function renderUpdateReceipt(entry) {
   updateReceipt.querySelector("[data-maintenance-receipt-title]").textContent = `${label} saved`;
   updateReceipt.querySelector("[data-maintenance-receipt-summary]").textContent = entry.note || "No note entered. The mileage and service type were still saved.";
   updateReceipt.querySelector("[data-maintenance-receipt-meta]").textContent = `${entry.date} / ${entry.mileageText} / Garage Notes updated`;
+}
+
+function saveMaintenanceEntry(entry) {
+  const entries = loadJson(STORAGE.maintenanceLog, []);
+  saveJson(STORAGE.maintenanceLog, [entry, ...entries].slice(0, 80));
+
+  if (entry.service !== "general_note") {
+    const tracker = loadJson(STORAGE.tracker, {});
+    tracker[entry.service] = `${entry.date} / ${entry.mileageText}`;
+    saveJson(STORAGE.tracker, tracker);
+  }
+
+  appendGarageNote(entry);
+  renderRecentUpdates();
+  renderUpdateReceipt(entry);
+}
+
+function buildMaintenanceEntry({ mileage, service = "general_note", note = "" } = {}) {
+  const mileageText = formatMileage(mileage);
+  if (!mileageText) {
+    return null;
+  }
+
+  const date = new Date().toLocaleDateString("en-US");
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: new Date().toISOString(),
+    date,
+    mileageText,
+    mileage: Number(mileage),
+    service,
+    note: `${note || ""}`.trim()
+  };
 }
 
 function prependGarageGeneralNote(line) {
@@ -306,13 +341,28 @@ function initServiceCloseout() {
     return;
   }
 
+  const closeoutTitle = closeoutForm?.querySelector("[data-service-closeout-title]");
+  const closeoutMileage = closeoutForm?.querySelector("[data-service-closeout-mileage]");
+  const closeoutNote = closeoutForm?.querySelector("[data-service-closeout-note]");
+
+  function closeoutText() {
+    const label = serviceLabels[selectedCloseout?.service] || "Maintenance update";
+    const mileage = formatMileage(closeoutMileage?.value);
+    return [
+      `Ridgeline service closeout: ${label}`,
+      mileage ? `Mileage: ${mileage}` : "Mileage: enter before saving",
+      closeoutNote?.value ? `Note: ${closeoutNote.value.trim()}` : "Note: none entered",
+      "Save path: Maintenance log and Garage Notes"
+    ].join("\n");
+  }
+
   closeoutButtons.forEach((button) => {
+    button.setAttribute("aria-pressed", "false");
     button.addEventListener("click", () => {
       const service = button.dataset.closeoutService || "general_note";
       const note = button.dataset.closeoutNote || "";
       const serviceField = updateForm.elements.service;
       const noteField = updateForm.elements.note;
-      const mileageField = updateForm.elements.mileage;
 
       if (serviceField) {
         serviceField.value = service;
@@ -321,17 +371,83 @@ function initServiceCloseout() {
         noteField.value = note;
       }
 
-      updateForm.scrollIntoView({ behavior: "smooth", block: "center" });
-      window.setTimeout(() => mileageField?.focus(), 350);
+      selectedCloseout = { service, note };
+      closeoutButtons.forEach((item) => {
+        const active = item === button;
+        item.classList.toggle("is-selected", active);
+        item.setAttribute("aria-pressed", active ? "true" : "false");
+      });
 
       const label = serviceLabels[service] || "Maintenance update";
+      if (closeoutForm) {
+        closeoutForm.hidden = false;
+      }
+      if (closeoutTitle) {
+        closeoutTitle.textContent = `${label} closeout`;
+      }
+      if (closeoutNote && note) {
+        closeoutNote.value = note;
+      }
+      window.setTimeout(() => closeoutMileage?.focus(), 120);
       if (closeoutStatus) {
-        closeoutStatus.textContent = `${label} closeout is ready. Enter mileage, edit the note if needed, then save the update.`;
+        closeoutStatus.textContent = `${label} closeout is ready. Enter mileage here, edit the note if needed, then save.`;
       }
       if (updateStatus) {
-        updateStatus.textContent = `${label} closeout selected from the Service Closeout panel.`;
+        updateStatus.textContent = `${label} closeout selected from the Service Closeout panel. The full update form is also prefilled.`;
       }
     });
+  });
+
+  closeoutForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!selectedCloseout) {
+      closeoutStatus.textContent = "Select the completed service first.";
+      return;
+    }
+
+    const entry = buildMaintenanceEntry({
+      mileage: closeoutMileage?.value,
+      service: selectedCloseout.service,
+      note: closeoutNote?.value || selectedCloseout.note
+    });
+    if (!entry) {
+      closeoutStatus.textContent = "Enter the current mileage before saving the closeout.";
+      closeoutMileage?.focus();
+      return;
+    }
+
+    saveMaintenanceEntry(entry);
+    closeoutMileage.value = "";
+    const label = serviceLabels[entry.service] || "Maintenance update";
+    closeoutStatus.textContent = `${label} saved at ${entry.mileageText}. Receipt is ready below.`;
+    if (updateStatus) {
+      updateStatus.textContent = `${label} saved at ${entry.mileageText} on ${entry.date}.`;
+    }
+  });
+
+  closeoutForm?.querySelector("[data-copy-service-closeout]")?.addEventListener("click", () => {
+    copyText(closeoutText())
+      .then(() => {
+        closeoutStatus.textContent = "Closeout note copied.";
+      })
+      .catch(() => {
+        closeoutStatus.textContent = "Could not copy the closeout note automatically.";
+      });
+  });
+
+  closeoutForm?.querySelector("[data-share-service-closeout]")?.addEventListener("click", async () => {
+    const text = closeoutText();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline service closeout", text });
+        closeoutStatus.textContent = "Closeout note shared.";
+        return;
+      }
+      await copyText(text);
+      closeoutStatus.textContent = "Share unavailable; closeout note copied instead.";
+    } catch {
+      closeoutStatus.textContent = "Share canceled or unavailable.";
+    }
   });
 }
 
@@ -428,40 +544,20 @@ function initMinderPlanner() {
 function saveQuickUpdate(event) {
   event.preventDefault();
   const formData = new FormData(updateForm);
-  const mileageText = formatMileage(formData.get("mileage"));
-  const service = formData.get("service") || "general_note";
-  const note = `${formData.get("note") || ""}`.trim();
+  const entry = buildMaintenanceEntry({
+    mileage: formData.get("mileage"),
+    service: formData.get("service") || "general_note",
+    note: formData.get("note")
+  });
 
-  if (!mileageText) {
+  if (!entry) {
     updateStatus.textContent = "Enter the current mileage first.";
     return;
   }
 
-  const date = new Date().toLocaleDateString("en-US");
-  const entry = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    createdAt: new Date().toISOString(),
-    date,
-    mileageText,
-    mileage: Number(formData.get("mileage")),
-    service,
-    note
-  };
-
-  const entries = loadJson(STORAGE.maintenanceLog, []);
-  saveJson(STORAGE.maintenanceLog, [entry, ...entries].slice(0, 80));
-
-  if (service !== "general_note") {
-    const tracker = loadJson(STORAGE.tracker, {});
-    tracker[service] = `${date} / ${mileageText}`;
-    saveJson(STORAGE.tracker, tracker);
-  }
-
-  appendGarageNote(entry);
+  saveMaintenanceEntry(entry);
   updateForm.reset();
-  renderRecentUpdates();
-  renderUpdateReceipt(entry);
-  updateStatus.textContent = `${serviceLabels[service]} saved at ${mileageText} on ${date}.`;
+  updateStatus.textContent = `${serviceLabels[entry.service]} saved at ${entry.mileageText} on ${entry.date}.`;
 }
 
 updateForm?.addEventListener("submit", saveQuickUpdate);

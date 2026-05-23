@@ -2191,6 +2191,7 @@ async def assert_maintenance_features(page, page_name):
             const receipt = document.querySelector("[data-maintenance-save-receipt]");
             const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
             const closeoutCards = closeout ? [...closeout.querySelectorAll("[data-closeout-service]")] : [];
+            const closeoutTray = closeout?.querySelector("[data-service-closeout-form]");
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
             const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
             const minder = document.querySelector("#minder-pocket-planner");
@@ -2214,6 +2215,13 @@ async def assert_maintenance_features(page, page_name):
                 closeoutText: closeout?.innerText || "",
                 closeoutServices: closeoutCards.map((card) => card.dataset.closeoutService).filter(Boolean),
                 hasCloseoutUpdaterRoute: Boolean(closeout?.querySelector('a[href="#maintenance-updater"]')),
+                hasCloseoutTray: Boolean(closeoutTray),
+                closeoutTrayHidden: Boolean(closeoutTray?.hidden),
+                hasCloseoutMileage: Boolean(closeoutTray?.querySelector("[data-service-closeout-mileage]")),
+                hasCloseoutNote: Boolean(closeoutTray?.querySelector("[data-service-closeout-note]")),
+                hasCloseoutSave: Boolean(closeoutTray?.querySelector("button[type='submit']")),
+                hasCloseoutCopy: Boolean(closeoutTray?.querySelector("[data-copy-service-closeout]")),
+                hasCloseoutShare: Boolean(closeoutTray?.querySelector("[data-share-service-closeout]")),
                 hasSaveReceipt: Boolean(receipt),
                 receiptInitiallyHidden: Boolean(receipt?.hidden),
                 hasReceiptCopy: Boolean(receipt?.querySelector("[data-copy-maintenance-receipt]")),
@@ -2248,6 +2256,13 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["closeoutCardCount"] == 4, "service closeout should expose four after-service shortcuts")
     assert_true(set(state["closeoutServices"]) == {"oil_change", "tire_rotation", "battery_install", "filters"}, "service closeout shortcuts should target existing update types")
     assert_true(state["hasCloseoutUpdaterRoute"], "service closeout is missing its Quick Maintenance Update route")
+    assert_true(state["hasCloseoutTray"], "service closeout is missing the inline mileage tray")
+    assert_true(state["closeoutTrayHidden"], "service closeout tray should stay hidden until a completed job is selected")
+    assert_true(state["hasCloseoutMileage"], "service closeout tray is missing its mileage input")
+    assert_true(state["hasCloseoutNote"], "service closeout tray is missing its editable note")
+    assert_true(state["hasCloseoutSave"], "service closeout tray is missing Save Closeout")
+    assert_true(state["hasCloseoutCopy"], "service closeout tray is missing Copy Note")
+    assert_true(state["hasCloseoutShare"], "service closeout tray is missing Share")
     assert_true(state["hasSaveReceipt"], "Quick Maintenance Update is missing its saved receipt panel")
     assert_true(state["receiptInitiallyHidden"], "maintenance saved receipt should stay hidden until an update is saved")
     assert_true(state["hasReceiptCopy"], "maintenance saved receipt is missing Copy Receipt")
@@ -2280,6 +2295,7 @@ async def assert_maintenance_features(page, page_name):
             const prepGrid = document.querySelector("#service-prep .service-prep-grid");
             const launcherGrid = document.querySelector("#service-run-launcher .maintenance-run-grid");
             const closeoutGrid = document.querySelector("#service-closeout .service-closeout-grid");
+            const closeoutActions = document.querySelector("#service-closeout .service-closeout-actions");
             const receiptActions = document.querySelector("[data-maintenance-save-receipt] .maintenance-receipt-actions");
             const firstCloseoutButton = document.querySelector("#service-closeout [data-closeout-service]");
             const firstLauncherAction = document.querySelector("#service-run-launcher .maintenance-run-card .inspector-actions");
@@ -2315,10 +2331,15 @@ async def assert_maintenance_features(page, page_name):
             const receiptActionRows = receiptActions
                 ? new Set([...receiptActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
                 : 0;
+            const closeoutActionRows = closeoutActions
+                ? new Set([...closeoutActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                : 0;
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visibleMaintenanceHeroLinks,
                 visibleMaintenanceDockLinks,
+                hasMaintenanceCloseoutRoute: visibleMaintenanceDockLinks.includes("Done") &&
+                    Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="#service-closeout"]')),
                 hasMaintenanceStagingRoute: visibleMaintenanceDockLinks.includes("Stage") &&
                     Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="garage.html#maintenance-note-preview"]')),
                 prepStageText: firstPrepStageButton?.textContent.trim() || "",
@@ -2328,6 +2349,7 @@ async def assert_maintenance_features(page, page_name):
                 launcherColumns,
                 closeoutColumns,
                 closeoutButtonHeight: firstCloseoutButton?.getBoundingClientRect().height || 0,
+                closeoutActionRows,
                 receiptActionRows,
                 launcherActionRows,
                 prepColumns,
@@ -2341,9 +2363,11 @@ async def assert_maintenance_features(page, page_name):
     assert_true(mobile_state["launcherColumns"] == 2, "service run launcher should keep two compact columns at iPhone width")
     assert_true(mobile_state["closeoutColumns"] == 2, "service closeout should keep two compact columns at iPhone width")
     assert_true(mobile_state["closeoutButtonHeight"] >= 44, "service closeout shortcuts should remain thumb-sized on iPhone width")
+    assert_true(mobile_state["closeoutActionRows"] <= 1, "service closeout tray actions should stay on one compact iPhone row")
     assert_true(mobile_state["receiptActionRows"] == 1, "maintenance receipt actions should stay on one compact iPhone row")
     assert_true(mobile_state["launcherActionRows"] == 1, "service run launcher action buttons should stay on one compact row at iPhone width")
-    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Update", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Update, Prep, Stage, and More")
+    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Done", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Done, Prep, Stage, and More")
+    assert_true(mobile_state["hasMaintenanceCloseoutRoute"], "maintenance mobile bottom bar is missing the closeout route")
     assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
     assert_true(mobile_state["prepStageText"] == "Stage in Garage", "service prep Stage button should clearly state it opens Garage staging")
     assert_true("open Garage staging" in mobile_state["prepStageLabel"], "service prep Stage button should expose a descriptive aria label")
@@ -2361,10 +2385,16 @@ async def assert_maintenance_features(page, page_name):
     closeout_state = await page.evaluate(
         """() => {
             const form = document.querySelector("[data-maintenance-update-form]");
+            const closeout = document.querySelector("#service-closeout");
+            const tray = closeout?.querySelector("[data-service-closeout-form]");
             return {
                 service: form?.elements.service?.value || "",
                 note: form?.elements.note?.value || "",
-                activeName: document.activeElement?.getAttribute("name") || "",
+                trayVisible: Boolean(tray && !tray.hidden && tray.getBoundingClientRect().height > 0),
+                trayTitle: tray?.querySelector("[data-service-closeout-title]")?.textContent || "",
+                trayNote: tray?.querySelector("[data-service-closeout-note]")?.value || "",
+                trayActive: document.activeElement?.getAttribute("data-service-closeout-mileage") !== null,
+                pressed: closeout?.querySelector("[data-closeout-service='battery_install']")?.getAttribute("aria-pressed") || "",
                 closeoutStatus: document.querySelector("[data-service-closeout-status]")?.textContent || "",
                 updateStatus: document.querySelector("[data-maintenance-update-status]")?.textContent || ""
             };
@@ -2372,11 +2402,19 @@ async def assert_maintenance_features(page, page_name):
     )
     assert_true(closeout_state["service"] == "battery_install", "service closeout did not preselect the existing battery install update type")
     assert_true("Battery service complete" in closeout_state["note"], "service closeout did not prefill the battery completion note")
-    assert_true(closeout_state["activeName"] == "mileage", "service closeout should focus the mileage field after routing to Quick Maintenance Update")
+    assert_true(closeout_state["trayVisible"], "service closeout did not reveal the inline mileage tray")
+    assert_true("Battery install closeout" in closeout_state["trayTitle"], "service closeout tray should name the selected closeout")
+    assert_true("Battery service complete" in closeout_state["trayNote"], "service closeout tray did not prefill the completion note")
+    assert_true(closeout_state["trayActive"], "service closeout should focus the inline mileage input")
+    assert_true(closeout_state["pressed"] == "true", "selected service closeout shortcut should expose pressed state")
     assert_true("Battery install closeout is ready" in closeout_state["closeoutStatus"], "service closeout did not report the ready state")
     assert_true("Battery install closeout selected" in closeout_state["updateStatus"], "Quick Maintenance Update did not reflect the selected closeout")
-    await page.locator("[data-maintenance-update-form] input[name='mileage']").fill("166240")
-    await page.locator("[data-maintenance-update-form] button[type='submit']").click()
+    await page.locator("[data-copy-service-closeout]").click()
+    await page.wait_for_timeout(100)
+    closeout_copy_status = await page.locator("[data-service-closeout-status]").inner_text()
+    assert_true("Closeout note copied" in closeout_copy_status, "service closeout copy did not report success")
+    await page.locator("[data-service-closeout-mileage]").fill("166240")
+    await page.locator("[data-service-closeout-form] button[type='submit']").click()
     await page.wait_for_timeout(200)
     receipt_state = await page.evaluate(
         """() => {
@@ -2388,6 +2426,8 @@ async def assert_maintenance_features(page, page_name):
                 text: receipt?.innerText || "",
                 title: receipt?.querySelector("[data-maintenance-receipt-title]")?.textContent || "",
                 meta: receipt?.querySelector("[data-maintenance-receipt-meta]")?.textContent || "",
+                closeoutStatus: document.querySelector("[data-service-closeout-status]")?.textContent || "",
+                closeoutMileage: document.querySelector("[data-service-closeout-mileage]")?.value || "",
                 status: document.querySelector("[data-maintenance-update-status]")?.textContent || "",
                 notes: notes.general_notes || "",
                 logCount: log.length,
@@ -2402,6 +2442,8 @@ async def assert_maintenance_features(page, page_name):
     assert_true("166,240 miles" in receipt_state["meta"], "maintenance receipt should show the saved mileage")
     assert_true("Garage Notes updated" in receipt_state["meta"], "maintenance receipt should confirm the Garage Notes handoff")
     assert_true("Battery service complete" in receipt_state["text"], "maintenance receipt should show the saved closeout note")
+    assert_true("Battery install saved at 166,240 miles" in receipt_state["closeoutStatus"], "inline service closeout save should report mileage")
+    assert_true(receipt_state["closeoutMileage"] == "", "inline service closeout should clear mileage after saving")
     assert_true("Battery install saved at 166,240 miles" in receipt_state["status"], "maintenance save status should confirm mileage and date")
     assert_true(receipt_state["logCount"] >= 1 and receipt_state["latestService"] == "battery_install", "maintenance save did not write the selected closeout service to the log")
     assert_true(receipt_state["latestMileage"] == 166240, "maintenance save did not write the entered mileage to the log")

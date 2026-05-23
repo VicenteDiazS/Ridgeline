@@ -580,8 +580,8 @@ export const searchIndex = [
     title: "Service Closeout",
     url: "maintenance.html#service-closeout",
     category: "Maintenance",
-    excerpt: "After-service iPhone shortcuts for oil, wheel, battery, and filter work that prefill Quick Maintenance Update notes, save mileage to the existing Garage log, and show a copy/share receipt.",
-    keywords: ["service closeout", "finish service", "after service", "log completed service", "maintenance closeout", "oil done", "wheel done", "battery done", "filters done", "prefill maintenance update", "service receipt", "maintenance receipt", "copy maintenance receipt", "share maintenance receipt", "save mileage note", "garage service log"]
+    excerpt: "After-service iPhone shortcuts for oil, wheel, battery, and filter work with an inline mileage closeout tray that saves to the existing Garage log and receipt path.",
+    keywords: ["service closeout", "finish service", "after service", "log completed service", "maintenance closeout", "oil done", "wheel done", "battery done", "filters done", "inline mileage closeout", "save closeout", "copy closeout note", "share closeout note", "prefill maintenance update", "service receipt", "maintenance receipt", "copy maintenance receipt", "share maintenance receipt", "save mileage note", "garage service log"]
   },
   {
     title: "Service Prep Planner",

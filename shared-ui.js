@@ -2007,7 +2007,7 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "maintenance.html": [
-      { label: "Update", href: "#maintenance-updater", icon: "wrench" },
+      { label: "Done", href: "#service-closeout", icon: "check" },
       { label: "Prep", href: "#service-prep", icon: "check" },
       { label: "Stage", href: "garage.html#maintenance-note-preview", icon: "map" },
       { label: "More", action: "tools", icon: "menu" }
