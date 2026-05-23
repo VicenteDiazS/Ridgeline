@@ -9151,6 +9151,76 @@ kbd {
   margin-top: 12px;
 }
 
+.photo-mission-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(4, 12, 20, 0.44);
+}
+
+.photo-mission-card strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1rem;
+  line-height: 1.28;
+}
+
+.photo-mission-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photo-mission-list li {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.photo-mission-list li.is-complete {
+  border-color: rgba(73, 222, 128, 0.22);
+  background: rgba(73, 222, 128, 0.06);
+}
+
+.photo-mission-list span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.photo-mission-list a {
+  color: var(--text);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.photo-mission-list small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.photo-mission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photo-mission-actions button {
+  min-height: 42px;
+}
+
 .atlas-card {
   display: grid;
   gap: 14px;
@@ -10950,6 +11020,45 @@ kbd {
   .photo-atlas-page .photo-capture-card b {
     font-size: 0.76rem;
     line-height: 1.35;
+  }
+
+  .photo-atlas-page .photo-mission-card {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .photo-atlas-page .photo-mission-list {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .photo-atlas-page .photo-mission-list li {
+    grid-template-columns: minmax(60px, 0.28fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 4px 9px;
+    padding: 9px 10px;
+  }
+
+  .photo-atlas-page .photo-mission-list span {
+    grid-row: span 2;
+    padding-top: 2px;
+    font-size: 0.64rem;
+  }
+
+  .photo-atlas-page .photo-mission-list small {
+    font-size: 0.74rem;
+  }
+
+  .photo-atlas-page .photo-mission-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .photo-atlas-page .photo-mission-actions button {
+    min-width: 0;
+    padding: 8px 7px;
+    font-size: 0.75rem;
   }
 
   .visual-nav-card {

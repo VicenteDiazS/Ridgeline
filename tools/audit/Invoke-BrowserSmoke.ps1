@@ -53,6 +53,9 @@ SEARCH_EXPECTATIONS = {
     "starter tag pack": "NFC Starter Tag Pack",
     "first truck tags": "NFC Starter Tag Pack",
     "photo capture plan": "Photo Capture Plan",
+    "photo capture mission": "Photo Capture Plan",
+    "missing photo checklist": "Photo Capture Plan",
+    "save photo plan": "Photo Capture Plan",
     "truck photo checklist": "Photo Capture Plan",
     "workflow index": "Diagnostics Workflow Index",
     "first minute triage": "First Minute Diagnostic Triage",
@@ -1601,6 +1604,7 @@ async def assert_photo_capture_plan(page, page_name):
                 "rear-hitch.html#area-journal",
                 "garage.html#areas"
             ];
+            const mission = panel?.querySelector("[data-photo-mission]");
             const atlasCards = [...document.querySelectorAll("[data-atlas-area]")];
             const emptyStates = [...document.querySelectorAll(".atlas-empty-state")];
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
@@ -1609,6 +1613,12 @@ async def assert_photo_capture_plan(page, page_name):
                 cardCount: cards.length,
                 text: panel?.innerText || "",
                 missingLinks: requiredLinks.filter((href) => !panel?.querySelector(`a[href="${href}"]`)),
+                hasMission: Boolean(mission),
+                missionItems: mission?.querySelectorAll(".photo-mission-list li").length || 0,
+                missionText: mission?.innerText || "",
+                hasCopyMissing: Boolean(mission?.querySelector("[data-photo-copy-missing]")),
+                hasShareMissing: Boolean(mission?.querySelector("[data-photo-share-missing]")),
+                hasSaveMissing: Boolean(mission?.querySelector("[data-photo-save-missing]")),
                 heroHasPlan: Boolean(document.querySelector('.section-page-hero a[href="#photo-capture-plan"]')),
                 dockHasPlan: [...document.querySelectorAll("a")].some((link) =>
                     link.getAttribute("href") === "#photo-capture-plan" && /capture plan/i.test(link.textContent || "")
@@ -1625,8 +1635,17 @@ async def assert_photo_capture_plan(page, page_name):
     assert_true(state["cardCount"] == 4, "Photo Capture Plan should expose four route cards")
     for phrase in ["Fuse covers", "Driver-left fuse panel", "Trunk layout", "Connector"]:
         assert_true(phrase in state["text"], f"Photo Capture Plan is missing '{phrase}'")
+    assert_true(state["hasMission"], "Photo Capture Plan is missing the capture mission")
+    assert_true(state["missionItems"] == 4, "Photo Capture Mission should show four area checklist rows")
+    mission_text = state["missionText"].lower()
+    for phrase in ["needed", "hood", "cabin", "cargo", "hitch"]:
+        assert_true(phrase in mission_text, f"Photo Capture Mission is missing {phrase}")
+    assert_true(state["hasCopyMissing"], "Photo Capture Mission is missing Copy Missing")
+    assert_true(state["hasShareMissing"], "Photo Capture Mission is missing Share")
+    assert_true(state["hasSaveMissing"], "Photo Capture Mission is missing Save Plan")
     assert_true(not state["missingLinks"], f"Photo Capture Plan is missing route links: {state['missingLinks']}")
     assert_true("does not add repair steps" in state["text"], "Photo Capture Plan is missing its no-new-facts boundary note")
+    assert_true("Garage Notes only" in state["text"], "Photo Capture Plan should explain the Save Plan boundary")
     assert_true(state["heroHasPlan"], "Photo Atlas hero is missing the capture plan route")
     assert_true(state["dockHasPlan"], "Photo Atlas bottom dock is missing the capture plan route")
     assert_true(state["atlasCount"] == 4, "Photo Atlas should still render four atlas areas")
@@ -1635,14 +1654,36 @@ async def assert_photo_capture_plan(page, page_name):
     assert_true(state["hasPageScope"], "Photo Atlas is missing its page-scoped styling class")
     assert_true(not state["overflow"], "Photo Capture Plan introduced horizontal overflow")
 
+    await page.locator("[data-photo-copy-missing]").click()
+    await page.wait_for_timeout(150)
+    copy_status = await page.locator("[data-photo-mission-status]").inner_text()
+    assert_true("Copied" in copy_status, "Photo Capture Mission copy action did not report success")
+    await page.locator("[data-photo-save-missing]").click()
+    await page.wait_for_timeout(180)
+    save_state = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                status: document.querySelector("[data-photo-mission-status]")?.textContent || "",
+                notes: notes.general_notes || ""
+            };
+        }"""
+    )
+    assert_true("Saved" in save_state["status"], "Photo Capture Mission save action did not report success")
+    assert_true("Ridgeline Photo Capture Plan" in save_state["notes"], "Photo Capture Mission did not save into Garage Notes")
+    assert_true("Hood:" in save_state["notes"], "Photo Capture Mission saved note should include missing area checklist")
+
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(300)
     mobile_state = await page.evaluate(
         """() => {
             const panel = document.querySelector("#photo-capture-plan");
             const grid = panel?.querySelector(".photo-capture-grid");
+            const missionGrid = panel?.querySelector(".photo-mission-list");
+            const missionButtons = [...(panel?.querySelectorAll(".photo-mission-actions button") || [])];
             const cards = panel ? [...panel.querySelectorAll(".photo-capture-card")] : [];
             const cardRects = cards.map((card) => card.getBoundingClientRect());
+            const missionButtonRects = missionButtons.map((button) => button.getBoundingClientRect());
             const visibleHeroLinks = [...document.querySelectorAll(".photo-atlas-page .section-page-hero .section-utility-nav .utility-link")]
                 .filter((link) => {
                     const style = getComputedStyle(link);
@@ -1653,18 +1694,24 @@ async def assert_photo_capture_plan(page, page_name):
             return {
                 visible: Boolean(panel?.getBoundingClientRect().height),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                missionColumns: missionGrid ? getComputedStyle(missionGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 visibleHeroLinks,
                 minCardHeight: cardRects.length ? Math.min(...cardRects.map((rect) => rect.height)) : 0,
                 maxCardWidth: cardRects.length ? Math.max(...cardRects.map((rect) => rect.width)) : 0,
+                minMissionButtonHeight: missionButtonRects.length ? Math.min(...missionButtonRects.map((rect) => rect.height)) : 0,
+                maxMissionButtonWidth: missionButtonRects.length ? Math.max(...missionButtonRects.map((rect) => rect.width)) : 0,
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
     )
     assert_true(mobile_state["visible"], "Photo Capture Plan is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 1, "Photo Capture Plan should stack to one column on iPhone")
+    assert_true(mobile_state["missionColumns"] == 1, "Photo Capture Mission should stack to one column on iPhone")
     assert_true(mobile_state["visibleHeroLinks"] == 5, "Photo Atlas mobile hero should keep five primary routes visible")
     assert_true(mobile_state["minCardHeight"] >= 44, "Photo Capture Plan cards lost thumb-sized touch targets")
     assert_true(mobile_state["maxCardWidth"] <= 390, "Photo Capture Plan cards are wider than the iPhone viewport")
+    assert_true(mobile_state["minMissionButtonHeight"] >= 42, "Photo Capture Mission actions lost thumb-sized touch targets")
+    assert_true(mobile_state["maxMissionButtonWidth"] <= 130, "Photo Capture Mission actions are too wide for the iPhone action row")
     assert_true(not mobile_state["overflow"], "Photo Capture Plan introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
