@@ -324,6 +324,132 @@ function copyText(text) {
   }
 }
 
+function prependGarageGeneralNote(noteText) {
+  const notes = loadJson(STORAGE.notes, {});
+  const existing = `${notes.general_notes || ""}`.trim();
+  saveJson(STORAGE.notes, {
+    ...notes,
+    general_notes: existing ? `${noteText}\n\n${existing}` : noteText
+  });
+}
+
+function currentPageTitle() {
+  return document.title.replace(/\s*\|\s*Ridgeline Console\s*$/i, "").trim() || "Ridgeline fuse page";
+}
+
+function setFusePullStatus(root, message) {
+  const statusEl = root.querySelector("[data-fuse-pull-status]");
+  if (statusEl) {
+    statusEl.textContent = message;
+  }
+}
+
+function fusePullSelectedLine(root) {
+  const selected = root._selectedFuse;
+  if (!selected) {
+    return "Selected fuse: not selected yet";
+  }
+
+  return `Selected fuse: ${selected.panelLabel} ${selected.position} / ${selected.rating} / ${selected.circuit}`;
+}
+
+function buildFusePullChecklist(root) {
+  const pageLabel = root.dataset.fusePullPage || currentPageTitle();
+  const context = root.querySelector("[data-fuse-pull-context]")?.value.trim() || "Not entered";
+  const checkedSteps = [...root.querySelectorAll("[data-fuse-pull-step]:checked")].map((input) => input.value);
+  const stepLines = checkedSteps.length
+    ? checkedSteps.map((step) => `- ${step}`)
+    : ["- No checklist steps marked yet"];
+  return [
+    `${pageLabel} fuse pull checklist`,
+    `Symptom / cover label: ${context}`,
+    fusePullSelectedLine(root),
+    "Steps:",
+    ...stepLines,
+    "Verify the truck cover label and owner's manual before replacing anything.",
+    `${location.origin}${location.pathname}#${root.id || "fuses"}`
+  ].join("\n");
+}
+
+function renderFusePullChecklist(root) {
+  const previewEl = root.querySelector("[data-fuse-pull-preview]");
+  if (!previewEl) {
+    return;
+  }
+
+  const context = root.querySelector("[data-fuse-pull-context]")?.value.trim() || "Add symptom or cover-label wording.";
+  const checkedCount = root.querySelectorAll("[data-fuse-pull-step]:checked").length;
+  previewEl.innerHTML = `
+    <span>${escapeHtml(root.dataset.fusePullPage || "Fuse")} checklist</span>
+    <strong>${escapeHtml(context)}</strong>
+    <small>${escapeHtml(fusePullSelectedLine(root))}</small>
+    <small>${checkedCount}/4 checklist steps marked. Verify against the truck cover label before replacing anything.</small>
+  `;
+}
+
+function initFusePullChecklists() {
+  const roots = [...document.querySelectorAll("[data-fuse-pull-checklist]")];
+  if (!roots.length) {
+    return;
+  }
+
+  roots.forEach((root) => {
+    root._selectedFuse = null;
+    root.querySelector("[data-fuse-pull-context]")?.addEventListener("input", () => renderFusePullChecklist(root));
+    root.querySelectorAll("[data-fuse-pull-step]").forEach((input) => {
+      input.addEventListener("change", () => renderFusePullChecklist(root));
+    });
+
+    root.querySelector("[data-copy-fuse-pull]")?.addEventListener("click", async () => {
+      const copied = await copyText(buildFusePullChecklist(root));
+      setFusePullStatus(root, copied ? "Fuse pull checklist copied." : "Copy is unavailable in this browser.");
+    });
+
+    root.querySelector("[data-share-fuse-pull]")?.addEventListener("click", async () => {
+      const text = buildFusePullChecklist(root);
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Ridgeline fuse pull checklist", text });
+          setFusePullStatus(root, "Fuse pull checklist shared.");
+          return;
+        }
+        const copied = await copyText(text);
+        setFusePullStatus(root, copied ? "Share unavailable; checklist copied instead." : "Share is unavailable in this browser.");
+      } catch (error) {
+        setFusePullStatus(root, "Share canceled or unavailable.");
+      }
+    });
+
+    root.querySelector("[data-save-fuse-pull]")?.addEventListener("click", () => {
+      const timestamp = new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+      try {
+        prependGarageGeneralNote(`[${timestamp} - ${root.dataset.fusePullPage || "Fuse"} Pull Checklist]\n${buildFusePullChecklist(root)}`);
+        setFusePullStatus(root, "Fuse pull checklist saved to Garage Notes.");
+      } catch (error) {
+        setFusePullStatus(root, "Could not save the checklist in this browser session.");
+      }
+    });
+
+    renderFusePullChecklist(root);
+  });
+
+  window.addEventListener("ridgeline:fuse-selected", (event) => {
+    roots.forEach((root) => {
+      root._selectedFuse = event.detail || null;
+      renderFusePullChecklist(root);
+      if (event.detail) {
+        setFusePullStatus(root, `${event.detail.panelLabel} ${event.detail.position} attached to the checklist.`);
+      }
+    });
+  });
+}
+
 function distanceBetween(a, b) {
   const ax = a.x + a.width / 2;
   const ay = a.y + a.height / 2;
@@ -515,6 +641,17 @@ function bindDiagram(diagramEl) {
     activeEntry = entry;
     setHandoffStatus("Copy or share this selected fuse with the symptom note.");
     renderAcronyms(entry);
+    window.dispatchEvent(new CustomEvent("ridgeline:fuse-selected", {
+      detail: {
+        panel: key,
+        panelLabel: key.toUpperCase().replace("-", " "),
+        position: entry.position,
+        location: entry.location,
+        type: entry.type,
+        rating: entry.rating,
+        circuit: entry.circuit
+      }
+    }));
 
     table.querySelectorAll("tr").forEach((row) => row.classList.remove("is-active"));
     entry.row.classList.add("is-active");
@@ -762,4 +899,5 @@ document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
       : "Copy failed. Verify against the truck cover label before replacing anything.";
   });
 });
+initFusePullChecklists();
 initGarageCloudSync();

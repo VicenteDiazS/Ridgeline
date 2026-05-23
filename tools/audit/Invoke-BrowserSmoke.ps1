@@ -131,6 +131,8 @@ SEARCH_EXPECTATIONS = {
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "fuse quick finder": "Hood Fuse Quick Finder",
     "copy fuse": "Selected Fuse Handoff",
+    "fuse pull checklist": "Fuse Pull Checklist",
+    "save fuse checklist": "Fuse Pull Checklist",
     "fuse label decoder": "Fuse Label Decoder",
     "copy fuse decode": "Fuse Label Decoder",
     "tire handoff builder": "Tire Handoff Builder",
@@ -1197,6 +1199,42 @@ async def assert_fuse_mobile_readability(page, page_name):
     assert_true(finder_mobile_state["maxCardWidth"] <= 195, f"{page_name} fuse quick finder cards are wider than half the iPhone viewport")
     assert_true(not finder_mobile_state["overflow"], f"{page_name} fuse quick finder introduced iPhone horizontal overflow")
 
+    checklist_id = "#hood-fuse-pull-checklist" if page_name == "hood.html" else "#cabin-fuse-pull-checklist"
+    checklist_state = await page.evaluate(
+        """(selector) => {
+            const root = document.querySelector(selector);
+            const steps = root ? [...root.querySelectorAll("[data-fuse-pull-step]")] : [];
+            const actions = root ? [...root.querySelectorAll(".inspector-actions .utility-link")] : [];
+            const actionRects = actions.map((action) => action.getBoundingClientRect());
+            const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasChecklist: Boolean(root),
+                text: root?.innerText || "",
+                hasContext: Boolean(root?.querySelector("[data-fuse-pull-context]")),
+                stepCount: steps.length,
+                hasCopy: Boolean(root?.querySelector("[data-copy-fuse-pull]")),
+                hasShare: Boolean(root?.querySelector("[data-share-fuse-pull]")),
+                hasSave: Boolean(root?.querySelector("[data-save-fuse-pull]")),
+                hasQuickRoute: Boolean(root?.querySelector('a[href="quick-sheet.html#fuse-triage"]')),
+                hasGarageRoute: Boolean(root?.querySelector('a[href="garage.html#notes"]')),
+                minActionHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
+                overflow: docWidth > document.documentElement.clientWidth + 1
+            };
+        }""",
+        checklist_id,
+    )
+    assert_true(checklist_state["hasChecklist"], f"{page_name} is missing the fuse pull checklist")
+    assert_true(checklist_state["hasContext"], f"{page_name} fuse pull checklist is missing the symptom field")
+    assert_true(checklist_state["stepCount"] == 4, f"{page_name} fuse pull checklist should expose four check steps")
+    assert_true(checklist_state["hasCopy"], f"{page_name} fuse pull checklist is missing Copy Checklist")
+    assert_true(checklist_state["hasShare"], f"{page_name} fuse pull checklist is missing Share")
+    assert_true(checklist_state["hasSave"], f"{page_name} fuse pull checklist is missing Save Garage Note")
+    assert_true(checklist_state["hasQuickRoute"], f"{page_name} fuse pull checklist is missing Quick Fuse Note route")
+    assert_true(checklist_state["hasGarageRoute"], f"{page_name} fuse pull checklist is missing Garage Notes route")
+    assert_true("does not add fuse ratings" in checklist_state["text"], f"{page_name} fuse pull checklist is missing its facts boundary")
+    assert_true(checklist_state["minActionHeight"] >= 40, f"{page_name} fuse pull checklist actions are too small for iPhone")
+    assert_true(not checklist_state["overflow"], f"{page_name} fuse pull checklist introduced iPhone horizontal overflow")
+
     glossary_id = "#hood-fuse-glossary" if page_name == "hood.html" else "#cabin-fuse-glossary"
     decode_query = "IG MAIN" if page_name == "hood.html" else "MICU"
     await page.locator(f"{glossary_id} [data-fuse-label-input]").fill(decode_query)
@@ -1305,6 +1343,28 @@ async def assert_fuse_mobile_readability(page, page_name):
         )
         assert_true("Copied fuse handoff" in copy_state["status"] or "Copy failed" in copy_state["status"], f"{key} Copy Handoff did not report a result")
         assert_true("Verify against the truck cover label" in copy_state["status"], f"{key} selected fuse handoff is missing cover-label reminder")
+
+    await page.locator(f"{checklist_id} [data-fuse-pull-context]").fill("audit fuse cover label and symptom")
+    await page.locator(f"{checklist_id} [data-fuse-pull-step]").first.check()
+    await page.locator(f"{checklist_id} [data-save-fuse-pull]").click()
+    await page.wait_for_timeout(200)
+    saved_checklist_state = await page.evaluate(
+        """(selector) => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const root = document.querySelector(selector);
+            return {
+                savedNotes: notes.general_notes || "",
+                status: root?.querySelector("[data-fuse-pull-status]")?.textContent || "",
+                preview: root?.querySelector("[data-fuse-pull-preview]")?.innerText || ""
+            };
+        }""",
+        checklist_id,
+    )
+    assert_true("Fuse pull checklist saved to Garage Notes" in saved_checklist_state["status"], f"{page_name} fuse pull checklist did not report a Garage save")
+    assert_true("audit fuse cover label and symptom" in saved_checklist_state["savedNotes"], f"{page_name} fuse pull checklist did not save context to Garage notes")
+    assert_true("Selected fuse:" in saved_checklist_state["savedNotes"], f"{page_name} fuse pull checklist did not save selected fuse context")
+    assert_true("Photo of cover label saved" in saved_checklist_state["savedNotes"], f"{page_name} fuse pull checklist did not save marked steps")
+    assert_true("Verify against the truck cover label" in saved_checklist_state["preview"], f"{page_name} fuse pull checklist preview is missing cover-label reminder")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 

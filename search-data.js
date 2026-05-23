@@ -385,6 +385,23 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Fuse Pull Checklist",
+    url: "hood.html#hood-fuse-pull-checklist",
+    category: "Electrical",
+    excerpt: "Hood and Cabin iPhone checklist for recording the symptom, cover-label photo, selected fuse, checked steps, and Garage Notes handoff before moving a fuse.",
+    keywords: [
+      "fuse pull checklist",
+      "before pulling fuse",
+      "save fuse checklist",
+      "copy fuse checklist",
+      "fuse cover photo",
+      "fuse check steps",
+      "record fuse check",
+      "garage fuse checklist",
+      "iphone fuse pull"
+    ]
+  },
+  {
     title: "Fuse Label Decoder",
     url: "hood.html#hood-fuse-glossary",
     category: "Electrical",
