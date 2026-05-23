@@ -20,7 +20,9 @@ const diagnosticSharePlans = {
     reference: "References: no-start workflow, battery/jump card, Garage notes.",
     primary: { label: "No-Start Flow", href: "#no-start-workflow" },
     secondary: { label: "Jump Notes", href: "hood.html#wiring" },
-    dock: { primary: "No-Start", secondary: "Jump" }
+    dock: { primary: "No-Start", secondary: "Jump" },
+    detailLabel: "Owner detail to preserve",
+    detailPlaceholder: "Example: 87,420 mi, two clicks, dash dimmed, jump started after 10 minutes"
   },
   warning: {
     kicker: "Warning light or MID message",
@@ -34,7 +36,9 @@ const diagnosticSharePlans = {
     reference: "References: warning-light flow, emergency card, Garage warning note.",
     primary: { label: "Warning Flow", href: "#warning-light-workflow" },
     secondary: { label: "Save Warning Note", href: "garage.html#warning-light-template" },
-    dock: { primary: "Warning", secondary: "Note" }
+    dock: { primary: "Warning", secondary: "Note" },
+    detailLabel: "Exact warning clue",
+    detailPlaceholder: "Example: amber emissions light, MID said Check Charging System, appeared after battery swap"
   },
   power: {
     kicker: "12V socket or accessory power",
@@ -48,7 +52,9 @@ const diagnosticSharePlans = {
     reference: "References: accessory-power flow, Cabin fuses, Garage notes.",
     primary: { label: "12V Power Flow", href: "#accessory-power-workflow" },
     secondary: { label: "Cabin Fuses", href: "cabin.html#fuses" },
-    dock: { primary: "12V", secondary: "Fuses" }
+    dock: { primary: "12V", secondary: "Fuses" },
+    detailLabel: "Socket or device clue",
+    detailPlaceholder: "Example: front socket dead with phone charger, console socket works, ACCESSORY mode"
   },
   audio: {
     kicker: "Audio, radio, or display issue",
@@ -62,7 +68,9 @@ const diagnosticSharePlans = {
     reference: "References: audio/display flow, Cabin Audio / ACC, Garage notes.",
     primary: { label: "Audio Flow", href: "#audio-display-workflow" },
     secondary: { label: "Cabin Audio", href: "cabin.html#cabin-fuse-box-b" },
-    dock: { primary: "Audio", secondary: "Cabin" }
+    dock: { primary: "Audio", secondary: "Cabin" },
+    detailLabel: "Audio or screen clue",
+    detailPlaceholder: "Example: screen lit but no sound, Bluetooth only, started after jump"
   },
   trailer: {
     kicker: "Trailer light or connector issue",
@@ -76,22 +84,30 @@ const diagnosticSharePlans = {
     reference: "References: trailer-light flow, 7-way pinout, Garage or hitch journal.",
     primary: { label: "Trailer Flow", href: "#trailer-light-workflow" },
     secondary: { label: "7-Way Pinout", href: "rear-hitch.html#pinout" },
-    dock: { primary: "Trailer", secondary: "Pinout" }
+    dock: { primary: "Trailer", secondary: "Pinout" },
+    detailLabel: "Trailer setup clue",
+    detailPlaceholder: "Example: 4-flat adapter, left turn dead, truck lights still work, tester not checked"
   }
 };
 
-function buildDiagnosticHandoff(plan) {
+function cleanDiagnosticDetail(detail) {
+  return `${detail || ""}`.replace(/\s+/g, " ").trim();
+}
+
+function buildDiagnosticHandoff(plan, detail = "") {
+  const ownerDetail = cleanDiagnosticDetail(detail);
   return [
     `Ridgeline diagnostic handoff: ${plan.kicker}`,
     plan.title,
     plan.summary,
+    ownerDetail ? `Owner detail: ${ownerDetail}` : "",
     ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
     plan.reference,
     "Use the truck, owner manual, warning state, fuse labels, and current conditions as final authority."
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
-function buildSavedDiagnosticNote(plan) {
+function buildSavedDiagnosticNote(plan, detail = "") {
   const timestamp = new Date().toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -105,12 +121,13 @@ function buildSavedDiagnosticNote(plan) {
     plan.title,
     "",
     plan.summary,
+    cleanDiagnosticDetail(detail) ? `Owner detail: ${cleanDiagnosticDetail(detail)}` : "",
     "",
     ...plan.steps.map((step, index) => `${index + 1}. ${step}`),
     "",
     plan.reference,
     "Saved from Diagnostics Handoff Builder. The truck, owner manual, warning state, fuse labels, and current conditions remain final authority."
-  ].join("\n");
+  ].filter((line, index, lines) => line || lines[index - 1]).join("\n");
 }
 
 function loadDiagnosticReceipt() {
@@ -204,6 +221,14 @@ function updateDiagnosticSharePlan(root, key) {
   root.querySelector("[data-diagnostic-share-title]").textContent = plan.title;
   root.querySelector("[data-diagnostic-share-summary]").textContent = plan.summary;
   root.querySelector("[data-diagnostic-share-reference]").textContent = plan.reference;
+  const detailLabel = root.querySelector("[data-diagnostic-detail-label]");
+  const detailField = root.querySelector("[data-diagnostic-detail]");
+  if (detailLabel) {
+    detailLabel.textContent = plan.detailLabel || "Owner detail to preserve";
+  }
+  if (detailField) {
+    detailField.setAttribute("placeholder", plan.detailPlaceholder || "");
+  }
 
   const steps = root.querySelector("[data-diagnostic-share-steps]");
   steps.innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join("");
@@ -246,8 +271,9 @@ function initDiagnosticShareBuilder() {
 
   root.querySelector("[data-copy-diagnostic-share]")?.addEventListener("click", async () => {
     const plan = diagnosticSharePlans[root.dataset.currentDiagnosticSharePlan] || diagnosticSharePlans.start;
+    const detail = root.querySelector("[data-diagnostic-detail]")?.value || "";
     try {
-      const copied = await copyText(buildDiagnosticHandoff(plan));
+      const copied = await copyText(buildDiagnosticHandoff(plan, detail));
       setDiagnosticShareStatus(root, copied ? "Diagnostic handoff copied." : "Copy is unavailable in this browser.");
     } catch (error) {
       setDiagnosticShareStatus(root, "Copy failed. Select and copy the visible handoff instead.");
@@ -256,7 +282,8 @@ function initDiagnosticShareBuilder() {
 
   root.querySelector("[data-share-diagnostic-share]")?.addEventListener("click", async () => {
     const plan = diagnosticSharePlans[root.dataset.currentDiagnosticSharePlan] || diagnosticSharePlans.start;
-    const text = buildDiagnosticHandoff(plan);
+    const detail = root.querySelector("[data-diagnostic-detail]")?.value || "";
+    const text = buildDiagnosticHandoff(plan, detail);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline diagnostic handoff", text });
@@ -273,7 +300,8 @@ function initDiagnosticShareBuilder() {
   root.querySelector("[data-save-diagnostic-note]")?.addEventListener("click", () => {
     const planKey = root.dataset.currentDiagnosticSharePlan || "start";
     const plan = diagnosticSharePlans[planKey] || diagnosticSharePlans.start;
-    const noteText = buildSavedDiagnosticNote(plan);
+    const detail = root.querySelector("[data-diagnostic-detail]")?.value || "";
+    const noteText = buildSavedDiagnosticNote(plan, detail);
     const savedAt = new Date().toLocaleString("en-US", {
       month: "short",
       day: "numeric",

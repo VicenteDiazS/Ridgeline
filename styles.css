@@ -10433,6 +10433,43 @@ kbd {
   font-weight: 850;
 }
 
+.diagnostic-detail-capture {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.diagnostic-detail-capture span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.diagnostic-detail-capture textarea {
+  width: 100%;
+  min-height: 82px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(4, 10, 18, 0.74);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.42;
+  padding: 10px 11px;
+}
+
+.diagnostic-detail-capture textarea::placeholder {
+  color: rgba(204, 218, 235, 0.58);
+}
+
+.diagnostic-detail-capture textarea:focus {
+  border-color: rgba(121, 212, 255, 0.68);
+  box-shadow: 0 0 0 3px rgba(121, 212, 255, 0.14);
+  outline: none;
+}
+
 .diagnostic-share-card .inspector-actions {
   gap: 8px;
 }
@@ -10901,6 +10938,22 @@ kbd {
   .diagnostics-page .diagnostic-share-steps {
     font-size: 0.84rem;
     line-height: 1.38;
+  }
+
+  .diagnostics-page .diagnostic-detail-capture {
+    gap: 5px;
+  }
+
+  .diagnostics-page .diagnostic-detail-capture span {
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+  }
+
+  .diagnostics-page .diagnostic-detail-capture textarea {
+    min-height: 78px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    padding: 9px;
   }
 
   .diagnostics-page .diagnostic-share-card .inspector-actions {

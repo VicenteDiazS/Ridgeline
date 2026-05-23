@@ -50,8 +50,8 @@ export const searchIndex = [
     title: "Diagnostic Handoff Builder",
     url: "diagnostics.html#diagnostic-share-builder",
     category: "Diagnostics",
-    excerpt: "Near-top iPhone builder for copying, sharing, or saving a no-start, warning-light, 12V power, audio/display, or trailer-light diagnostic summary into Garage Notes, with a sticky dock that follows the selected symptom.",
-    keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "save diagnostic note", "diagnostic note receipt", "garage diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff", "diagnostic smart dock", "diagnostic bottom dock", "symptom dock"]
+    excerpt: "Near-top iPhone builder for adding owner-entered mileage/symptom detail, then copying, sharing, or saving a no-start, warning-light, 12V power, audio/display, or trailer-light diagnostic summary into Garage Notes.",
+    keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "save diagnostic note", "diagnostic note receipt", "garage diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff", "diagnostic owner detail", "diagnostic mileage note", "exact warning clue", "preserve symptom detail", "diagnostic smart dock", "diagnostic bottom dock", "symptom dock"]
   },
   {
     title: "Owner Shortcut Strip",

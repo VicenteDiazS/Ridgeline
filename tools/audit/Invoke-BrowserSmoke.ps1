@@ -558,6 +558,8 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 hasShareCopy: Boolean(shareBuilder?.querySelector("[data-copy-diagnostic-share]")),
                 hasShareShare: Boolean(shareBuilder?.querySelector("[data-share-diagnostic-share]")),
                 hasShareSave: Boolean(shareBuilder?.querySelector("[data-save-diagnostic-note]")),
+                hasDetailField: Boolean(shareBuilder?.querySelector("[data-diagnostic-detail]")),
+                detailPlaceholder: shareBuilder?.querySelector("[data-diagnostic-detail]")?.getAttribute("placeholder") || "",
                 hasShareReceipt: Boolean(shareBuilder?.querySelector("[data-diagnostic-save-receipt]")),
                 receiptHidden: Boolean(shareBuilder?.querySelector("[data-diagnostic-save-receipt]")?.hidden),
                 sharePrimary: shareBuilder?.querySelector("[data-diagnostic-share-primary]")?.getAttribute("href") || "",
@@ -595,6 +597,8 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(state["hasShareCopy"], "diagnostic handoff builder is missing copy control")
     assert_true(state["hasShareShare"], "diagnostic handoff builder is missing share control")
     assert_true(state["hasShareSave"], "diagnostic handoff builder is missing save-note control")
+    assert_true(state["hasDetailField"], "diagnostic handoff builder is missing the owner-detail capture field")
+    assert_true("87,420 mi" in state["detailPlaceholder"], "diagnostic owner-detail field should show a no-start example")
     assert_true(state["hasShareReceipt"], "diagnostic handoff builder is missing saved-note receipt")
     assert_true(state["receiptHidden"], "diagnostic saved-note receipt should stay hidden until a note is saved")
     assert_true(state["sharePrimary"] == "#no-start-workflow", "diagnostic handoff builder should default to no-start flow")
@@ -640,6 +644,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(warning_share["pressed"] == "true", "warning diagnostic handoff button should become active")
     assert_true("Warning light or MID message handoff ready" in warning_share["status"], "warning diagnostic handoff status did not update")
     assert_true("exact indicator name" in warning_share["text"], "warning diagnostic handoff did not render warning-specific steps")
+    await page.locator("[data-diagnostic-detail]").fill("87,420 mi, amber MID said Check Charging System after battery swap")
     await page.locator("[data-save-diagnostic-note]").click()
     await page.wait_for_timeout(250)
     receipt_state = await page.evaluate(
@@ -667,8 +672,10 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true("warning-light flow" in receipt_state["meta"].lower(), "diagnostic receipt should preserve reference context")
     assert_true("saved to Garage Notes" in receipt_state["status"], "diagnostic save did not report Garage Notes status")
     assert_true("Diagnostic Note: Warning light or MID message" in receipt_state["note"], "Garage Notes did not receive the diagnostic note")
+    assert_true("87,420 mi, amber MID said Check Charging System" in receipt_state["note"], "saved diagnostic note did not preserve owner-entered detail")
     assert_true("current conditions remain final authority" in receipt_state["note"], "saved diagnostic note should preserve the source-authority reminder")
     assert_true("Diagnostic Note: Warning light or MID message" in receipt_state["receiptText"], "diagnostic receipt storage did not keep the saved note text")
+    assert_true("87,420 mi, amber MID said Check Charging System" in receipt_state["receiptText"], "diagnostic receipt storage did not keep owner-entered detail")
     assert_true(receipt_state["garageRoute"], "diagnostic receipt is missing the Open Garage Notes route")
     assert_true(receipt_state["hasCopyReceipt"], "diagnostic receipt is missing Copy Note")
     assert_true(receipt_state["hasShareReceipt"], "diagnostic receipt is missing Share")
@@ -693,6 +700,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
             const sharePicker = shareBuilder?.querySelector(".diagnostic-share-picker");
             const shareActions = shareBuilder?.querySelector(".diagnostic-share-card .inspector-actions");
+            const detailField = shareBuilder?.querySelector("[data-diagnostic-detail]");
             const receipt = shareBuilder?.querySelector("[data-diagnostic-save-receipt]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
@@ -706,6 +714,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 shareActionRows: shareActions
                     ? new Set([...shareActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
                     : 0,
+                detailFieldVisible: Boolean(detailField && detailField.getBoundingClientRect().height >= 70),
                 receiptVisible: Boolean(receipt && receipt.getBoundingClientRect().height > 0),
                 dockPrimaryVisible: Boolean(document.querySelector("[data-diagnostic-dock-primary]")?.getBoundingClientRect().height >= 38),
                 dockSecondaryVisible: Boolean(document.querySelector("[data-diagnostic-dock-secondary]")?.getBoundingClientRect().height >= 38),
@@ -724,6 +733,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["shareVisible"], "diagnostic handoff builder is not visible at iPhone width")
     assert_true(mobile_state["shareColumns"] == 3, "diagnostic handoff builder picker should use three compact columns at iPhone width")
     assert_true(mobile_state["shareActionRows"] == 3, "diagnostic handoff builder actions should use three compact rows at iPhone width")
+    assert_true(mobile_state["detailFieldVisible"], "diagnostic owner-detail field should stay usable at iPhone width")
     assert_true(mobile_state["receiptVisible"], "saved diagnostic receipt is not visible at iPhone width after save")
     assert_true(mobile_state["contextPrimaryVisible"], "diagnostic bottom-bar selected-flow action should stay thumb-readable on iPhone")
     assert_true(mobile_state["contextSecondaryVisible"], "diagnostic bottom-bar selected-reference action should stay thumb-readable on iPhone")
