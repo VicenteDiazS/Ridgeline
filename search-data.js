@@ -267,7 +267,8 @@ export const searchIndex = [
     title: "NFC Landing Pages",
     url: "nfc-landing.html?target=vehicle-map",
     category: "Tools",
-    keywords: ["nfc landing", "tag landing", "scan tag", "truck tag", "open section", "iphone nfc"]
+    excerpt: "Focused iPhone landing pages for physical truck tags, with a scan handoff that can copy, share, or save a quick tag-check note into Garage Notes.",
+    keywords: ["nfc landing", "tag landing", "scan tag", "truck tag", "open section", "iphone nfc", "nfc scan note", "tag check note", "save nfc note", "scan handoff"]
   },
   {
     title: "Under-Hood Fuse Box A NFC Target",

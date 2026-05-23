@@ -52,6 +52,9 @@ SEARCH_EXPECTATIONS = {
     "nfc starter tag pack": "NFC Starter Tag Pack",
     "starter tag pack": "NFC Starter Tag Pack",
     "first truck tags": "NFC Starter Tag Pack",
+    "nfc scan note": "NFC Landing Pages",
+    "tag check note": "NFC Landing Pages",
+    "save nfc note": "NFC Landing Pages",
     "photo capture plan": "Photo Capture Plan",
     "photo capture mission": "Photo Capture Plan",
     "missing photo checklist": "Photo Capture Plan",
@@ -2022,6 +2025,97 @@ async def assert_nfc_starter_pack(page, page_name):
     await page.wait_for_timeout(250)
 
 
+async def assert_nfc_landing_handoff(page, page_name):
+    if page_name != "nfc-landing.html":
+        return
+
+    state = await page.evaluate(
+        """() => {
+            const handoff = document.querySelector("#nfc-scan-handoff");
+            const actions = handoff ? [...handoff.querySelectorAll(".nfc-scan-actions > *")] : [];
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasHandoff: Boolean(handoff),
+                statusCount: handoff?.querySelectorAll("[data-nfc-scan-status]").length || 0,
+                hasPreview: Boolean(document.querySelector("#nfc-scan-preview")),
+                hasNote: Boolean(document.querySelector("#nfc-scan-note")),
+                hasSave: Boolean(document.querySelector("#nfc-scan-save")),
+                preview: document.querySelector("#nfc-scan-preview")?.textContent || "",
+                bottomHasNote: Boolean(document.querySelector('.context-action[href="#nfc-scan-handoff"]')),
+                bottomHasTags: Boolean(document.querySelector('.context-action[href="nfc.html#tag-writer"]')),
+                minActionHeight: actions.length ? Math.min(...actions.map((item) => item.getBoundingClientRect().height)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(state["hasHandoff"], "NFC landing page is missing the scan handoff")
+    assert_true(state["statusCount"] == 3, "NFC scan handoff should expose three status choices")
+    assert_true(state["hasPreview"], "NFC scan handoff is missing the note preview")
+    assert_true(state["hasNote"], "NFC scan handoff is missing the quick note field")
+    assert_true(state["hasSave"], "NFC scan handoff is missing Save Garage Note")
+    assert_true("Under-Hood Fuse Box A" in state["preview"], "NFC scan preview did not include the fallback target")
+    assert_true("Saved from NFC landing page" in state["preview"], "NFC scan preview is missing the schema-boundary note")
+    assert_true(state["bottomHasNote"], "NFC landing bottom bar is missing the scan note route")
+    assert_true(state["bottomHasTags"], "NFC landing bottom bar is missing the tag writer route")
+    assert_true(state["minActionHeight"] >= 40, "NFC scan handoff actions are too small")
+    assert_true(not state["overflow"], "NFC landing handoff introduced horizontal overflow")
+
+    await page.locator('[data-nfc-scan-status="Needs Attention"]').click()
+    await page.locator("#nfc-scan-note").fill("Tester found loose label after scan.")
+    await page.locator("#nfc-scan-save").click()
+    await page.wait_for_timeout(250)
+    save_state = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const last = JSON.parse(localStorage.getItem("ridgeline-nfc-last-scan") || "{}");
+            return {
+                status: document.querySelector("#nfc-scan-status")?.textContent || "",
+                preview: document.querySelector("#nfc-scan-preview")?.textContent || "",
+                notes: notes.general_notes || "",
+                lastStatus: last.status || "",
+                lastTarget: last.target || "",
+                pressed: document.querySelector('[data-nfc-scan-status="Needs Attention"]')?.getAttribute("aria-pressed")
+            };
+        }"""
+    )
+    assert_true(save_state["pressed"] == "true", "NFC scan status did not mark the selected state")
+    assert_true("Needs Attention" in save_state["preview"], "NFC scan preview did not update selected status")
+    assert_true("Tester found loose label" in save_state["preview"], "NFC scan preview did not include the typed note")
+    assert_true("Saved the NFC scan note into Garage Notes" in save_state["status"], "NFC scan save did not report success")
+    assert_true("NFC Tag Check" in save_state["notes"], "NFC scan note was not saved into Garage Notes")
+    assert_true("Tester found loose label" in save_state["notes"], "NFC scan note did not persist typed note")
+    assert_true(save_state["lastStatus"] == "Needs Attention", "NFC last-scan receipt did not preserve status")
+    assert_true(save_state["lastTarget"] == "hood-fuse-box-a", "NFC last-scan receipt did not preserve target")
+
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    mobile_state = await page.evaluate(
+        """() => {
+            const handoff = document.querySelector("#nfc-scan-handoff");
+            const statusGrid = handoff?.querySelector(".nfc-scan-status-picker");
+            const actionGrid = handoff?.querySelector(".nfc-scan-actions");
+            const actions = [...(actionGrid?.children || [])].map((item) => item.getBoundingClientRect());
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(handoff && handoff.getBoundingClientRect().height > 0),
+                statusColumns: statusGrid ? getComputedStyle(statusGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                actionColumns: actionGrid ? getComputedStyle(actionGrid).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                minActionHeight: actions.length ? Math.min(...actions.map((rect) => rect.height)) : 0,
+                maxActionWidth: actions.length ? Math.max(...actions.map((rect) => rect.width)) : 0,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(mobile_state["visible"], "NFC scan handoff is not visible at iPhone width")
+    assert_true(mobile_state["statusColumns"] == 1, "NFC scan status choices should stack on iPhone")
+    assert_true(mobile_state["actionColumns"] == 1, "NFC scan actions should stack on iPhone")
+    assert_true(mobile_state["minActionHeight"] >= 40, "NFC scan actions are too short on iPhone")
+    assert_true(mobile_state["maxActionWidth"] <= 390, "NFC scan actions are wider than the iPhone viewport")
+    assert_true(not mobile_state["overflow"], "NFC scan handoff introduced iPhone horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+
 async def assert_maintenance_features(page, page_name):
     if page_name != "maintenance.html":
         return
@@ -3581,6 +3675,7 @@ async def smoke_page(context, root, page_name):
     await assert_photo_capture_plan(page, page_name)
     await assert_tire_roadside_launcher(page, page_name)
     await assert_nfc_starter_pack(page, page_name)
+    await assert_nfc_landing_handoff(page, page_name)
     await assert_maintenance_features(page, page_name)
     await assert_quick_sheet(page, page_name)
     await assert_fuse_mobile_readability(page, page_name)

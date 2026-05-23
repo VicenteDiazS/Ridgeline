@@ -45,6 +45,11 @@
             <button class="secondary-button" id="nfc-landing-copy" type="button">Copy This Tag URL</button>
             <a class="secondary-button" href="nfc.html">Manage Tags</a>
           </div>
+          <div class="section-utility-nav" aria-label="NFC landing shortcuts">
+            <a class="utility-link utility-link-strong" href="#nfc-scan-handoff">Scan Note</a>
+            <a class="utility-link" href="#nfc-landing-notes">Tag Notes</a>
+            <a class="utility-link" href="#nfc-landing-related">Related</a>
+          </div>
         </section>
 
         <section class="nfc-landing-grid" aria-label="NFC target details">
@@ -65,31 +70,60 @@
           </article>
         </section>
 
-        <section class="nfc-landing-notes">
+        <section class="nfc-scan-handoff" id="nfc-scan-handoff" aria-labelledby="nfc-scan-handoff-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Scan Handoff</p>
+              <h2 id="nfc-scan-handoff-title">Log This Tag Check</h2>
+            </div>
+          </div>
+          <p class="section-copy" id="nfc-scan-summary">
+            Build a short note from this scanned tag before moving to the truck section.
+          </p>
+          <div class="nfc-scan-status-picker" role="group" aria-label="Tag check status">
+            <button type="button" data-nfc-scan-status="Checked">Checked</button>
+            <button type="button" data-nfc-scan-status="Needs Attention">Needs Attention</button>
+            <button type="button" data-nfc-scan-status="Tag Test">Tag Test</button>
+          </div>
+          <label class="nfc-scan-note-field" for="nfc-scan-note">Quick note</label>
+          <textarea id="nfc-scan-note" rows="3" placeholder="Add mileage, symptom, or what you found."></textarea>
+          <div class="nfc-scan-preview" id="nfc-scan-preview" aria-live="polite"></div>
+          <div class="nfc-scan-actions">
+            <button class="secondary-button" id="nfc-scan-copy" type="button">Copy Note</button>
+            <button class="secondary-button" id="nfc-scan-share" type="button">Share</button>
+            <button class="primary-button" id="nfc-scan-save" type="button">Save Garage Note</button>
+            <a class="secondary-button" href="garage.html#notes">Garage Notes</a>
+          </div>
+          <p class="nfc-platform-note" id="nfc-scan-status">
+            Saves into existing Garage Notes only; the tag target list and Garage schema stay unchanged.
+          </p>
+        </section>
+
+        <section class="nfc-landing-notes" id="nfc-landing-notes">
           <div class="section-head">
             <div>
               <p class="eyebrow">Tag Notes</p>
               <h2>What This Tag Opens</h2>
             </div>
           </div>
-          <div class="nfc-landing-note-list" id="nfc-landing-notes"></div>
+          <div class="nfc-landing-note-list" id="nfc-landing-note-list"></div>
         </section>
 
-        <section class="nfc-landing-related">
+        <section class="nfc-landing-related" id="nfc-landing-related">
           <div class="section-head">
             <div>
               <p class="eyebrow">Related</p>
               <h2>Useful Nearby Pages</h2>
             </div>
           </div>
-          <div class="nfc-landing-related-grid" id="nfc-landing-related"></div>
+          <div class="nfc-landing-related-grid" id="nfc-landing-related-grid"></div>
         </section>
       </main>
 
       <nav class="section-dock" aria-label="Quick return">
+        <a href="#nfc-scan-handoff">Scan Note</a>
         <a href="index.html#viewer">Vehicle Map</a>
         <a href="nfc.html">NFC Console</a>
-        <a href="quick-sheet.html#emergency-card">Emergency Card</a>
         <a href="#top">Top</a>
       </nav>
     </div>

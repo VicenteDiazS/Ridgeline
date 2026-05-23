@@ -533,6 +533,7 @@ const menuLinks = [
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
   { label: "Tire And Wheel Lab", href: "tires.html", match: "tires.html", note: "3D tire model, wheel specs, and fitment guidance" },
   { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
+  { label: "NFC Landing", href: "nfc-landing.html?target=vehicle-map", match: "nfc-landing.html", note: "Scanned tag landing page with Garage note handoff" },
   { label: "AR Lab", href: "ar-lab.html", match: "ar-lab.html", note: "Open the truck model in AR or 3D" },
   { label: "Photo Atlas", href: "photo-atlas.html", match: "photo-atlas.html", note: "Real truck area photos grouped by zone" },
   { label: "Fuse Boxes", href: "hood.html#fuses", match: "hood.html", note: "Under-hood and driver-left fuse references" },
@@ -2021,6 +2022,12 @@ function actionForPage(page) {
       { label: "Starter", href: "#starter-tag-pack", icon: "nfc" },
       { label: "Write", href: "#tag-writer", icon: "nfc" },
       { label: "Map", href: "#tag-map", icon: "map" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "nfc-landing.html": [
+      { label: "Open", href: "#nfc-landing-hero", icon: "nfc" },
+      { label: "Note", href: "#nfc-scan-handoff", icon: "note" },
+      { label: "Tags", href: "nfc.html#tag-writer", icon: "map" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "diagnostics.html": [

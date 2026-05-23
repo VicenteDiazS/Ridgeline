@@ -8616,6 +8616,7 @@ kbd {
 
 .nfc-landing-hero,
 .nfc-landing-card,
+.nfc-scan-handoff,
 .nfc-landing-notes,
 .nfc-landing-related,
 .nfc-landing-note-list article,
@@ -8701,6 +8702,7 @@ kbd {
 }
 
 .nfc-landing-card,
+.nfc-scan-handoff,
 .nfc-landing-notes,
 .nfc-landing-related {
   display: grid;
@@ -8729,6 +8731,67 @@ kbd {
   color: var(--muted);
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+.nfc-scan-status-picker,
+.nfc-scan-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.nfc-scan-status-picker button {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.nfc-scan-status-picker button[aria-pressed="true"] {
+  border-color: rgba(111, 255, 180, 0.34);
+  background: rgba(111, 255, 180, 0.12);
+}
+
+.nfc-scan-note-field {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nfc-scan-handoff textarea {
+  width: 100%;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text);
+  resize: vertical;
+}
+
+.nfc-scan-preview {
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(121, 212, 255, 0.06);
+  color: #dff8ff;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.nfc-scan-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nfc-scan-actions > * {
+  min-height: 44px;
 }
 
 .nfc-landing-note-list {
@@ -12393,6 +12456,7 @@ kbd {
   .nfc-targets-section,
   .nfc-starter-pack,
   .nfc-iphone-workflow,
+  .nfc-scan-handoff,
   .nfc-landing-hero,
   .nfc-landing-card,
   .nfc-landing-notes,
@@ -12427,6 +12491,8 @@ kbd {
   }
 
   .nfc-landing-actions,
+  .nfc-scan-status-picker,
+  .nfc-scan-actions,
   .nfc-landing-related-grid {
     display: grid;
     grid-template-columns: 1fr;
