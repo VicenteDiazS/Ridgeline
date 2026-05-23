@@ -110,6 +110,10 @@ SEARCH_EXPECTATIONS = {
     "roadside live session": "Roadside Live Session",
     "roadside checkpoint": "Roadside Live Session",
     "copy roadside update": "Roadside Live Session",
+    "fuse check note": "Fuse Check Note",
+    "copy fuse note": "Fuse Check Note",
+    "save fuse note": "Fuse Check Note",
+    "before pulling a fuse": "Fuse Check Note",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
     "resume last task": "Resume Search Strip",
@@ -717,6 +721,7 @@ async def assert_quick_sheet(page, page_name):
             const critical = document.querySelector("#critical-strip");
             const stack = document.querySelector("#roadside-action-stack");
             const triage = document.querySelector("#fuse-triage");
+            const fuseNote = document.querySelector("[data-fuse-check-note]");
             const sources = document.querySelector("#source-confidence");
             const requiredCriticalTargets = [
                 "#tires",
@@ -792,6 +797,16 @@ async def assert_quick_sheet(page, page_name):
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
+                hasFuseNote: Boolean(fuseNote),
+                fuseNoteButtons: fuseNote ? fuseNote.querySelectorAll("[data-fuse-note-symptom]").length : 0,
+                fuseNoteText: fuseNote ? fuseNote.innerText.toLowerCase() : "",
+                fuseNotePreview: fuseNote?.querySelector("[data-fuse-note-preview]")?.innerText.toLowerCase() || "",
+                hasFuseNoteField: Boolean(fuseNote?.querySelector("[data-fuse-note-context]")),
+                hasFuseNoteCopy: Boolean(fuseNote?.querySelector("[data-copy-fuse-note]")),
+                hasFuseNoteShare: Boolean(fuseNote?.querySelector("[data-share-fuse-note]")),
+                hasFuseNoteSave: Boolean(fuseNote?.querySelector("[data-save-fuse-note]")),
+                hasFuseNoteCabinRoute: Boolean(fuseNote?.querySelector('a[href="cabin.html#fuses"]')),
+                hasFuseNoteHoodRoute: Boolean(fuseNote?.querySelector('a[href="hood.html#fuses"]')),
                 hasPrint: Boolean(document.querySelector("[data-print-page]")),
                 hasSources: Boolean(sources),
                 sourceCards: sources ? sources.querySelectorAll(".quick-sheet-source-grid .dashboard-card").length : 0,
@@ -949,6 +964,46 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
+    assert_true(state["hasFuseNote"], "quick sheet is missing the fuse check note tool")
+    assert_true(state["fuseNoteButtons"] == 4, "fuse check note should expose four symptom chips")
+    assert_true(state["hasFuseNoteField"], "fuse check note is missing the owner-detail field")
+    assert_true(state["hasFuseNoteCopy"], "fuse check note is missing Copy Note")
+    assert_true(state["hasFuseNoteShare"], "fuse check note is missing Share")
+    assert_true(state["hasFuseNoteSave"], "fuse check note is missing Save Garage Note")
+    assert_true(state["hasFuseNoteCabinRoute"], "fuse check note is missing Cabin Fuses route")
+    assert_true(state["hasFuseNoteHoodRoute"], "fuse check note is missing Hood Fuses route")
+    for phrase in ["capture the label", "12v", "trailer", "audio", "start", "truck's fuse-cover label"]:
+        assert_true(phrase in state["fuseNoteText"], f"fuse check note is missing text: {phrase}")
+    assert_true("12v accessory power" in state["fuseNotePreview"], "fuse check note should default to the 12V accessory plan")
+    await page.locator('[data-fuse-note-symptom="trailer"]').click()
+    await page.locator("[data-fuse-note-context]").fill("4-flat adapter, left turn light out, cover label photo saved")
+    await page.locator("[data-save-fuse-note]").click()
+    await page.wait_for_timeout(250)
+    fuse_note_state = await page.evaluate(
+        """() => {
+            const fuseNote = document.querySelector("[data-fuse-check-note]");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const receipt = JSON.parse(localStorage.getItem("ridgeline-fuse-check-last-note") || "null");
+            return {
+                pressed: fuseNote?.querySelector('[data-fuse-note-symptom="trailer"]')?.getAttribute("aria-pressed") || "",
+                preview: fuseNote?.querySelector("[data-fuse-note-preview]")?.innerText || "",
+                status: fuseNote?.querySelector("[data-fuse-note-status]")?.textContent || "",
+                note: notes.general_notes || "",
+                receiptText: receipt?.text || "",
+                receiptTitle: receipt?.title || "",
+                overflow: document.documentElement.scrollWidth > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true(fuse_note_state["pressed"] == "true", "fuse check note should expose selected trailer chip state")
+    assert_true("trailer light" in fuse_note_state["preview"].lower(), "fuse check note preview should update to trailer")
+    assert_true("saved to Garage Notes" in fuse_note_state["status"], "fuse check note save did not report Garage Notes status")
+    assert_true("Fuse Check Note: Trailer light / adapter" in fuse_note_state["note"], "Garage Notes did not receive the fuse check note")
+    assert_true("4-flat adapter" in fuse_note_state["note"], "saved fuse note did not preserve owner detail")
+    assert_true("truck's fuse-cover label" in fuse_note_state["note"], "saved fuse note should preserve the source-authority reminder")
+    assert_true("Fuse Check Note: Trailer light / adapter" in fuse_note_state["receiptText"], "last fuse note receipt did not keep saved text")
+    assert_true(fuse_note_state["receiptTitle"] == "Trailer light / adapter", "last fuse note receipt should keep the selected plan title")
+    assert_true(not fuse_note_state["overflow"], "fuse check note introduced horizontal overflow")
     assert_true(state["hasPrint"], "quick sheet is missing print/save button")
     assert_true(state["hasSources"], "quick sheet is missing source confidence section")
     assert_true(state["sourceCards"] == 4, "source confidence should expose four confidence cards")
@@ -966,11 +1021,14 @@ async def assert_quick_sheet(page, page_name):
             const printPack = document.querySelector("#print-offline-pack");
             const receipt = document.querySelector("[data-roadside-receipt]");
             const live = document.querySelector("[data-roadside-live-session]");
+            const fuseNote = document.querySelector("[data-fuse-check-note]");
             const grid = critical?.querySelector(".quick-critical-grid");
             const printGrid = printPack?.querySelector(".quick-print-pack-grid");
             const receiptActions = [...(receipt?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const liveActions = [...(live?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const liveGrid = live?.querySelector(".roadside-live-actions");
+            const fusePicker = fuseNote?.querySelector(".quick-fuse-note-picker");
+            const fuseActions = [...(fuseNote?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const printCards = [...printPack?.querySelectorAll(".quick-print-pack-card") || []].map((card) => {
                 const rect = card.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -988,6 +1046,9 @@ async def assert_quick_sheet(page, page_name):
                 liveVisible: Boolean(live && live.getBoundingClientRect().height > 0),
                 liveActionColumns: liveGrid ? getComputedStyle(liveGrid).gridTemplateColumns.split(" ").length : 0,
                 minLiveActionHeight: liveActions.length ? Math.min(...liveActions) : 0,
+                fuseNoteVisible: Boolean(fuseNote && fuseNote.getBoundingClientRect().height > 0),
+                fusePickerColumns: fusePicker ? getComputedStyle(fusePicker).gridTemplateColumns.split(" ").length : 0,
+                minFuseActionHeight: fuseActions.length ? Math.min(...fuseActions) : 0,
                 visible: Boolean(critical && critical.getBoundingClientRect().height > 0),
                 columns: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
@@ -1004,6 +1065,9 @@ async def assert_quick_sheet(page, page_name):
     assert_true(mobile_state["liveVisible"], "roadside live session is not visible at iPhone width")
     assert_true(mobile_state["liveActionColumns"] == 2, "roadside live session actions should use two compact columns on iPhone")
     assert_true(mobile_state["minLiveActionHeight"] >= 38, "roadside live session actions should stay thumb-readable on iPhone")
+    assert_true(mobile_state["fuseNoteVisible"], "quick sheet fuse check note should stay visible at iPhone width")
+    assert_true(mobile_state["fusePickerColumns"] == 2, "quick sheet fuse check symptom chips should use two columns on iPhone")
+    assert_true(mobile_state["minFuseActionHeight"] >= 38, "quick sheet fuse check actions should remain thumb-readable")
     assert_true(mobile_state["visible"], "quick sheet critical strip is not visible at iPhone width")
     assert_true(mobile_state["columns"] == 2, "quick sheet critical strip should use two compact columns on iPhone")
     assert_true(mobile_state["minCardHeight"] >= 70, "quick sheet critical strip cards should stay thumb-sized on iPhone")

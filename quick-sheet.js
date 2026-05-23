@@ -7,6 +7,7 @@ import {
 
 const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
 const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
+const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
   { label: "Diagnostics", path: "diagnostics.html" },
@@ -16,6 +17,29 @@ const offlineRouteChecks = [
   { label: "Garage Backup", path: "garage.html" }
 ];
 let lastOfflineRouteResults = [];
+
+const fuseNotePlans = {
+  accessory: {
+    label: "12V accessory power",
+    summary: "Phone charger, front accessory socket, console socket, or repeated plug-in issue.",
+    routes: ["Diagnostics accessory-power flow", "Cabin fuse table", "Hood fuse table"]
+  },
+  trailer: {
+    label: "Trailer light / adapter",
+    summary: "Running, turn, brake, reverse, connector, or adapter symptom before moving.",
+    routes: ["Diagnostics trailer-light flow", "Rear Hitch pinout", "Hood/Cabin fuse references"]
+  },
+  audio: {
+    label: "Audio / display",
+    summary: "Radio, screen, no-sound, Bluetooth, or recent audio/electrical work.",
+    routes: ["Diagnostics audio-display flow", "Cabin fuse table", "Fuse label decoder"]
+  },
+  start: {
+    label: "No-start / battery-adjacent",
+    summary: "No-crank, slow-crank, normal crank/no start, recent battery, or fuse work.",
+    routes: ["Diagnostics no-start flow", "Hood fuse table", "Battery/jump notes"]
+  }
+};
 
 const roadsidePlans = {
   flat: {
@@ -113,6 +137,32 @@ function buildPrintPackHandoff() {
     "Offline route check:",
     ...routeLines
   ].join("\n");
+}
+
+function buildFuseNoteText(root) {
+  const key = root?.dataset.currentFuseNote || "accessory";
+  const plan = fuseNotePlans[key] || fuseNotePlans.accessory;
+  const detail = `${root?.querySelector("[data-fuse-note-context]")?.value || ""}`.trim();
+  const lines = [
+    `Ridgeline fuse check: ${plan.label}`,
+    plan.summary,
+    detail ? `Owner note: ${detail}` : "Owner note: add cover-label wording, photo context, or exact symptom before replacing anything.",
+    "Next routes:",
+    ...plan.routes.map((route) => `- ${route}`),
+    "Use the truck's fuse-cover label, owner's manual, and current condition as final authority before pulling or replacing a fuse."
+  ];
+  return lines.join("\n");
+}
+
+function saveLastFuseNote(root, text) {
+  const key = root?.dataset.currentFuseNote || "accessory";
+  const plan = fuseNotePlans[key] || fuseNotePlans.accessory;
+  localStorage.setItem(FUSE_NOTE_LAST_KEY, JSON.stringify({
+    key,
+    title: plan.label,
+    savedAt: new Date().toISOString(),
+    text
+  }));
 }
 
 function loadRoadsideReceipt() {
@@ -265,6 +315,31 @@ function setStatus(root, message) {
   const status = root.querySelector("[data-roadside-status]");
   if (status) {
     status.textContent = message;
+  }
+}
+
+function setFuseNoteStatus(root, message) {
+  const status = root.querySelector("[data-fuse-note-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function renderFuseNote(root) {
+  const key = root.dataset.currentFuseNote || "accessory";
+  const plan = fuseNotePlans[key] || fuseNotePlans.accessory;
+  const preview = root.querySelector("[data-fuse-note-preview]");
+  root.querySelectorAll("[data-fuse-note-symptom]").forEach((button) => {
+    const isActive = button.dataset.fuseNoteSymptom === key;
+    button.classList.toggle("utility-link-strong", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+  if (preview) {
+    preview.innerHTML = `
+      <span>${plan.label}</span>
+      <strong>${plan.summary}</strong>
+      <small>Routes: ${plan.routes.join(" / ")}</small>
+    `;
   }
 }
 
@@ -445,6 +520,72 @@ function initQuickPrintPack() {
   });
 }
 
+function initFuseCheckNote() {
+  const root = document.querySelector("[data-fuse-check-note]");
+  if (!root) {
+    return;
+  }
+
+  root.dataset.currentFuseNote = "accessory";
+  root.querySelectorAll("[data-fuse-note-symptom]").forEach((button) => {
+    button.addEventListener("click", () => {
+      root.dataset.currentFuseNote = button.dataset.fuseNoteSymptom || "accessory";
+      renderFuseNote(root);
+      setFuseNoteStatus(root, `${(fuseNotePlans[root.dataset.currentFuseNote] || fuseNotePlans.accessory).label} note ready.`);
+    });
+  });
+  root.querySelector("[data-fuse-note-context]")?.addEventListener("input", () => renderFuseNote(root));
+
+  root.querySelector("[data-copy-fuse-note]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(buildFuseNoteText(root));
+      setFuseNoteStatus(root, copied ? "Fuse check note copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setFuseNoteStatus(root, "Copy failed. Keep the note visible for reference.");
+    }
+  });
+
+  root.querySelector("[data-share-fuse-note]")?.addEventListener("click", async () => {
+    const text = buildFuseNoteText(root);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline fuse check note", text });
+        setFuseNoteStatus(root, "Fuse check note shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setFuseNoteStatus(root, copied ? "Share unavailable; fuse note copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setFuseNoteStatus(root, "Share canceled or unavailable.");
+    }
+  });
+
+  root.querySelector("[data-save-fuse-note]")?.addEventListener("click", () => {
+    const key = root.dataset.currentFuseNote || "accessory";
+    const plan = fuseNotePlans[key] || fuseNotePlans.accessory;
+    const timestamp = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+    const text = [
+      `[${timestamp} - Fuse Check Note: ${plan.label}]`,
+      buildFuseNoteText(root)
+    ].join("\n");
+    try {
+      prependGarageGeneralNote(text);
+      saveLastFuseNote(root, text);
+      setFuseNoteStatus(root, `${plan.label} saved to Garage Notes.`);
+    } catch (error) {
+      setFuseNoteStatus(root, "Could not save the fuse note in this browser session.");
+    }
+  });
+
+  renderFuseNote(root);
+}
+
 function initRoadsideStack() {
   const root = document.querySelector("[data-roadside-stack]");
   if (!root) {
@@ -619,5 +760,6 @@ function initRoadsideStack() {
 }
 
 initQuickPrintPack();
+initFuseCheckNote();
 initRoadsideStack();
 initGarageCloudSync();

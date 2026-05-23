@@ -89,6 +89,13 @@ export const searchIndex = [
     keywords: ["roadside live session", "roadside session", "roadside timer", "roadside checkpoint", "safe stop", "help called", "moving again", "copy roadside update", "save roadside log", "incident timeline", "iphone roadside session"]
   },
   {
+    title: "Fuse Check Note",
+    url: "quick-sheet.html#fuse-triage",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet iPhone tool for capturing the fuse-cover label, symptom, and next reference routes before pulling or replacing a fuse, with copy/share/save actions for Garage Notes.",
+    keywords: ["fuse check note", "copy fuse note", "save fuse note", "fuse cover label note", "before pulling a fuse", "fuse symptom note", "12v fuse note", "trailer fuse note", "audio fuse note", "no start fuse note", "quick fuse capture"]
+  },
+  {
     title: "Technical Specs",
     url: "index.html#technical",
     category: "Specs",

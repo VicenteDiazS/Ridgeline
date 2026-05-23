@@ -377,6 +377,34 @@
           <div class="section-callout">
             Fuse locations are shown on the truck's fuse-box covers. Use the cover label on the actual truck as final authority before replacing a fuse, and compare against the Hood/Cabin pages before changing anything.
           </div>
+          <article class="dashboard-card quick-fuse-note" data-fuse-check-note>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Fuse Check Note</p>
+                <h3>Capture The Label Before Pulling</h3>
+              </div>
+              <a class="utility-link" href="hood.html#hood-fuse-glossary">Open Decoder</a>
+            </div>
+            <div class="quick-fuse-note-picker" aria-label="Fuse check symptom">
+              <button class="utility-link utility-link-strong" type="button" data-fuse-note-symptom="accessory" aria-pressed="true">12V</button>
+              <button class="utility-link" type="button" data-fuse-note-symptom="trailer" aria-pressed="false">Trailer</button>
+              <button class="utility-link" type="button" data-fuse-note-symptom="audio" aria-pressed="false">Audio</button>
+              <button class="utility-link" type="button" data-fuse-note-symptom="start" aria-pressed="false">Start</button>
+            </div>
+            <label class="quick-fuse-note-field">
+              <span>Cover label, photo, or symptom detail</span>
+              <textarea data-fuse-note-context rows="3" placeholder="Example: cabin cover says ACC SOCKET; front outlet dead after phone charger"></textarea>
+            </label>
+            <div class="quick-fuse-note-preview" data-fuse-note-preview></div>
+            <div class="inspector-actions">
+              <button class="utility-link utility-link-strong" type="button" data-copy-fuse-note>Copy Note</button>
+              <button class="utility-link" type="button" data-share-fuse-note>Share</button>
+              <button class="utility-link" type="button" data-save-fuse-note>Save Garage Note</button>
+              <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
+              <a class="utility-link" href="hood.html#fuses">Hood Fuses</a>
+            </div>
+            <p class="small-note" data-fuse-note-status>Use the truck's fuse-cover label and owner's manual as final authority.</p>
+          </article>
         </section>
 
         <section class="section-page-stack quick-sheet-source-section" id="source-confidence">
