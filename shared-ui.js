@@ -2049,6 +2049,7 @@ function actionForPage(page) {
     "tires.html": [
       { label: "Roadside", href: "#tire-roadside-launcher", icon: "flash" },
       { label: "Pressure", href: "#tire-pressure-sweep", icon: "check" },
+      { label: "Recheck", href: "#tire-recheck-planner", icon: "note" },
       { label: "Handoff", href: "#tire-handoff-builder", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],

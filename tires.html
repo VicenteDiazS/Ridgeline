@@ -54,6 +54,7 @@
               <a class="utility-link utility-link-strong" href="#tire-roadside-launcher">Roadside</a>
               <a class="utility-link utility-link-strong" href="#tire-handoff-builder">Handoff</a>
               <a class="utility-link utility-link-strong" href="#tire-pressure-sweep">Pressure Sweep</a>
+              <a class="utility-link utility-link-strong" href="#tire-recheck-planner">Recheck</a>
               <a class="utility-link utility-link-strong" href="#fitment-guide">Fitment Guide</a>
               <a class="utility-link" href="#wheel-well">Wheel Well</a>
               <a class="utility-link" href="#source-audit">Sources</a>
@@ -241,6 +242,43 @@
             </label>
             <div class="tire-pressure-summary" data-tire-pressure-summary>
               No readings recorded yet.
+            </div>
+            <div class="tire-recheck-planner" id="tire-recheck-planner" data-tire-recheck-planner>
+              <div class="tire-recheck-head">
+                <div>
+                  <p class="eyebrow">Pressure Recheck Plan</p>
+                  <h3>Turn A Low Tire Into A Follow-Up</h3>
+                </div>
+                <span data-tire-recheck-status aria-live="polite">Recheck plan ready.</span>
+              </div>
+              <div class="tire-recheck-picker" role="group" aria-label="Choose tire pressure recheck timing">
+                <button class="utility-link utility-link-strong" type="button" data-tire-recheck-when="before-drive" aria-pressed="true">Before Drive</button>
+                <button class="utility-link" type="button" data-tire-recheck-when="after-drive" aria-pressed="false">After Drive</button>
+                <button class="utility-link" type="button" data-tire-recheck-when="tomorrow" aria-pressed="false">Tomorrow</button>
+                <button class="utility-link" type="button" data-tire-recheck-when="shop" aria-pressed="false">Shop</button>
+              </div>
+              <div class="tire-recheck-fields">
+                <label>
+                  <span>Where / air stop / shop</span>
+                  <input type="text" placeholder="Example: home gauge, Costco air, Discount Tire" data-tire-recheck-place />
+                </label>
+                <label>
+                  <span>Follow-up note</span>
+                  <textarea rows="2" placeholder="Example: FL was 31 psi after cold morning; watch for repeat drop." data-tire-recheck-note></textarea>
+                </label>
+              </div>
+              <div class="tire-recheck-summary" data-tire-recheck-summary>
+                Enter readings above to build a recheck plan.
+              </div>
+              <div class="inspector-actions tire-recheck-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-tire-recheck>Copy Recheck</button>
+                <button class="utility-link" type="button" data-share-tire-recheck>Share</button>
+                <button class="utility-link" type="button" data-save-tire-recheck>Save Recheck</button>
+                <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+              </div>
+              <p class="small-note">
+                Recheck plans read the current sweep on this screen and save only into the existing Garage Notes field.
+              </p>
             </div>
             <div class="inspector-actions tire-pressure-actions">
               <button class="utility-link utility-link-strong" type="button" data-copy-tire-pressure>Copy Sweep</button>
@@ -538,6 +576,7 @@
         <a href="#tire-roadside-launcher">Roadside</a>
         <a href="#tire-handoff-builder">Handoff</a>
         <a href="#tire-pressure-sweep">Pressure</a>
+        <a href="#tire-recheck-planner">Recheck</a>
         <a href="#fitment-guide">Fitment</a>
       </nav>
     </div>
@@ -722,6 +761,7 @@
         if (!root) return;
 
         const STORAGE_KEY = "ridgeline-tire-pressure-sweep";
+        const RECHECK_STORAGE_KEY = "ridgeline-tire-recheck-plan";
         const STORAGE_NOTES = "ridgeline-notes";
         const baselinePsi = 35;
         const statusLabels = {
@@ -737,11 +777,29 @@
           summary: root.querySelector("[data-tire-pressure-summary]"),
           note: root.querySelector("[data-tire-pressure-note]")
         };
+        const recheck = {
+          root: root.querySelector("[data-tire-recheck-planner]"),
+          status: root.querySelector("[data-tire-recheck-status]"),
+          summary: root.querySelector("[data-tire-recheck-summary]"),
+          place: root.querySelector("[data-tire-recheck-place]"),
+          note: root.querySelector("[data-tire-recheck-note]")
+        };
         const inputs = [...root.querySelectorAll("[data-tire-corner]")];
         const selects = [...root.querySelectorAll("[data-tire-corner-status]")];
+        const recheckPlans = {
+          "before-drive": "Before the next drive",
+          "after-drive": "After a short drive / air stop",
+          tomorrow: "Tomorrow cold",
+          shop: "At tire shop or service counter"
+        };
+        let currentRecheckKey = "before-drive";
 
         function setStatus(message) {
           if (fields.status) fields.status.textContent = message;
+        }
+
+        function setRecheckStatus(message) {
+          if (recheck.status) recheck.status.textContent = message;
         }
 
         function loadSweep() {
@@ -754,6 +812,18 @@
 
         function writeSweep(data) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadRecheck() {
+          try {
+            return JSON.parse(localStorage.getItem(RECHECK_STORAGE_KEY) || "{}") || {};
+          } catch {
+            return {};
+          }
+        }
+
+        function writeRecheck(data) {
+          localStorage.setItem(RECHECK_STORAGE_KEY, JSON.stringify(data));
         }
 
         function readSweep() {
@@ -796,10 +866,46 @@
           return `${checked.length}/4 corners recorded, ${flaggedLabel}, ${missingLabel}. Baseline reference: ${baselinePsi} psi cold.`;
         }
 
+        function getRecheckTargets(data) {
+          const checked = data.corners.filter((item) => item.psi || item.status !== "not checked");
+          const flagged = checked.filter((item) => !["ok", "not checked"].includes(item.status));
+          return flagged.length ? flagged : checked;
+        }
+
+        function summarizeRecheck(data = readSweep()) {
+          const targets = getRecheckTargets(data);
+          const place = recheck.place?.value.trim();
+          const targetLabel = targets.length
+            ? targets.map((item) => `${item.corner}${item.psi ? ` ${item.psi} psi` : ""} ${statusLabels[item.status] || item.status}`).join("; ")
+            : "no corners recorded yet";
+          const placeLabel = place ? ` at ${place}` : "";
+          return `${recheckPlans[currentRecheckKey]}${placeLabel}. Watch: ${targetLabel}.`;
+        }
+
         function renderSummary() {
           const data = readSweep();
           if (fields.summary) fields.summary.textContent = summarize(data);
           writeSweep(data);
+          renderRecheckSummary(data);
+        }
+
+        function renderRecheckPlan(key) {
+          currentRecheckKey = key || currentRecheckKey;
+          root.querySelectorAll("[data-tire-recheck-when]").forEach((button) => {
+            const active = button.dataset.tireRecheckWhen === currentRecheckKey;
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+            button.classList.toggle("utility-link-strong", active);
+          });
+          renderRecheckSummary();
+          writeRecheck({
+            when: currentRecheckKey,
+            place: recheck.place?.value.trim() || "",
+            note: recheck.note?.value.trim() || ""
+          });
+        }
+
+        function renderRecheckSummary(data = readSweep()) {
+          if (recheck.summary) recheck.summary.textContent = summarizeRecheck(data);
         }
 
         function buildSweepText() {
@@ -810,6 +916,21 @@
           });
           const context = data.note ? `\nContext: ${data.note}` : "";
           return `Ridgeline Tire Pressure Sweep\nBaseline reference: ${baselinePsi} psi cold; verify against placard/sidewall/manual.\n${lines.join("\n")}${context}\nNext: recheck any flagged or unchecked corner and save follow-up in Garage Notes.`;
+        }
+
+        function buildRecheckText() {
+          const data = readSweep();
+          const targets = getRecheckTargets(data);
+          const targetLines = targets.length
+            ? targets.map((item) => {
+                const reading = item.psi ? `${item.psi} psi` : "no psi entered";
+                return `- ${item.corner}: ${reading}; ${statusLabels[item.status] || item.status}`;
+              })
+            : ["- No pressure readings entered yet"];
+          const place = recheck.place?.value.trim();
+          const note = recheck.note?.value.trim();
+          const pressureContext = fields.note?.value.trim();
+          return `Ridgeline Tire Pressure Recheck\nTiming: ${recheckPlans[currentRecheckKey]}\nWhere: ${place || "not set"}\nWatch list:\n${targetLines.join("\n")}\nBaseline reference: ${baselinePsi} psi cold; verify against placard/sidewall/manual.${pressureContext ? `\nSweep context: ${pressureContext}` : ""}${note ? `\nFollow-up note: ${note}` : ""}\nNext: recheck the watch-list corner(s), then save the final result in Garage Notes.`;
         }
 
         function loadNotes() {
@@ -844,9 +965,35 @@
           }
         }
 
+        function saveRecheckNote(text) {
+          const notes = loadNotes();
+          const stamp = new Date().toLocaleDateString();
+          const note = `[${stamp} - Tire Pressure Recheck]\n${text}`;
+          const existing = `${notes.general_notes || ""}`.trim();
+          localStorage.setItem(
+            STORAGE_NOTES,
+            JSON.stringify({
+              ...notes,
+              general_notes: existing ? `${note}\n\n${existing}` : note
+            })
+          );
+        }
+
         [...inputs, ...selects, fields.note].filter(Boolean).forEach((field) => {
           field.addEventListener("input", renderSummary);
           field.addEventListener("change", renderSummary);
+        });
+
+        root.querySelectorAll("[data-tire-recheck-when]").forEach((button) => {
+          button.addEventListener("click", () => {
+            renderRecheckPlan(button.dataset.tireRecheckWhen);
+            setRecheckStatus("Recheck timing updated.");
+          });
+        });
+
+        [recheck.place, recheck.note].filter(Boolean).forEach((field) => {
+          field.addEventListener("input", () => renderRecheckPlan(currentRecheckKey));
+          field.addEventListener("change", () => renderRecheckPlan(currentRecheckKey));
         });
 
         root.querySelector("[data-copy-tire-pressure]")?.addEventListener("click", async () => {
@@ -887,7 +1034,37 @@
           setStatus("Pressure sweep reset on this iPhone.");
         });
 
+        root.querySelector("[data-copy-tire-recheck]")?.addEventListener("click", async () => {
+          const copied = await copyText(buildRecheckText());
+          setRecheckStatus(copied ? "Pressure recheck copied." : "Copy unavailable; use the visible recheck plan.");
+        });
+
+        root.querySelector("[data-share-tire-recheck]")?.addEventListener("click", async () => {
+          const text = buildRecheckText();
+          try {
+            if (navigator.share) {
+              await navigator.share({ title: "Ridgeline tire pressure recheck", text });
+              setRecheckStatus("Pressure recheck shared.");
+              return;
+            }
+            const copied = await copyText(text);
+            setRecheckStatus(copied ? "Share unavailable; pressure recheck copied instead." : "Share unavailable on this browser.");
+          } catch {
+            setRecheckStatus("Share canceled or unavailable.");
+          }
+        });
+
+        root.querySelector("[data-save-tire-recheck]")?.addEventListener("click", () => {
+          saveRecheckNote(buildRecheckText());
+          setRecheckStatus("Pressure recheck saved to Garage Notes.");
+        });
+
         hydrateSweep();
+        const savedRecheck = loadRecheck();
+        currentRecheckKey = recheckPlans[savedRecheck.when] ? savedRecheck.when : "before-drive";
+        if (recheck.place) recheck.place.value = savedRecheck.place || "";
+        if (recheck.note) recheck.note.value = savedRecheck.note || "";
+        renderRecheckPlan(currentRecheckKey);
         renderSummary();
       })();
     </script>

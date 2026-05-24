@@ -248,6 +248,25 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tire Pressure Recheck Plan",
+    url: "tires.html#tire-recheck-planner",
+    category: "Tools",
+    excerpt: "iPhone follow-up planner for low tire or TPMS checks, using the current pressure sweep to copy, share, or save a recheck note.",
+    keywords: [
+      "tire pressure recheck",
+      "pressure recheck plan",
+      "copy tire recheck",
+      "save tire recheck",
+      "low tire follow up",
+      "tpms follow up",
+      "air stop note",
+      "tire shop note",
+      "before drive tire",
+      "tomorrow cold pressure",
+      "garage tire recheck"
+    ]
+  },
+  {
     title: "NFC Tag Console",
     url: "nfc.html",
     category: "Tools",
