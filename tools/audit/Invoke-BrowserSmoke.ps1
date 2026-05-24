@@ -117,6 +117,10 @@ SEARCH_EXPECTATIONS = {
     "roadside action stack": "Roadside Action Stack",
     "roadside note": "Roadside Note Receipt",
     "save roadside note": "Roadside Note Receipt",
+    "roadside contact card": "Roadside Contact Card",
+    "roadside location": "Roadside Contact Card",
+    "copy roadside contact": "Roadside Contact Card",
+    "tow eta": "Roadside Contact Card",
     "roadside live session": "Roadside Live Session",
     "roadside checkpoint": "Roadside Live Session",
     "copy roadside update": "Roadside Live Session",
@@ -932,6 +936,7 @@ async def assert_quick_sheet(page, page_name):
             const triage = document.querySelector("#fuse-triage");
             const fuseNote = document.querySelector("[data-fuse-check-note]");
             const sources = document.querySelector("#source-confidence");
+            const contact = document.querySelector("[data-roadside-contact-card]");
             const requiredCriticalTargets = [
                 "#tires",
                 "hood.html#wiring",
@@ -997,6 +1002,12 @@ async def assert_quick_sheet(page, page_name):
                 hasStackSave: Boolean(stack?.querySelector("[data-save-roadside-note]")),
                 hasReceipt: Boolean(stack?.querySelector("[data-roadside-receipt]")),
                 receiptHidden: Boolean(stack?.querySelector("[data-roadside-receipt]")?.hidden),
+                hasContactCard: Boolean(contact),
+                contactText: contact?.innerText.toLowerCase() || "",
+                contactFields: contact ? contact.querySelectorAll("[data-roadside-contact-field]").length : 0,
+                hasCopyContact: Boolean(contact?.querySelector("[data-copy-roadside-contact]")),
+                hasSaveContact: Boolean(contact?.querySelector("[data-save-roadside-contact]")),
+                hasContactHandoffRoute: Boolean(contact?.querySelector('a[href="garage.html#recent-handoffs"]')),
                 hasLiveSession: Boolean(stack?.querySelector("[data-roadside-live-session]")),
                 liveSessionText: stack?.querySelector("[data-roadside-live-session]")?.innerText.toLowerCase() || "",
                 liveCheckpointButtons: stack ? stack.querySelectorAll("[data-roadside-checkpoint]").length : 0,
@@ -1097,6 +1108,13 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["hasStackSave"], "roadside action stack is missing save-note control")
     assert_true(state["hasReceipt"], "roadside action stack is missing the saved-note receipt")
     assert_true(state["receiptHidden"], "roadside receipt should stay hidden until a note is saved")
+    assert_true(state["hasContactCard"], "roadside action stack is missing the contact card")
+    assert_true(state["contactFields"] == 4, "roadside contact card should expose four fields")
+    assert_true(state["hasCopyContact"], "roadside contact card is missing Copy Contact")
+    assert_true(state["hasSaveContact"], "roadside contact card is missing Save Contact Note")
+    assert_true(state["hasContactHandoffRoute"], "roadside contact card is missing Recent Handoffs route")
+    for phrase in ["roadside contact card", "location", "callback", "help", "eta"]:
+        assert_true(phrase in state["contactText"], f"roadside contact card is missing text: {phrase}")
     assert_true(state["hasLiveSession"], "roadside action stack is missing the live session panel")
     assert_true(state["liveCheckpointButtons"] == 3, "roadside live session should expose three checkpoint buttons")
     assert_true(state["hasStartSession"], "roadside live session is missing Start Session")
@@ -1158,6 +1176,35 @@ async def assert_quick_sheet(page, page_name):
     assert_true(receipt_state["garageRoute"], "roadside receipt is missing the Open Garage Notes route")
     assert_true(receipt_state["hasCopyReceipt"], "roadside receipt is missing Copy Note")
     assert_true(receipt_state["hasShareReceipt"], "roadside receipt is missing Share")
+    await page.locator('[data-roadside-contact-field="location"]').fill("I-35 SB shoulder near exit 230")
+    await page.locator('[data-roadside-contact-field="callback"]').fill("My phone and AAA case 123")
+    await page.locator('[data-roadside-contact-field="helper"]').fill("Tow requested")
+    await page.locator('[data-roadside-contact-field="eta"]').fill("ETA 45 min")
+    await page.locator("[data-save-roadside-contact]").click()
+    await page.wait_for_timeout(250)
+    contact_state = await page.evaluate(
+        """() => {
+            const stack = document.querySelector("#roadside-action-stack");
+            const contact = JSON.parse(localStorage.getItem("ridgeline-roadside-contact-card") || "{}");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                preview: stack?.querySelector("[data-roadside-contact-preview]")?.textContent || "",
+                status: stack?.querySelector("[data-roadside-status]")?.textContent || "",
+                storedLocation: contact.location || "",
+                storedCallback: contact.callback || "",
+                note: notes.general_notes || "",
+                overflow: document.documentElement.scrollWidth > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true("I-35 SB" in contact_state["preview"], "roadside contact preview should show the saved location")
+    assert_true("AAA case 123" in contact_state["preview"], "roadside contact preview should show callback detail")
+    assert_true("saved to Garage Notes" in contact_state["status"], "roadside contact save did not report Garage Notes status")
+    assert_true(contact_state["storedLocation"] == "I-35 SB shoulder near exit 230", "roadside contact storage should keep location")
+    assert_true(contact_state["storedCallback"] == "My phone and AAA case 123", "roadside contact storage should keep callback")
+    assert_true("Ridgeline roadside contact card" in contact_state["note"], "Garage Notes did not receive the roadside contact card")
+    assert_true("Tow requested" in contact_state["note"], "saved contact card did not preserve helper detail")
+    assert_true(not contact_state["overflow"], "roadside contact card introduced horizontal overflow")
     await page.locator("[data-start-roadside-session]").click()
     await page.wait_for_timeout(150)
     await page.locator('[data-roadside-checkpoint="Stopped safely"]').click()
@@ -1189,6 +1236,8 @@ async def assert_quick_sheet(page, page_name):
     assert_true(session_state["storedPlan"] == "warning", "roadside live session storage should keep the selected plan")
     assert_true(session_state["checkpointCount"] == 2, "roadside live session storage should keep checkpoints")
     assert_true("Ridgeline live roadside update" in session_state["note"], "Garage Notes did not receive the live roadside session log")
+    assert_true("Roadside contact:" in session_state["note"], "live roadside session log should include contact detail")
+    assert_true("I-35 SB shoulder near exit 230" in session_state["note"], "live roadside session log should preserve location detail")
     assert_true("Current roadside conditions" in session_state["note"], "live roadside session log should preserve source-authority reminder")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
@@ -1249,11 +1298,14 @@ async def assert_quick_sheet(page, page_name):
             const critical = document.querySelector("#critical-strip");
             const printPack = document.querySelector("#print-offline-pack");
             const receipt = document.querySelector("[data-roadside-receipt]");
+            const contact = document.querySelector("[data-roadside-contact-card]");
             const live = document.querySelector("[data-roadside-live-session]");
             const fuseNote = document.querySelector("[data-fuse-check-note]");
             const grid = critical?.querySelector(".quick-critical-grid");
             const printGrid = printPack?.querySelector(".quick-print-pack-grid");
             const receiptActions = [...(receipt?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
+            const contactGrid = contact?.querySelector(".roadside-contact-grid");
+            const contactActions = [...(contact?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const liveActions = [...(live?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const liveGrid = live?.querySelector(".roadside-live-actions");
             const fusePicker = fuseNote?.querySelector(".quick-fuse-note-picker");
@@ -1272,6 +1324,9 @@ async def assert_quick_sheet(page, page_name):
                 minPrintPackCardHeight: printCards.length ? Math.min(...printCards.map((card) => card.height)) : 0,
                 receiptVisible: Boolean(receipt && !receipt.hidden && receipt.getBoundingClientRect().height > 0),
                 minReceiptActionHeight: receiptActions.length ? Math.min(...receiptActions) : 0,
+                contactVisible: Boolean(contact && contact.getBoundingClientRect().height > 0),
+                contactColumns: contactGrid ? getComputedStyle(contactGrid).gridTemplateColumns.split(" ").length : 0,
+                minContactActionHeight: contactActions.length ? Math.min(...contactActions) : 0,
                 liveVisible: Boolean(live && live.getBoundingClientRect().height > 0),
                 liveActionColumns: liveGrid ? getComputedStyle(liveGrid).gridTemplateColumns.split(" ").length : 0,
                 minLiveActionHeight: liveActions.length ? Math.min(...liveActions) : 0,
@@ -1291,6 +1346,9 @@ async def assert_quick_sheet(page, page_name):
     assert_true(mobile_state["minPrintPackCardHeight"] >= 90, "quick sheet print/offline pack cards should stay thumb-readable on iPhone")
     assert_true(mobile_state["receiptVisible"], "saved roadside receipt is not visible at iPhone width after save")
     assert_true(mobile_state["minReceiptActionHeight"] >= 38, "saved roadside receipt actions should stay thumb-readable on iPhone")
+    assert_true(mobile_state["contactVisible"], "roadside contact card is not visible at iPhone width")
+    assert_true(mobile_state["contactColumns"] == 1, "roadside contact fields should stack on iPhone")
+    assert_true(mobile_state["minContactActionHeight"] >= 38, "roadside contact actions should stay thumb-readable on iPhone")
     assert_true(mobile_state["liveVisible"], "roadside live session is not visible at iPhone width")
     assert_true(mobile_state["liveActionColumns"] == 2, "roadside live session actions should use two compact columns on iPhone")
     assert_true(mobile_state["minLiveActionHeight"] >= 38, "roadside live session actions should stay thumb-readable on iPhone")

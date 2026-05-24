@@ -110,6 +110,13 @@ export const searchIndex = [
     keywords: ["roadside live session", "roadside session", "roadside timer", "roadside checkpoint", "safe stop", "help called", "moving again", "copy roadside update", "save roadside log", "incident timeline", "iphone roadside session"]
   },
   {
+    title: "Roadside Contact Card",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet iPhone card for keeping roadside location, callback, tow/help detail, and ETA ready to copy, save, or include in live roadside updates.",
+    keywords: ["roadside contact card", "roadside location", "copy roadside contact", "save roadside contact", "tow eta", "callback roadside", "roadside landmark", "roadside helper", "roadside eta", "iphone roadside contact"]
+  },
+  {
     title: "Fuse Check Note",
     url: "quick-sheet.html#fuse-triage",
     category: "Quick Sheet",
@@ -1196,13 +1203,17 @@ export const searchIndex = [
     title: "Roadside Action Stack",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Navigation",
-    excerpt: "On-screen roadside next steps with copy/share handoff text, save-note receipt, and local live-session checkpoints for flat tire, no-start, warning-light, and trailer-light situations.",
+    excerpt: "On-screen roadside next steps with copy/share handoff text, save-note receipt, a contact card, and local live-session checkpoints for flat tire, no-start, warning-light, and trailer-light situations.",
     keywords: [
       "roadside action stack",
       "roadside next steps",
       "roadside handoff",
       "copy roadside note",
       "share roadside note",
+      "roadside contact card",
+      "roadside location",
+      "copy roadside contact",
+      "tow eta",
       "roadside live session",
       "roadside checkpoint",
       "copy roadside update",

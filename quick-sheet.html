@@ -271,6 +271,40 @@
               <a class="utility-link" href="garage.html#notes">Open Garage Notes</a>
             </div>
           </article>
+          <article class="dashboard-card roadside-contact-card" data-roadside-contact-card>
+            <div>
+              <span>Roadside Contact Card</span>
+              <strong>Keep location and callback ready</strong>
+              <p>Fill this once while stopped, then copy or save the same details into the live roadside update.</p>
+            </div>
+            <div class="roadside-contact-grid">
+              <label class="roadside-contact-field">
+                <span>Location / landmark</span>
+                <input type="text" data-roadside-contact-field="location" placeholder="Example: I-35 SB shoulder near exit 230" autocomplete="street-address" />
+              </label>
+              <label class="roadside-contact-field">
+                <span>Callback / party</span>
+                <input type="text" data-roadside-contact-field="callback" placeholder="Example: my phone, AAA case, shop contact" autocomplete="tel" />
+              </label>
+              <label class="roadside-contact-field">
+                <span>Help / tow detail</span>
+                <input type="text" data-roadside-contact-field="helper" placeholder="Example: tow requested, friend en route, shop waiting" />
+              </label>
+              <label class="roadside-contact-field">
+                <span>ETA / next check</span>
+                <input type="text" data-roadside-contact-field="eta" placeholder="Example: recheck in 20 min, tow ETA 45 min" />
+              </label>
+            </div>
+            <div class="roadside-contact-preview" data-roadside-contact-preview>
+              Add location or callback detail to include it in copied roadside updates.
+            </div>
+            <div class="inspector-actions roadside-contact-actions">
+              <button class="utility-link utility-link-strong" type="button" data-copy-roadside-contact>Copy Contact</button>
+              <button class="utility-link" type="button" data-save-roadside-contact>Save Contact Note</button>
+              <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+            </div>
+            <p class="small-note">Contact details stay on this iPhone unless copied or saved into Garage Notes.</p>
+          </article>
           <article class="dashboard-card roadside-live-card" data-roadside-live-session>
             <div>
               <span>Live Roadside Session</span>

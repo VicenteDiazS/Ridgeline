@@ -17348,6 +17348,61 @@ select:focus {
   margin-top: 4px;
 }
 
+.roadside-contact-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  border-color: rgba(255, 207, 117, 0.24);
+  background:
+    linear-gradient(135deg, rgba(255, 207, 117, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(17, 16, 10, 0.74);
+}
+
+.roadside-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.roadside-contact-field {
+  display: grid;
+  gap: 6px;
+  color: rgba(241, 247, 255, 0.76);
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+.roadside-contact-field input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(4, 9, 16, 0.8);
+  color: #f7fbff;
+  padding: 9px 10px;
+  font: inherit;
+  line-height: 1.25;
+}
+
+.roadside-contact-field input:focus {
+  outline: 2px solid rgba(255, 207, 117, 0.48);
+  outline-offset: 2px;
+  border-color: rgba(255, 207, 117, 0.5);
+}
+
+.roadside-contact-preview {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 207, 117, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 207, 117, 0.08);
+  color: #fff2c8;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .roadside-live-meter {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -17598,6 +17653,19 @@ select:focus {
 
   .roadside-live-card {
     padding: 14px;
+  }
+
+  .roadside-contact-card {
+    padding: 14px;
+  }
+
+  .roadside-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roadside-contact-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roadside-live-meter {

@@ -7,6 +7,7 @@ import {
 
 const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
 const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
+const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
@@ -196,6 +197,43 @@ function clearRoadsideSession() {
   localStorage.removeItem(ROADSIDE_SESSION_KEY);
 }
 
+function loadRoadsideContact() {
+  try {
+    return JSON.parse(localStorage.getItem(ROADSIDE_CONTACT_KEY) || "null") || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveRoadsideContact(contact) {
+  localStorage.setItem(ROADSIDE_CONTACT_KEY, JSON.stringify(contact));
+}
+
+function hasRoadsideContact(contact) {
+  return ["location", "callback", "helper", "eta"].some((key) => `${contact?.[key] || ""}`.trim());
+}
+
+function roadsideContactLines(contact = loadRoadsideContact()) {
+  const fields = [
+    ["Location", contact.location],
+    ["Callback", contact.callback],
+    ["Help/tow", contact.helper],
+    ["ETA/next check", contact.eta]
+  ].filter((entry) => `${entry[1] || ""}`.trim());
+
+  return fields.length
+    ? ["Roadside contact:", ...fields.map(([label, value]) => `- ${label}: ${value.trim()}`)]
+    : ["Roadside contact: add location/callback details before sending if needed."];
+}
+
+function buildRoadsideContactText(contact = loadRoadsideContact()) {
+  return [
+    "Ridgeline roadside contact card",
+    ...roadsideContactLines(contact),
+    "Saved from Quick Sheet. Use current roadside conditions, local emergency guidance, and the owner's manual as final authority."
+  ].join("\n");
+}
+
 function renderRoadsideReceipt(root) {
   const receiptCard = root.querySelector("[data-roadside-receipt]");
   if (!receiptCard) {
@@ -258,11 +296,34 @@ function buildRoadsideSessionText(session) {
     `${plan.title}`,
     `Started: ${formatSessionTime(session?.startedAt)}`,
     formatElapsed(session?.startedAt),
+    ...roadsideContactLines(),
     "Checkpoints:",
     ...checkpointLines,
     plan.reference,
     "Current roadside conditions, truck labels, and the owner's manual remain final authority."
   ].join("\n");
+}
+
+function renderRoadsideContact(root) {
+  const card = root.querySelector("[data-roadside-contact-card]");
+  if (!card) {
+    return;
+  }
+
+  const contact = loadRoadsideContact();
+  card.querySelectorAll("[data-roadside-contact-field]").forEach((field) => {
+    const key = field.dataset.roadsideContactField;
+    if (key && field.value !== (contact[key] || "")) {
+      field.value = contact[key] || "";
+    }
+  });
+
+  const preview = card.querySelector("[data-roadside-contact-preview]");
+  if (preview) {
+    preview.textContent = hasRoadsideContact(contact)
+      ? roadsideContactLines(contact).slice(1).join(" / ")
+      : "Add location or callback detail to include it in copied roadside updates.";
+  }
 }
 
 function renderRoadsideSession(root) {
@@ -738,6 +799,34 @@ function initRoadsideStack() {
     }
   });
 
+  root.querySelectorAll("[data-roadside-contact-field]").forEach((field) => {
+    field.addEventListener("input", () => {
+      const contact = loadRoadsideContact();
+      contact[field.dataset.roadsideContactField] = field.value.trim();
+      saveRoadsideContact(contact);
+      renderRoadsideContact(root);
+      setStatus(root, "Roadside contact card saved on this iPhone.");
+    });
+  });
+
+  root.querySelector("[data-copy-roadside-contact]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(buildRoadsideContactText());
+      setStatus(root, copied ? "Roadside contact card copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setStatus(root, "Copy failed. Keep the contact card visible for reference.");
+    }
+  });
+
+  root.querySelector("[data-save-roadside-contact]")?.addEventListener("click", () => {
+    try {
+      prependGarageGeneralNote(buildRoadsideContactText());
+      setStatus(root, "Roadside contact card saved to Garage Notes.");
+    } catch (error) {
+      setStatus(root, "Could not save the roadside contact card in this browser.");
+    }
+  });
+
   root.querySelector("[data-start-roadside-session]")?.addEventListener("click", () => {
     const planKey = root.dataset.currentRoadsidePlan || "flat";
     saveRoadsideSession({
@@ -808,6 +897,7 @@ function initRoadsideStack() {
 
   updateRoadsidePlan(root, "flat");
   renderRoadsideReceipt(root);
+  renderRoadsideContact(root);
   renderRoadsideSession(root);
   window.setInterval(() => renderRoadsideSession(root), 60000);
 }
