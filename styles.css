@@ -14602,7 +14602,8 @@ body {
   }
 
   .topbar.is-compact {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(92px, 1fr) minmax(190px, 190px);
+    align-items: stretch;
     gap: 3px;
     padding: 3px;
     border-radius: 15px;
@@ -14620,9 +14621,10 @@ body {
   }
 
   .topbar.is-compact .header-current-page {
+    grid-column: 1;
     grid-template-columns: minmax(52px, auto) minmax(0, 1fr);
     align-items: center;
-    min-height: 26px;
+    min-height: 32px;
     gap: 0 7px;
     padding: 2px 8px;
   }
@@ -14642,13 +14644,25 @@ body {
   }
 
   .topbar.is-compact .topbar-actions {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     width: 100%;
+    max-width: none;
+    min-width: 0;
   }
 
   .topbar.is-compact .topbar-actions > .header-nav-button,
   .topbar.is-compact .topbar-actions > .search-button {
-    min-height: 28px;
+    min-height: 32px;
     border-radius: 10px;
+  }
+
+  .topbar.is-compact .topbar-actions > .header-nav-button::before,
+  .topbar.is-compact .topbar-actions > .search-button::before {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
   }
 
   .has-dynamic-island-shelf .dynamic-island-shelf {

@@ -267,14 +267,20 @@ async def assert_current_page_navigation(page, page_name):
         """() => {
             const topbar = document.querySelector(".topbar");
             const current = document.querySelector(".header-current-page");
+            const actions = document.querySelector(".topbar-actions");
             const section = current?.querySelector("[data-header-section-label]");
             const topbarRect = topbar?.getBoundingClientRect();
+            const currentRect = current?.getBoundingClientRect();
+            const actionsRect = actions?.getBoundingClientRect();
             return {
                 compact: Boolean(topbar?.classList.contains("is-compact")),
                 hasSection: Boolean(section && !section.hidden && section.textContent.trim()),
                 sectionText: section?.textContent.trim() || "",
                 href: current?.getAttribute("href") || "",
                 topbarHeight: topbarRect?.height || 0,
+                sameRail: Boolean(currentRect && actionsRect && Math.abs(currentRect.top - actionsRect.top) <= 2),
+                currentWidth: currentRect?.width || 0,
+                actionsWidth: actionsRect?.width || 0,
                 canScroll: document.documentElement.scrollHeight > window.innerHeight + 160,
                 overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) > document.documentElement.clientWidth + 1
             };
@@ -284,7 +290,10 @@ async def assert_current_page_navigation(page, page_name):
         assert_true(compact_state["compact"], f"{page_name} header did not collapse after iPhone scroll")
         assert_true(compact_state["hasSection"], f"{page_name} compact header is missing the active section label")
         assert_true("#" in compact_state["href"], f"{page_name} compact header should link to the active section")
-        assert_true(compact_state["topbarHeight"] <= 82, f"{page_name} compact header is too tall on iPhone")
+        assert_true(compact_state["sameRail"], f"{page_name} compact header current chip and actions should share one iPhone rail")
+        assert_true(compact_state["currentWidth"] >= 88, f"{page_name} compact header current chip is too narrow on iPhone")
+        assert_true(compact_state["actionsWidth"] >= 176, f"{page_name} compact header action rail is too narrow on iPhone")
+        assert_true(compact_state["topbarHeight"] <= 56, f"{page_name} compact header is too tall on iPhone")
         assert_true(not compact_state["overflow"], f"{page_name} compact header introduced horizontal overflow")
     await page.evaluate("window.scrollTo(0, 0);")
     await page.wait_for_timeout(120)
