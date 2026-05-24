@@ -7973,6 +7973,16 @@ kbd {
   gap: 8px;
 }
 
+.garage-backup-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.garage-backup-preview-actions .ghost-button {
+  min-height: 40px;
+}
+
 .garage-backup-impact {
   display: grid;
   gap: 4px;

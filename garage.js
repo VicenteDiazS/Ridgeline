@@ -42,6 +42,7 @@ const garageBackupDownloadButton = document.querySelector("[data-download-garage
 const garageBackupImportInput = document.querySelector("[data-import-garage-backup]");
 const garageBackupImportButton = document.querySelector("[data-choose-garage-backup]");
 const garageBackupRestoreButton = document.querySelector("[data-restore-garage-backup]");
+const garageBackupRestorePlanButton = document.querySelector("[data-copy-garage-restore-plan]");
 const garageBackupQuickButtons = [...document.querySelectorAll("[data-garage-backup-quick]")];
 const garageBackupPreview = document.querySelector("[data-garage-backup-preview]");
 const diagnosticActivityStatus = document.querySelector("[data-diagnostic-activity-status]");
@@ -79,6 +80,7 @@ let maintenanceCounterLastStaged = null;
 let maintenanceCounterSkippedKeys = [];
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
+let pendingGarageBackupSummary = null;
 let currentGarageFillPlan = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
 const MAINTENANCE_CUSTOM_STAGING_KEY = "ridgeline-maintenance-custom-staging";
@@ -1802,6 +1804,9 @@ function setGarageRestoreReady(ready) {
   if (garageBackupRestoreButton) {
     garageBackupRestoreButton.disabled = !ready;
   }
+  if (garageBackupRestorePlanButton) {
+    garageBackupRestorePlanButton.disabled = !ready;
+  }
   garageBackupQuickButtons
     .filter((button) => button.dataset.garageBackupQuick === "restore")
     .forEach((button) => {
@@ -1874,6 +1879,31 @@ function garageBackupImpactMarkup(summary) {
   return rows.length ? `<div class="garage-backup-impact" data-garage-backup-impact>${rows.join("")}</div>` : "";
 }
 
+function garageBackupRestorePlanText(summary) {
+  if (!summary?.entries?.length) {
+    return "No Garage backup file is ready for restore.";
+  }
+
+  const generated = summary.generatedAt ? new Date(summary.generatedAt).toLocaleString("en-US") : "Date not recorded";
+  const { replaceLabels, mergeLabels } = garageBackupImpact(summary);
+  const lines = [
+    "Ridgeline Garage Restore Plan",
+    `Backup created: ${generated}`,
+    "",
+    "Recognized backup areas:",
+    ...summary.entries.map((entry) => `- ${entry.label}: backup ${entry.count}; current ${currentGarageBackupCount(entry.key)}`),
+    "",
+    replaceLabels.length ? `Will replace: ${replaceLabels.join(", ")}` : "Will replace: none",
+    mergeLabels.length ? `Will merge: ${mergeLabels.join(", ")}` : "Will merge: none",
+    summary.skippedLabels.length ? `Skipped invalid sections: ${summary.skippedLabels.join(", ")}` : "Skipped invalid sections: none",
+    "",
+    "Before restore: Download a fresh Garage backup from this iPhone if you may need to undo the import.",
+    "Photos: backup includes photo metadata, not browser-local image bytes."
+  ];
+
+  return lines.join("\n");
+}
+
 function renderGarageBackupPreview(summary) {
   if (!garageBackupPreview) {
     return;
@@ -1904,12 +1934,16 @@ function renderGarageBackupPreview(summary) {
         .join("")}
     </div>
     ${garageBackupImpactMarkup(summary)}
+    <div class="garage-backup-preview-actions">
+      <button class="ghost-button" type="button" data-copy-garage-restore-plan-inline>Copy Restore Plan</button>
+    </div>
     <p>Download a fresh Garage backup first if you might need to undo this import.</p>
   `;
 }
 
 function clearPendingGarageBackup() {
   pendingGarageBackup = null;
+  pendingGarageBackupSummary = null;
   setGarageRestoreReady(false);
   renderGarageBackupPreview(null);
   if (garageBackupImportInput) {
@@ -1969,6 +2003,7 @@ garageBackupImportInput?.addEventListener("change", async () => {
     }
 
     pendingGarageBackup = sanitizedGarageBackupBundle(bundle, summary);
+    pendingGarageBackupSummary = summary;
     setGarageRestoreReady(true);
     renderGarageBackupPreview(summary);
     const generated = summary.generatedAt ? ` from ${new Date(summary.generatedAt).toLocaleString("en-US")}` : "";
@@ -1977,6 +2012,30 @@ garageBackupImportInput?.addEventListener("change", async () => {
   } catch (error) {
     console.warn("Garage backup import preview failed.", error);
     setDiagnosticActivityStatus("Could not read that backup JSON file.");
+  }
+});
+
+function copyGarageRestorePlan() {
+  if (!pendingGarageBackupSummary) {
+    setDiagnosticActivityStatus("Choose a Garage backup JSON file before copying a restore plan.");
+    return;
+  }
+
+  copyText(garageBackupRestorePlanText(pendingGarageBackupSummary))
+    .then(() => {
+      setDiagnosticActivityStatus("Garage restore plan copied.");
+    })
+    .catch(() => {
+      setDiagnosticActivityStatus("Could not copy automatically. Review the backup preview and copy manually.");
+    });
+}
+
+garageBackupRestorePlanButton?.addEventListener("click", copyGarageRestorePlan);
+
+garageBackupPreview?.addEventListener("click", (event) => {
+  const planButton = event.target.closest("[data-copy-garage-restore-plan-inline]");
+  if (planButton) {
+    copyGarageRestorePlan();
   }
 });
 
