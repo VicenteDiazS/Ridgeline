@@ -10,6 +10,7 @@ const choices = [...document.querySelectorAll("[data-pinout-choice]")];
 const copyButton = document.querySelector("[data-copy-pinout-handoff]");
 const shareButton = document.querySelector("[data-share-pinout-handoff]");
 const towSetupSaver = document.querySelector("[data-tow-setup-saver]");
+const towLightTest = document.querySelector("[data-tow-light-test]");
 let selectedPinKey = "center";
 let selectedTowPlug = "7-way blade";
 let selectedTowResult = "Lights passed: running, left, right, brake, and reverse if used.";
@@ -108,6 +109,43 @@ function setTowSetupStatus(message) {
   }
 }
 
+function setTowLightStatus(message) {
+  const status = towLightTest?.querySelector("[data-tow-light-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function getTowLightRows() {
+  if (!towLightTest) {
+    return [];
+  }
+  return [...towLightTest.querySelectorAll("[data-tow-light-function]")].map((field) => ({
+    label: field.dataset.towLightFunction,
+    value: field.value || "Not checked"
+  }));
+}
+
+function getTowLightContext() {
+  return towLightTest?.querySelector("[data-tow-light-context]")?.value.trim() || "";
+}
+
+function updateTowLightSummary(statusMessage = "") {
+  if (!towLightTest) {
+    return;
+  }
+  const rows = getTowLightRows();
+  const checked = rows.filter((row) => row.value !== "Not checked").length;
+  const issues = rows.filter((row) => row.value === "Issue").length;
+  const summary = towLightTest.querySelector("[data-tow-light-summary]");
+  if (summary) {
+    summary.textContent = issues ? `${checked} of ${rows.length} checked, ${issues} issue` : `${checked} of ${rows.length} checked`;
+  }
+  if (statusMessage) {
+    setTowLightStatus(statusMessage);
+  }
+}
+
 function buildTowSetupNote() {
   return [
     "Ridgeline tow setup note",
@@ -115,6 +153,20 @@ function buildTowSetupNote() {
     `Light check: ${selectedTowResult}`,
     "Next: keep rear-hitch.html#tow-checklist, rear-hitch.html#pinout, and diagnostics.html#trailer-light-workflow available for the tow day.",
     "Source rule: truck labels, owner manual, actual trailer condition, and current road conditions remain final authority."
+  ].join("\n");
+}
+
+function buildTowLightNote() {
+  const context = getTowLightContext();
+  const rows = getTowLightRows().map((row) => `- ${row.label}: ${row.value}`);
+  return [
+    "Ridgeline trailer light test note",
+    `Plug / adapter: ${selectedTowPlug}`,
+    "Light functions:",
+    ...rows,
+    context ? `Detail: ${context}` : "Detail: no extra trailer or adapter note entered.",
+    "Next: if any function shows Issue, use rear-hitch.html#pinout and diagnostics.html#trailer-light-workflow before blaming the truck, adapter, or trailer side.",
+    "Source rule: truck labels, owner manual, connector condition, and current roadside conditions remain final authority."
   ].join("\n");
 }
 
@@ -189,6 +241,35 @@ function saveTowSetupNote() {
   });
   updateAreaJournalForm(nextNotes);
   setTowSetupStatus("Tow setup saved into the existing Rear Hitch Journal.");
+}
+
+function saveTowLightNote() {
+  const journal = loadAreaJournal("rear-hitch");
+  const notes = journal.notes || {};
+  const savedAt = new Date().toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+  const noteText = [
+    `[Trailer light test saved ${savedAt}]`,
+    buildTowLightNote(),
+    "Routes: 7-way pinout and Trailer-Light Flow."
+  ].join("\n");
+  const existingTowNotes = `${notes.tow_notes || ""}`.trim();
+  const nextNotes = {
+    ...notes,
+    primary_setup: notes.primary_setup || selectedTowPlug,
+    tow_notes: existingTowNotes ? `${noteText}\n\n${existingTowNotes}` : noteText
+  };
+
+  saveAreaJournal("rear-hitch", {
+    notes: nextNotes,
+    photos: journal.photos || []
+  });
+  updateAreaJournalForm(nextNotes);
+  setTowLightStatus("Trailer light test saved into the existing Rear Hitch Journal.");
 }
 
 function renderPin(pinKey, statusMessage = "") {
@@ -294,5 +375,35 @@ if (towSetupSaver) {
   towSetupSaver.querySelector("[data-save-tow-setup]")?.addEventListener("click", saveTowSetupNote);
 }
 
+if (towLightTest) {
+  towLightTest.querySelectorAll("[data-tow-light-function], [data-tow-light-context]").forEach((field) => {
+    field.addEventListener("input", () => updateTowLightSummary("Light test note updated."));
+    field.addEventListener("change", () => updateTowLightSummary("Light test note updated."));
+  });
+
+  towLightTest.querySelector("[data-copy-tow-light]")?.addEventListener("click", async () => {
+    const copied = await copyText(buildTowLightNote());
+    setTowLightStatus(copied ? "Trailer light test copied." : "Copy is unavailable in this browser.");
+  });
+
+  towLightTest.querySelector("[data-share-tow-light]")?.addEventListener("click", async () => {
+    const text = buildTowLightNote();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline trailer light test", text });
+        setTowLightStatus("Trailer light test shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setTowLightStatus(copied ? "Share unavailable, so the trailer light test was copied." : "Share and copy are unavailable in this browser.");
+    } catch (error) {
+      setTowLightStatus("Share canceled or unavailable.");
+    }
+  });
+
+  towLightTest.querySelector("[data-save-tow-light]")?.addEventListener("click", saveTowLightNote);
+}
+
 renderPin(selectedPinKey);
 renderTowSetup();
+updateTowLightSummary();

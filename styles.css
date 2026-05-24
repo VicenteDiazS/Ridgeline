@@ -6702,6 +6702,82 @@ kbd {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.tow-light-test {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(97, 223, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(97, 223, 255, 0.05);
+}
+
+.tow-light-test-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.tow-light-test-head h3 {
+  margin: 2px 0 0;
+}
+
+.tow-light-test-head > span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tow-light-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tow-light-grid label,
+.tow-light-context {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tow-light-grid select,
+.tow-light-context textarea {
+  width: 100%;
+  border: 1px solid rgba(220, 232, 245, 0.18);
+  border-radius: 10px;
+  background: rgba(10, 18, 30, 0.84);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tow-light-grid select {
+  min-height: 42px;
+  padding: 0 8px;
+}
+
+.tow-light-context {
+  margin-top: 10px;
+}
+
+.tow-light-context textarea {
+  min-height: 82px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.tow-light-actions {
+  margin-top: 10px;
+}
+
 .tow-setup-preview {
   margin-top: 4px;
   border-color: rgba(111, 255, 180, 0.18);
@@ -11187,6 +11263,62 @@ kbd {
     min-height: 44px;
     padding: 0 6px;
     font-size: 0.7rem;
+    line-height: 1.15;
+  }
+
+  .rear-hitch-page .tow-light-test {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .rear-hitch-page .tow-light-test-head {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .rear-hitch-page .tow-light-test-head h3 {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .rear-hitch-page .tow-light-test-head > span {
+    max-width: 112px;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    text-align: right;
+  }
+
+  .rear-hitch-page .tow-light-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rear-hitch-page .tow-light-grid label,
+  .rear-hitch-page .tow-light-context {
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .rear-hitch-page .tow-light-grid select {
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 0.78rem;
+  }
+
+  .rear-hitch-page .tow-light-context textarea {
+    min-height: 74px;
+    font-size: 0.78rem;
+  }
+
+  .rear-hitch-page .tow-light-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .rear-hitch-page .tow-light-actions .utility-link {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 0.72rem;
     line-height: 1.15;
   }
 

@@ -1458,6 +1458,7 @@ async def assert_rear_hitch_flow(page, page_name):
             const pinout = document.querySelector("#pinout");
             const handoff = document.querySelector("[data-pinout-handoff]");
             const saver = document.querySelector("#tow-setup-saver");
+            const lightTest = document.querySelector("[data-tow-light-test]");
             const requiredLinks = [
                 "#tow-checklist",
                 "#pinout",
@@ -1486,6 +1487,14 @@ async def assert_rear_hitch_flow(page, page_name):
                 hasShareSetup: Boolean(saver?.querySelector("[data-share-tow-setup]")),
                 hasSaveSetup: Boolean(saver?.querySelector("[data-save-tow-setup]")),
                 hasOpenJournal: Boolean(saver?.querySelector('a[href="#area-journal"]')),
+                hasLightTest: Boolean(lightTest),
+                lightTestText: lightTest?.innerText || "",
+                lightSelectCount: lightTest?.querySelectorAll("[data-tow-light-function]").length || 0,
+                hasLightContext: Boolean(lightTest?.querySelector("[data-tow-light-context]")),
+                hasCopyLight: Boolean(lightTest?.querySelector("[data-copy-tow-light]")),
+                hasShareLight: Boolean(lightTest?.querySelector("[data-share-tow-light]")),
+                hasSaveLight: Boolean(lightTest?.querySelector("[data-save-tow-light]")),
+                hasLightTrailerFlow: Boolean(lightTest?.querySelector('a[href="diagnostics.html#trailer-light-workflow"]')),
                 heroHasSaverRoute: Boolean(document.querySelector('.section-page-hero a[href="#tow-setup-saver"]')),
                 hasBottomPinoutRoute: [...document.querySelectorAll(".context-action-bar a")].some((link) =>
                     link.getAttribute("href") === "#pinout" && /pinout/i.test(link.textContent || "")
@@ -1514,9 +1523,19 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(state["hasShareSetup"], "Tow Setup Saver is missing Share")
     assert_true(state["hasSaveSetup"], "Tow Setup Saver is missing Save Journal")
     assert_true(state["hasOpenJournal"], "Tow Setup Saver is missing Open Journal")
+    assert_true(state["hasLightTest"], "Tow Setup Saver is missing the trailer light test note")
+    assert_true(state["lightSelectCount"] == 5, "trailer light test should expose five light-function selectors")
+    assert_true(state["hasLightContext"], "trailer light test is missing the trailer/adapter detail field")
+    assert_true(state["hasCopyLight"], "trailer light test is missing Copy Light Test")
+    assert_true(state["hasShareLight"], "trailer light test is missing Share")
+    assert_true(state["hasSaveLight"], "trailer light test is missing Save Journal")
+    assert_true(state["hasLightTrailerFlow"], "trailer light test is missing the Trailer Flow route")
     assert_true(state["heroHasSaverRoute"], "rear hitch hero is missing the Tow Setup Saver route")
     for phrase in ["Save The Trailer Setup", "7-Way", "4-Flat", "Passed", "Issue", "existing Rear Hitch Journal", "does not add towing limits"]:
         assert_true(phrase in state["saverText"], f"Tow Setup Saver is missing '{phrase}'")
+    light_test_text_lower = state["lightTestText"].lower()
+    for phrase in ["light test note", "running", "left", "right", "brake", "reverse", "trailer flow"]:
+        assert_true(phrase in light_test_text_lower, f"trailer light test note is missing '{phrase}'")
     assert_true(state["hasBottomPinoutRoute"], "rear hitch iPhone bottom bar is missing the Pinout route")
 
     await page.locator('[data-pinout-choice="running"]').click()
@@ -1578,6 +1597,36 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true("Issue found" in setup_state["savedTowNotes"], "Tow Setup Saver did not save the light-check result")
     assert_true("Issue found" in setup_state["formTowNotes"], "Tow Setup Saver did not refresh the visible journal form")
 
+    await page.locator('[data-tow-light-function="Running lights"]').select_option("Passed")
+    await page.locator('[data-tow-light-function="Left turn / brake"]').select_option("Issue")
+    await page.locator("[data-tow-light-context]").fill("audit utility trailer, 4-flat tester, left signal dead")
+    await page.locator("[data-copy-tow-light]").click()
+    await page.wait_for_timeout(200)
+    light_copy_state = await page.evaluate(
+        """() => ({
+            status: document.querySelector("[data-tow-light-status]")?.textContent || "",
+            summary: document.querySelector("[data-tow-light-summary]")?.textContent || ""
+        })"""
+    )
+    assert_true("Trailer light test copied" in light_copy_state["status"] or "Copy is unavailable" in light_copy_state["status"], "trailer light test copy did not report a result")
+    assert_true("2 of 5 checked" in light_copy_state["summary"], "trailer light test summary did not count checked functions")
+    await page.locator("[data-save-tow-light]").click()
+    light_save_state = await page.evaluate(
+        """() => {
+            const area = JSON.parse(localStorage.getItem("ridgeline-area-journal") || "{}");
+            const form = document.querySelector('[data-area-journal="rear-hitch"] [data-area-form]');
+            return {
+                status: document.querySelector("[data-tow-light-status]")?.textContent || "",
+                savedTowNotes: area?.["rear-hitch"]?.notes?.tow_notes || "",
+                formTowNotes: form?.elements?.tow_notes?.value || ""
+            };
+        }"""
+    )
+    assert_true("Trailer light test saved into the existing Rear Hitch Journal" in light_save_state["status"], "trailer light test did not report journal save")
+    assert_true("Ridgeline trailer light test note" in light_save_state["savedTowNotes"], "trailer light test did not save its note heading")
+    assert_true("Left turn / brake: Issue" in light_save_state["savedTowNotes"], "trailer light test did not save the failed function")
+    assert_true("audit utility trailer" in light_save_state["formTowNotes"], "trailer light test did not refresh the visible journal form")
+
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(300)
     mobile_state = await page.evaluate(
@@ -1592,6 +1641,9 @@ async def assert_rear_hitch_flow(page, page_name):
             const saver = document.querySelector("#tow-setup-saver");
             const saverPlugRects = saver ? [...saver.querySelectorAll("[data-tow-setup-plug]")].map((button) => button.getBoundingClientRect()) : [];
             const saverActionRects = saver ? [...saver.querySelectorAll(".tow-setup-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
+            const lightTest = document.querySelector("[data-tow-light-test]");
+            const lightSelectRects = lightTest ? [...lightTest.querySelectorAll("[data-tow-light-function]")].map((field) => field.getBoundingClientRect()) : [];
+            const lightActionRects = lightTest ? [...lightTest.querySelectorAll(".tow-light-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
             const handoff = document.querySelector("[data-pinout-handoff]");
             const choiceRects = handoff ? [...handoff.querySelectorAll("[data-pinout-choice]")].map((button) => button.getBoundingClientRect()) : [];
             const actionRects = handoff ? [...handoff.querySelectorAll(".pinout-handoff-actions .utility-link")].map((button) => button.getBoundingClientRect()) : [];
@@ -1608,6 +1660,10 @@ async def assert_rear_hitch_flow(page, page_name):
                 saverPlugMinHeight: saverPlugRects.length ? Math.min(...saverPlugRects.map((rect) => rect.height)) : 0,
                 saverActionMinHeight: saverActionRects.length ? Math.min(...saverActionRects.map((rect) => rect.height)) : 0,
                 saverActionRows: new Set(saverActionRects.map((rect) => Math.round(rect.top))).size,
+                lightVisible: Boolean(lightTest?.getBoundingClientRect().height),
+                lightSelectMinHeight: lightSelectRects.length ? Math.min(...lightSelectRects.map((rect) => rect.height)) : 0,
+                lightActionMinHeight: lightActionRects.length ? Math.min(...lightActionRects.map((rect) => rect.height)) : 0,
+                lightActionRows: new Set(lightActionRects.map((rect) => Math.round(rect.top))).size,
                 handoffVisible: Boolean(handoff?.getBoundingClientRect().height),
                 choiceMinHeight: choiceRects.length ? Math.min(...choiceRects.map((rect) => rect.height)) : 0,
                 actionMinHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
@@ -1627,6 +1683,10 @@ async def assert_rear_hitch_flow(page, page_name):
     assert_true(mobile_state["saverPlugMinHeight"] >= 44, "Tow Setup Saver plug choices lost thumb-sized touch targets")
     assert_true(mobile_state["saverActionMinHeight"] >= 44, "Tow Setup Saver actions lost thumb-sized touch targets")
     assert_true(mobile_state["saverActionRows"] <= 2, "Tow Setup Saver actions should stay compact on iPhone")
+    assert_true(mobile_state["lightVisible"], "trailer light test note is not visible at iPhone width")
+    assert_true(mobile_state["lightSelectMinHeight"] >= 44, "trailer light test selectors lost thumb-sized touch targets")
+    assert_true(mobile_state["lightActionMinHeight"] >= 44, "trailer light test actions lost thumb-sized touch targets")
+    assert_true(mobile_state["lightActionRows"] <= 2, "trailer light test actions should stay compact on iPhone")
     assert_true(mobile_state["handoffVisible"], "pinout handoff is not visible at iPhone width")
     assert_true(mobile_state["choiceMinHeight"] >= 44, "pinout handoff choices lost thumb-sized touch targets")
     assert_true(mobile_state["actionMinHeight"] >= 44, "pinout handoff actions lost thumb-sized touch targets")

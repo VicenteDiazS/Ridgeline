@@ -138,7 +138,7 @@
                 <p class="eyebrow">Tow Setup Saver</p>
                 <h2>Save The Trailer Setup Before You Forget</h2>
                 <p class="section-copy">
-                  Pick the adapter and light-check result, then copy, share, or save a short setup note into the existing Rear Hitch Journal.
+                  Pick the adapter, mark each light function, then copy, share, or save a short setup note into the existing Rear Hitch Journal.
                 </p>
               </div>
             </div>
@@ -152,6 +152,70 @@
               <button class="utility-link utility-link-strong" type="button" data-tow-setup-result="Lights passed: running, left, right, brake, and reverse if used." aria-pressed="true">Passed</button>
               <button class="utility-link" type="button" data-tow-setup-result="Issue found: route to the Trailer-Light Flow before blaming the truck, adapter, or trailer side." aria-pressed="false">Issue</button>
               <button class="utility-link" type="button" data-tow-setup-result="Not checked yet: run the light check before moving the trailer." aria-pressed="false">Not Checked</button>
+            </div>
+            <div class="tow-light-test" data-tow-light-test>
+              <div class="tow-light-test-head">
+                <div>
+                  <p class="eyebrow">Light Test Note</p>
+                  <h3>Mark The Actual Trailer Lights</h3>
+                </div>
+                <span data-tow-light-summary>0 of 5 checked</span>
+              </div>
+              <div class="tow-light-grid" aria-label="Trailer light test results">
+                <label>
+                  <span>Running</span>
+                  <select data-tow-light-function="Running lights">
+                    <option value="Not checked">Not checked</option>
+                    <option value="Passed">Passed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Left</span>
+                  <select data-tow-light-function="Left turn / brake">
+                    <option value="Not checked">Not checked</option>
+                    <option value="Passed">Passed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Right</span>
+                  <select data-tow-light-function="Right turn / brake">
+                    <option value="Not checked">Not checked</option>
+                    <option value="Passed">Passed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Brake</span>
+                  <select data-tow-light-function="Brake lights">
+                    <option value="Not checked">Not checked</option>
+                    <option value="Passed">Passed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Reverse</span>
+                  <select data-tow-light-function="Reverse if used">
+                    <option value="Not checked">Not checked</option>
+                    <option value="Passed">Passed</option>
+                    <option value="Issue">Issue</option>
+                  </select>
+                </label>
+              </div>
+              <label class="tow-light-context">
+                <span>Trailer / adapter detail</span>
+                <textarea rows="3" data-tow-light-context placeholder="Example: utility trailer, 4-flat adapter, left turn dead at adapter tester."></textarea>
+              </label>
+              <div class="pinout-handoff-actions tow-light-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-tow-light>Copy Light Test</button>
+                <button class="utility-link" type="button" data-share-tow-light>Share</button>
+                <button class="utility-link" type="button" data-save-tow-light>Save Journal</button>
+                <a class="utility-link" href="diagnostics.html#trailer-light-workflow">Trailer Flow</a>
+              </div>
+              <p class="small-note" data-tow-light-status>
+                Saved light-test notes use the existing Rear Hitch Journal tow notes. Verify the real truck socket, adapter, and trailer before towing.
+              </p>
             </div>
             <article class="dashboard-card tow-setup-preview" aria-live="polite">
               <span data-tow-setup-kicker>Adapter / light check</span>
@@ -168,7 +232,7 @@
               </p>
             </article>
             <p class="source-note">
-              This saver records the selected plug/adapter and light-check result only. It does not add towing limits, pin assignments, lighting diagnoses, fuse data, repair procedures, or Garage storage fields.
+              This saver records owner-entered plug/adapter and light-test notes only. It does not add towing limits, pin assignments, lighting diagnoses, fuse data, repair procedures, or Garage storage fields.
             </p>
           </article>
         </section>
