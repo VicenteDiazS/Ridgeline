@@ -2043,7 +2043,7 @@ function actionForPage(page) {
     "maintenance.html": [
       { label: "Done", href: "#service-closeout", icon: "check" },
       { label: "Prep", href: "#service-prep", icon: "check" },
-      { label: "Stage", href: "garage.html#maintenance-note-preview", icon: "map" },
+      { label: "Follow", href: "#service-followup", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "tires.html": [

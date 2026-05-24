@@ -37,6 +37,7 @@
             <a class="utility-link utility-link-strong" href="#oil-service">Oil Service</a>
             <a class="utility-link utility-link-strong" href="#service-run-launcher">Start Service</a>
             <a class="utility-link utility-link-strong" href="#service-closeout">Closeout</a>
+            <a class="utility-link utility-link-strong" href="#service-followup">Follow-Up</a>
             <a class="utility-link utility-link-strong" href="#maintenance-updater">Update Log</a>
             <a class="utility-link utility-link-strong" href="#service-prep">Prep Planner</a>
             <a class="utility-link" href="#drain-hardware">Drain Hardware</a>
@@ -262,10 +263,64 @@
               <div class="maintenance-receipt-actions">
                 <button class="utility-link utility-link-strong" type="button" data-copy-maintenance-receipt>Copy Receipt</button>
                 <button class="utility-link" type="button" data-share-maintenance-receipt>Share</button>
+                <a class="utility-link" href="#service-followup">Follow-Up</a>
                 <a class="utility-link" href="garage.html#maintenance-note-preview">Open Garage</a>
               </div>
             </article>
             <div class="quick-update-recent" data-maintenance-update-list></div>
+          </article>
+
+          <article class="tech-card span-2 service-followup-card" id="service-followup">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Next Check</p>
+                <h3>Service Follow-Up Note</h3>
+                <p class="section-copy">
+                  After a saved job or driveway repair, build one short recheck note for the next drive, next day, or next week.
+                </p>
+              </div>
+              <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+            </div>
+            <div class="service-followup-picker" aria-label="Choose the finished service to recheck">
+              <button class="service-followup-chip" type="button" data-followup-service="oil_change">Oil</button>
+              <button class="service-followup-chip" type="button" data-followup-service="tire_rotation">Wheel</button>
+              <button class="service-followup-chip" type="button" data-followup-service="battery_install">Battery</button>
+              <button class="service-followup-chip" type="button" data-followup-service="filters">Filters</button>
+            </div>
+            <form class="service-followup-tool" data-service-followup-form>
+              <div class="service-followup-summary">
+                <span>Follow-up target</span>
+                <strong data-service-followup-title>Pick a service above</strong>
+                <p data-service-followup-summary>Use this when the work is done but you still need to recheck condition, fitment, or symptoms after driving.</p>
+              </div>
+              <label>
+                <span>When to recheck</span>
+                <select name="followup_timing" data-service-followup-timing>
+                  <option value="next drive">Next drive</option>
+                  <option value="after 24 hours">After 24 hours</option>
+                  <option value="after one week">After one week</option>
+                  <option value="next fuel stop">Next fuel stop</option>
+                </select>
+              </label>
+              <label>
+                <span>Mileage now</span>
+                <input name="followup_mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="166240" autocomplete="off" data-service-followup-mileage />
+              </label>
+              <label class="service-followup-note-field">
+                <span>Owner note</span>
+                <textarea name="followup_note" rows="3" placeholder="What changed, what to watch, or where to recheck"></textarea>
+              </label>
+              <div class="service-followup-checks" data-service-followup-checks></div>
+              <div class="service-followup-actions">
+                <button class="utility-link utility-link-strong" type="submit">Save Follow-Up</button>
+                <button class="utility-link" type="button" data-copy-service-followup>Copy</button>
+                <button class="utility-link" type="button" data-share-service-followup>Share</button>
+              </div>
+            </form>
+            <p class="small-note" data-service-followup-status aria-live="polite"></p>
+            <p class="source-note">
+              Follow-up notes save into existing Garage Notes only. They are owner reminders, not new repair procedures, service intervals, or part-fitment claims.
+            </p>
           </article>
 
           <article class="tech-card span-2 service-prep-card" id="service-prep">

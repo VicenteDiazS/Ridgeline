@@ -13,6 +13,9 @@ const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]
 const closeoutButtons = [...document.querySelectorAll("[data-closeout-service]")];
 const closeoutForm = document.querySelector("[data-service-closeout-form]");
 const closeoutStatus = document.querySelector("[data-service-closeout-status]");
+const followupForm = document.querySelector("[data-service-followup-form]");
+const followupButtons = [...document.querySelectorAll("[data-followup-service]")];
+const followupStatus = document.querySelector("[data-service-followup-status]");
 const minderPlanner = document.querySelector("#minder-pocket-planner");
 const minderInput = document.querySelector("[data-minder-code-input]");
 const minderOutput = document.querySelector("[data-minder-plan-output]");
@@ -50,6 +53,30 @@ let lastMinderPlanText = "";
 let lastMinderPlanCode = "";
 let lastUpdateReceiptText = "";
 let selectedCloseout = null;
+let selectedFollowup = null;
+
+const followupPresets = {
+  oil_change: {
+    title: "Oil change follow-up",
+    summary: "Recheck oil level, drain/filter area, reminder reset, and the saved mileage note after the next drive.",
+    checks: ["Final oil level looks correct", "Drain bolt and filter area are dry", "Reminder reset or dashboard message checked", "Garage note has oil/filter details"]
+  },
+  tire_rotation: {
+    title: "Wheel/tire follow-up",
+    summary: "Recheck torque, cold pressure, steering feel, and any rotation or flat-tire symptoms after driving.",
+    checks: ["Wheel torque rechecked", "Cold pressure rechecked", "No new vibration or pull noticed", "Rotation or wheel-work note saved"]
+  },
+  battery_install: {
+    title: "Battery service follow-up",
+    summary: "Recheck starts, terminal condition, warning lights, and battery label or warranty details.",
+    checks: ["Starts normally after sitting", "Terminals look tight and clean", "No new warning lights noted", "Battery label and warranty saved"]
+  },
+  filters: {
+    title: "Filter service follow-up",
+    summary: "Recheck filter fitment, airbox or glove-box closure, noise, and saved part numbers.",
+    checks: ["Airbox or glove box fully closed", "No new noise or airflow issue noticed", "Old/new part numbers saved", "Access clips or tabs rechecked"]
+  }
+};
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -110,6 +137,27 @@ function maintenanceReceiptText(entry) {
   ].join("\n");
 }
 
+function followupText() {
+  const preset = followupPresets[selectedFollowup] || followupPresets.oil_change;
+  const label = serviceLabels[selectedFollowup] || "Maintenance follow-up";
+  const timing = followupForm?.elements.followup_timing?.value || "next drive";
+  const mileage = formatMileage(followupForm?.elements.followup_mileage?.value);
+  const note = `${followupForm?.elements.followup_note?.value || ""}`.trim();
+  const checked = [...(followupForm?.querySelectorAll("[data-service-followup-check]") || [])]
+    .filter((item) => item.checked)
+    .map((item) => `- ${item.value}`);
+  const checks = checked.length ? checked : preset.checks.map((item) => `- ${item}`);
+  return [
+    `Ridgeline service follow-up: ${label}`,
+    `Recheck: ${timing}`,
+    mileage ? `Mileage: ${mileage}` : "Mileage: not entered",
+    note ? `Owner note: ${note}` : "Owner note: none entered",
+    "Checks:",
+    ...checks,
+    "Save path: Garage Notes"
+  ].join("\n");
+}
+
 function renderUpdateReceipt(entry) {
   if (!updateReceipt || !entry) {
     return;
@@ -121,6 +169,46 @@ function renderUpdateReceipt(entry) {
   updateReceipt.querySelector("[data-maintenance-receipt-title]").textContent = `${label} saved`;
   updateReceipt.querySelector("[data-maintenance-receipt-summary]").textContent = entry.note || "No note entered. The mileage and service type were still saved.";
   updateReceipt.querySelector("[data-maintenance-receipt-meta]").textContent = `${entry.date} / ${entry.mileageText} / Garage Notes updated`;
+}
+
+function selectFollowupService(service = "oil_change", { mileage = "", announce = false } = {}) {
+  if (!followupForm || !followupButtons.length) {
+    return;
+  }
+
+  selectedFollowup = followupPresets[service] ? service : "oil_change";
+  const preset = followupPresets[selectedFollowup];
+  followupButtons.forEach((button) => {
+    const active = button.dataset.followupService === selectedFollowup;
+    button.classList.toggle("is-selected", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+
+  followupForm.querySelector("[data-service-followup-title]").textContent = preset.title;
+  followupForm.querySelector("[data-service-followup-summary]").textContent = preset.summary;
+  const mileageField = followupForm.querySelector("[data-service-followup-mileage]");
+  if (mileageField && mileage) {
+    mileageField.value = `${mileage}`.replace(/[^\d]/g, "");
+  }
+
+  const checks = followupForm.querySelector("[data-service-followup-checks]");
+  if (checks) {
+    checks.innerHTML = "";
+    preset.checks.forEach((item, index) => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = item;
+      input.dataset.serviceFollowupCheck = "";
+      input.checked = index < 2;
+      label.append(input, item);
+      checks.appendChild(label);
+    });
+  }
+
+  if (announce && followupStatus) {
+    followupStatus.textContent = `${preset.title} is ready. Adjust timing or notes, then save the follow-up.`;
+  }
 }
 
 function saveMaintenanceEntry(entry) {
@@ -136,6 +224,7 @@ function saveMaintenanceEntry(entry) {
   appendGarageNote(entry);
   renderRecentUpdates();
   renderUpdateReceipt(entry);
+  selectFollowupService(entry.service, { mileage: entry.mileage, announce: true });
 }
 
 function buildMaintenanceEntry({ mileage, service = "general_note", note = "" } = {}) {
@@ -451,6 +540,67 @@ function initServiceCloseout() {
   });
 }
 
+function initServiceFollowup() {
+  if (!followupForm || !followupButtons.length) {
+    return;
+  }
+
+  followupButtons.forEach((button) => {
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => {
+      selectFollowupService(button.dataset.followupService || "oil_change", { announce: true });
+    });
+  });
+
+  followupForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!selectedFollowup) {
+      selectFollowupService("oil_change");
+    }
+    prependGarageGeneralNote(`[${new Date().toLocaleDateString("en-US")} - Service Follow-Up]\n${followupText()}`);
+    if (followupStatus) {
+      followupStatus.textContent = "Follow-up saved to Garage Notes.";
+    }
+  });
+
+  followupForm.querySelector("[data-copy-service-followup]")?.addEventListener("click", () => {
+    if (!selectedFollowup) {
+      selectFollowupService("oil_change");
+    }
+    copyText(followupText())
+      .then(() => {
+        if (followupStatus) {
+          followupStatus.textContent = "Follow-up copied.";
+        }
+      })
+      .catch(() => {
+        if (followupStatus) {
+          followupStatus.textContent = "Could not copy the follow-up automatically.";
+        }
+      });
+  });
+
+  followupForm.querySelector("[data-share-service-followup]")?.addEventListener("click", async () => {
+    if (!selectedFollowup) {
+      selectFollowupService("oil_change");
+    }
+    const text = followupText();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline service follow-up", text });
+        followupStatus.textContent = "Follow-up shared.";
+        return;
+      }
+      await copyText(text);
+      followupStatus.textContent = "Share unavailable; follow-up copied instead.";
+    } catch {
+      followupStatus.textContent = "Share canceled or unavailable.";
+    }
+  });
+
+  selectFollowupService("oil_change");
+}
+
 function initMinderPlanner() {
   if (!minderPlanner || !minderInput) {
     return;
@@ -584,6 +734,7 @@ updateReceipt?.querySelector("[data-share-maintenance-receipt]")?.addEventListen
 });
 initServiceCloseout();
 initServicePrepCards();
+initServiceFollowup();
 initMinderPlanner();
 
 window.addEventListener("ridgeline:storage-hydrated", renderRecentUpdates);

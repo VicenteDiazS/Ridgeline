@@ -84,6 +84,8 @@ SEARCH_EXPECTATIONS = {
     "service run launcher": "Service Run Launcher",
     "service closeout": "Service Closeout",
     "finish service": "Service Closeout",
+    "service follow-up": "Service Follow-Up Note",
+    "next drive recheck": "Service Follow-Up Note",
     "copy maintenance receipt": "Service Closeout",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
@@ -2463,9 +2465,11 @@ async def assert_maintenance_features(page, page_name):
             const prep = document.querySelector("#service-prep");
             const launcher = document.querySelector("#service-run-launcher");
             const closeout = document.querySelector("#service-closeout");
+            const followup = document.querySelector("#service-followup");
             const receipt = document.querySelector("[data-maintenance-save-receipt]");
             const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
             const closeoutCards = closeout ? [...closeout.querySelectorAll("[data-closeout-service]")] : [];
+            const followupButtons = followup ? [...followup.querySelectorAll("[data-followup-service]")] : [];
             const closeoutTray = closeout?.querySelector("[data-service-closeout-form]");
             const cards = prep ? [...prep.querySelectorAll("[data-service-prep-card]")] : [];
             const checkboxLabels = cards.flatMap((card) => [...card.querySelectorAll("label")]).filter((label) => label.querySelector("input[type='checkbox']"));
@@ -2497,11 +2501,23 @@ async def assert_maintenance_features(page, page_name):
                 hasCloseoutSave: Boolean(closeoutTray?.querySelector("button[type='submit']")),
                 hasCloseoutCopy: Boolean(closeoutTray?.querySelector("[data-copy-service-closeout]")),
                 hasCloseoutShare: Boolean(closeoutTray?.querySelector("[data-share-service-closeout]")),
+                hasFollowup: Boolean(followup),
+                followupButtonCount: followupButtons.length,
+                followupText: followup?.innerText || "",
+                followupServices: followupButtons.map((button) => button.dataset.followupService).filter(Boolean),
+                hasFollowupTiming: Boolean(followup?.querySelector("[data-service-followup-timing]")),
+                hasFollowupMileage: Boolean(followup?.querySelector("[data-service-followup-mileage]")),
+                hasFollowupChecks: Boolean(followup?.querySelector("[data-service-followup-checks]")),
+                hasFollowupSave: Boolean(followup?.querySelector("button[type='submit']")),
+                hasFollowupCopy: Boolean(followup?.querySelector("[data-copy-service-followup]")),
+                hasFollowupShare: Boolean(followup?.querySelector("[data-share-service-followup]")),
+                hasFollowupHandoffRoute: Boolean(followup?.querySelector('a[href="garage.html#recent-handoffs"]')),
                 hasSaveReceipt: Boolean(receipt),
                 receiptInitiallyHidden: Boolean(receipt?.hidden),
                 hasReceiptCopy: Boolean(receipt?.querySelector("[data-copy-maintenance-receipt]")),
                 hasReceiptShare: Boolean(receipt?.querySelector("[data-share-maintenance-receipt]")),
                 hasReceiptGarageRoute: Boolean(receipt?.querySelector('a[href="garage.html#maintenance-note-preview"]')),
+                hasReceiptFollowupRoute: Boolean(receipt?.querySelector('a[href="#service-followup"]')),
                 hasPrep: Boolean(prep),
                 cardCount: cards.length,
                 checkboxCount: checkboxLabels.length,
@@ -2538,11 +2554,25 @@ async def assert_maintenance_features(page, page_name):
     assert_true(state["hasCloseoutSave"], "service closeout tray is missing Save Closeout")
     assert_true(state["hasCloseoutCopy"], "service closeout tray is missing Copy Note")
     assert_true(state["hasCloseoutShare"], "service closeout tray is missing Share")
+    assert_true(state["hasFollowup"], "maintenance page is missing the service follow-up panel")
+    assert_true(state["followupButtonCount"] == 4, "service follow-up should expose four common service follow-up choices")
+    assert_true(set(state["followupServices"]) == {"oil_change", "tire_rotation", "battery_install", "filters"}, "service follow-up choices should target existing update types")
+    assert_true(state["hasFollowupTiming"], "service follow-up is missing timing select")
+    assert_true(state["hasFollowupMileage"], "service follow-up is missing mileage field")
+    assert_true(state["hasFollowupChecks"], "service follow-up is missing recheck list")
+    assert_true(state["hasFollowupSave"], "service follow-up is missing Save Follow-Up")
+    assert_true(state["hasFollowupCopy"], "service follow-up is missing Copy")
+    assert_true(state["hasFollowupShare"], "service follow-up is missing Share")
+    assert_true(state["hasFollowupHandoffRoute"], "service follow-up is missing the Garage Recent Handoffs route")
+    followup_text_upper = state["followupText"].upper()
+    for phrase in ["NEXT CHECK", "SERVICE FOLLOW-UP NOTE", "OIL", "WHEEL", "BATTERY", "FILTERS"]:
+        assert_true(phrase in followup_text_upper, f"service follow-up is missing text: {phrase}")
     assert_true(state["hasSaveReceipt"], "Quick Maintenance Update is missing its saved receipt panel")
     assert_true(state["receiptInitiallyHidden"], "maintenance saved receipt should stay hidden until an update is saved")
     assert_true(state["hasReceiptCopy"], "maintenance saved receipt is missing Copy Receipt")
     assert_true(state["hasReceiptShare"], "maintenance saved receipt is missing Share")
     assert_true(state["hasReceiptGarageRoute"], "maintenance saved receipt is missing its Garage route")
+    assert_true(state["hasReceiptFollowupRoute"], "maintenance saved receipt is missing its Follow-Up route")
     for phrase in ["AFTER THE JOB", "OIL DONE", "WHEEL DONE", "BATTERY DONE", "FILTERS DONE"]:
         assert_true(phrase in state["closeoutText"], f"service closeout is missing text: {phrase}")
     assert_true(state["hasPrep"], "maintenance page is missing the service prep planner")
@@ -2571,6 +2601,10 @@ async def assert_maintenance_features(page, page_name):
             const launcherGrid = document.querySelector("#service-run-launcher .maintenance-run-grid");
             const closeoutGrid = document.querySelector("#service-closeout .service-closeout-grid");
             const closeoutActions = document.querySelector("#service-closeout .service-closeout-actions");
+            const followupPicker = document.querySelector("#service-followup .service-followup-picker");
+            const followupChecks = document.querySelector("#service-followup [data-service-followup-checks]");
+            const followupActions = document.querySelector("#service-followup .service-followup-actions");
+            const firstFollowupButton = document.querySelector("#service-followup [data-followup-service]");
             const receiptActions = document.querySelector("[data-maintenance-save-receipt] .maintenance-receipt-actions");
             const firstCloseoutButton = document.querySelector("#service-closeout [data-closeout-service]");
             const firstLauncherAction = document.querySelector("#service-run-launcher .maintenance-run-card .inspector-actions");
@@ -2617,14 +2651,22 @@ async def assert_maintenance_features(page, page_name):
                     Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="#service-closeout"]')),
                 hasMaintenanceStagingRoute: visibleMaintenanceDockLinks.includes("Stage") &&
                     Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="garage.html#maintenance-note-preview"]')),
+                hasMaintenanceFollowupRoute: visibleMaintenanceDockLinks.includes("Follow") &&
+                    Boolean(document.querySelector('.maintenance-page .context-action-bar a[href="#service-followup"]')),
                 prepStageText: firstPrepStageButton?.textContent.trim() || "",
                 prepStageLabel: firstPrepStageButton?.getAttribute("aria-label") || "",
                 minderStageText: minderStageButton?.textContent.trim() || "",
                 minderStageLabel: minderStageButton?.getAttribute("aria-label") || "",
                 launcherColumns,
                 closeoutColumns,
+                followupColumns: followupPicker ? getComputedStyle(followupPicker).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                followupCheckColumns: followupChecks ? getComputedStyle(followupChecks).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                followupButtonHeight: firstFollowupButton?.getBoundingClientRect().height || 0,
                 closeoutButtonHeight: firstCloseoutButton?.getBoundingClientRect().height || 0,
                 closeoutActionRows,
+                followupActionRows: followupActions
+                    ? new Set([...followupActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                    : 0,
                 receiptActionRows,
                 launcherActionRows,
                 prepColumns,
@@ -2637,13 +2679,17 @@ async def assert_maintenance_features(page, page_name):
     assert_true(mobile_state["visibleMaintenanceHeroLinks"] == 6, "maintenance mobile hero should show six primary task links")
     assert_true(mobile_state["launcherColumns"] == 2, "service run launcher should keep two compact columns at iPhone width")
     assert_true(mobile_state["closeoutColumns"] == 2, "service closeout should keep two compact columns at iPhone width")
+    assert_true(mobile_state["followupColumns"] == 4, "service follow-up chips should stay compact on iPhone width")
+    assert_true(mobile_state["followupCheckColumns"] == 2, "service follow-up checks should use two compact iPhone columns")
+    assert_true(mobile_state["followupButtonHeight"] >= 40, "service follow-up chips should remain thumb-sized on iPhone width")
+    assert_true(mobile_state["followupActionRows"] == 1, "service follow-up actions should stay on one compact iPhone row")
     assert_true(mobile_state["closeoutButtonHeight"] >= 44, "service closeout shortcuts should remain thumb-sized on iPhone width")
     assert_true(mobile_state["closeoutActionRows"] <= 1, "service closeout tray actions should stay on one compact iPhone row")
     assert_true(mobile_state["receiptActionRows"] == 1, "maintenance receipt actions should stay on one compact iPhone row")
     assert_true(mobile_state["launcherActionRows"] == 1, "service run launcher action buttons should stay on one compact row at iPhone width")
-    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Done", "Prep", "Stage", "More"], "maintenance mobile bottom bar should prioritize Done, Prep, Stage, and More")
+    assert_true(mobile_state["visibleMaintenanceDockLinks"] == ["Done", "Prep", "Follow", "More"], "maintenance mobile bottom bar should prioritize Done, Prep, Follow, and More")
     assert_true(mobile_state["hasMaintenanceCloseoutRoute"], "maintenance mobile bottom bar is missing the closeout route")
-    assert_true(mobile_state["hasMaintenanceStagingRoute"], "maintenance mobile bottom bar is missing the Garage staging route")
+    assert_true(mobile_state["hasMaintenanceFollowupRoute"], "maintenance mobile bottom bar is missing the service follow-up route")
     assert_true(mobile_state["prepStageText"] == "Stage in Garage", "service prep Stage button should clearly state it opens Garage staging")
     assert_true("open Garage staging" in mobile_state["prepStageLabel"], "service prep Stage button should expose a descriptive aria label")
     assert_true(mobile_state["minderStageText"] == "Stage in Garage", "minder planner Stage button should clearly state it opens Garage staging")
@@ -2724,6 +2770,50 @@ async def assert_maintenance_features(page, page_name):
     assert_true(receipt_state["latestMileage"] == 166240, "maintenance save did not write the entered mileage to the log")
     assert_true("Battery service complete" in receipt_state["notes"], "maintenance save did not append the closeout note to Garage notes")
     assert_true(receipt_state["preservedKey"] == "preserve me", "maintenance save dropped an unrelated Garage note key")
+    followup_prefill = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#service-followup");
+            const checks = [...(panel?.querySelectorAll("[data-service-followup-check]") || [])];
+            return {
+                title: panel?.querySelector("[data-service-followup-title]")?.textContent || "",
+                summary: panel?.querySelector("[data-service-followup-summary]")?.textContent || "",
+                mileage: panel?.querySelector("[data-service-followup-mileage]")?.value || "",
+                pressed: panel?.querySelector("[data-followup-service='battery_install']")?.getAttribute("aria-pressed") || "",
+                checkCount: checks.length,
+                checkedCount: checks.filter((item) => item.checked).length,
+                status: document.querySelector("[data-service-followup-status]")?.textContent || ""
+            };
+        }"""
+    )
+    assert_true("Battery service follow-up" in followup_prefill["title"], "saved battery closeout should prefill the battery follow-up")
+    assert_true("terminal" in followup_prefill["summary"].lower(), "battery follow-up should show service-specific recheck guidance")
+    assert_true(followup_prefill["mileage"] == "166240", "service follow-up should inherit saved closeout mileage")
+    assert_true(followup_prefill["pressed"] == "true", "service follow-up should expose selected service pressed state")
+    assert_true(followup_prefill["checkCount"] == 4, "service follow-up should render four service-specific checks")
+    assert_true(followup_prefill["checkedCount"] == 2, "service follow-up should preselect the first two recheck items")
+    assert_true("Battery service follow-up is ready" in followup_prefill["status"], "service follow-up should report it is ready after closeout save")
+    await page.locator("#service-followup textarea[name='followup_note']").fill("Watch for slow crank after sitting overnight.")
+    await page.locator("#service-followup [data-copy-service-followup]").click()
+    await page.wait_for_timeout(100)
+    followup_copy_status = await page.locator("[data-service-followup-status]").inner_text()
+    assert_true("Follow-up copied" in followup_copy_status, "service follow-up copy did not report success")
+    await page.locator("#service-followup button[type='submit']").click()
+    await page.wait_for_timeout(150)
+    followup_saved = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                status: document.querySelector("[data-service-followup-status]")?.textContent || "",
+                notes: notes.general_notes || "",
+                preservedKey: notes.quick_capture_keep || ""
+            };
+        }"""
+    )
+    assert_true("Follow-up saved to Garage Notes" in followup_saved["status"], "service follow-up save did not report success")
+    assert_true("Ridgeline service follow-up: Battery install" in followup_saved["notes"], "service follow-up save did not write the selected service")
+    assert_true("Watch for slow crank" in followup_saved["notes"], "service follow-up save did not write the owner note")
+    assert_true("Starts normally after sitting" in followup_saved["notes"], "service follow-up save did not include the checked battery item")
+    assert_true(followup_saved["preservedKey"] == "preserve me", "service follow-up save dropped an unrelated Garage note key")
     await page.locator("[data-copy-maintenance-receipt]").click()
     await page.wait_for_timeout(100)
     receipt_copy_status = await page.locator("[data-maintenance-update-status]").inner_text()

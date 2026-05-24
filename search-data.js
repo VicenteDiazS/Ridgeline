@@ -624,7 +624,14 @@ export const searchIndex = [
     url: "maintenance.html#service-closeout",
     category: "Maintenance",
     excerpt: "After-service iPhone shortcuts for oil, wheel, battery, and filter work with an inline mileage closeout tray that saves to the existing Garage log and receipt path.",
-    keywords: ["service closeout", "finish service", "after service", "log completed service", "maintenance closeout", "oil done", "wheel done", "battery done", "filters done", "inline mileage closeout", "save closeout", "copy closeout note", "share closeout note", "prefill maintenance update", "service receipt", "maintenance receipt", "copy maintenance receipt", "share maintenance receipt", "save mileage note", "garage service log"]
+    keywords: ["service closeout", "finish service", "after service", "log completed service", "maintenance closeout", "oil done", "wheel done", "battery done", "filters done", "inline mileage closeout", "save closeout", "copy closeout note", "share closeout note", "prefill maintenance update", "service receipt", "maintenance receipt", "copy maintenance receipt", "share maintenance receipt", "save mileage note", "garage service log", "service follow up", "follow-up receipt"]
+  },
+  {
+    title: "Service Follow-Up Note",
+    url: "maintenance.html#service-followup",
+    category: "Maintenance",
+    excerpt: "iPhone follow-up note for rechecking oil, wheel, battery, or filter work after the next drive, next day, next week, or fuel stop, with copy/share/save into existing Garage Notes.",
+    keywords: ["service follow-up", "service follow up", "maintenance follow-up", "maintenance follow up", "after service recheck", "recheck after service", "next drive recheck", "oil recheck", "wheel torque recheck", "tire pressure recheck", "battery follow-up", "filter follow-up", "save follow-up note", "copy follow-up note", "share follow-up note", "garage follow-up note"]
   },
   {
     title: "Service Prep Planner",
