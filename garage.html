@@ -36,6 +36,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#dashboard">Open Dashboard</a>
             <a class="utility-link utility-link-strong" href="#notes">Open Notes</a>
+            <a class="utility-link utility-link-strong" href="#recent-handoffs">Recent Handoffs</a>
             <a class="utility-link utility-link-strong" href="#diagnostic-activity">Backup / Restore</a>
             <a class="utility-link" href="#maintenance-note-preview">Saved Maintenance</a>
             <a class="utility-link" href="#favorites">Saved Fuses</a>
@@ -64,6 +65,23 @@
             </p>
             <div class="dashboard-grid" data-garage-dashboard></div>
             <div class="garage-setup-checklist" id="garage-fill-in-checklist" data-garage-setup-checklist></div>
+            <div class="roadside-note-panel" id="recent-handoffs">
+              <div class="compact-section-head">
+                <div>
+                  <p class="eyebrow">Recent handoffs</p>
+                  <h4>Roadside, Tire, Fuse, Diagnostic, And Tow Notes</h4>
+                </div>
+                <div class="inspector-actions">
+                  <button class="utility-link" type="button" data-copy-recent-handoff>Copy Latest</button>
+                  <a class="utility-link" href="#notes">Open Notes</a>
+                </div>
+              </div>
+              <p class="small-note">
+                One place to recover the latest iPhone notes saved from Quick Sheet, Diagnostics, Tires, fuse checklists, and Rear Hitch before the details get buried.
+              </p>
+              <p class="small-note roadside-note-status" data-recent-handoff-status aria-live="polite"></p>
+              <div class="roadside-note-list" data-recent-handoffs></div>
+            </div>
             <div class="diagnostic-activity-panel" id="diagnostic-activity">
               <div class="compact-section-head">
                 <div>

@@ -131,6 +131,9 @@ SEARCH_EXPECTATIONS = {
     "copy garage plan": "Garage Fill-In Checklist",
     "latest maintenance handoff": "Garage Fill-In Checklist",
     "copy latest buy list": "Garage Fill-In Checklist",
+    "garage recent handoffs": "Garage Recent Handoffs",
+    "copy latest handoff": "Garage Recent Handoffs",
+    "latest handoff note": "Garage Recent Handoffs",
     "tire roadside launcher": "Tire Roadside Launcher",
     "flat tire launcher": "Tire Roadside Launcher",
     "fuse quick sheet": "Fuse Triage Quick Sheet",
@@ -2845,6 +2848,7 @@ async def assert_garage_features(page, page_name):
             const stagingCard = dashboard ? [...dashboard.querySelectorAll(".dashboard-card")]
                 .find((card) => card.textContent.includes("Parts Staging")) : null;
             const fillChecklist = document.querySelector("#garage-fill-in-checklist");
+            const handoffPanel = document.querySelector("#recent-handoffs");
             const fillChecklistLinks = [
                 "#truck-profile",
                 "maintenance.html#service-closeout",
@@ -2856,6 +2860,7 @@ async def assert_garage_features(page, page_name):
             const maintenanceNotes = document.querySelector("#maintenance-note-preview [data-maintenance-note-preview]");
             const maintenanceParts = document.querySelector("#maintenance-note-preview [data-maintenance-parts-preview]");
             const maintenanceNoteText = document.querySelector("#maintenance-note-preview")?.innerText || "";
+            const handoffText = handoffPanel?.innerText || "";
             const activityText = document.querySelector("#diagnostic-activity")?.innerText || "";
             const template = document.querySelector("#warning-light-template");
             const jobTemplate = document.querySelector("#job-note-template");
@@ -2881,6 +2886,8 @@ async def assert_garage_features(page, page_name):
                 hasDiagnosticCardRoute: Boolean(diagnosticCard?.querySelector('a[href="#warning-light-template"]')),
                 hasStagingDashboardCard: Boolean(stagingCard),
                 hasStagingDashboardRoute: Boolean(stagingCard?.querySelector('a[href="#maintenance-note-preview"]')),
+                hasHandoffDashboardCard: Boolean([...dashboard.querySelectorAll(".dashboard-card")]
+                    .some((card) => card.textContent.includes("Recent Handoffs") && card.querySelector('a[href="#recent-handoffs"]'))),
                 hasFillChecklist: Boolean(fillChecklist),
                 fillChecklistCards: fillChecklist?.querySelectorAll(".garage-setup-card").length || 0,
                 hasFillSnapshot: Boolean(fillChecklist?.querySelector("[data-garage-fill-snapshot]")),
@@ -2892,7 +2899,14 @@ async def assert_garage_features(page, page_name):
                 fillChecklistMissingRoutes: fillChecklistLinks.filter((href) => !fillChecklist?.querySelector(`a[href="${href}"]`)),
                 hasFillChecklistBackup: Boolean(fillChecklist?.querySelector("[data-garage-fill-backup]")),
                 dockHasFillChecklist: Boolean(document.querySelector('.context-action[href="#garage-fill-in-checklist"]')),
+                dockHasHandoffs: Boolean(document.querySelector('.context-action[href="#recent-handoffs"]')),
                 dockHasBackup: Boolean(document.querySelector('.context-action[href="#diagnostic-activity"]')),
+                hasHeroHandoffRoute: Boolean(document.querySelector('.section-utility-nav a[href="#recent-handoffs"]')),
+                hasHandoffPanel: Boolean(handoffPanel),
+                hasHandoffCopy: Boolean(handoffPanel?.querySelector("[data-copy-recent-handoff]")),
+                hasHandoffList: Boolean(handoffPanel?.querySelector("[data-recent-handoffs]")),
+                handoffEmpty: Boolean(handoffPanel?.textContent.includes("No saved handoffs yet.")),
+                handoffText,
                 hasHeroStagingRoute: Boolean(document.querySelector('.section-utility-nav a[href="#maintenance-note-preview"]')),
                 hasActivity: Boolean(activity),
                 activityRenders: Boolean(activity?.textContent.includes("No diagnostic activity saved yet.") || activity?.querySelector(".diagnostic-activity-item")),
@@ -2947,6 +2961,7 @@ async def assert_garage_features(page, page_name):
     assert_true(state["hasDiagnosticCardRoute"], "diagnostic notes card is missing the warning-light note route")
     assert_true(state["hasStagingDashboardCard"], "garage dashboard is missing the parts staging card")
     assert_true(state["hasStagingDashboardRoute"], "garage dashboard parts staging card is missing the staging route")
+    assert_true(state["hasHandoffDashboardCard"], "garage dashboard is missing the recent handoffs card")
     assert_true(state["hasFillChecklist"], "garage dashboard is missing the fill-in checklist")
     assert_true(state["fillChecklistCards"] == 4, "garage fill-in checklist should expose four record cards")
     assert_true(state["hasFillSnapshot"], "garage fill-in checklist is missing the record snapshot")
@@ -2956,6 +2971,7 @@ async def assert_garage_features(page, page_name):
     assert_true(not state["fillChecklistMissingRoutes"], f"garage fill-in checklist is missing routes: {state['fillChecklistMissingRoutes']}")
     assert_true(state["hasFillChecklistBackup"], "garage fill-in checklist is missing the backup action")
     assert_true(state["dockHasFillChecklist"], "garage bottom dock is missing the fill-in route")
+    assert_true(state["dockHasHandoffs"], "garage bottom dock is missing the recent handoffs route")
     assert_true(state["dockHasBackup"], "garage bottom dock is missing the backup route")
     fill_checklist_lower = state["fillChecklistText"].lower()
     for phrase in ["what to record next", "garage snapshot", "next on this iphone", "copy plan", "share plan", "truck profile", "service closeout", "diagnostic memory", "photo and area notes", "only reads existing garage data"]:
@@ -2966,6 +2982,14 @@ async def assert_garage_features(page, page_name):
     await page.locator("#garage-fill-in-checklist [data-garage-fill-copy]").click()
     fill_copy_status = await page.locator("#garage-fill-in-checklist [data-garage-fill-status]").inner_text()
     assert_true("Garage record plan" in fill_copy_status, "garage fill-in Copy Plan did not report status")
+    assert_true(state["hasHeroHandoffRoute"], "garage hero is missing the recent handoffs shortcut")
+    assert_true(state["hasHandoffPanel"], "garage page is missing the recent handoffs panel")
+    assert_true(state["hasHandoffCopy"], "recent handoffs panel is missing Copy Latest")
+    assert_true(state["hasHandoffList"], "recent handoffs panel is missing its list surface")
+    assert_true(state["handoffEmpty"], "recent handoffs panel should render an empty state before saved handoffs")
+    handoff_text_lower = state["handoffText"].lower()
+    for phrase in ["recent handoffs", "roadside, tire, fuse, diagnostic, and tow notes", "open quick sheet", "open diagnostics", "open tire recheck"]:
+        assert_true(phrase in handoff_text_lower, f"recent handoffs panel is missing {phrase}")
     assert_true(state["hasHeroStagingRoute"], "garage hero is missing the saved maintenance shortcut")
     assert_true(state["hasActivity"], "garage dashboard is missing recent diagnostic activity list")
     assert_true(state["activityRenders"], "diagnostic activity list is not rendering an empty or populated state")
@@ -3047,6 +3071,72 @@ async def assert_garage_features(page, page_name):
     assert_true("Recheck starting after next cold morning" in job_append_state["general"], "service job note append did not preserve follow-up text")
     assert_true(job_append_state["storedTitle"] == "Battery terminal cleaning", "service job note title should persist in the existing Garage notes object")
     assert_true(job_append_state["storedParts"] == "terminal brush, gloves", "service job note parts should persist in the existing Garage notes object")
+    await page.evaluate("""() => {
+        localStorage.setItem('ridgeline-notes', JSON.stringify({
+            general_notes: `[May 24, 2026, 1:10 AM - Tire Pressure Recheck]
+Ridgeline Tire Pressure Recheck
+Timing: Tomorrow morning cold
+Where: driveway
+Watch list:
+- Left front: flagged
+[May 24, 2026, 1:05 AM - Diagnostic Note: Warning light or MID message]
+Record color, exact wording, and what happened before it appeared
+Owner detail: amber TPMS after air stop
+[May 24, 2026, 1:00 AM - Fuse Check Note: 12V power]
+Ridgeline fuse check: 12V power
+Symptom: front socket dead`
+        }));
+        localStorage.setItem('ridgeline-area-journal', JSON.stringify({
+            'rear-hitch': {
+                notes: {
+                    tow_notes: `[Trailer light test saved May 24, 2026, 1:15 AM]
+Ridgeline trailer light test note
+Running: passed
+Left: issue`
+                },
+                photos: []
+            }
+        }));
+    }""")
+    await page.reload()
+    await page.wait_for_selector("#recent-handoffs [data-recent-handoffs]", state="attached")
+    await page.wait_for_timeout(300)
+    handoff_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("#recent-handoffs");
+            const card = [...document.querySelectorAll("[data-garage-dashboard] .dashboard-card")]
+                .find((item) => item.textContent.includes("Recent Handoffs"));
+            return {
+                cardText: card?.innerText || "",
+                panelText: panel?.innerText || "",
+                itemCount: panel?.querySelectorAll(".roadside-note-item").length || 0,
+                copyEnabled: panel?.querySelector("[data-copy-recent-handoff]")?.disabled === false,
+                perItemCopyCount: panel?.querySelectorAll("[data-copy-recent-handoff-index]").length || 0,
+                hasTireRoute: Boolean(panel?.querySelector('a[href="tires.html#tire-recheck-planner"]')),
+                hasDiagnosticRoute: Boolean(panel?.querySelector('a[href="diagnostics.html#diagnostic-share-builder"]')),
+                hasFuseRoute: Boolean(panel?.querySelector('a[href="quick-sheet.html#fuse-triage"]')),
+                hasTowRoute: Boolean(panel?.querySelector('a[href="rear-hitch.html#tow-setup-saver"]'))
+            };
+        }"""
+    )
+    assert_true("4 saved" in handoff_state["cardText"], "recent handoffs dashboard card should summarize saved handoffs")
+    assert_true(handoff_state["itemCount"] == 4, "recent handoffs panel should show tire, diagnostic, fuse, and tow handoffs")
+    assert_true(handoff_state["copyEnabled"], "recent handoffs Copy Latest should enable when handoffs exist")
+    assert_true(handoff_state["perItemCopyCount"] == 4, "recent handoffs panel should expose per-item copy actions")
+    for phrase in ["Tire Pressure Recheck", "Diagnostic Note: Warning light", "Fuse Check Note", "Trailer Light Test"]:
+        assert_true(phrase in handoff_state["panelText"], f"recent handoffs panel is missing {phrase}")
+    assert_true(handoff_state["hasTireRoute"], "recent handoffs panel is missing the tire source route")
+    assert_true(handoff_state["hasDiagnosticRoute"], "recent handoffs panel is missing the diagnostics source route")
+    assert_true(handoff_state["hasFuseRoute"], "recent handoffs panel is missing the fuse source route")
+    assert_true(handoff_state["hasTowRoute"], "recent handoffs panel is missing the trailer light source route")
+    await page.locator("#recent-handoffs [data-copy-recent-handoff]").click()
+    await page.wait_for_timeout(150)
+    handoff_copy_status = await page.locator("#recent-handoffs [data-recent-handoff-status]").inner_text()
+    assert_true("Copied Tire Pressure Recheck" in handoff_copy_status, "recent handoffs Copy Latest did not report the latest handoff")
+    await page.locator("#recent-handoffs [data-copy-recent-handoff-index='1']").click()
+    await page.wait_for_timeout(150)
+    handoff_second_status = await page.locator("#recent-handoffs [data-recent-handoff-status]").inner_text()
+    assert_true("Copied Diagnostic Note: Warning light" in handoff_second_status, "recent handoffs per-item copy did not report the selected handoff")
     await page.evaluate("""() => {
         localStorage.removeItem('ridgeline-maintenance-custom-staging');
         localStorage.setItem('ridgeline-notes', JSON.stringify({

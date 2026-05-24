@@ -24,6 +24,9 @@ const favoritesList = document.querySelector("[data-favorites-list]");
 const areaSummary = document.querySelector("[data-area-summary]");
 const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const garageSetupChecklist = document.querySelector("[data-garage-setup-checklist]");
+const recentHandoffList = document.querySelector("[data-recent-handoffs]");
+const recentHandoffCopyButton = document.querySelector("[data-copy-recent-handoff]");
+const recentHandoffStatus = document.querySelector("[data-recent-handoff-status]");
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
@@ -218,6 +221,7 @@ jobNoteCopyButton?.addEventListener("click", () => {
 });
 
 jobNoteAppendButton?.addEventListener("click", appendJobNoteToGeneralNotes);
+recentHandoffCopyButton?.addEventListener("click", () => copyRecentHandoff());
 
 if (trackerForm) {
   trackerForm.addEventListener("input", () => {
@@ -419,6 +423,144 @@ function getDiagnosticActivityItems() {
   });
 
   return items.sort((a, b) => a.rank - b.rank);
+}
+
+function parseGarageNoteBlocks(value = "") {
+  const text = `${value || ""}`.trim();
+  if (!text) {
+    return [];
+  }
+
+  const blocks = [];
+  const pattern = /\[([^\]\n]+?)\]\s*\n?([\s\S]*?)(?=\n\[[^\]\n]+?\]\s*\n?|\s*$)/g;
+  let match;
+  while ((match = pattern.exec(text))) {
+    blocks.push({
+      heading: match[1] || "",
+      body: (match[2] || "").trim(),
+      copyText: `[${match[1] || ""}]\n${(match[2] || "").trim()}`.trim()
+    });
+  }
+
+  return blocks;
+}
+
+function classifyRecentHandoff(heading = "", body = "", sourceOverride = "") {
+  const haystack = `${heading}\n${body}`;
+  const source = sourceOverride || "Garage Notes";
+  const matchers = [
+    {
+      test: /\broadside note\b/i,
+      source: "Quick Sheet",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Roadside note",
+      href: "quick-sheet.html#roadside-action-stack"
+    },
+    {
+      test: /\blive roadside update\b/i,
+      source: "Quick Sheet",
+      title: "Live roadside session",
+      href: "quick-sheet.html#roadside-action-stack"
+    },
+    {
+      test: /\bfuse check note\b/i,
+      source: "Quick Sheet",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Fuse check note",
+      href: "quick-sheet.html#fuse-triage"
+    },
+    {
+      test: /\bfuse pull checklist\b/i,
+      source: "Fuse Checklist",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Fuse pull checklist",
+      href: /cabin/i.test(haystack) ? "cabin.html#cabin-fuse-pull-checklist" : "hood.html#hood-fuse-pull-checklist"
+    },
+    {
+      test: /\bdiagnostic note\b/i,
+      source: "Diagnostics",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Diagnostic note",
+      href: "diagnostics.html#diagnostic-share-builder"
+    },
+    {
+      test: /\btire pressure recheck\b/i,
+      source: "Tires",
+      title: "Tire Pressure Recheck",
+      href: "tires.html#tire-recheck-planner"
+    },
+    {
+      test: /\btrailer light test\b/i,
+      source: source || "Rear Hitch Journal",
+      title: "Trailer Light Test",
+      href: "rear-hitch.html#tow-setup-saver"
+    }
+  ];
+  const match = matchers.find((item) => item.test.test(haystack));
+  if (!match) {
+    return null;
+  }
+
+  return {
+    source: match.source,
+    title: match.title,
+    detail: shortText(body || heading, 170),
+    href: match.href
+  };
+}
+
+function getRecentHandoffItems() {
+  const notes = loadJson(STORAGE.notes, {});
+  const items = [];
+
+  parseGarageNoteBlocks(notes.general_notes).forEach((block, index) => {
+    const item = classifyRecentHandoff(block.heading, block.body);
+    if (item) {
+      items.push({
+        ...item,
+        meta: block.heading,
+        copyText: block.copyText,
+        rank: index
+      });
+    }
+  });
+
+  const generalNotes = `${notes.general_notes || ""}`.trim();
+  const liveRoadsideIndex = generalNotes.search(/Ridgeline live roadside update:/i);
+  if (liveRoadsideIndex >= 0) {
+    const liveBlock = generalNotes.slice(liveRoadsideIndex).split(/\n(?=\[[^\]\n]+?\])/)[0].trim();
+    const item = classifyRecentHandoff("Live roadside update", liveBlock);
+    if (item) {
+      items.push({
+        ...item,
+        meta: "Live roadside update",
+        copyText: liveBlock,
+        rank: liveRoadsideIndex
+      });
+    }
+  }
+
+  const hitch = loadAreaJournal("rear-hitch");
+  parseGarageNoteBlocks(hitch?.notes?.tow_notes).forEach((block, index) => {
+    const item = classifyRecentHandoff(block.heading, block.body, "Rear Hitch Journal");
+    if (item) {
+      items.push({
+        ...item,
+        meta: block.heading,
+        copyText: block.copyText,
+        rank: 100 + index
+      });
+    }
+  });
+
+  const seen = new Set();
+  return items
+    .filter((item) => {
+      const key = `${item.meta}::${item.title}::${item.detail}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 5);
 }
 
 function isMaintenanceNoteTitle(value = "") {
@@ -2033,6 +2175,7 @@ function renderDashboard() {
   const profile = loadJson(STORAGE.profile, defaultProfile);
   const areas = ["hood", "cabin", "cargo", "rear-hitch"].map((key) => loadAreaJournal(key));
   const maintenanceNoteItems = getMaintenanceNoteItems();
+  const recentHandoffItems = getRecentHandoffItems();
   const maintenanceStagingSummary = getMaintenanceStagingSummary(maintenanceNoteItems);
   const noteFields = Object.values(notes).filter(Boolean).length;
   const trackerFields = Object.values(tracker).filter(Boolean).length;
@@ -2050,6 +2193,16 @@ function renderDashboard() {
       note: `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`
     },
     { label: "Saved Notes", value: `${noteFields} fields`, note: "Installed parts and general truck memory" },
+    {
+      label: "Recent Handoffs",
+      value: recentHandoffItems.length ? `${recentHandoffItems.length} saved` : "Ready to recover",
+      note: recentHandoffItems.length
+        ? `${recentHandoffItems[0].source}: ${recentHandoffItems[0].title}`
+        : "Saved roadside, tire, fuse, diagnostic, and tow notes will appear here.",
+      href: "#recent-handoffs",
+      actionLabel: "Open Handoffs",
+      actionClass: "dashboard-handoff-card"
+    },
     {
       label: "Diagnostic Notes",
       value: warningLightSummary.count ? `${warningLightSummary.count} warning-light fields` : "Ready to capture",
@@ -2108,6 +2261,7 @@ function renderDashboard() {
     maintenanceNoteItems,
     maintenanceStagingSummary
   });
+  renderRecentHandoffs(recentHandoffItems);
   renderDiagnosticActivity();
   renderMaintenanceNotePreview(maintenanceNoteItems);
 }
@@ -2378,6 +2532,67 @@ function copyGarageLatestMaintenanceNeed() {
       setGarageFillStatus(`Copied latest maintenance need list with ${count} item${count === 1 ? "" : "s"}.`)
     )
     .catch(() => setGarageFillStatus("Could not copy the latest maintenance need list automatically."));
+}
+
+function setRecentHandoffStatus(message = "") {
+  if (recentHandoffStatus) {
+    recentHandoffStatus.textContent = message;
+  }
+}
+
+function renderRecentHandoffs(items = getRecentHandoffItems()) {
+  if (!recentHandoffList) {
+    return;
+  }
+
+  setRecentHandoffStatus(items.length ? `Showing ${items.length} recent saved handoff${items.length === 1 ? "" : "s"}.` : "");
+  if (recentHandoffCopyButton) {
+    recentHandoffCopyButton.disabled = !items.length;
+  }
+
+  if (!items.length) {
+    recentHandoffList.innerHTML = `
+      <article class="roadside-note-empty">
+        <strong>No saved handoffs yet.</strong>
+        <p>Save a roadside note, diagnostic handoff, tire pressure recheck, fuse checklist, or trailer light test, then recover it here before opening the full notes form.</p>
+        <div class="inspector-actions">
+          <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Open Quick Sheet</a>
+          <a class="utility-link" href="diagnostics.html#diagnostic-share-builder">Open Diagnostics</a>
+          <a class="utility-link" href="tires.html#tire-recheck-planner">Open Tire Recheck</a>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  recentHandoffList.innerHTML = items
+    .map(
+      (item, index) => `
+        <article class="roadside-note-item">
+          <span>${escapeHtml(item.source)} / ${escapeHtml(item.meta)}</span>
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.detail)}</p>
+          <div class="maintenance-note-actions">
+            <button class="utility-link" type="button" data-copy-recent-handoff-index="${index}">Copy Handoff</button>
+            <a class="utility-link" href="${escapeHtml(item.href)}">Open Source</a>
+            <a class="utility-link" href="#notes">Open Full Note</a>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function copyRecentHandoff(index = 0) {
+  const item = getRecentHandoffItems()[index];
+  if (!item) {
+    setRecentHandoffStatus("No saved handoff is ready to copy yet.");
+    return;
+  }
+
+  copyText(item.copyText)
+    .then(() => setRecentHandoffStatus(`Copied ${item.title}.`))
+    .catch(() => setRecentHandoffStatus("Could not copy automatically. Open the full note and copy it manually."));
 }
 
 function renderDiagnosticActivity() {
@@ -3088,6 +3303,14 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   }
 
   copyMaintenanceStaging(Number(button.dataset.copyMaintenancePartsIndex || 0));
+});
+recentHandoffList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copy-recent-handoff-index]");
+  if (!button) {
+    return;
+  }
+
+  copyRecentHandoff(Number(button.dataset.copyRecentHandoffIndex || 0));
 });
 
 async function renderGaragePage() {

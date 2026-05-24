@@ -7066,7 +7066,8 @@ kbd {
   margin: 0;
 }
 
-.diagnostic-activity-panel {
+.diagnostic-activity-panel,
+.roadside-note-panel {
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid rgba(121, 212, 255, 0.12);
@@ -7078,7 +7079,8 @@ kbd {
   border-top: 1px solid rgba(121, 212, 255, 0.12);
 }
 
-.diagnostic-activity-list {
+.diagnostic-activity-list,
+.roadside-note-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -7744,6 +7746,8 @@ kbd {
 
 .diagnostic-activity-item,
 .diagnostic-activity-empty,
+.roadside-note-item,
+.roadside-note-empty,
 .maintenance-note-item,
 .maintenance-note-empty {
   display: grid;
@@ -7791,6 +7795,7 @@ kbd {
 }
 
 .diagnostic-activity-item span,
+.roadside-note-item span,
 .maintenance-note-item span {
   color: var(--accent);
   font-size: 0.7rem;
@@ -7800,6 +7805,8 @@ kbd {
 
 .diagnostic-activity-item strong,
 .diagnostic-activity-empty strong,
+.roadside-note-item strong,
+.roadside-note-empty strong,
 .maintenance-note-item strong,
 .maintenance-note-empty strong {
   color: var(--text);
@@ -7808,6 +7815,8 @@ kbd {
 
 .diagnostic-activity-item p,
 .diagnostic-activity-empty p,
+.roadside-note-item p,
+.roadside-note-empty p,
 .maintenance-note-item p,
 .maintenance-note-empty p {
   margin: 0;
@@ -12318,6 +12327,7 @@ kbd {
   .dashboard-grid,
   .garage-setup-grid,
   .diagnostic-activity-list,
+  .roadside-note-list,
   .maintenance-note-list,
   .maintenance-parts-groups,
   .photo-atlas-grid {

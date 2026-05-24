@@ -2079,6 +2079,7 @@ function actionForPage(page) {
     ],
     "garage.html": [
       { label: "Fill-In", href: "#garage-fill-in-checklist", icon: "garage" },
+      { label: "Handoffs", href: "#recent-handoffs", icon: "note" },
       { label: "Staging", href: "#maintenance-note-preview", icon: "wrench" },
       { label: "Backup", href: "#diagnostic-activity", icon: "save" },
       { label: "More", action: "tools", icon: "menu" }
