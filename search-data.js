@@ -411,6 +411,22 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Saved Fuse Review",
+    url: "hood.html#hood-saved-fuse-review",
+    category: "Electrical",
+    excerpt: "Hood and Cabin iPhone review panel for recently saved fuse selections, with copy and Garage Notes handoff actions.",
+    keywords: [
+      "saved fuse review",
+      "saved fuses",
+      "favorite fuse review",
+      "copy saved fuses",
+      "save saved fuse note",
+      "recent saved fuse",
+      "garage saved fuse",
+      "iphone saved fuse"
+    ]
+  },
+  {
     title: "Fuse Pull Checklist",
     url: "hood.html#hood-fuse-pull-checklist",
     category: "Electrical",

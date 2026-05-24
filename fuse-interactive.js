@@ -450,6 +450,134 @@ function initFusePullChecklists() {
   });
 }
 
+function formatSavedFuse(entry) {
+  const panel = `${entry.panel || "panel"}`.toUpperCase().replace("-", " ");
+  return `${panel} ${entry.position || "?"} / ${entry.rating || "?"} / ${entry.circuit || "Unknown circuit"}`;
+}
+
+function savedFuseReviewText(root, saved = loadJson(STORAGE.favorites, [])) {
+  const pageLabel = root.dataset.savedFusePage || currentPageTitle();
+  const lines = saved.slice(-6).reverse().map((entry, index) => {
+    const locationLabel = entry.location ? ` / ${entry.location}` : "";
+    const url = entry.url || `${location.pathname.split("/").pop()}#fuses`;
+    return `${index + 1}. ${formatSavedFuse(entry)}${locationLabel}\n   ${url}`;
+  });
+
+  return [
+    `${pageLabel} saved fuse review`,
+    ...(lines.length ? lines : ["No saved fuses yet."]),
+    "Verify against the truck cover label and owner's manual before replacing anything.",
+    `${location.origin}${location.pathname}#${root.id || "fuses"}`
+  ].join("\n");
+}
+
+function setSavedFuseStatus(root, message) {
+  const statusEl = root.querySelector("[data-saved-fuse-status]");
+  if (statusEl) {
+    statusEl.textContent = message;
+  }
+}
+
+function renderSavedFuseReview(root) {
+  const listEl = root.querySelector("[data-saved-fuse-list]");
+  const copyButton = root.querySelector("[data-copy-saved-fuses]");
+  const saveButton = root.querySelector("[data-save-saved-fuses]");
+  if (!listEl) {
+    return;
+  }
+
+  const saved = loadJson(STORAGE.favorites, []).slice(-6).reverse();
+  if (copyButton) {
+    copyButton.disabled = !saved.length;
+  }
+  if (saveButton) {
+    saveButton.disabled = !saved.length;
+  }
+
+  if (!saved.length) {
+    listEl.innerHTML = `
+      <article class="saved-fuse-empty">
+        <strong>No saved fuses yet</strong>
+        <span>Open a Hood or Cabin fuse diagram, tap a fuse, then tap Save Fuse.</span>
+      </article>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = saved.map((entry, index) => {
+    const url = entry.url || "hood.html#fuses";
+    return `
+      <article class="saved-fuse-item">
+        <span>${escapeHtml(`${entry.panel || "panel"}`.toUpperCase().replace("-", " "))}</span>
+        <strong>${escapeHtml(entry.position || "?")} - ${escapeHtml(entry.circuit || "Unknown circuit")}</strong>
+        <small>${escapeHtml(entry.rating || "?")} / ${escapeHtml(entry.location || "Location not saved")}</small>
+        <div class="inspector-actions">
+          <button class="utility-link" type="button" data-copy-saved-fuse="${index}">Copy</button>
+          <a class="utility-link" href="${escapeHtml(url)}">Open</a>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  listEl.querySelectorAll("[data-copy-saved-fuse]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const entry = saved[Number(button.dataset.copySavedFuse)];
+      const text = [
+        "Ridgeline saved fuse",
+        formatSavedFuse(entry),
+        entry.location ? `Location: ${entry.location}` : "",
+        "Verify against the truck cover label and owner's manual before replacing anything.",
+        `${location.origin}/${entry.url || "hood.html#fuses"}`
+      ].filter(Boolean).join("\n");
+      const copied = await copyText(text);
+      setSavedFuseStatus(root, copied ? "Saved fuse copied." : "Copy is unavailable in this browser.");
+    });
+  });
+}
+
+function initSavedFuseReviews() {
+  const roots = [...document.querySelectorAll("[data-saved-fuse-review]")];
+  if (!roots.length) {
+    return;
+  }
+
+  roots.forEach((root) => {
+    root.querySelector("[data-copy-saved-fuses]")?.addEventListener("click", async () => {
+      const saved = loadJson(STORAGE.favorites, []);
+      const copied = await copyText(savedFuseReviewText(root, saved));
+      setSavedFuseStatus(root, copied ? "Saved fuse list copied." : "Copy is unavailable in this browser.");
+    });
+
+    root.querySelector("[data-save-saved-fuses]")?.addEventListener("click", () => {
+      const saved = loadJson(STORAGE.favorites, []);
+      if (!saved.length) {
+        setSavedFuseStatus(root, "Save a fuse first, then store the review.");
+        return;
+      }
+
+      const timestamp = new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+      try {
+        prependGarageGeneralNote(`[${timestamp} - Saved Fuse Review]\n${savedFuseReviewText(root, saved)}`);
+        setSavedFuseStatus(root, "Saved fuse review added to Garage Notes.");
+      } catch (error) {
+        setSavedFuseStatus(root, "Could not save the review in this browser session.");
+      }
+    });
+
+    renderSavedFuseReview(root);
+  });
+
+  window.addEventListener("ridgeline:fuse-favorites-updated", () => {
+    roots.forEach((root) => renderSavedFuseReview(root));
+  });
+}
+
 function distanceBetween(a, b) {
   const ax = a.x + a.width / 2;
   const ay = a.y + a.height / 2;
@@ -697,6 +825,7 @@ function bindDiagram(diagramEl) {
 
     saveJson(STORAGE.favorites, favorites.slice(-20));
     saveButton.textContent = "Saved";
+    window.dispatchEvent(new CustomEvent("ridgeline:fuse-favorites-updated"));
     setTimeout(() => {
       saveButton.textContent = "Save Fuse";
     }, 1200);
@@ -900,4 +1029,5 @@ document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
   });
 });
 initFusePullChecklists();
+initSavedFuseReviews();
 initGarageCloudSync();

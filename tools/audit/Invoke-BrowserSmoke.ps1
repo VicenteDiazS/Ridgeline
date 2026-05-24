@@ -143,6 +143,9 @@ SEARCH_EXPECTATIONS = {
     "fuse quick sheet": "Fuse Triage Quick Sheet",
     "fuse quick finder": "Hood Fuse Quick Finder",
     "copy fuse": "Selected Fuse Handoff",
+    "saved fuse review": "Saved Fuse Review",
+    "copy saved fuses": "Saved Fuse Review",
+    "garage saved fuse": "Saved Fuse Review",
     "fuse pull checklist": "Fuse Pull Checklist",
     "save fuse checklist": "Fuse Pull Checklist",
     "fuse label decoder": "Fuse Label Decoder",
@@ -1397,6 +1400,58 @@ async def assert_fuse_mobile_readability(page, page_name):
         )
         assert_true("Copied fuse handoff" in copy_state["status"] or "Copy failed" in copy_state["status"], f"{key} Copy Handoff did not report a result")
         assert_true("Verify against the truck cover label" in copy_state["status"], f"{key} selected fuse handoff is missing cover-label reminder")
+
+    await page.locator(f'[data-fuse-inspector="{keys[-1]}"] [data-save-fuse]').click()
+    await page.wait_for_timeout(300)
+    review_id = "#hood-saved-fuse-review" if page_name == "hood.html" else "#cabin-saved-fuse-review"
+    review_state = await page.evaluate(
+        """(selector) => {
+            const root = document.querySelector(selector);
+            const favorites = JSON.parse(localStorage.getItem("ridgeline-favorites") || "[]");
+            const actions = root ? [...root.querySelectorAll(".utility-link")] : [];
+            const actionRects = actions.map((action) => action.getBoundingClientRect());
+            const docWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasReview: Boolean(root),
+                text: root?.innerText || "",
+                itemCount: root?.querySelectorAll(".saved-fuse-item").length || 0,
+                favoriteCount: favorites.length,
+                hasCopyList: Boolean(root?.querySelector("[data-copy-saved-fuses]")),
+                hasSaveNote: Boolean(root?.querySelector("[data-save-saved-fuses]")),
+                hasRecentHandoffsRoute: Boolean(root?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                minActionHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
+                overflow: docWidth > document.documentElement.clientWidth + 1
+            };
+        }""",
+        review_id,
+    )
+    assert_true(review_state["hasReview"], f"{page_name} is missing the saved fuse review panel")
+    assert_true(review_state["favoriteCount"] > 0, f"{page_name} Save Fuse did not create a saved fuse")
+    assert_true(review_state["itemCount"] > 0, f"{page_name} saved fuse review did not render saved items")
+    assert_true(review_state["hasCopyList"], f"{page_name} saved fuse review is missing Copy Saved List")
+    assert_true(review_state["hasSaveNote"], f"{page_name} saved fuse review is missing Save Garage Note")
+    assert_true(review_state["hasRecentHandoffsRoute"], f"{page_name} saved fuse review is missing Recent Handoffs route")
+    assert_true("verify against the truck cover label" in review_state["text"].lower(), f"{page_name} saved fuse review is missing cover-label reminder")
+    assert_true(review_state["minActionHeight"] >= 40, f"{page_name} saved fuse review actions are too small for iPhone")
+    assert_true(not review_state["overflow"], f"{page_name} saved fuse review introduced iPhone horizontal overflow")
+    await page.locator(f"{review_id} [data-copy-saved-fuses]").click()
+    await page.wait_for_timeout(200)
+    await page.locator(f"{review_id} [data-save-saved-fuses]").click()
+    await page.wait_for_timeout(200)
+    saved_review_state = await page.evaluate(
+        """(selector) => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const root = document.querySelector(selector);
+            return {
+                notes: notes.general_notes || "",
+                status: root?.querySelector("[data-saved-fuse-status]")?.textContent || ""
+            };
+        }""",
+        review_id,
+    )
+    assert_true("Saved fuse review added to Garage Notes" in saved_review_state["status"], f"{page_name} saved fuse review did not report Garage save")
+    assert_true("saved fuse review" in saved_review_state["notes"].lower(), f"{page_name} saved fuse review did not save a Garage note")
+    assert_true("Verify against the truck cover label" in saved_review_state["notes"], f"{page_name} saved fuse review note is missing cover-label reminder")
 
     await page.locator(f"{checklist_id} [data-fuse-pull-context]").fill("audit fuse cover label and symptom")
     await page.locator(f"{checklist_id} [data-fuse-pull-step]").first.check()
