@@ -179,6 +179,9 @@ SEARCH_EXPECTATIONS = {
     "copy latest home note": "Home Resume Work",
     "anton owner check": "Anton Owner Check",
     "anton run snapshot": "Anton Owner Check",
+    "anton sign off": "Anton Owner Check",
+    "copy sign-off": "Anton Owner Check",
+    "save anton review": "Anton Owner Check",
     "capture clues": "Diagnostic Clue Capture",
 }
 
@@ -449,11 +452,13 @@ async def assert_anton_owner_check(page, page_name):
             const panel = document.querySelector(".anton-owner-check");
             const snapshot = document.querySelector("[data-anton-run-snapshot]");
             const queue = document.querySelector("[data-anton-review-queue]");
+            const signoff = document.querySelector("[data-anton-signoff]");
             const cards = [...panel?.querySelectorAll("article") || []];
             const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
             const reviewPackButtons = [...queue?.querySelectorAll("[data-anton-copy-review-pack], [data-anton-share-review-pack]") || []].map((item) => item.textContent.trim());
+            const signoffButtons = [...signoff?.querySelectorAll("[data-anton-signoff-choice], [data-anton-save-signoff], [data-anton-copy-signoff], [data-anton-share-signoff]") || []].map((item) => item.textContent.trim());
             const queueLinks = [...queue?.querySelectorAll("a") || []].map((item) => ({
                 text: item.textContent.trim(),
                 href: item.getAttribute("href") || ""
@@ -464,15 +469,18 @@ async def assert_anton_owner_check(page, page_name):
                 hasPanel: Boolean(panel),
                 hasSnapshot: Boolean(snapshot),
                 hasQueue: Boolean(queue),
+                hasSignoff: Boolean(signoff),
                 cardCount: cards.length,
                 snapshotCardCount: snapshotCards.length,
                 queueCardCount: queueCards.length,
                 snapshotText: (snapshot?.innerText || "").toLowerCase(),
                 text: (panel?.innerText || "").toLowerCase(),
                 queueText: (queue?.innerText || "").toLowerCase(),
+                signoffText: (signoff?.innerText || "").toLowerCase(),
                 linkHref: link?.getAttribute("href") || "",
                 linkText: link?.textContent?.trim() || "",
                 reviewPackButtons,
+                signoffButtons,
                 queueLinks,
                 bottomLinks,
                 overflow: width > document.documentElement.clientWidth + 1
@@ -482,6 +490,7 @@ async def assert_anton_owner_check(page, page_name):
     assert_true(state["hasPanel"], "Anton page is missing the owner check strip")
     assert_true(state["hasSnapshot"], "Anton page is missing the live run snapshot")
     assert_true(state["hasQueue"], "Anton page is missing the iPhone review queue")
+    assert_true(state["hasSignoff"], "Anton page is missing the iPhone sign-off panel")
     assert_true(state["cardCount"] == 3, "Anton owner check should have three action cards")
     assert_true(state["snapshotCardCount"] == 3, "Anton run snapshot should have three cards")
     assert_true(state["queueCardCount"] == 5, "Anton review queue should have five review cards")
@@ -494,17 +503,44 @@ async def assert_anton_owner_check(page, page_name):
     assert_true("home monitor" in state["queueText"], "Anton review queue is missing the home monitor confirmation card")
     assert_true("run log" in state["queueText"] or "no log path" in state["queueText"], "Anton review queue is missing the run trace card")
     assert_true("review pack" in state["queueText"], "Anton review queue is missing the copy/share review pack card")
+    assert_true("iphone sign-off" in state["signoffText"], "Anton sign-off panel is missing its label")
+    assert_true("works on iphone" in state["signoffText"], "Anton sign-off panel is missing the reviewed choice")
+    assert_true("needs follow-up" in state["signoffText"], "Anton sign-off panel is missing the follow-up choice")
     assert_true(state["linkHref"].endswith(".html"), "Anton owner check link should route to a page")
     assert_true(state["linkText"].startswith("Open"), "Anton owner check link should be a clear open action")
     assert_true(any(link["text"] == "Open Changed Page" and link["href"].endswith(".html") for link in state["queueLinks"]), "Anton review queue should open the changed page")
     assert_true(any(link["href"] == "index.html#agent-status" for link in state["queueLinks"]), "Anton review queue should link to the home monitor")
     assert_true({"Copy Pack", "Share Pack"}.issubset(set(state["reviewPackButtons"])), "Anton review pack should expose copy and share actions")
-    assert_true({"Review", "Home", "Controls", "More"}.issubset(set(state["bottomLinks"])), "Anton bottom action bar should expose Review, Home, Controls, and More")
+    assert_true({"Save Sign-Off", "Copy Sign-Off", "Share"}.issubset(set(state["signoffButtons"])), "Anton sign-off should expose save, copy, and share actions")
+    assert_true({"Review", "Sign", "Home", "Controls", "More"}.issubset(set(state["bottomLinks"])), "Anton bottom action bar should expose Review, Sign, Home, Controls, and More")
     assert_true(not state["overflow"], "Anton owner check introduced desktop horizontal overflow")
     await page.click("[data-anton-copy-review-pack]")
     await page.wait_for_timeout(250)
     pack_status = await page.locator("[data-anton-review-pack-status]").inner_text()
     assert_true(pack_status.strip(), "Anton review pack copy action did not report a status")
+    await page.click("[data-anton-signoff-choice='followup']")
+    await page.fill("[data-anton-signoff-note]", "Button spacing needs one more iPhone check.")
+    await page.click("[data-anton-save-signoff]")
+    await page.wait_for_timeout(250)
+    signoff_state = await page.evaluate(
+        """() => {
+            const saved = JSON.parse(localStorage.getItem("ridgeline-anton-iphone-signoff") || "null");
+            return {
+                savedChoice: saved?.choice || "",
+                savedText: saved?.text || "",
+                status: document.querySelector("[data-anton-signoff-status]")?.textContent || "",
+                latest: document.querySelector("[data-anton-signoff-latest]")?.innerText || ""
+            };
+        }"""
+    )
+    assert_true(signoff_state["savedChoice"] == "followup", "Anton sign-off did not save the selected follow-up result")
+    assert_true("Button spacing needs one more iPhone check." in signoff_state["savedText"], "Anton sign-off did not preserve the owner note")
+    assert_true("Saved sign-off" in signoff_state["status"], "Anton sign-off save action did not report a status")
+    assert_true("Needs follow-up" in signoff_state["latest"], "Anton sign-off latest-review card did not render the saved result")
+    await page.click("[data-anton-copy-signoff]")
+    await page.wait_for_timeout(250)
+    copy_status = await page.locator("[data-anton-signoff-status]").inner_text()
+    assert_true(copy_status.strip(), "Anton sign-off copy action did not report a status")
 
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
@@ -513,20 +549,25 @@ async def assert_anton_owner_check(page, page_name):
             const panel = document.querySelector(".anton-owner-check");
             const snapshot = document.querySelector("[data-anton-run-snapshot]");
             const queue = document.querySelector("[data-anton-review-queue]");
+            const signoff = document.querySelector("[data-anton-signoff]");
             const cards = [...panel?.querySelectorAll("article") || []];
             const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
             const queueActions = [...queue?.querySelectorAll("a, button") || []];
+            const signoffActions = [...signoff?.querySelectorAll("a, button") || []];
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(panel && panel.getBoundingClientRect().height > 0),
                 snapshotVisible: Boolean(snapshot && snapshot.getBoundingClientRect().height > 0),
                 queueVisible: Boolean(queue && queue.getBoundingClientRect().height > 0),
+                signoffVisible: Boolean(signoff && signoff.getBoundingClientRect().height > 0),
                 columns: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 snapshotColumns: snapshotCards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 queueColumns: queueCards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 queueActionHeights: queueActions.map((item) => Math.round(item.getBoundingClientRect().height)),
+                signoffActionHeights: signoffActions.map((item) => Math.round(item.getBoundingClientRect().height)),
+                signoffWidth: Math.round(signoff?.getBoundingClientRect().width || 0),
                 linkHeight: Math.round(link?.getBoundingClientRect().height || 0),
                 overflow: width > document.documentElement.clientWidth + 1
             };
@@ -535,11 +576,14 @@ async def assert_anton_owner_check(page, page_name):
     assert_true(mobile_state["visible"], "Anton owner check is not visible at iPhone width")
     assert_true(mobile_state["snapshotVisible"], "Anton run snapshot is not visible at iPhone width")
     assert_true(mobile_state["queueVisible"], "Anton review queue is not visible at iPhone width")
+    assert_true(mobile_state["signoffVisible"], "Anton sign-off panel is not visible at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["columns"]), "Anton owner check cards should stack at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["snapshotColumns"]), "Anton run snapshot cards should stack at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["queueColumns"]), "Anton review queue cards should stack at iPhone width")
+    assert_true(mobile_state["signoffWidth"] <= 390, "Anton sign-off panel is wider than the iPhone viewport")
     assert_true(mobile_state["linkHeight"] >= 38, "Anton owner check action is too small for touch")
     assert_true(all(height >= 38 for height in mobile_state["queueActionHeights"]), "Anton review queue actions are too small for touch")
+    assert_true(all(height >= 38 for height in mobile_state["signoffActionHeights"]), "Anton sign-off actions are too small for touch")
     assert_true(not mobile_state["overflow"], "Anton owner check introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)

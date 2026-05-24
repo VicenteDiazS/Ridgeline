@@ -29,8 +29,8 @@ export const searchIndex = [
     title: "Anton Owner Check",
     url: "anton.html#anton-progress",
     category: "Navigation",
-    excerpt: "Anton page strip, live run snapshot, and iPhone review queue showing the current stage, heartbeat, changed page, home monitor check, action-needed note, run trace, copy/share review pack, and next scheduled check from the latest public run status.",
-    keywords: ["anton owner check", "anton review queue", "anton iphone review", "anton next check", "anton changed page", "what anton changed", "agent owner check", "agent next check", "anton controls", "anton page", "anton run snapshot", "anton heartbeat", "anton running now", "anton stage", "anton review pack", "copy review pack", "share review pack", "agent review note"]
+    excerpt: "Anton page strip, live run snapshot, iPhone review queue, and local sign-off panel showing the current stage, heartbeat, changed page, home monitor check, action-needed note, run trace, copy/share review pack, saved review result, and next scheduled check from the latest public run status.",
+    keywords: ["anton owner check", "anton review queue", "anton iphone review", "anton next check", "anton changed page", "what anton changed", "agent owner check", "agent next check", "anton controls", "anton page", "anton run snapshot", "anton heartbeat", "anton running now", "anton stage", "anton review pack", "copy review pack", "share review pack", "agent review note", "anton sign off", "anton sign-off", "iphone sign-off", "save anton review", "copy sign-off", "needs follow-up", "works on iphone"]
   },
   {
     title: "Offline Launch Pad",

@@ -16862,6 +16862,63 @@ select:focus {
   min-height: 1.2em;
 }
 
+.anton-signoff-panel {
+  border: 1px solid rgba(104, 255, 190, 0.2);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.08), rgba(104, 255, 190, 0.018)),
+    rgba(4, 16, 19, 0.72);
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.9rem;
+}
+
+.anton-signoff-choice {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.anton-signoff-choice .agent-control-button[aria-pressed="true"] {
+  border-color: rgba(104, 255, 190, 0.58);
+  box-shadow: 0 0 0 2px rgba(104, 255, 190, 0.12);
+}
+
+.anton-signoff-note-label,
+.anton-signoff-latest span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.anton-signoff-panel textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.anton-signoff-latest {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem;
+}
+
+.anton-signoff-latest strong {
+  color: #eafff7;
+}
+
+.anton-signoff-latest p {
+  color: #c9d7df;
+  line-height: 1.42;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .anton-history-item {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
@@ -17116,6 +17173,11 @@ select:focus {
   }
 
   .anton-review-queue {
+    grid-template-columns: 1fr;
+  }
+
+  .anton-signoff-choice,
+  .anton-review-pack-actions {
     grid-template-columns: 1fr;
   }
 

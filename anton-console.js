@@ -1,6 +1,7 @@
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
+const SIGNOFF_KEY = "ridgeline-anton-iphone-signoff";
 const FALLBACK_FILES = [
   { name: "ANTON.md", label: "Anton Instructions" },
   { name: "AGENT_STATE.md", label: "Agent State" },
@@ -12,7 +13,10 @@ const FALLBACK_FILES = [
 const state = {
   files: FALLBACK_FILES,
   selectedFile: "ANTON.md",
-  serverOnline: false
+  serverOnline: false,
+  latestStatus: null,
+  latestReviewContext: null,
+  signoffChoice: "reviewed"
 };
 
 const els = {
@@ -34,6 +38,14 @@ const els = {
   ownerNextTitle: document.querySelector("[data-anton-owner-next-title]"),
   ownerNextDetail: document.querySelector("[data-anton-owner-next-detail]"),
   reviewQueue: document.querySelector("[data-anton-review-queue]"),
+  signoff: document.querySelector("[data-anton-signoff]"),
+  signoffChoices: document.querySelectorAll("[data-anton-signoff-choice]"),
+  signoffNote: document.querySelector("[data-anton-signoff-note]"),
+  signoffStatus: document.querySelector("[data-anton-signoff-status]"),
+  signoffLatest: document.querySelector("[data-anton-signoff-latest]"),
+  signoffSave: document.querySelector("[data-anton-save-signoff]"),
+  signoffCopy: document.querySelector("[data-anton-copy-signoff]"),
+  signoffShare: document.querySelector("[data-anton-share-signoff]"),
   publicSummary: document.querySelector("[data-anton-run-summary]"),
   publicFiles: document.querySelector("[data-anton-public-files]"),
   serverState: document.querySelector("[data-anton-server-state]"),
@@ -199,6 +211,19 @@ function firstSummaryLine(value = "") {
     .find((line) => line && !/^changed:?$/i.test(line) && !/^verified:?$/i.test(line)) || text;
 }
 
+function readStoredJson(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStoredJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
 function changedPageFromFiles(files = []) {
   const htmlFile = files
     .filter(Boolean)
@@ -258,6 +283,14 @@ function renderOwnerCheck(status) {
     next,
     score
   });
+  renderSignoffPanel(status, {
+    changedPage,
+    changedLabel,
+    visibleChange,
+    actionRequired,
+    next,
+    score
+  });
 }
 
 function buildReviewPackText(status, context) {
@@ -299,6 +332,84 @@ async function copyText(value = "") {
     textarea.remove();
   }
   return copied;
+}
+
+function signoffChoiceLabel(choice = state.signoffChoice) {
+  return choice === "followup" ? "Needs follow-up" : "Works on iPhone";
+}
+
+function setSignoffStatus(message = "") {
+  if (els.signoffStatus) {
+    els.signoffStatus.textContent = message;
+  }
+}
+
+function buildSignoffRecord(status = state.latestStatus, context = state.latestReviewContext) {
+  const note = els.signoffNote?.value?.trim() || "";
+  const changedPage = context?.changedPage || "index.html";
+  const record = {
+    savedAt: new Date().toISOString(),
+    choice: state.signoffChoice,
+    note,
+    statusTitle: status?.statusTitle || status?.status || "Anton status",
+    impact: context?.score || (Number.isFinite(Number(status?.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored"),
+    visibleChange: context?.visibleChange || status?.visibleChange || firstSummaryLine(status?.summary || ""),
+    changedLabel: context?.changedLabel || shortFileLabel(changedPage),
+    changedPage,
+    next: context?.next || describeNextRun(status?.nextExpectedRunAt),
+    actionRequired: context?.actionRequired || status?.actionRequired || ""
+  };
+  record.text = [
+    "Ridgeline Anton iPhone sign-off",
+    `Result: ${signoffChoiceLabel(record.choice)}`,
+    `Changed page: ${record.changedLabel} - ${new URL(changedPage, window.location.href).href}`,
+    `Impact: ${record.impact} - ${record.visibleChange}`,
+    `Home monitor: ${new URL("index.html#agent-status", window.location.href).href}`,
+    `Next check: ${record.next}`,
+    `Action note: ${firstSummaryLine(record.actionRequired || "No action note recorded.")}`,
+    note ? `Owner note: ${note}` : "Owner note: No extra note.",
+    `Saved: ${formatDate(record.savedAt)}`
+  ].join("\n");
+  return record;
+}
+
+function renderSavedSignoff() {
+  if (!els.signoffLatest) {
+    return;
+  }
+
+  const saved = readStoredJson(SIGNOFF_KEY, null);
+  if (!saved) {
+    els.signoffLatest.innerHTML = `
+      <span>Latest saved review</span>
+      <p>No iPhone review saved on this device yet.</p>
+    `;
+    return;
+  }
+
+  els.signoffLatest.innerHTML = `
+    <span>Latest saved review</span>
+    <strong>${escapeHtml(signoffChoiceLabel(saved.choice))} - ${escapeHtml(saved.changedLabel || "Changed page")}</strong>
+    <p>${escapeHtml(`${formatDate(saved.savedAt)}. ${saved.note || saved.visibleChange || "No note recorded."}`)}</p>
+  `;
+}
+
+function renderSignoffPanel(status, context) {
+  if (!els.signoff) {
+    return;
+  }
+
+  state.latestStatus = status;
+  state.latestReviewContext = context;
+  els.signoff.dataset.antonSignoffChoice = state.signoffChoice;
+  els.signoffChoices.forEach((button) => {
+    const pressed = button.dataset.antonSignoffChoice === state.signoffChoice;
+    button.setAttribute("aria-pressed", pressed ? "true" : "false");
+  });
+  if (els.signoffNote && !els.signoffNote.placeholder.includes(context.changedLabel)) {
+    els.signoffNote.placeholder = `Add what you checked on ${context.changedLabel}, what looked wrong, or what should be picked up next.`;
+  }
+  renderSavedSignoff();
 }
 
 function setReviewPackStatus(message = "") {
@@ -656,6 +767,57 @@ async function loadAgentRunStatus() {
     }
   }
 }
+
+els.signoffChoices.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.signoffChoice = button.dataset.antonSignoffChoice || "reviewed";
+    renderSignoffPanel(state.latestStatus || {}, state.latestReviewContext || {
+      changedPage: "index.html",
+      changedLabel: "Home",
+      visibleChange: "",
+      actionRequired: "",
+      next: describeNextRun(""),
+      score: "Not scored"
+    });
+    setSignoffStatus(`${signoffChoiceLabel()} selected.`);
+  });
+});
+
+els.signoffSave?.addEventListener("click", () => {
+  try {
+    const record = buildSignoffRecord();
+    writeStoredJson(SIGNOFF_KEY, record);
+    renderSavedSignoff();
+    setSignoffStatus(`Saved sign-off: ${signoffChoiceLabel(record.choice)}.`);
+  } catch {
+    setSignoffStatus("Sign-off could not be saved in this browser.");
+  }
+});
+
+els.signoffCopy?.addEventListener("click", async () => {
+  try {
+    const record = buildSignoffRecord();
+    const copied = await copyText(record.text);
+    setSignoffStatus(copied ? "Sign-off copied." : "Copy is unavailable in this browser.");
+  } catch {
+    setSignoffStatus("Copy failed. Select the sign-off text manually.");
+  }
+});
+
+els.signoffShare?.addEventListener("click", async () => {
+  try {
+    const record = buildSignoffRecord();
+    if (navigator.share) {
+      await navigator.share({ title: "Ridgeline Anton iPhone sign-off", text: record.text });
+      setSignoffStatus("Sign-off shared.");
+      return;
+    }
+    const copied = await copyText(record.text);
+    setSignoffStatus(copied ? "Share unavailable; sign-off copied instead." : "Share is unavailable in this browser.");
+  } catch {
+    setSignoffStatus("Share canceled or unavailable.");
+  }
+});
 
 async function loadFiles() {
   try {

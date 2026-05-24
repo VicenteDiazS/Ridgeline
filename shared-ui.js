@@ -2086,6 +2086,7 @@ function actionForPage(page) {
     ],
     "anton.html": [
       { label: "Review", href: "#anton-progress", icon: "check" },
+      { label: "Sign", href: "#anton-signoff", icon: "note" },
       { label: "Home", href: "index.html#agent-status", icon: "home" },
       { label: "Controls", href: "#anton-controls", icon: "wrench" },
       { label: "More", action: "tools", icon: "menu" }

@@ -21,6 +21,7 @@
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
         <nav class="topnav" aria-label="Primary">
           <a href="#anton-controls">Controls</a>
+          <a href="#anton-signoff">Sign-Off</a>
           <a href="#anton-files">Markdown</a>
           <a href="#anton-note">Add Note</a>
           <a href="#anton-history">History</a>
@@ -44,6 +45,7 @@
       <nav class="route-strip" aria-label="Fast sections">
         <a href="index.html">Home</a>
         <a href="#anton-controls">Controls</a>
+        <a href="#anton-signoff">Sign-Off</a>
         <a href="#anton-files">Markdown</a>
         <a href="#anton-note">Add Note</a>
         <a href="#anton-history">History</a>
@@ -137,6 +139,31 @@
               <strong>Loading latest run...</strong>
               <p>Anton will show the changed page, the home status check, and the next action after the public status loads.</p>
             </article>
+          </div>
+          <div class="anton-signoff-panel" id="anton-signoff" data-anton-signoff aria-label="Anton iPhone sign-off">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">iPhone Sign-Off</p>
+                <h3>Review Result</h3>
+              </div>
+              <a class="agent-control-button agent-control-button-secondary" href="index.html#agent-status">Check Home</a>
+            </div>
+            <div class="anton-signoff-choice" role="group" aria-label="Latest run review result">
+              <button class="agent-control-button" type="button" data-anton-signoff-choice="reviewed">Works On iPhone</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-signoff-choice="followup">Needs Follow-Up</button>
+            </div>
+            <label class="anton-signoff-note-label" for="anton-signoff-note">Review note</label>
+            <textarea id="anton-signoff-note" data-anton-signoff-note rows="3" placeholder="Add what you checked, what looked wrong, or what should be picked up next."></textarea>
+            <div class="anton-review-pack-actions">
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-save-signoff>Save Sign-Off</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-copy-signoff>Copy Sign-Off</button>
+              <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-share-signoff>Share</button>
+            </div>
+            <p class="anton-review-pack-status" data-anton-signoff-status aria-live="polite"></p>
+            <div class="anton-signoff-latest" data-anton-signoff-latest>
+              <span>Latest saved review</span>
+              <p>No iPhone review saved on this device yet.</p>
+            </div>
           </div>
           <div class="anton-summary-card">
             <span>Run Summary</span>
