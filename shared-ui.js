@@ -3970,6 +3970,20 @@ function buildSearchModal() {
             <li>Save a Garage backup.</li>
           </ol>
         </div>
+        <div class="search-route-check" aria-label="Cached route readiness">
+          <div>
+            <strong>Route Readiness</strong>
+            <small data-search-route-summary>Check key routes before leaving signal.</small>
+          </div>
+          <ul data-search-route-list>
+            <li data-route-status="unknown">Quick Sheet</li>
+            <li data-route-status="unknown">Diagnostics</li>
+            <li data-route-status="unknown">Fuses</li>
+            <li data-route-status="unknown">Rear Hitch</li>
+            <li data-route-status="unknown">7-Way Pinout</li>
+            <li data-route-status="unknown">Garage Backup</li>
+          </ul>
+        </div>
         <div class="search-offline-actions" aria-label="Offline-ready shortcuts">
           <a href="quick-sheet.html#roadside-action-stack">Roadside</a>
           <a href="diagnostics.html#workflow-index">Diagnostics</a>
@@ -3977,6 +3991,8 @@ function buildSearchModal() {
           <a href="quick-sheet.html#emergency-card">Print Sheet</a>
           <a href="garage.html#diagnostic-activity">Garage Backup</a>
           <button type="button" data-search-refresh-pack>Refresh Pack</button>
+          <button type="button" data-search-check-routes>Check Routes</button>
+          <button type="button" data-search-prime-routes>Prime Routes</button>
         </div>
         <p class="search-offline-status" data-search-refresh-status aria-live="polite"></p>
       </section>
@@ -4074,6 +4090,15 @@ const SEARCH_PAGE_URLS = [
   "ar-lab.html",
   "photo-atlas.html",
   "quick-sheet.html"
+];
+
+const SEARCH_OFFLINE_ROUTES = [
+  { label: "Quick Sheet", path: "quick-sheet.html" },
+  { label: "Diagnostics", path: "diagnostics.html" },
+  { label: "Fuses", path: "hood.html" },
+  { label: "Rear Hitch", path: "rear-hitch.html" },
+  { label: "7-Way Pinout", path: "rear-hitch.html#pinout" },
+  { label: "Garage Backup", path: "garage.html" }
 ];
 
 const SEARCH_SYNONYMS = new Map([
@@ -4608,6 +4633,87 @@ function renderResults(query = "") {
     });
 }
 
+function searchOfflineRouteRequest(path) {
+  const url = new URL(path, window.location.href);
+  url.hash = "";
+  return new Request(url.href, { method: "GET" });
+}
+
+async function searchOfflineCacheKey() {
+  if (!("caches" in window)) {
+    return "";
+  }
+  const keys = await caches.keys();
+  const ridgelineKeys = keys.filter((key) => key.startsWith("ridgeline-console-"));
+  return ridgelineKeys.at(-1) || "ridgeline-console-manual";
+}
+
+async function checkSearchOfflineRoutes() {
+  if (!("caches" in window)) {
+    return SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, ready: false, unavailable: true }));
+  }
+
+  return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
+    const request = searchOfflineRouteRequest(route.path);
+    try {
+      const match = await caches.match(request, { ignoreSearch: true });
+      return { ...route, ready: Boolean(match) };
+    } catch {
+      return { ...route, ready: false, unavailable: true };
+    }
+  }));
+}
+
+async function primeSearchOfflineRoutes() {
+  if (!("caches" in window)) {
+    return SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, primed: false, ready: false, unavailable: true }));
+  }
+
+  const cache = await caches.open(await searchOfflineCacheKey());
+  return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
+    const request = searchOfflineRouteRequest(route.path);
+    try {
+      const response = await fetch(request, { cache: "reload" });
+      if (response.ok) {
+        await cache.put(request, response.clone());
+      }
+      const match = await caches.match(request, { ignoreSearch: true });
+      return { ...route, primed: true, ready: Boolean(match) };
+    } catch {
+      const match = await caches.match(request, { ignoreSearch: true });
+      return { ...route, primed: false, ready: Boolean(match), unavailable: !match };
+    }
+  }));
+}
+
+function renderSearchRouteReadiness(results = []) {
+  if (!searchOfflineCard) {
+    return;
+  }
+  const summary = searchOfflineCard.querySelector("[data-search-route-summary]");
+  const list = searchOfflineCard.querySelector("[data-search-route-list]");
+  if (!summary || !list) {
+    return;
+  }
+
+  if (!results.length) {
+    summary.textContent = "Check key routes before leaving signal.";
+    list.innerHTML = SEARCH_OFFLINE_ROUTES
+      .map((route) => `<li data-route-status="unknown">${route.label}</li>`)
+      .join("");
+    return;
+  }
+
+  const readyCount = results.filter((route) => route.ready).length;
+  const unavailable = results.some((route) => route.unavailable);
+  summary.textContent = unavailable
+    ? "This browser could not inspect every cache; open key routes while online."
+    : `${readyCount}/${results.length} key routes found in the offline cache.`;
+  list.innerHTML = results
+    .map((route) => `<li data-route-status="${route.ready ? "ready" : "missing"}"><a href="${route.path}">${route.label}</a></li>`)
+    .join("");
+}
+
 function updateSearchOfflineCard(message = "") {
   if (!searchOfflineCard) {
     return;
@@ -4895,6 +5001,7 @@ function openSearch(event) {
   searchModal.hidden = false;
   document.body.classList.add("modal-open");
   updateSearchOfflineCard();
+  renderSearchRouteReadiness();
   renderSearchResumeWork();
   renderSearchRecentWork();
   renderResults(searchInput.value);
@@ -4927,9 +5034,38 @@ searchModal.querySelector("[data-search-refresh-pack]")?.addEventListener("click
   updateSearchOfflineCard("Checking offline pack...");
   try {
     await refreshServiceWorkerRegistrations();
-    updateSearchOfflineCard("Offline pack update check complete.");
+    const results = await checkSearchOfflineRoutes();
+    renderSearchRouteReadiness(results);
+    const readyCount = results.filter((route) => route.ready).length;
+    updateSearchOfflineCard(`Offline pack check complete. ${readyCount}/${results.length} routes visible in cache.`);
   } catch {
     updateSearchOfflineCard("Could not update the offline pack in this browser session.");
+  }
+});
+searchModal.querySelector("[data-search-check-routes]")?.addEventListener("click", async () => {
+  updateSearchOfflineCard("Checking cached routes...");
+  try {
+    const results = await checkSearchOfflineRoutes();
+    renderSearchRouteReadiness(results);
+    const readyCount = results.filter((route) => route.ready).length;
+    updateSearchOfflineCard(`${readyCount}/${results.length} key offline routes found.`);
+  } catch {
+    renderSearchRouteReadiness();
+    updateSearchOfflineCard("Could not inspect cached routes in this browser session.");
+  }
+});
+searchModal.querySelector("[data-search-prime-routes]")?.addEventListener("click", async () => {
+  updateSearchOfflineCard("Priming key routes while online...");
+  try {
+    const results = await primeSearchOfflineRoutes();
+    renderSearchRouteReadiness(results);
+    const readyCount = results.filter((route) => route.ready).length;
+    const unavailable = results.every((route) => route.unavailable);
+    updateSearchOfflineCard(unavailable
+      ? `${readyCount}/${results.length} routes checked; browser cache unavailable in this session.`
+      : `${readyCount}/${results.length} routes primed for offline use.`);
+  } catch {
+    updateSearchOfflineCard("Could not prime routes in this browser session; open each key page once while online.");
   }
 });
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {

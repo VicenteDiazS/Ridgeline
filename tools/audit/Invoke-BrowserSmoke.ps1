@@ -77,6 +77,8 @@ SEARCH_EXPECTATIONS = {
     "prime offline routes": "Offline Route Check",
     "offline pinout": "Offline Route Check",
     "tow route cache": "Offline Route Check",
+    "search prime routes": "Offline Launch Pad",
+    "global route readiness": "Offline Launch Pad",
     "signal loss prep": "Signal-Loss Prep",
     "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
@@ -4028,6 +4030,11 @@ async def run_overlay_checks(page, page_name):
                     "garage.html#diagnostic-activity"
                 ].filter((href) => !offlineCard?.querySelector(`a[href="${href}"]`)),
                 hasOfflineRefresh: Boolean(offlineCard?.querySelector("[data-search-refresh-pack]")),
+                hasOfflineRouteCheck: Boolean(offlineCard?.querySelector("[data-search-check-routes]")),
+                hasOfflineRoutePrime: Boolean(offlineCard?.querySelector("[data-search-prime-routes]")),
+                hasOfflineRouteReadiness: Boolean(offlineCard?.querySelector(".search-route-check")),
+                offlineRouteItems: offlineCard?.querySelectorAll("[data-search-route-list] li").length || 0,
+                offlineRouteSummary: offlineCard?.querySelector("[data-search-route-summary]")?.textContent || "",
                 hasOfflineStatus: Boolean(offlineCard?.querySelector("[data-search-refresh-status]")),
                 hasOfflinePrep: Boolean(offlineCard?.querySelector(".search-offline-prep")),
                 prepSteps: offlineCard?.querySelectorAll(".search-offline-prep li").length || 0,
@@ -4063,6 +4070,11 @@ async def run_overlay_checks(page, page_name):
     assert_true("Garage Backup" in quick_state["offlineText"], "search offline launch pad should include Garage Backup")
     assert_true(not quick_state["offlineMissing"], f"search offline launch pad is missing routes: {quick_state['offlineMissing']}")
     assert_true(quick_state["hasOfflineRefresh"], "search offline launch pad is missing refresh-pack action")
+    assert_true(quick_state["hasOfflineRouteCheck"], "search offline launch pad is missing check-routes action")
+    assert_true(quick_state["hasOfflineRoutePrime"], "search offline launch pad is missing prime-routes action")
+    assert_true(quick_state["hasOfflineRouteReadiness"], "search offline launch pad is missing route readiness list")
+    assert_true(quick_state["offlineRouteItems"] == 6, "search route readiness should expose six key routes")
+    assert_true("key routes" in quick_state["offlineRouteSummary"].lower(), "search route readiness summary should explain key routes")
     assert_true(quick_state["hasOfflineStatus"], "search offline launch pad is missing live refresh status")
     assert_true(quick_state["hasOfflinePrep"], "search offline launch pad is missing the signal-loss prep checklist")
     assert_true(quick_state["prepSteps"] == 3, "search signal-loss prep should expose three steps")
@@ -4075,6 +4087,27 @@ async def run_overlay_checks(page, page_name):
     await page.wait_for_timeout(450)
     refresh_status = await page.locator("[data-search-refresh-status]").inner_text()
     assert_true("Offline pack" in refresh_status or "Could not update" in refresh_status, "search refresh-pack action did not report status")
+    await page.locator("[data-search-check-routes]").click()
+    await page.wait_for_timeout(450)
+    route_state = await page.evaluate(
+        """() => {
+            const card = document.querySelector("[data-search-offline-card]");
+            return {
+                status: card?.querySelector("[data-search-refresh-status]")?.textContent || "",
+                summary: card?.querySelector("[data-search-route-summary]")?.textContent || "",
+                statuses: [...card?.querySelectorAll("[data-search-route-list] li") || []].map((item) => item.dataset.routeStatus),
+                links: [...card?.querySelectorAll("[data-search-route-list] a") || []].map((link) => link.getAttribute("href"))
+            };
+        }"""
+    )
+    assert_true("/6" in route_state["status"], "search check-routes action did not report route count")
+    assert_true("cache" in route_state["summary"].lower() or "open key routes" in route_state["summary"].lower(), "search route readiness summary did not update")
+    assert_true(len(route_state["statuses"]) == 6, "search route readiness list lost route rows after check")
+    assert_true("quick-sheet.html" in route_state["links"], "search route readiness should make checked routes tappable")
+    await page.locator("[data-search-prime-routes]").click()
+    await page.wait_for_timeout(650)
+    prime_status = await page.locator("[data-search-refresh-status]").inner_text()
+    assert_true("/6" in prime_status or "Could not prime" in prime_status, "search prime-routes action did not report route readiness")
     await set_search_query(page, "fuse")
     result_count = await page.locator("#site-search-results > *").count()
     assert_true(result_count > 0, "search returned no results for fuse")

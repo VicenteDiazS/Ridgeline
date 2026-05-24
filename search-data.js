@@ -29,8 +29,8 @@ export const searchIndex = [
     title: "Offline Launch Pad",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Navigation",
-    excerpt: "Global Search offline card with offline pack status, signal-loss prep, refresh-pack action, and quick cached routes to Roadside, Diagnostics, Fuses, Quick Sheet print, and Garage Backup.",
-    keywords: ["offline launch pad", "offline pack", "offline mode", "cached site", "cached roadside", "refresh pack", "refresh offline pack", "offline diagnostics", "garage backup offline", "iphone offline", "signal loss prep", "before signal drops", "print quick sheet offline"]
+    excerpt: "Global Search offline card with offline pack status, signal-loss prep, route readiness checks, prime-routes action, and quick cached routes to Roadside, Diagnostics, Fuses, Quick Sheet print, and Garage Backup.",
+    keywords: ["offline launch pad", "offline pack", "offline mode", "cached site", "cached roadside", "refresh pack", "refresh offline pack", "offline diagnostics", "garage backup offline", "iphone offline", "signal loss prep", "before signal drops", "print quick sheet offline", "global route readiness", "search route readiness", "search check routes", "search prime routes"]
   },
   {
     title: "Signal-Loss Prep",
