@@ -19,6 +19,13 @@ export const searchIndex = [
     keywords: ["anton status", "anton latest", "agent status", "agent impact", "latest change", "visible change", "impact score", "agent monitor", "home monitor"]
   },
   {
+    title: "Home Resume Work",
+    url: "index.html#viewer",
+    category: "Navigation",
+    excerpt: "Home first-screen panel that finds recent locally saved roadside, diagnostic, fuse, tire, tow, or service notes on this iPhone, copies the latest note, and routes to Garage Recent Handoffs.",
+    keywords: ["home resume work", "resume saved work", "copy latest home note", "latest owner note", "continue saved note", "home recent handoff", "iphone saved work", "resume garage handoff", "home handoffs"]
+  },
+  {
     title: "Anton Owner Check",
     url: "anton.html#anton-progress",
     category: "Navigation",

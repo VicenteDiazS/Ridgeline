@@ -1,9 +1,18 @@
 const statusRoot = document.querySelector("[data-agent-status]");
 const homeAgentCard = document.querySelector("[data-agent-home-card]");
+const homeResumePanel = document.querySelector("[data-home-resume-work]");
 const STALE_GRACE_MINUTES = 30;
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
+const HOME_RESUME_NOTE_TYPES = [
+  { match: /roadside|live roadside/i, label: "Roadside note", href: "quick-sheet.html#roadside-action-stack" },
+  { match: /first checks|diagnostic|warning light|no-start|12v|audio|trailer-light/i, label: "Diagnostic note", href: "diagnostics.html#first-check-tracker" },
+  { match: /tire pressure recheck|tire|wheel/i, label: "Tire note", href: "tires.html#tire-recheck-planner" },
+  { match: /fuse|saved fuse/i, label: "Fuse note", href: "hood.html#hood-saved-fuse-review" },
+  { match: /trailer light|tow setup|pinout/i, label: "Tow note", href: "rear-hitch.html#tow-setup-saver" },
+  { match: /service|maintenance|follow-up|minder|prep/i, label: "Service note", href: "maintenance.html#service-followup" }
+];
 
 function formatDate(value) {
   if (!value) {
@@ -33,6 +42,140 @@ function escapeHtml(value = "") {
 
 function renderTextBlock(value = "") {
   return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function readStoredJson(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function firstLine(value = "") {
+  return `${value}`
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean) || "";
+}
+
+function compactNoteBody(value = "", maxLength = 118) {
+  const text = `${value}`.replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 1).trim()}...`;
+}
+
+function classifyHomeResumeNote(text = "") {
+  const found = HOME_RESUME_NOTE_TYPES.find((type) => type.match.test(text));
+  return found || { label: "Garage note", href: "garage.html#notes" };
+}
+
+function parseGarageGeneralNotes() {
+  const notes = readStoredJson("ridgeline-notes", {});
+  const general = notes?.general_notes || "";
+  if (!general.trim()) {
+    return [];
+  }
+
+  const blocks = general
+    .split(/\n(?=\[[^\]]+\])/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return blocks.map((block, index) => {
+    const heading = firstLine(block).replace(/^\[|\]$/g, "");
+    const type = classifyHomeResumeNote(block);
+    return {
+      title: heading || type.label,
+      label: type.label,
+      body: block,
+      href: type.href,
+      source: "Garage Notes",
+      order: index
+    };
+  });
+}
+
+function getHomeResumeItems() {
+  const items = parseGarageGeneralNotes();
+  const roadsideReceipt = readStoredJson("ridgeline-roadside-last-handoff", null);
+  const roadsideSession = readStoredJson("ridgeline-roadside-live-session", null);
+
+  if (roadsideReceipt?.text) {
+    items.unshift({
+      title: roadsideReceipt.title || "Latest roadside note",
+      label: "Roadside receipt",
+      body: roadsideReceipt.text,
+      href: "quick-sheet.html#roadside-action-stack",
+      source: "Quick Sheet"
+    });
+  }
+
+  if (roadsideSession?.startedAt || roadsideSession?.checkpoints?.length) {
+    const checkpoints = Array.isArray(roadsideSession.checkpoints) ? roadsideSession.checkpoints : [];
+    const body = [
+      `Live roadside session: ${roadsideSession.planKey || "roadside"}`,
+      roadsideSession.startedAt ? `Started: ${formatDate(roadsideSession.startedAt)}` : "",
+      checkpoints.length ? `Checkpoints: ${checkpoints.map((item) => item.label || item).join(", ")}` : "No checkpoints marked yet."
+    ].filter(Boolean).join("\n");
+    items.unshift({
+      title: "Live roadside session",
+      label: "Roadside session",
+      body,
+      href: "quick-sheet.html#roadside-action-stack",
+      source: "Quick Sheet"
+    });
+  }
+
+  return items.slice(0, 8);
+}
+
+function renderHomeResumePanel() {
+  if (!homeResumePanel) {
+    return;
+  }
+
+  const titleNode = homeResumePanel.querySelector("[data-home-resume-title]");
+  const summaryNode = homeResumePanel.querySelector("[data-home-resume-summary]");
+  const copyButton = homeResumePanel.querySelector("[data-home-resume-copy]");
+  const statusNode = homeResumePanel.querySelector("[data-home-resume-status]");
+  const items = getHomeResumeItems();
+  const latest = items[0];
+
+  homeResumePanel.dataset.resumeState = latest ? "ready" : "empty";
+  if (titleNode) {
+    titleNode.textContent = latest ? `${latest.label}: ${latest.title}` : "No saved handoffs yet";
+  }
+  if (summaryNode) {
+    summaryNode.textContent = latest
+      ? `${latest.source} has ${items.length} recoverable owner note${items.length === 1 ? "" : "s"}. ${compactNoteBody(latest.body)}`
+      : "Save a roadside note, diagnostic check, fuse review, tire recheck, tow note, or service follow-up, then resume it here.";
+  }
+  if (copyButton) {
+    copyButton.disabled = !latest;
+    copyButton.onclick = () => {
+      if (!latest) {
+        return;
+      }
+      navigator.clipboard?.writeText(latest.body)
+        .then(() => {
+          if (statusNode) {
+            statusNode.textContent = `Copied ${latest.label.toLowerCase()}.`;
+          }
+        })
+        .catch(() => {
+          if (statusNode) {
+            statusNode.textContent = "Copy is unavailable in this browser. Open Handoffs to copy manually.";
+          }
+        });
+    };
+  }
+  if (statusNode) {
+    statusNode.textContent = latest ? "Latest local note is ready to copy or open in Garage Recent Handoffs." : "";
+  }
 }
 
 function firstUsefulLine(value = "") {
@@ -412,3 +555,5 @@ if (statusRoot) {
       });
     });
 }
+
+renderHomeResumePanel();

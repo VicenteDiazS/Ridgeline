@@ -12540,6 +12540,22 @@ kbd {
     border-radius: 10px;
   }
 
+  .home-resume-panel {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 9px;
+    border-radius: 12px;
+  }
+
+  .home-resume-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .home-resume-actions .utility-link {
+    min-height: 36px;
+    font-size: 0.68rem;
+  }
+
   .collapsible-card-head {
     align-items: start;
   }
@@ -16937,6 +16953,78 @@ select:focus {
     radial-gradient(circle at 100% 0%, rgba(255, 207, 104, 0.15), transparent 42%),
     linear-gradient(180deg, rgba(255, 207, 104, 0.1), rgba(255, 207, 104, 0.025)),
     rgba(24, 18, 8, 0.82);
+}
+
+.home-resume-panel {
+  position: relative;
+  z-index: 13;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 7px;
+  padding: 10px;
+  border: 1px solid rgba(104, 255, 190, 0.22);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.075), rgba(255, 255, 255, 0.018)),
+    rgba(5, 18, 16, 0.72);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
+}
+
+.home-resume-panel[data-resume-state="empty"] {
+  border-color: rgba(132, 167, 196, 0.18);
+  background:
+    linear-gradient(180deg, rgba(132, 167, 196, 0.07), rgba(255, 255, 255, 0.012)),
+    rgba(8, 15, 23, 0.7);
+}
+
+.home-resume-copy {
+  min-width: 0;
+}
+
+.home-resume-copy span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.home-resume-copy strong {
+  display: block;
+  color: #eafff7;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.home-resume-copy p,
+.home-resume-panel .small-note {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.home-resume-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.home-resume-actions .utility-link {
+  justify-content: center;
+  min-height: 38px;
+  padding-inline: 8px;
+}
+
+.home-resume-panel .small-note {
+  grid-column: 1 / -1;
+  margin-top: -2px;
 }
 
 .agent-status-section {

@@ -169,6 +169,9 @@ SEARCH_EXPECTATIONS = {
     "bed load planner": "Cargo Load Planner",
     "quick sheet sources": "Quick Sheet Source Confidence",
     "anton status": "Anton Latest Impact",
+    "home resume work": "Home Resume Work",
+    "resume saved work": "Home Resume Work",
+    "copy latest home note": "Home Resume Work",
     "anton owner check": "Anton Owner Check",
     "anton run snapshot": "Anton Owner Check",
     "capture clues": "Diagnostic Clue Capture",
@@ -365,6 +368,65 @@ async def assert_home_anton_status(page, page_name):
     assert_true(mobile_state["visible"], "home Anton card is not visible at iPhone width")
     assert_true(mobile_state["height"] <= 84, "home Anton card became too tall at iPhone width")
     assert_true(not mobile_state["overflow"], "home Anton card introduced horizontal overflow")
+    await page.set_viewport_size({"width": 1280, "height": 900})
+    await page.wait_for_timeout(250)
+
+    await page.evaluate(
+        """() => {
+            localStorage.setItem("ridgeline-notes", JSON.stringify({
+                general_notes: "[2026-05-24 - Diagnostic Note: Warning light]\\nContext: amber warning on first start.\\nNext: open Garage Recent Handoffs."
+            }));
+        }"""
+    )
+    await page.reload(wait_until="load")
+    await page.wait_for_timeout(700)
+    resume_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("[data-home-resume-work]");
+            const rect = panel?.getBoundingClientRect();
+            const actions = [...panel?.querySelectorAll("a") || []].map((link) => link.getAttribute("href"));
+            const button = panel?.querySelector("[data-home-resume-copy]");
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+                state: panel?.dataset.resumeState || "",
+                text: panel?.textContent || "",
+                copyEnabled: Boolean(button && !button.disabled),
+                actions,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(resume_state["hasPanel"], "home page is missing the resume work panel")
+    assert_true(resume_state["visible"], "home resume work panel is not visible")
+    assert_true(resume_state["state"] == "ready", "home resume work panel did not detect seeded Garage Notes")
+    assert_true(resume_state["copyEnabled"], "home resume work Copy Latest button should enable with seeded notes")
+    for phrase in ["Resume Work", "Diagnostic note", "Garage Notes", "Recent Handoffs"]:
+        assert_true(phrase in resume_state["text"], f"home resume work panel is missing {phrase}")
+    for href in ["garage.html#recent-handoffs", "quick-sheet.html#roadside-action-stack", "diagnostics.html#first-check-tracker"]:
+        assert_true(href in resume_state["actions"], f"home resume work panel is missing route {href}")
+    assert_true(not resume_state["overflow"], "home resume work panel introduced desktop horizontal overflow")
+    await page.set_viewport_size({"width": 390, "height": 844})
+    await page.wait_for_timeout(250)
+    resume_mobile = await page.evaluate(
+        """() => {
+            const panel = document.querySelector("[data-home-resume-work]");
+            const rect = panel?.getBoundingClientRect();
+            const buttons = [...panel?.querySelectorAll(".utility-link") || []].map((item) => item.getBoundingClientRect().height);
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                visible: Boolean(rect && rect.width > 0 && rect.height > 0),
+                panelWidth: rect?.width || 0,
+                buttonHeights: buttons,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(resume_mobile["visible"], "home resume work panel is not visible at iPhone width")
+    assert_true(resume_mobile["panelWidth"] <= 390, "home resume work panel is wider than the iPhone viewport")
+    assert_true(all(height >= 34 for height in resume_mobile["buttonHeights"]), "home resume work actions are too small for touch")
+    assert_true(not resume_mobile["overflow"], "home resume work panel introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
