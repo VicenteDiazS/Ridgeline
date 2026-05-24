@@ -16245,6 +16245,19 @@ select:focus {
   line-height: 1.2;
 }
 
+.quick-offline-route-check li a {
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.quick-offline-route-check li a:focus-visible,
+.quick-offline-route-check li a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .quick-offline-route-check li::before {
   content: "";
   flex: 0 0 auto;

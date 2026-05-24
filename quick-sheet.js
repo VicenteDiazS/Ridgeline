@@ -17,6 +17,7 @@ const offlineRouteChecks = [
   { label: "Garage Backup", path: "garage.html" }
 ];
 let lastOfflineRouteResults = [];
+let lastOfflinePrimeSummary = "";
 
 const fuseNotePlans = {
   accessory: {
@@ -128,6 +129,7 @@ function buildPrintPackHandoff() {
   const routeLines = lastOfflineRouteResults.length
     ? lastOfflineRouteResults.map((route) => `- ${route.label}: ${route.ready ? "cached" : "check while online"}`)
     : ["- Route check: run Check Routes while online before leaving signal."];
+  const primeLine = lastOfflinePrimeSummary ? [`Route prime: ${lastOfflinePrimeSummary}`] : [];
   return [
     "Ridgeline Quick Sheet prep before signal drops",
     "1. Refresh the offline pack while still online.",
@@ -135,7 +137,8 @@ function buildPrintPackHandoff() {
     "3. Download a Garage backup from the Backup Checkpoint.",
     "4. Use truck labels, owner's manual, fuse covers, and current conditions as final authority.",
     "Offline route check:",
-    ...routeLines
+    ...routeLines,
+    ...primeLine
   ].join("\n");
 }
 
@@ -410,7 +413,9 @@ function renderQuickOfflineStatus(root, message = "") {
 }
 
 function offlineRouteRequest(path) {
-  return new Request(new URL(path, window.location.href).href, { method: "GET" });
+  const url = new URL(path, window.location.href);
+  url.hash = "";
+  return new Request(url.href, { method: "GET" });
 }
 
 async function checkOfflineRoutes() {
@@ -427,6 +432,38 @@ async function checkOfflineRoutes() {
     }
   }));
   lastOfflineRouteResults = results;
+  return results;
+}
+
+async function cacheKeyForOfflinePrime() {
+  const keys = await caches.keys();
+  const ridgelineKeys = keys.filter((key) => key.startsWith("ridgeline-console-"));
+  return ridgelineKeys.at(-1) || "ridgeline-console-manual";
+}
+
+async function primeOfflineRoutes() {
+  if (!("caches" in window)) {
+    return offlineRouteChecks.map((route) => ({ ...route, primed: false, ready: false, unavailable: true }));
+  }
+
+  const cache = await caches.open(await cacheKeyForOfflinePrime());
+  const results = await Promise.all(offlineRouteChecks.map(async (route) => {
+    const request = offlineRouteRequest(route.path);
+    try {
+      const response = await fetch(request, { cache: "reload" });
+      if (response.ok) {
+        await cache.put(request, response.clone());
+      }
+      const match = await caches.match(request, { ignoreSearch: true });
+      return { ...route, primed: true, ready: Boolean(match) };
+    } catch (error) {
+      const match = await caches.match(request, { ignoreSearch: true });
+      return { ...route, primed: false, ready: Boolean(match), unavailable: !match };
+    }
+  }));
+  lastOfflineRouteResults = results;
+  const readyCount = results.filter((route) => route.ready).length;
+  lastOfflinePrimeSummary = `${readyCount}/${results.length} routes ready after prime`;
   return results;
 }
 
@@ -451,7 +488,7 @@ function renderOfflineRouteResults(root, results = lastOfflineRouteResults) {
     ? "This browser could not inspect the cache; refresh while online."
     : `${readyCount}/${results.length} key routes found in the offline cache.`;
   list.innerHTML = results
-    .map((route) => `<li data-route-status="${route.ready ? "ready" : "missing"}">${route.label}</li>`)
+    .map((route) => `<li data-route-status="${route.ready ? "ready" : "missing"}"><a href="${route.path}">${route.label}</a></li>`)
     .join("");
 }
 
@@ -492,6 +529,22 @@ function initQuickPrintPack() {
     } catch (error) {
       renderOfflineRouteResults(root, []);
       setPrintPackStatus(root, "Could not inspect cached routes in this browser session.");
+    }
+  });
+
+  root.querySelector("[data-prime-offline-routes]")?.addEventListener("click", async () => {
+    setPrintPackStatus(root, "Priming key roadside routes while online...");
+    try {
+      const routeResults = await primeOfflineRoutes();
+      renderOfflineRouteResults(root, routeResults);
+      const readyCount = routeResults.filter((route) => route.ready).length;
+      const unavailable = routeResults.every((route) => route.unavailable);
+      renderQuickOfflineStatus(root, `${readyCount}/${routeResults.length} routes ready`);
+      setPrintPackStatus(root, unavailable
+        ? `${readyCount}/${routeResults.length} roadside routes checked; browser cache unavailable in this session.`
+        : `${readyCount}/${routeResults.length} roadside routes primed for offline use.`);
+    } catch (error) {
+      setPrintPackStatus(root, "Could not prime routes in this browser session; open each key page once while online.");
     }
   });
 

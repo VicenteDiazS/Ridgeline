@@ -73,6 +73,8 @@ SEARCH_EXPECTATIONS = {
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
     "check cached routes": "Offline Route Check",
+    "prime routes": "Offline Route Check",
+    "prime offline routes": "Offline Route Check",
     "offline pinout": "Offline Route Check",
     "tow route cache": "Offline Route Check",
     "signal loss prep": "Signal-Loss Prep",
@@ -809,6 +811,7 @@ async def assert_quick_sheet(page, page_name):
                 printPackText: printPack ? printPack.innerText.toLowerCase() : "",
                 hasPrintPackRefresh: Boolean(printPack?.querySelector("[data-refresh-quick-pack]")),
                 hasOfflineRouteCheck: Boolean(printPack?.querySelector("[data-check-offline-routes]")),
+                hasOfflineRoutePrime: Boolean(printPack?.querySelector("[data-prime-offline-routes]")),
                 offlineRouteItems: printPack ? printPack.querySelectorAll("[data-offline-route-list] li").length : 0,
                 offlineRouteSummary: printPack?.querySelector("[data-offline-route-summary]")?.textContent || "",
                 hasPrintPackCopy: Boolean(printPack?.querySelector("[data-copy-print-pack]")),
@@ -874,6 +877,7 @@ async def assert_quick_sheet(page, page_name):
     assert_true(not state["missingPrintPackTargets"], f"print/offline pack is missing routes: {state['missingPrintPackTargets']}")
     assert_true(state["hasPrintPackRefresh"], "print/offline pack is missing refresh-pack control")
     assert_true(state["hasOfflineRouteCheck"], "print/offline pack is missing route-check control")
+    assert_true(state["hasOfflineRoutePrime"], "print/offline pack is missing prime-routes control")
     assert_true(state["offlineRouteItems"] == 6, "print/offline pack route check should expose six key routes")
     assert_true("cached routes" in state["offlineRouteSummary"].lower(), "print/offline pack route check should explain cached routes")
     assert_true(state["hasPrintPackCopy"], "print/offline pack is missing copy-prep control")
@@ -889,12 +893,30 @@ async def assert_quick_sheet(page, page_name):
             return {
                 status: printPack?.querySelector("[data-print-pack-status]")?.textContent || "",
                 summary: printPack?.querySelector("[data-offline-route-summary]")?.textContent || "",
-                statuses: [...printPack?.querySelectorAll("[data-offline-route-list] li") || []].map((item) => item.dataset.routeStatus || "")
+                statuses: [...printPack?.querySelectorAll("[data-offline-route-list] li") || []].map((item) => item.dataset.routeStatus || ""),
+                routeLinks: [...printPack?.querySelectorAll("[data-offline-route-list] a") || []].map((item) => item.getAttribute("href") || "")
             };
         }"""
     )
     assert_true("key offline routes" in route_state["status"].lower(), "route-check action did not report offline route count")
     assert_true(route_state["statuses"] and all(status in ["ready", "missing"] for status in route_state["statuses"]), "route-check action did not update route item states")
+    assert_true(len(route_state["routeLinks"]) == 6, "route-check should expose tappable route links after checking cache")
+    await page.locator("[data-prime-offline-routes]").click()
+    await page.wait_for_timeout(700)
+    prime_state = await page.evaluate(
+        """() => {
+            const printPack = document.querySelector("#print-offline-pack");
+            return {
+                status: printPack?.querySelector("[data-print-pack-status]")?.textContent || "",
+                offlineStatus: printPack?.querySelector("[data-quick-offline-status]")?.textContent || "",
+                readyCount: [...printPack?.querySelectorAll('[data-offline-route-list] li[data-route-status="ready"]') || []].length,
+                routeLinks: [...printPack?.querySelectorAll("[data-offline-route-list] a") || []].map((item) => item.getAttribute("href") || "")
+            };
+        }"""
+    )
+    assert_true("roadside routes" in prime_state["status"].lower(), "prime-routes action did not report a roadside-route result")
+    assert_true("/6" in prime_state["offlineStatus"], "prime-routes action did not update the live offline route count")
+    assert_true("rear-hitch.html#pinout" in prime_state["routeLinks"], "prime-routes list should preserve the pinout route link")
     assert_true(state["hasCritical"], "quick sheet is missing the critical strip")
     assert_true(state["criticalCards"] == 6, "quick sheet critical strip should expose six compact references")
     assert_true(not state["missingCriticalTargets"], f"critical strip is missing routes: {state['missingCriticalTargets']}")
