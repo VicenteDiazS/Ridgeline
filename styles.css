@@ -15898,7 +15898,7 @@ select:focus {
 .anton-review-queue {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   margin: 1rem 0;
 }
 
@@ -15933,6 +15933,13 @@ select:focus {
 
 .anton-review-queue article[data-anton-review-card="changed-page"] {
   border-color: rgba(104, 255, 190, 0.28);
+}
+
+.anton-review-queue article[data-anton-review-card="review-pack"] {
+  border-color: rgba(255, 207, 104, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 207, 104, 0.08), rgba(255, 207, 104, 0.018)),
+    rgba(18, 15, 5, 0.72);
 }
 
 .anton-run-snapshot[data-anton-run-state="completed"] article,
@@ -15982,6 +15989,17 @@ select:focus {
   justify-content: center;
   margin-top: 0.15rem;
   min-height: 40px;
+}
+
+.anton-review-pack-actions {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.anton-review-pack-status {
+  color: #ffd77a;
+  min-height: 1.2em;
 }
 
 .anton-history-item {

@@ -369,6 +369,7 @@ async def assert_anton_owner_check(page, page_name):
             const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
+            const reviewPackButtons = [...queue?.querySelectorAll("[data-anton-copy-review-pack], [data-anton-share-review-pack]") || []].map((item) => item.textContent.trim());
             const queueLinks = [...queue?.querySelectorAll("a") || []].map((item) => ({
                 text: item.textContent.trim(),
                 href: item.getAttribute("href") || ""
@@ -387,6 +388,7 @@ async def assert_anton_owner_check(page, page_name):
                 queueText: (queue?.innerText || "").toLowerCase(),
                 linkHref: link?.getAttribute("href") || "",
                 linkText: link?.textContent?.trim() || "",
+                reviewPackButtons,
                 queueLinks,
                 bottomLinks,
                 overflow: width > document.documentElement.clientWidth + 1
@@ -398,7 +400,7 @@ async def assert_anton_owner_check(page, page_name):
     assert_true(state["hasQueue"], "Anton page is missing the iPhone review queue")
     assert_true(state["cardCount"] == 3, "Anton owner check should have three action cards")
     assert_true(state["snapshotCardCount"] == 3, "Anton run snapshot should have three cards")
-    assert_true(state["queueCardCount"] == 4, "Anton review queue should have four review cards")
+    assert_true(state["queueCardCount"] == 5, "Anton review queue should have five review cards")
     assert_true("stage" in state["snapshotText"], "Anton run snapshot is missing the stage card")
     assert_true("heartbeat" in state["snapshotText"], "Anton run snapshot is missing the heartbeat card")
     assert_true("owner move" in state["snapshotText"], "Anton run snapshot is missing the owner-move card")
@@ -407,12 +409,18 @@ async def assert_anton_owner_check(page, page_name):
     assert_true("next check" in state["text"], "Anton owner check is missing the next-check card")
     assert_true("home monitor" in state["queueText"], "Anton review queue is missing the home monitor confirmation card")
     assert_true("run log" in state["queueText"] or "no log path" in state["queueText"], "Anton review queue is missing the run trace card")
+    assert_true("review pack" in state["queueText"], "Anton review queue is missing the copy/share review pack card")
     assert_true(state["linkHref"].endswith(".html"), "Anton owner check link should route to a page")
     assert_true(state["linkText"].startswith("Open"), "Anton owner check link should be a clear open action")
     assert_true(any(link["text"] == "Open Changed Page" and link["href"].endswith(".html") for link in state["queueLinks"]), "Anton review queue should open the changed page")
     assert_true(any(link["href"] == "index.html#agent-status" for link in state["queueLinks"]), "Anton review queue should link to the home monitor")
+    assert_true({"Copy Pack", "Share Pack"}.issubset(set(state["reviewPackButtons"])), "Anton review pack should expose copy and share actions")
     assert_true({"Review", "Home", "Controls", "More"}.issubset(set(state["bottomLinks"])), "Anton bottom action bar should expose Review, Home, Controls, and More")
     assert_true(not state["overflow"], "Anton owner check introduced desktop horizontal overflow")
+    await page.click("[data-anton-copy-review-pack]")
+    await page.wait_for_timeout(250)
+    pack_status = await page.locator("[data-anton-review-pack-status]").inner_text()
+    assert_true(pack_status.strip(), "Anton review pack copy action did not report a status")
 
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
@@ -425,6 +433,7 @@ async def assert_anton_owner_check(page, page_name):
             const snapshotCards = [...snapshot?.querySelectorAll("article") || []];
             const queueCards = [...queue?.querySelectorAll("article") || []];
             const link = panel?.querySelector("[data-anton-owner-check-link]");
+            const queueActions = [...queue?.querySelectorAll("a, button") || []];
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
                 visible: Boolean(panel && panel.getBoundingClientRect().height > 0),
@@ -433,7 +442,7 @@ async def assert_anton_owner_check(page, page_name):
                 columns: cards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 snapshotColumns: snapshotCards.map((card) => Math.round(card.getBoundingClientRect().width)),
                 queueColumns: queueCards.map((card) => Math.round(card.getBoundingClientRect().width)),
-                queueLinkHeights: [...queue?.querySelectorAll("a") || []].map((item) => Math.round(item.getBoundingClientRect().height)),
+                queueActionHeights: queueActions.map((item) => Math.round(item.getBoundingClientRect().height)),
                 linkHeight: Math.round(link?.getBoundingClientRect().height || 0),
                 overflow: width > document.documentElement.clientWidth + 1
             };
@@ -446,7 +455,7 @@ async def assert_anton_owner_check(page, page_name):
     assert_true(all(width >= 340 for width in mobile_state["snapshotColumns"]), "Anton run snapshot cards should stack at iPhone width")
     assert_true(all(width >= 340 for width in mobile_state["queueColumns"]), "Anton review queue cards should stack at iPhone width")
     assert_true(mobile_state["linkHeight"] >= 38, "Anton owner check action is too small for touch")
-    assert_true(all(height >= 38 for height in mobile_state["queueLinkHeights"]), "Anton review queue actions are too small for touch")
+    assert_true(all(height >= 38 for height in mobile_state["queueActionHeights"]), "Anton review queue actions are too small for touch")
     assert_true(not mobile_state["overflow"], "Anton owner check introduced iPhone horizontal overflow")
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)

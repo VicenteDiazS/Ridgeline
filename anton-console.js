@@ -260,6 +260,51 @@ function renderOwnerCheck(status) {
   });
 }
 
+function buildReviewPackText(status, context) {
+  const tone = reviewToneForStatus(status);
+  const logPath = status.outputLog || status.log || "No run log path published";
+  const changedUrl = new URL(context.changedPage || "index.html", window.location.href).href;
+  const homeUrl = new URL("index.html#agent-status", window.location.href).href;
+  return [
+    "Ridgeline Anton review pack",
+    `Status: ${status.statusTitle || status.status || "Unknown"}`,
+    `Impact: ${context.score || "Not scored"} - ${context.visibleChange || firstSummaryLine(status.summary)}`,
+    `Changed page: ${context.changedLabel || "Home"} - ${changedUrl}`,
+    `Home monitor: ${homeUrl}`,
+    `Owner move: ${tone.title}`,
+    `Action note: ${firstSummaryLine(context.actionRequired || tone.detail)}`,
+    `Next check: ${context.next || describeNextRun(status.nextExpectedRunAt)}`,
+    `Trace: ${logPath}`
+  ].join("\n");
+}
+
+async function copyText(value = "") {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.append(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  } finally {
+    textarea.remove();
+  }
+  return copied;
+}
+
+function setReviewPackStatus(message = "") {
+  els.reviewQueue?.querySelector("[data-anton-review-pack-status]")?.replaceChildren(document.createTextNode(message));
+}
+
 function renderRunSnapshot(status) {
   if (!els.runSnapshot) {
     return;
@@ -336,6 +381,7 @@ function renderReviewQueue(status, context) {
   const tone = reviewToneForStatus(status);
   const logPath = status.outputLog || status.log || "";
   const safeDetail = summarizeText(context.visibleChange || status.summary);
+  const reviewPackText = buildReviewPackText(status, context);
   els.reviewQueue.innerHTML = `
     <article data-anton-review-card="changed-page">
       <span>${escapeHtml(tone.label)}</span>
@@ -360,7 +406,38 @@ function renderReviewQueue(status, context) {
       <strong>${escapeHtml(logPath ? "Run Log Recorded" : "No Log Path")}</strong>
       <p>${escapeHtml(logPath || "Anton has not published an output log path for this run yet.")}</p>
     </article>
+    <article data-anton-review-card="review-pack">
+      <span>Pack</span>
+      <strong>Review Pack</strong>
+      <p>Copy or share the changed page, impact, home monitor check, next action, and run trace as one iPhone note.</p>
+      <div class="anton-review-pack-actions">
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-copy-review-pack>Copy Pack</button>
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-share-review-pack>Share Pack</button>
+      </div>
+      <p class="anton-review-pack-status" data-anton-review-pack-status aria-live="polite"></p>
+    </article>
   `;
+  els.reviewQueue.querySelector("[data-anton-copy-review-pack]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(reviewPackText);
+      setReviewPackStatus(copied ? "Review pack copied." : "Copy is unavailable in this browser.");
+    } catch {
+      setReviewPackStatus("Copy failed. Select the review cards manually.");
+    }
+  });
+  els.reviewQueue.querySelector("[data-anton-share-review-pack]")?.addEventListener("click", async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline Anton review pack", text: reviewPackText });
+        setReviewPackStatus("Review pack shared.");
+        return;
+      }
+      const copied = await copyText(reviewPackText);
+      setReviewPackStatus(copied ? "Share unavailable; review pack copied instead." : "Share is unavailable in this browser.");
+    } catch {
+      setReviewPackStatus("Share canceled or unavailable.");
+    }
+  });
 }
 
 async function controlFetch(path, options = {}) {
