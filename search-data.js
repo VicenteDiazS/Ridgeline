@@ -36,8 +36,8 @@ export const searchIndex = [
     title: "Offline Launch Pad",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Navigation",
-    excerpt: "Global Search offline card with offline pack status, signal-loss prep, route readiness checks, prime-routes action, and quick cached routes to Roadside, Diagnostics, Fuses, Quick Sheet print, and Garage Backup.",
-    keywords: ["offline launch pad", "offline pack", "offline mode", "cached site", "cached roadside", "refresh pack", "refresh offline pack", "offline diagnostics", "garage backup offline", "iphone offline", "signal loss prep", "before signal drops", "print quick sheet offline", "global route readiness", "search route readiness", "search check routes", "search prime routes"]
+    excerpt: "Global Search offline card with offline pack status, signal-loss prep, route readiness checks, prime-routes and copy-route-plan actions, and quick cached routes to Roadside, Diagnostics, Fuses, Quick Sheet print, and Garage Backup.",
+    keywords: ["offline launch pad", "offline pack", "offline mode", "cached site", "cached roadside", "refresh pack", "refresh offline pack", "offline diagnostics", "garage backup offline", "iphone offline", "signal loss prep", "before signal drops", "print quick sheet offline", "global route readiness", "search route readiness", "search check routes", "search prime routes", "copy route plan", "offline route plan", "search copy route plan"]
   },
   {
     title: "Signal-Loss Prep",
@@ -50,8 +50,8 @@ export const searchIndex = [
     title: "Offline Route Check",
     url: "quick-sheet.html#print-offline-pack",
     category: "Quick Sheet",
-    excerpt: "Quick Sheet offline route checker for priming and confirming cached Roadside, Diagnostics, Fuses, Rear Hitch, 7-way Pinout, and Garage Backup routes before leaving signal.",
-    keywords: ["offline route check", "check cached routes", "prime routes", "prime offline routes", "cached roadside routes", "offline readiness", "offline quick sheet check", "garage backup cache", "diagnostics cache", "fuses cache", "rear hitch cache", "pinout cache", "offline pinout", "tow route cache", "before leaving signal"]
+    excerpt: "Quick Sheet offline route checker for priming, confirming, and copying a route plan for cached Roadside, Diagnostics, Fuses, Rear Hitch, 7-way Pinout, and Garage Backup routes before leaving signal.",
+    keywords: ["offline route check", "check cached routes", "prime routes", "prime offline routes", "cached roadside routes", "offline readiness", "offline quick sheet check", "garage backup cache", "diagnostics cache", "fuses cache", "rear hitch cache", "pinout cache", "offline pinout", "tow route cache", "before leaving signal", "copy offline route plan", "offline route plan", "roadside route plan"]
   },
   {
     title: "Diagnostic Handoff Builder",

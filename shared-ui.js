@@ -3994,6 +3994,7 @@ function buildSearchModal() {
           <button type="button" data-search-refresh-pack>Refresh Pack</button>
           <button type="button" data-search-check-routes>Check Routes</button>
           <button type="button" data-search-prime-routes>Prime Routes</button>
+          <button type="button" data-search-copy-route-plan>Copy Route Plan</button>
         </div>
         <p class="search-offline-status" data-search-refresh-status aria-live="polite"></p>
       </section>
@@ -4101,6 +4102,7 @@ const SEARCH_OFFLINE_ROUTES = [
   { label: "7-Way Pinout", path: "rear-hitch.html#pinout" },
   { label: "Garage Backup", path: "garage.html" }
 ];
+let lastSearchOfflineRouteResults = [];
 
 const SEARCH_SYNONYMS = new Map([
   ["tyre", ["tire", "wheel"]],
@@ -4698,6 +4700,7 @@ function renderSearchRouteReadiness(results = []) {
   }
 
   if (!results.length) {
+    lastSearchOfflineRouteResults = [];
     summary.textContent = "Check key routes before leaving signal.";
     list.innerHTML = SEARCH_OFFLINE_ROUTES
       .map((route) => `<li data-route-status="unknown">${route.label}</li>`)
@@ -4705,6 +4708,7 @@ function renderSearchRouteReadiness(results = []) {
     return;
   }
 
+  lastSearchOfflineRouteResults = results;
   const readyCount = results.filter((route) => route.ready).length;
   const unavailable = results.some((route) => route.unavailable);
   summary.textContent = unavailable
@@ -4713,6 +4717,36 @@ function renderSearchRouteReadiness(results = []) {
   list.innerHTML = results
     .map((route) => `<li data-route-status="${route.ready ? "ready" : "missing"}"><a href="${route.path}">${route.label}</a></li>`)
     .join("");
+}
+
+function buildSearchOfflineRoutePlan() {
+  const results = lastSearchOfflineRouteResults.length
+    ? lastSearchOfflineRouteResults
+    : SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, ready: false, unchecked: true }));
+  const readyRoutes = results.filter((route) => route.ready);
+  const openRoutes = results.filter((route) => !route.ready);
+  const readyLines = readyRoutes.length
+    ? readyRoutes.map((route) => `- ${route.label}: cached`)
+    : ["- None confirmed yet"];
+  const openLines = openRoutes.length
+    ? openRoutes.map((route) => `- ${route.label}: ${route.path}`)
+    : ["- All key routes are currently found in cache"];
+  const intro = lastSearchOfflineRouteResults.length
+    ? `${readyRoutes.length}/${results.length} key routes found in the offline cache.`
+    : "Run Check Routes or Prime Routes while online to confirm cache state.";
+
+  return [
+    "Ridgeline offline route plan before signal drops",
+    intro,
+    "",
+    "Cached routes:",
+    ...readyLines,
+    "",
+    "Open while online if needed:",
+    ...openLines,
+    "",
+    "Keep a Garage backup and printed Quick Sheet if coverage may be weak."
+  ].join("\n");
 }
 
 function updateSearchOfflineCard(message = "") {
@@ -5067,6 +5101,14 @@ searchModal.querySelector("[data-search-prime-routes]")?.addEventListener("click
       : `${readyCount}/${results.length} routes primed for offline use.`);
   } catch {
     updateSearchOfflineCard("Could not prime routes in this browser session; open each key page once while online.");
+  }
+});
+searchModal.querySelector("[data-search-copy-route-plan]")?.addEventListener("click", async () => {
+  try {
+    await copyText(buildSearchOfflineRoutePlan());
+    updateSearchOfflineCard("Offline route plan copied.");
+  } catch {
+    updateSearchOfflineCard("Could not copy the route plan in this browser session.");
   }
 });
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {

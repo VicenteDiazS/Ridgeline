@@ -143,6 +143,36 @@ function buildPrintPackHandoff() {
   ].join("\n");
 }
 
+function buildOfflineRoutePlan() {
+  const results = lastOfflineRouteResults.length
+    ? lastOfflineRouteResults
+    : offlineRouteChecks.map((route) => ({ ...route, ready: false, unchecked: true }));
+  const readyRoutes = results.filter((route) => route.ready);
+  const openRoutes = results.filter((route) => !route.ready);
+  const readyLines = readyRoutes.length
+    ? readyRoutes.map((route) => `- ${route.label}: cached`)
+    : ["- None confirmed yet"];
+  const openLines = openRoutes.length
+    ? openRoutes.map((route) => `- ${route.label}: ${route.path}`)
+    : ["- All key roadside routes are currently found in cache"];
+  const intro = lastOfflineRouteResults.length
+    ? `${readyRoutes.length}/${results.length} key routes found in the offline cache.`
+    : "Run Check Routes or Prime Routes while online to confirm cache state.";
+
+  return [
+    "Ridgeline roadside offline route plan",
+    intro,
+    "",
+    "Cached routes:",
+    ...readyLines,
+    "",
+    "Open while online if needed:",
+    ...openLines,
+    "",
+    "Keep the printed Quick Sheet and Garage backup ready before coverage drops."
+  ].join("\n");
+}
+
 function buildFuseNoteText(root) {
   const key = root?.dataset.currentFuseNote || "accessory";
   const plan = fuseNotePlans[key] || fuseNotePlans.accessory;
@@ -606,6 +636,15 @@ function initQuickPrintPack() {
         : `${readyCount}/${routeResults.length} roadside routes primed for offline use.`);
     } catch (error) {
       setPrintPackStatus(root, "Could not prime routes in this browser session; open each key page once while online.");
+    }
+  });
+
+  root.querySelector("[data-copy-offline-route-plan]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(buildOfflineRoutePlan());
+      setPrintPackStatus(root, copied ? "Offline route plan copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setPrintPackStatus(root, "Copy failed. Run Check Routes, then select the route list if needed.");
     }
   });
 

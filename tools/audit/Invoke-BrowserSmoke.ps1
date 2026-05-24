@@ -82,8 +82,10 @@ SEARCH_EXPECTATIONS = {
     "prime offline routes": "Offline Route Check",
     "offline pinout": "Offline Route Check",
     "tow route cache": "Offline Route Check",
+    "copy offline route plan": "Offline Route Check",
     "search prime routes": "Offline Launch Pad",
     "global route readiness": "Offline Launch Pad",
+    "search copy route plan": "Offline Launch Pad",
     "signal loss prep": "Signal-Loss Prep",
     "before signal drops": "Signal-Loss Prep",
     "service run launcher": "Service Run Launcher",
@@ -1023,6 +1025,7 @@ async def assert_quick_sheet(page, page_name):
                 hasPrintPackRefresh: Boolean(printPack?.querySelector("[data-refresh-quick-pack]")),
                 hasOfflineRouteCheck: Boolean(printPack?.querySelector("[data-check-offline-routes]")),
                 hasOfflineRoutePrime: Boolean(printPack?.querySelector("[data-prime-offline-routes]")),
+                hasOfflineRoutePlanCopy: Boolean(printPack?.querySelector("[data-copy-offline-route-plan]")),
                 offlineRouteItems: printPack ? printPack.querySelectorAll("[data-offline-route-list] li").length : 0,
                 offlineRouteSummary: printPack?.querySelector("[data-offline-route-summary]")?.textContent || "",
                 hasPrintPackCopy: Boolean(printPack?.querySelector("[data-copy-print-pack]")),
@@ -1095,6 +1098,7 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["hasPrintPackRefresh"], "print/offline pack is missing refresh-pack control")
     assert_true(state["hasOfflineRouteCheck"], "print/offline pack is missing route-check control")
     assert_true(state["hasOfflineRoutePrime"], "print/offline pack is missing prime-routes control")
+    assert_true(state["hasOfflineRoutePlanCopy"], "print/offline pack is missing copy-route-plan control")
     assert_true(state["offlineRouteItems"] == 6, "print/offline pack route check should expose six key routes")
     assert_true("cached routes" in state["offlineRouteSummary"].lower(), "print/offline pack route check should explain cached routes")
     assert_true(state["hasPrintPackCopy"], "print/offline pack is missing copy-prep control")
@@ -1118,6 +1122,10 @@ async def assert_quick_sheet(page, page_name):
     assert_true("key offline routes" in route_state["status"].lower(), "route-check action did not report offline route count")
     assert_true(route_state["statuses"] and all(status in ["ready", "missing"] for status in route_state["statuses"]), "route-check action did not update route item states")
     assert_true(len(route_state["routeLinks"]) == 6, "route-check should expose tappable route links after checking cache")
+    await page.locator("[data-copy-offline-route-plan]").click()
+    await page.wait_for_timeout(200)
+    route_plan_status = await page.locator("[data-print-pack-status]").inner_text()
+    assert_true("route plan copied" in route_plan_status.lower() or "copy is unavailable" in route_plan_status.lower(), "copy route plan action did not report status")
     await page.locator("[data-prime-offline-routes]").click()
     await page.wait_for_timeout(700)
     prime_state = await page.evaluate(
@@ -4423,6 +4431,7 @@ async def run_overlay_checks(page, page_name):
                 hasOfflineRefresh: Boolean(offlineCard?.querySelector("[data-search-refresh-pack]")),
                 hasOfflineRouteCheck: Boolean(offlineCard?.querySelector("[data-search-check-routes]")),
                 hasOfflineRoutePrime: Boolean(offlineCard?.querySelector("[data-search-prime-routes]")),
+                hasOfflineRoutePlanCopy: Boolean(offlineCard?.querySelector("[data-search-copy-route-plan]")),
                 hasOfflineRouteReadiness: Boolean(offlineCard?.querySelector(".search-route-check")),
                 offlineRouteItems: offlineCard?.querySelectorAll("[data-search-route-list] li").length || 0,
                 offlineRouteSummary: offlineCard?.querySelector("[data-search-route-summary]")?.textContent || "",
@@ -4463,6 +4472,7 @@ async def run_overlay_checks(page, page_name):
     assert_true(quick_state["hasOfflineRefresh"], "search offline launch pad is missing refresh-pack action")
     assert_true(quick_state["hasOfflineRouteCheck"], "search offline launch pad is missing check-routes action")
     assert_true(quick_state["hasOfflineRoutePrime"], "search offline launch pad is missing prime-routes action")
+    assert_true(quick_state["hasOfflineRoutePlanCopy"], "search offline launch pad is missing copy-route-plan action")
     assert_true(quick_state["hasOfflineRouteReadiness"], "search offline launch pad is missing route readiness list")
     assert_true(quick_state["offlineRouteItems"] == 6, "search route readiness should expose six key routes")
     assert_true("key routes" in quick_state["offlineRouteSummary"].lower(), "search route readiness summary should explain key routes")
@@ -4495,6 +4505,10 @@ async def run_overlay_checks(page, page_name):
     assert_true("cache" in route_state["summary"].lower() or "open key routes" in route_state["summary"].lower(), "search route readiness summary did not update")
     assert_true(len(route_state["statuses"]) == 6, "search route readiness list lost route rows after check")
     assert_true("quick-sheet.html" in route_state["links"], "search route readiness should make checked routes tappable")
+    await page.locator("[data-search-copy-route-plan]").click()
+    await page.wait_for_timeout(200)
+    route_plan_status = await page.locator("[data-search-refresh-status]").inner_text()
+    assert_true("route plan copied" in route_plan_status.lower() or "could not copy" in route_plan_status.lower(), "search copy-route-plan action did not report status")
     await page.locator("[data-search-prime-routes]").click()
     await page.wait_for_timeout(650)
     prime_status = await page.locator("[data-search-refresh-status]").inner_text()
