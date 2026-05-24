@@ -69,6 +69,10 @@ SEARCH_EXPECTATIONS = {
     "save diagnostic note": "Diagnostic Handoff Builder",
     "diagnostic note receipt": "Diagnostic Handoff Builder",
     "diagnostic smart dock": "Diagnostic Handoff Builder",
+    "first diagnostic checks": "First Diagnostic Check Tracker",
+    "diagnostic check tracker": "First Diagnostic Check Tracker",
+    "copy diagnostic checks": "First Diagnostic Check Tracker",
+    "save first checks": "First Diagnostic Check Tracker",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
@@ -548,6 +552,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
         """() => {
             const firstMinute = document.querySelector("#first-minute-triage");
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
+            const checkTracker = document.querySelector("#first-check-tracker");
             const workflowIndex = document.querySelector("#workflow-index");
             const handoff = document.querySelector("#diagnostic-handoff");
             const firstMinuteCards = firstMinute ? [...firstMinute.querySelectorAll(".diagnostic-first-minute-card")] : [];
@@ -577,6 +582,14 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 firstMinuteRouteMissing: requiredFirstMinuteTargets.filter((href) => !firstMinute?.querySelector(`a[href="${href}"]`)),
                 hasWorkflowIndex: Boolean(workflowIndex),
                 hasShareBuilder: Boolean(shareBuilder),
+                hasCheckTracker: Boolean(checkTracker),
+                checkButtons: checkTracker ? checkTracker.querySelectorAll("[data-diagnostic-check-plan]").length : 0,
+                checkItems: checkTracker ? checkTracker.querySelectorAll("[data-diagnostic-check]").length : 0,
+                hasCheckCopy: Boolean(checkTracker?.querySelector("[data-copy-diagnostic-checks]")),
+                hasCheckShare: Boolean(checkTracker?.querySelector("[data-share-diagnostic-checks]")),
+                hasCheckSave: Boolean(checkTracker?.querySelector("[data-save-diagnostic-checks]")),
+                hasCheckGarageRoute: Boolean(checkTracker?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                checkText: checkTracker ? checkTracker.innerText : "",
                 shareButtons: shareBuilder ? shareBuilder.querySelectorAll("[data-diagnostic-share-plan]").length : 0,
                 shareText: shareBuilder ? shareBuilder.innerText : "",
                 hasShareCopy: Boolean(shareBuilder?.querySelector("[data-copy-diagnostic-share]")),
@@ -617,6 +630,15 @@ async def assert_diagnostics_workflow_index(page, page_name):
     for phrase in ["no start", "warning light", "dead electrical", "trailer lights"]:
         assert_true(phrase in first_minute_text, f"first-minute triage is missing {phrase}")
     assert_true(state["hasShareBuilder"], "diagnostics page is missing diagnostic handoff builder")
+    assert_true(state["hasCheckTracker"], "diagnostics page is missing first diagnostic check tracker")
+    assert_true(state["checkButtons"] == 5, "first diagnostic check tracker should expose five symptom buttons")
+    assert_true(state["checkItems"] == 4, "first diagnostic check tracker should render four checks for the default symptom")
+    assert_true(state["hasCheckCopy"], "first diagnostic check tracker is missing copy control")
+    assert_true(state["hasCheckShare"], "first diagnostic check tracker is missing share control")
+    assert_true(state["hasCheckSave"], "first diagnostic check tracker is missing save control")
+    assert_true(state["hasCheckGarageRoute"], "first diagnostic check tracker is missing Recent Handoffs route")
+    for phrase in ["Mark What You Already Tried", "No Start", "Copy Checks", "Save Garage Note"]:
+        assert_true(phrase in state["checkText"], f"first diagnostic check tracker is missing {phrase}")
     assert_true(state["shareButtons"] == 5, "diagnostic handoff builder should expose five symptom buttons")
     assert_true(state["hasShareCopy"], "diagnostic handoff builder is missing copy control")
     assert_true(state["hasShareShare"], "diagnostic handoff builder is missing share control")
@@ -703,6 +725,40 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(receipt_state["garageRoute"], "diagnostic receipt is missing the Open Garage Notes route")
     assert_true(receipt_state["hasCopyReceipt"], "diagnostic receipt is missing Copy Note")
     assert_true(receipt_state["hasShareReceipt"], "diagnostic receipt is missing Share")
+    await page.locator('[data-diagnostic-check-plan="power"]').click()
+    await page.locator('[data-diagnostic-check="0"]').check()
+    await page.locator('[data-diagnostic-check="2"]').check()
+    await page.locator("[data-diagnostic-check-detail]").fill("front socket dead, console socket works")
+    await page.locator("[data-save-diagnostic-checks]").click()
+    await page.wait_for_timeout(250)
+    check_state = await page.evaluate(
+        """() => {
+            const tracker = document.querySelector("#first-check-tracker");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("ridgeline-diagnostic-first-checks") || "{}");
+            return {
+                pressed: tracker?.querySelector('[data-diagnostic-check-plan="power"]')?.getAttribute("aria-pressed") || "",
+                title: tracker?.querySelector("[data-diagnostic-check-title]")?.textContent || "",
+                count: tracker?.querySelector("[data-diagnostic-check-count]")?.textContent || "",
+                next: tracker?.querySelector("[data-diagnostic-check-next]")?.textContent || "",
+                status: tracker?.querySelector("[data-diagnostic-check-status]")?.textContent || "",
+                note: notes.general_notes || "",
+                storedMarked: stored.power?.markedChecks || [],
+                storedDetail: stored.power?.detail || "",
+                checkedCount: tracker ? tracker.querySelectorAll("[data-diagnostic-check]:checked").length : 0
+            };
+        }"""
+    )
+    assert_true(check_state["pressed"] == "true", "first diagnostic check tracker did not select 12V Power")
+    assert_true("outlet and device checks" in check_state["title"], "first diagnostic check tracker did not render the 12V plan")
+    assert_true(check_state["count"] == "2 of 4 checks marked", "first diagnostic check tracker did not count marked checks")
+    assert_true("Device or adapter named" in check_state["next"], "first diagnostic check tracker did not show the next unmarked check")
+    assert_true("saved to Garage Notes" in check_state["status"], "first diagnostic check tracker did not report save status")
+    assert_true("First Diagnostic Checks: 12V socket or accessory power" in check_state["note"], "Garage Notes did not receive first-check tracker note")
+    assert_true("front socket dead, console socket works" in check_state["note"], "first-check tracker note did not preserve owner detail")
+    assert_true(len(check_state["storedMarked"]) == 2, "first-check tracker did not persist marked checks locally")
+    assert_true(check_state["storedDetail"] == "front socket dead, console socket works", "first-check tracker did not persist detail locally")
+    assert_true(check_state["checkedCount"] == 2, "first-check tracker did not keep checked controls active")
     assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
     assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
@@ -722,9 +778,14 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const grid = triage?.querySelector(".diagnostic-first-minute-grid");
             const firstActions = triage?.querySelector(".diagnostic-first-minute-card .inspector-actions");
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
+            const checkTracker = document.querySelector("#first-check-tracker");
             const sharePicker = shareBuilder?.querySelector(".diagnostic-share-picker");
             const shareActions = shareBuilder?.querySelector(".diagnostic-share-card .inspector-actions");
+            const checkPicker = checkTracker?.querySelector(".diagnostic-check-picker");
+            const checkList = checkTracker?.querySelector(".diagnostic-check-list");
+            const checkActions = checkTracker?.querySelector(".diagnostic-check-card .inspector-actions");
             const detailField = shareBuilder?.querySelector("[data-diagnostic-detail]");
+            const checkDetail = checkTracker?.querySelector("[data-diagnostic-check-detail]");
             const receipt = shareBuilder?.querySelector("[data-diagnostic-save-receipt]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
@@ -737,6 +798,16 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 shareColumns: sharePicker ? getComputedStyle(sharePicker).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 shareActionRows: shareActions
                     ? new Set([...shareActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                checkVisible: Boolean(checkTracker && checkTracker.getBoundingClientRect().height > 0),
+                checkColumns: checkPicker ? getComputedStyle(checkPicker).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                checkItemColumns: checkList ? getComputedStyle(checkList).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                checkActionRows: checkActions
+                    ? new Set([...checkActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                checkDetailVisible: Boolean(checkDetail && checkDetail.getBoundingClientRect().height >= 70),
+                minCheckItemHeight: checkList
+                    ? Math.min(...[...checkList.querySelectorAll(".diagnostic-check-item")].map((item) => item.getBoundingClientRect().height))
                     : 0,
                 detailFieldVisible: Boolean(detailField && detailField.getBoundingClientRect().height >= 70),
                 receiptVisible: Boolean(receipt && receipt.getBoundingClientRect().height > 0),
@@ -757,6 +828,12 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["shareVisible"], "diagnostic handoff builder is not visible at iPhone width")
     assert_true(mobile_state["shareColumns"] == 3, "diagnostic handoff builder picker should use three compact columns at iPhone width")
     assert_true(mobile_state["shareActionRows"] == 3, "diagnostic handoff builder actions should use three compact rows at iPhone width")
+    assert_true(mobile_state["checkVisible"], "first diagnostic check tracker is not visible at iPhone width")
+    assert_true(mobile_state["checkColumns"] == 3, "first diagnostic check tracker picker should use three compact columns at iPhone width")
+    assert_true(mobile_state["checkItemColumns"] == 2, "first diagnostic check tracker should keep checks in two iPhone columns")
+    assert_true(mobile_state["checkActionRows"] == 2, "first diagnostic check tracker actions should use two compact rows at iPhone width")
+    assert_true(mobile_state["checkDetailVisible"], "first diagnostic check tracker note field should stay usable at iPhone width")
+    assert_true(mobile_state["minCheckItemHeight"] >= 38, "first diagnostic check tracker chips should stay thumb-readable on iPhone")
     assert_true(mobile_state["detailFieldVisible"], "diagnostic owner-detail field should stay usable at iPhone width")
     assert_true(mobile_state["receiptVisible"], "saved diagnostic receipt is not visible at iPhone width after save")
     assert_true(mobile_state["contextPrimaryVisible"], "diagnostic bottom-bar selected-flow action should stay thumb-readable on iPhone")

@@ -54,6 +54,13 @@ export const searchIndex = [
     keywords: ["diagnostic handoff builder", "diagnostic share", "copy diagnostic handoff", "share diagnostic note", "save diagnostic note", "diagnostic note receipt", "garage diagnostic note", "diagnostic summary", "symptom summary", "iphone diagnostic handoff", "no start handoff", "warning light handoff", "12v handoff", "trailer light handoff", "diagnostic owner detail", "diagnostic mileage note", "exact warning clue", "preserve symptom detail", "diagnostic smart dock", "diagnostic bottom dock", "symptom dock"]
   },
   {
+    title: "First Diagnostic Check Tracker",
+    url: "diagnostics.html#first-check-tracker",
+    category: "Diagnostics",
+    excerpt: "Diagnostics iPhone tracker for marking the first no-start, warning-light, 12V power, audio/display, or trailer-light checks, then copying, sharing, or saving the result into Garage Notes.",
+    keywords: ["first diagnostic checks", "first check tracker", "diagnostic check tracker", "mark diagnostic checks", "copy diagnostic checks", "save first checks", "save diagnostic checks", "no start checks", "warning light checks", "12v checks", "audio display checks", "trailer light checks", "iphone diagnostic checklist", "garage first checks"]
+  },
+  {
     title: "Owner Shortcut Strip",
     url: "quick-sheet.html#print-offline-pack",
     category: "Navigation",

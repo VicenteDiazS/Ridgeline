@@ -6,6 +6,7 @@ import {
 } from "./garage-data.js";
 
 const DIAGNOSTIC_RECEIPT_KEY = "ridgeline-diagnostic-last-handoff";
+const DIAGNOSTIC_CHECK_KEY = "ridgeline-diagnostic-first-checks";
 
 const diagnosticSharePlans = {
   start: {
@@ -90,6 +91,74 @@ const diagnosticSharePlans = {
   }
 };
 
+const diagnosticCheckPlans = {
+  start: {
+    kicker: "No start or weak battery",
+    title: "Track the first no-start checks before context changes",
+    summary: "Use this before moving from battery and jump context into deeper no-start routing.",
+    checks: [
+      "Starter behavior named",
+      "Dash behavior noted",
+      "Jump or battery context recorded",
+      "Next reference opened"
+    ],
+    next: "Open No-Start Flow or Jump Notes with the early behavior preserved.",
+    reference: "No-start workflow / hood jump notes"
+  },
+  warning: {
+    kicker: "Warning light or MID message",
+    title: "Track exact warning clues before a restart changes them",
+    summary: "Use this when a dash light, MID message, or multiple alerts need a quick first record.",
+    checks: [
+      "Color or flashing state captured",
+      "Exact MID wording written",
+      "Recent service or battery context noted",
+      "Warning note route opened"
+    ],
+    next: "Open Warning Flow or the Garage warning template.",
+    reference: "warning-light workflow / Garage warning note"
+  },
+  power: {
+    kicker: "12V socket or accessory power",
+    title: "Track outlet and device checks before chasing fuses",
+    summary: "Use this when a charger, accessory socket, adapter, or small inverter stopped working.",
+    checks: [
+      "Exact outlet named",
+      "Device or adapter named",
+      "Power mode checked",
+      "Known-good low-load test tried"
+    ],
+    next: "Open 12V Power Flow, then Cabin or Hood fuses only after the basics are captured.",
+    reference: "accessory-power workflow / Cabin fuses"
+  },
+  audio: {
+    kicker: "Audio, radio, or display issue",
+    title: "Track power, source, and screen clues first",
+    summary: "Use this when the display, radio, speakers, Bluetooth, source, or camera/display path changes.",
+    checks: [
+      "Screen versus sound separated",
+      "Source or Bluetooth state noted",
+      "Volume/mute/power mode checked",
+      "Recent battery or accessory work noted"
+    ],
+    next: "Open Audio Flow with source and power clues already recorded.",
+    reference: "audio/display workflow / Cabin Audio"
+  },
+  trailer: {
+    kicker: "Trailer light or connector issue",
+    title: "Track connector and failed light function first",
+    summary: "Use this when a trailer, adapter, tester, or 7-way/4-flat light behavior changes.",
+    checks: [
+      "Connector or adapter named",
+      "Failed light function named",
+      "Truck lights compared",
+      "Tester or trailer result noted"
+    ],
+    next: "Open Trailer Flow or 7-Way Pinout with the failed function preserved.",
+    reference: "trailer-light workflow / 7-way pinout"
+  }
+};
+
 function cleanDiagnosticDetail(detail) {
   return `${detail || ""}`.replace(/\s+/g, " ").trim();
 }
@@ -130,6 +199,38 @@ function buildSavedDiagnosticNote(plan, detail = "") {
   ].filter((line, index, lines) => line || lines[index - 1]).join("\n");
 }
 
+function buildDiagnosticCheckText(plan, markedChecks = [], detail = "") {
+  const ownerDetail = cleanDiagnosticDetail(detail);
+  const completed = plan.checks.filter((check) => markedChecks.includes(check));
+  const pending = plan.checks.filter((check) => !markedChecks.includes(check));
+  return [
+    `Ridgeline first diagnostic checks: ${plan.kicker}`,
+    plan.title,
+    completed.length ? `Marked complete: ${completed.join("; ")}` : "Marked complete: none yet",
+    pending.length ? `Still not marked: ${pending.join("; ")}` : "Still not marked: all first checks marked",
+    ownerDetail ? `Result or next clue: ${ownerDetail}` : "",
+    `Next: ${plan.next}`,
+    `Reference: ${plan.reference}`,
+    "Use current warnings, truck labels, the owner manual, and conditions as final authority."
+  ].filter(Boolean).join("\n");
+}
+
+function buildSavedDiagnosticCheckNote(plan, markedChecks = [], detail = "") {
+  const timestamp = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+  return [
+    `[${timestamp} - First Diagnostic Checks: ${plan.kicker}]`,
+    buildDiagnosticCheckText(plan, markedChecks, detail),
+    "Saved from Diagnostics First Check Tracker."
+  ].join("\n");
+}
+
 function loadDiagnosticReceipt() {
   try {
     return JSON.parse(localStorage.getItem(DIAGNOSTIC_RECEIPT_KEY) || "null");
@@ -140,6 +241,18 @@ function loadDiagnosticReceipt() {
 
 function saveDiagnosticReceipt(receipt) {
   localStorage.setItem(DIAGNOSTIC_RECEIPT_KEY, JSON.stringify(receipt));
+}
+
+function loadDiagnosticChecks() {
+  try {
+    return JSON.parse(localStorage.getItem(DIAGNOSTIC_CHECK_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveDiagnosticChecks(state) {
+  localStorage.setItem(DIAGNOSTIC_CHECK_KEY, JSON.stringify(state));
 }
 
 function currentDiagnosticReceiptText() {
@@ -365,5 +478,146 @@ function initDiagnosticShareBuilder() {
   renderDiagnosticReceipt(root);
 }
 
+function getDiagnosticCheckState(root) {
+  const planKey = root.dataset.currentDiagnosticCheckPlan || "start";
+  const plan = diagnosticCheckPlans[planKey] || diagnosticCheckPlans.start;
+  const markedChecks = [...root.querySelectorAll("[data-diagnostic-check]:checked")].map((input) => input.value);
+  const detail = root.querySelector("[data-diagnostic-check-detail]")?.value || "";
+  return { planKey, plan, markedChecks, detail };
+}
+
+function setDiagnosticCheckStatus(root, message) {
+  const status = root.querySelector("[data-diagnostic-check-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function persistDiagnosticCheckState(root) {
+  const { planKey, markedChecks, detail } = getDiagnosticCheckState(root);
+  const stored = loadDiagnosticChecks();
+  stored[planKey] = {
+    markedChecks,
+    detail: cleanDiagnosticDetail(detail),
+    updatedAt: new Date().toISOString()
+  };
+  saveDiagnosticChecks(stored);
+}
+
+function renderDiagnosticCheckPlan(root, key) {
+  const plan = diagnosticCheckPlans[key] || diagnosticCheckPlans.start;
+  const stored = loadDiagnosticChecks()[key] || {};
+  const marked = Array.isArray(stored.markedChecks) ? stored.markedChecks : [];
+  root.dataset.currentDiagnosticCheckPlan = key;
+  root.querySelector("[data-diagnostic-check-kicker]").textContent = plan.kicker;
+  root.querySelector("[data-diagnostic-check-title]").textContent = plan.title;
+  root.querySelector("[data-diagnostic-check-summary]").textContent = plan.summary;
+
+  const list = root.querySelector("[data-diagnostic-check-list]");
+  list.innerHTML = "";
+  plan.checks.forEach((check, index) => {
+    const item = document.createElement("label");
+    item.className = "diagnostic-check-item";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = check;
+    input.dataset.diagnosticCheck = String(index);
+    input.checked = marked.includes(check);
+    const labelText = document.createElement("span");
+    labelText.textContent = check;
+    item.append(input, labelText);
+    list.append(item);
+  });
+
+  const detailField = root.querySelector("[data-diagnostic-check-detail]");
+  if (detailField) {
+    detailField.value = stored.detail || "";
+  }
+
+  root.querySelectorAll("[data-diagnostic-check-plan]").forEach((button) => {
+    const isActive = button.dataset.diagnosticCheckPlan === key;
+    button.classList.toggle("utility-link-strong", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  updateDiagnosticCheckCount(root);
+  setDiagnosticCheckStatus(root, `${plan.kicker} tracker ready.`);
+}
+
+function updateDiagnosticCheckCount(root) {
+  const { plan, markedChecks } = getDiagnosticCheckState(root);
+  const count = root.querySelector("[data-diagnostic-check-count]");
+  const next = root.querySelector("[data-diagnostic-check-next]");
+  const remaining = plan.checks.filter((check) => !markedChecks.includes(check));
+  if (count) {
+    count.textContent = `${markedChecks.length} of ${plan.checks.length} checks marked`;
+  }
+  if (next) {
+    next.textContent = remaining.length ? `Next: ${remaining[0]}.` : `Next: ${plan.next}`;
+  }
+}
+
+function initDiagnosticCheckTracker() {
+  const root = document.querySelector("[data-diagnostic-check-tracker]");
+  if (!root) {
+    return;
+  }
+
+  root.querySelectorAll("[data-diagnostic-check-plan]").forEach((button) => {
+    button.addEventListener("click", () => renderDiagnosticCheckPlan(root, button.dataset.diagnosticCheckPlan));
+  });
+
+  root.addEventListener("change", (event) => {
+    if (event.target.matches("[data-diagnostic-check]")) {
+      updateDiagnosticCheckCount(root);
+      persistDiagnosticCheckState(root);
+      setDiagnosticCheckStatus(root, "First-check tracker updated on this iPhone.");
+    }
+  });
+
+  root.querySelector("[data-diagnostic-check-detail]")?.addEventListener("input", () => {
+    persistDiagnosticCheckState(root);
+  });
+
+  root.querySelector("[data-copy-diagnostic-checks]")?.addEventListener("click", async () => {
+    const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
+    try {
+      const copied = await copyText(buildDiagnosticCheckText(plan, markedChecks, detail));
+      setDiagnosticCheckStatus(root, copied ? "First diagnostic checks copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticCheckStatus(root, "Copy failed. Select and copy the visible note instead.");
+    }
+  });
+
+  root.querySelector("[data-share-diagnostic-checks]")?.addEventListener("click", async () => {
+    const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
+    const text = buildDiagnosticCheckText(plan, markedChecks, detail);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline first diagnostic checks", text });
+        setDiagnosticCheckStatus(root, "First diagnostic checks shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setDiagnosticCheckStatus(root, copied ? "Share unavailable; checks copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticCheckStatus(root, "Share canceled or unavailable.");
+    }
+  });
+
+  root.querySelector("[data-save-diagnostic-checks]")?.addEventListener("click", () => {
+    const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
+    try {
+      prependGarageGeneralNote(buildSavedDiagnosticCheckNote(plan, markedChecks, detail));
+      setDiagnosticCheckStatus(root, `${plan.kicker} first checks saved to Garage Notes.`);
+    } catch (error) {
+      setDiagnosticCheckStatus(root, "Could not save first checks in this browser session.");
+    }
+  });
+
+  renderDiagnosticCheckPlan(root, "start");
+}
+
 initDiagnosticShareBuilder();
+initDiagnosticCheckTracker();
 initGarageCloudSync();

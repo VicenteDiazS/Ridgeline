@@ -175,6 +175,52 @@
               Handoff rule: this is a note starter and routing aid only. The truck, owner manual, warning state, fuse labels, and current roadside conditions remain final authority.
             </p>
           </section>
+          <section class="diagnostic-check-tracker" id="first-check-tracker" aria-labelledby="first-check-tracker-title" data-diagnostic-check-tracker>
+            <div class="compact-section-head">
+              <p class="eyebrow">First check tracker</p>
+              <h2 id="first-check-tracker-title">Mark What You Already Tried</h2>
+              <p>
+                Pick the symptom, tap the checks you finished, then copy or save the short record before moving to a longer workflow.
+              </p>
+            </div>
+            <div class="diagnostic-check-picker" role="group" aria-label="Choose first-check symptom">
+              <button class="utility-link utility-link-strong" type="button" data-diagnostic-check-plan="start" aria-pressed="true">No Start</button>
+              <button class="utility-link" type="button" data-diagnostic-check-plan="warning" aria-pressed="false">Warning</button>
+              <button class="utility-link" type="button" data-diagnostic-check-plan="power" aria-pressed="false">12V Power</button>
+              <button class="utility-link" type="button" data-diagnostic-check-plan="audio" aria-pressed="false">Audio</button>
+              <button class="utility-link" type="button" data-diagnostic-check-plan="trailer" aria-pressed="false">Trailer</button>
+            </div>
+            <article class="diagnostic-check-card">
+              <div class="diagnostic-check-summary">
+                <span data-diagnostic-check-kicker>No start or weak battery</span>
+                <strong data-diagnostic-check-title>Track the first no-start checks before context changes</strong>
+                <p data-diagnostic-check-summary>Keep a compact checklist of the early checks you completed on this iPhone.</p>
+              </div>
+              <div class="diagnostic-check-list" data-diagnostic-check-list aria-label="First diagnostic checks"></div>
+              <label class="diagnostic-detail-capture">
+                <span>Result or next clue</span>
+                <textarea
+                  data-diagnostic-check-detail
+                  rows="3"
+                  placeholder="Example: jump worked, dash stayed dim, will inspect hood fuse path next"
+                ></textarea>
+              </label>
+              <div class="diagnostic-check-meter" aria-live="polite">
+                <strong data-diagnostic-check-count>0 of 4 checks marked</strong>
+                <span data-diagnostic-check-next>Next: mark the checks you have actually completed.</span>
+              </div>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-diagnostic-checks>Copy Checks</button>
+                <button class="utility-link" type="button" data-share-diagnostic-checks>Share</button>
+                <button class="utility-link" type="button" data-save-diagnostic-checks>Save Garage Note</button>
+                <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+              </div>
+              <p class="small-note" aria-live="polite" data-diagnostic-check-status></p>
+            </article>
+            <p class="source-note">
+              Tracker rule: mark only what you verified on the truck. This preserves context and does not replace current warnings, fuse-cover labels, the owner manual, or professional diagnosis.
+            </p>
+          </section>
           <section class="diagnostic-workflow-index" id="workflow-index" aria-labelledby="workflow-index-title">
             <div class="compact-section-head">
               <p class="eyebrow">Workflow index</p>
