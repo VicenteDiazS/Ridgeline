@@ -3677,15 +3677,15 @@ main > .model-launchpad:first-child {
   position: absolute;
   pointer-events: auto;
   z-index: 5;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   border: 0;
   padding: 0;
   background: radial-gradient(circle, #ffffff 0%, var(--accent) 42%, rgba(97, 223, 255, 0.2) 100%);
   box-shadow:
-    0 0 0 6px rgba(97, 223, 255, 0.12),
-    0 0 24px rgba(97, 223, 255, 0.55);
+    0 0 0 4px rgba(97, 223, 255, 0.1),
+    0 0 18px rgba(97, 223, 255, 0.42);
   transform: translate(-50%, -50%);
   animation: hotspotIdlePulse 2.8s ease-in-out infinite;
 }
@@ -3693,7 +3693,7 @@ main > .model-launchpad:first-child {
 .hotspot-button::after {
   content: "";
   position: absolute;
-  inset: -10px;
+  inset: -7px;
   border-radius: 50%;
   border: 1px solid rgba(97, 223, 255, 0.28);
   animation: hotspotRingPulse 2.4s ease-in-out infinite;
@@ -3702,8 +3702,8 @@ main > .model-launchpad:first-child {
 .hotspot-button.active {
   background: radial-gradient(circle, #ffffff 0%, var(--orange) 42%, rgba(255, 145, 94, 0.2) 100%);
   box-shadow:
-    0 0 0 6px rgba(255, 145, 94, 0.12),
-    0 0 28px rgba(255, 145, 94, 0.55);
+    0 0 0 5px rgba(255, 145, 94, 0.12),
+    0 0 22px rgba(255, 145, 94, 0.5);
   animation: hotspotActivePulse 1.15s ease-in-out infinite;
 }
 
@@ -15659,7 +15659,15 @@ body {
   opacity: 0.42;
 }
 
+.viewer-stage[data-map-label-mode="focus"] .hotspot-button:not(.active) {
+  opacity: 0.74;
+}
+
 .viewer-stage[data-map-label-mode="clean"] .hotspot-callout:not(.is-active) {
+  display: none !important;
+}
+
+.viewer-stage[data-map-label-mode="clean"] .hotspot-button:not(.active) {
   display: none !important;
 }
 

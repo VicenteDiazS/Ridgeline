@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v397";
+const CACHE_NAME = "ridgeline-console-v398";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",

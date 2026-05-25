@@ -1159,7 +1159,13 @@ const startupBarFill = document.getElementById("startup-bar-fill");
 const startupCopy = document.getElementById("startup-copy");
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
 const requestedSystemId = new URLSearchParams(window.location.search).get("system");
-let mapLabelMode = localStorage.getItem("ridgeline-map-label-mode") || "labels";
+const MAP_LABEL_MODE_KEY = "ridgeline-map-label-mode-v2";
+const legacyMapLabelMode = localStorage.getItem("ridgeline-map-label-mode");
+const savedMapLabelMode = localStorage.getItem(MAP_LABEL_MODE_KEY) || legacyMapLabelMode;
+let mapLabelMode = ["labels", "focus", "clean"].includes(savedMapLabelMode) ? savedMapLabelMode : "focus";
+if (!localStorage.getItem(MAP_LABEL_MODE_KEY)) {
+  mapLabelMode = savedMapLabelMode === "clean" ? "clean" : "focus";
+}
 
 function setVehicleMapContextLabel(labels) {
   const target = document.querySelector("[data-current-section-label]");
@@ -2473,6 +2479,7 @@ if (!renderer) {
 
   function applyMapLabelMode(mode = "labels") {
     mapLabelMode = ["labels", "focus", "clean"].includes(mode) ? mode : "labels";
+    localStorage.setItem(MAP_LABEL_MODE_KEY, mapLabelMode);
     localStorage.setItem("ridgeline-map-label-mode", mapLabelMode);
     viewerStage?.setAttribute("data-map-label-mode", mapLabelMode);
     mapModeBar.querySelectorAll("[data-map-label-mode]").forEach((button) => {
@@ -2971,6 +2978,8 @@ if (!renderer) {
       guide.element.style.top = `${clampY(y, 84)}px`;
     });
 
+    const hotspotCandidates = [];
+
     systems.forEach((system) => {
       const button = hotspotButtons.get(system.id);
       const callout = calloutElements.get(system.id);
@@ -2983,6 +2992,7 @@ if (!renderer) {
         isCenterSide || Math.sign(system.point.z || visibleSideSign) === visibleSideSign;
       const isVisibleFrontZone =
         isCenterFront || Math.sign(system.point.x || visibleFrontSign) === visibleFrontSign;
+
       if (!isVisible) {
         button.style.display = "none";
         if (callout) {
@@ -3012,6 +3022,47 @@ if (!renderer) {
 
       const anchorX = isActive ? clampX(x, 24) : x;
       const anchorY = isActive ? clampY(y, 24) : y;
+      hotspotCandidates.push({
+        system,
+        button,
+        callout,
+        isActive,
+        x,
+        y,
+        anchorX,
+        anchorY,
+        centerDistance: Math.abs(x - width / 2) + Math.abs(y - height / 2)
+      });
+    });
+
+    let visibleHotspotIds = null;
+    if (mapLabelMode === "focus") {
+      const focusLimit = isPhoneViewer ? 3 : 5;
+      const focusEntries = hotspotCandidates
+        .filter((entry) => !entry.isActive)
+        .sort((a, b) => a.centerDistance - b.centerDistance)
+        .slice(0, focusLimit);
+      visibleHotspotIds = new Set(focusEntries.map((entry) => entry.system.id));
+      if (selectedSystem?.id) {
+        visibleHotspotIds.add(selectedSystem.id);
+      }
+    } else if (mapLabelMode === "clean") {
+      visibleHotspotIds = new Set(selectedSystem?.id ? [selectedSystem.id] : []);
+    }
+
+    hotspotCandidates.forEach((entry) => {
+      const { system, button, callout, isActive, x, y, anchorX, anchorY } = entry;
+      const shouldShow =
+        !visibleHotspotIds || visibleHotspotIds.has(system.id) || isActive;
+
+      if (!shouldShow) {
+        button.style.display = "none";
+        if (callout) {
+          callout.root.style.display = "none";
+        }
+        return;
+      }
+
       button.style.display = "block";
       button.style.left = `${anchorX}px`;
       button.style.top = `${anchorY}px`;
