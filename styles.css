@@ -14872,23 +14872,42 @@ body {
   .topbar-actions {
     position: static;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 3px;
     padding: 3px;
     margin-left: 0;
     width: min(100%, 340px);
+    max-width: min(100%, 340px);
   }
 
+  .topbar-actions > .header-nav-button,
   .topbar-actions > .menu-toggle,
   .topbar-actions > .live-refresh-button,
   .topbar-actions > .search-button,
   .topbar-actions > .resume-button {
     width: 100%;
     min-width: 0;
-    min-height: 36px;
+    min-height: 38px;
     padding: 0;
     font-size: 0;
     gap: 0;
+  }
+
+  .topbar-actions > .owner-auth-button {
+    grid-column: 1 / -1;
+    max-width: none;
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .topbar-actions > .owner-auth-button::before {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+    margin: 0;
   }
 
   .menu-toggle::before,
@@ -14932,6 +14951,12 @@ body {
 
   .topbar-actions {
     width: min(100%, 326px);
+  }
+
+  .topbar-actions > .owner-auth-button {
+    min-height: 34px;
+    font-size: 0.66rem;
+    padding-inline: 8px;
   }
 }
 
