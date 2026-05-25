@@ -16,6 +16,7 @@ const WORK_AREA_STORAGE_KEY = "ridgeline-work-area";
 const FAVORITE_PINS_STORAGE_KEY = "ridgeline-favorite-pins";
 const LAST_TASK_STORAGE_KEY = "ridgeline-last-task";
 const SITE_THEME_STORAGE_KEY = "ridgeline-site-theme";
+const RECENT_SEARCH_STORAGE_KEY = "ridgeline-recent-searches";
 const MOTION_MODE_CLASSES = ["motion-rich", "motion-standard", "motion-economy", "motion-off"];
 const prefersCompactDefault =
   window.matchMedia("(max-width: 900px)").matches || window.matchMedia("(pointer: coarse)").matches;
@@ -30,6 +31,7 @@ let fullSearchIndexPromise = null;
 let fullSearchIndexCache = null;
 let memoryWriteObserver = null;
 let currentSiteTheme = localStorage.getItem(SITE_THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+let lastRenderedSearchResults = [];
 
 const MEMORY_WRITE_SELECTORS = [
   "[data-notes-form] input",
@@ -4432,6 +4434,20 @@ function buildSearchModal() {
         </div>
         <div class="search-recent-grid" data-search-recent-list></div>
       </section>
+      <section class="search-query-strip" aria-label="Recent searches" data-search-query-strip hidden>
+        <div class="search-query-head">
+          <strong>Recent Searches</strong>
+          <span>Pick up the last thing you were trying to find</span>
+        </div>
+        <div class="search-query-grid" data-search-query-list></div>
+      </section>
+      <section class="search-smart-strip" aria-label="Best next routes" data-search-smart-strip hidden>
+        <div class="search-smart-head">
+          <strong>Best Next Routes</strong>
+          <span data-search-smart-copy>Search a truck problem, page, or service task.</span>
+        </div>
+        <div class="search-smart-grid" data-search-smart-list></div>
+      </section>
       <div class="search-situation-grid" aria-label="Common situations">
         <a href="quick-sheet.html#roadside-router">
           <span>Roadside</span>
@@ -4468,6 +4484,7 @@ function buildSearchModal() {
         <button type="button" data-search-suggestion="NFC">NFC</button>
         <button type="button" data-search-suggestion="Battery">Battery</button>
       </div>
+      <p class="search-results-summary" data-search-results-summary></p>
       <div class="search-results" id="site-search-results"></div>
       <div class="search-foot">
         <span>Tip: press <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd></span>
@@ -4856,6 +4873,12 @@ const searchResumeWork = searchModal.querySelector("[data-search-resume-work]");
 const searchResumeList = searchModal.querySelector("[data-search-resume-list]");
 const searchRecentWork = searchModal.querySelector("[data-search-recent-work]");
 const searchRecentList = searchModal.querySelector("[data-search-recent-list]");
+const searchQueryStrip = searchModal.querySelector("[data-search-query-strip]");
+const searchQueryList = searchModal.querySelector("[data-search-query-list]");
+const searchSmartStrip = searchModal.querySelector("[data-search-smart-strip]");
+const searchSmartList = searchModal.querySelector("[data-search-smart-list]");
+const searchSmartCopy = searchModal.querySelector("[data-search-smart-copy]");
+const searchResultsSummary = searchModal.querySelector("[data-search-results-summary]");
 let searchReturnFocus = null;
 const commandPalette = buildCommandPalette();
 document.body.classList.add(currentPageName() === "index.html" ? "is-home-page" : "is-subpage");
@@ -4976,6 +4999,7 @@ if (brandLink) {
 }
 
 function renderSearchEntries(results) {
+  lastRenderedSearchResults = Array.isArray(results) ? results.slice() : [];
   searchResults.innerHTML = "";
 
   const groups = new Map();
@@ -4998,6 +5022,7 @@ function renderSearchEntries(results) {
       const anchor = document.createElement("a");
       anchor.className = "search-result";
       anchor.href = entry.url;
+      anchor.dataset.searchQuery = searchInput.value.trim();
 
       const category = document.createElement("span");
       category.textContent = entry.source === "section" ? "Page section" : entry.category;
@@ -5022,6 +5047,7 @@ function renderSearchEntries(results) {
 }
 
 function renderResults(query = "") {
+  const trimmedQuery = `${query || ""}`.trim();
   const requestId = `${Date.now()}-${Math.random()}`;
   searchResults.dataset.requestId = requestId;
 
@@ -5029,19 +5055,27 @@ function renderResults(query = "") {
     ...searchIndex.map((entry) => makeSearchEntry(entry, "static")),
     ...entriesFromNfcTargets()
   ];
-  renderSearchEntries(searchEntries(staticEntries, query));
+  const staticResults = searchEntries(staticEntries, trimmedQuery);
+  renderSearchEntries(staticResults);
+  renderSmartSearchRoutes(trimmedQuery, staticResults);
+  renderSearchSummary(trimmedQuery, staticResults);
 
   buildFullSearchIndex()
     .then((entries) => {
       if (searchResults.dataset.requestId !== requestId) {
         return;
       }
-      renderSearchEntries(searchEntries(entries, query));
+      const results = searchEntries(entries, trimmedQuery);
+      renderSearchEntries(results);
+      renderSmartSearchRoutes(trimmedQuery, results);
+      renderSearchSummary(trimmedQuery, results);
     })
     .catch(() => {
       if (!searchResults.children.length) {
-        renderSearchEntries(searchEntries(staticEntries, query));
+        renderSearchEntries(staticResults);
       }
+      renderSmartSearchRoutes(trimmedQuery, staticResults);
+      renderSearchSummary(trimmedQuery, staticResults);
     });
 }
 
@@ -5435,6 +5469,208 @@ function renderSearchRecentWork() {
   });
 }
 
+function readRecentSearches() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RECENT_SEARCH_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed)
+      ? parsed
+          .map((value) => `${value || ""}`.trim())
+          .filter(Boolean)
+          .slice(0, 8)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query) {
+  const normalized = `${query || ""}`.replace(/\s+/g, " ").trim().slice(0, 80);
+  if (!normalized) {
+    return;
+  }
+  try {
+    const next = [normalized, ...readRecentSearches().filter((item) => item.toLowerCase() !== normalized.toLowerCase())].slice(0, 8);
+    localStorage.setItem(RECENT_SEARCH_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // Search should still work when storage is unavailable.
+  }
+}
+
+function renderRecentSearches() {
+  if (!searchQueryStrip || !searchQueryList) {
+    return;
+  }
+
+  const queries = readRecentSearches();
+  searchQueryList.innerHTML = "";
+  searchQueryStrip.hidden = queries.length === 0;
+  if (!queries.length) {
+    return;
+  }
+
+  queries.forEach((query) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.searchHistory = query;
+    button.textContent = query;
+    searchQueryList.appendChild(button);
+  });
+}
+
+function buildSmartSearchRoutes(query, results) {
+  const normalized = normalizeSearchText(query);
+  if (!normalized) {
+    return [];
+  }
+  const topResults = results.slice(0, 3);
+  const routes = [];
+
+  const pushRoute = (route) => {
+    if (!route?.href || routes.some((item) => item.href === route.href)) {
+      return;
+    }
+    routes.push(route);
+  };
+
+  topResults.forEach((entry, index) => {
+    pushRoute({
+      href: entry.url,
+      label: index === 0 ? "Best Match" : "Also Helpful",
+      title: entry.title,
+      detail: entry.excerpt || entry.category || entry.url
+    });
+  });
+
+  if (/(start|battery|crank|dead|jump|click)/.test(normalized)) {
+    pushRoute({
+      href: "diagnostics.html#no-start-workflow",
+      label: "No Start",
+      title: "Run the no-start workflow",
+      detail: "Clicks, slow crank, dead battery, or cranks without firing."
+    });
+  }
+  if (/(warning|light|abs|vsa|check engine|tpms|message)/.test(normalized)) {
+    pushRoute({
+      href: "diagnostics.html#warning-light-workflow",
+      label: "Warning",
+      title: "Go straight to warning-light triage",
+      detail: "Red, amber, MID messages, or multiple alerts."
+    });
+  }
+  if (/(roadside|tow truck|tow driver|aaa|dispatch|helper|help called|stuck|shoulder)/.test(normalized)) {
+    pushRoute({
+      href: "quick-sheet.html#roadside-dispatch-pack",
+      label: "Roadside",
+      title: "Build the roadside dispatch pack",
+      detail: "Location, callback, checkpoints, cached routes, and source reminder."
+    });
+  }
+  if (/(trailer|7-way|tow|brake light|running light|adapter|hitch)/.test(normalized)) {
+    pushRoute({
+      href: "rear-hitch.html#trailer-hookup-flow",
+      label: "Trailer",
+      title: "Check the trailer hookup flow",
+      detail: "Tow setup, 7-way pinout, lights, and hitch prep."
+    });
+  }
+  if (/(fuse|outlet|socket|usb|power|radio|carplay|accessory)/.test(normalized)) {
+    pushRoute({
+      href: "diagnostics.html#accessory-power-workflow",
+      label: "Power",
+      title: "Trace the accessory power path",
+      detail: "Outlets, charger issues, radio, USB, and fuse checks."
+    });
+  }
+  if (/(oil|service|fluid|maintenance|filter|rotation|brake|transmission)/.test(normalized)) {
+    pushRoute({
+      href: "maintenance.html#service-closeout",
+      label: "Service",
+      title: "Jump into the maintenance closeout flow",
+      detail: "Log what you did and update the truck record quickly."
+    });
+  }
+  if (/(tire|flat|pressure|lug|jack|spare)/.test(normalized)) {
+    pushRoute({
+      href: "tires.html#tire-pressure-sweep",
+      label: "Tires",
+      title: "Open tire tools and roadside tire help",
+      detail: "Pressure, flat-tire help, lug specs, and recheck notes."
+    });
+  }
+  if (/(photo|picture|image|diagram|atlas)/.test(normalized)) {
+    pushRoute({
+      href: "photo-atlas.html",
+      label: "Photos",
+      title: "Browse the photo atlas",
+      detail: "Use visual references instead of hunting through text."
+    });
+  }
+
+  return routes.slice(0, 4);
+}
+
+function renderSmartSearchRoutes(query, results) {
+  if (!searchSmartStrip || !searchSmartList || !searchSmartCopy) {
+    return;
+  }
+
+  const routes = buildSmartSearchRoutes(query, results);
+  const trimmedQuery = `${query || ""}`.trim();
+  searchSmartList.innerHTML = "";
+  searchSmartStrip.hidden = routes.length === 0;
+  searchSmartCopy.textContent = trimmedQuery
+    ? `Fastest paths for "${trimmedQuery}".`
+    : "Search a truck problem, page, or service task.";
+
+  if (!routes.length) {
+    return;
+  }
+
+  routes.forEach((route) => {
+    const anchor = document.createElement("a");
+    anchor.href = route.href;
+
+    const label = document.createElement("span");
+    label.textContent = route.label;
+    const title = document.createElement("strong");
+    title.textContent = route.title;
+    const detail = document.createElement("em");
+    detail.textContent = route.detail;
+
+    anchor.append(label, title, detail);
+    searchSmartList.appendChild(anchor);
+  });
+}
+
+function renderSearchSummary(query, results) {
+  if (!searchResultsSummary) {
+    return;
+  }
+
+  const trimmedQuery = `${query || ""}`.trim();
+  if (!trimmedQuery) {
+    searchResultsSummary.textContent = "Search pages, sections, tools, symptoms, and service phrases across the truck site.";
+    return;
+  }
+
+  const lead = results[0];
+  if (!lead) {
+    searchResultsSummary.textContent = `No direct matches for "${trimmedQuery}" yet. Try a shorter symptom, part name, or page title.`;
+    return;
+  }
+
+  const category = lead.source === "section" ? "Page section" : lead.category || "Reference";
+  searchResultsSummary.textContent = `Best match: ${lead.title} in ${category}. ${results.length} result${results.length === 1 ? "" : "s"} ready.`;
+}
+
+function activateSearchQuery(query) {
+  searchInput.value = query;
+  renderResults(query);
+  saveRecentSearch(query);
+  renderRecentSearches();
+  searchInput.focus();
+}
+
 function openSearch(event) {
   searchReturnFocus =
     event?.currentTarget instanceof HTMLElement
@@ -5448,6 +5684,7 @@ function openSearch(event) {
   renderSearchRouteReadiness();
   renderSearchResumeWork();
   renderSearchRecentWork();
+  renderRecentSearches();
   renderResults(searchInput.value);
   focusFirstIn(searchModal, "#site-search-input");
 }
@@ -5469,9 +5706,7 @@ document.querySelectorAll("[data-print-page]").forEach((button) => {
 });
 searchModal.querySelectorAll("[data-search-suggestion]").forEach((button) => {
   button.addEventListener("click", () => {
-    searchInput.value = button.dataset.searchSuggestion || "";
-    renderResults(searchInput.value);
-    searchInput.focus();
+    activateSearchQuery(button.dataset.searchSuggestion || "");
   });
 });
 searchModal.querySelector("[data-search-refresh-pack]")?.addEventListener("click", async () => {
@@ -5523,7 +5758,40 @@ searchModal.querySelector("[data-search-copy-route-plan]")?.addEventListener("cl
 searchModal.querySelectorAll("[data-close-search]").forEach((el) => {
   el.addEventListener("click", closeSearch);
 });
+searchQueryList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-search-history]");
+  if (!button) {
+    return;
+  }
+  activateSearchQuery(button.dataset.searchHistory || "");
+});
+searchSmartList?.addEventListener("click", () => {
+  saveRecentSearch(searchInput.value);
+  renderRecentSearches();
+});
+searchResults.addEventListener("click", (event) => {
+  const anchor = event.target.closest(".search-result[data-search-query]");
+  if (!anchor) {
+    return;
+  }
+  saveRecentSearch(anchor.dataset.searchQuery || "");
+  renderRecentSearches();
+});
 searchInput.addEventListener("input", () => renderResults(searchInput.value));
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && lastRenderedSearchResults.length) {
+    event.preventDefault();
+    saveRecentSearch(searchInput.value);
+    window.location.href = lastRenderedSearchResults[0].url;
+  }
+});
+searchInput.addEventListener("blur", () => {
+  const value = searchInput.value.trim();
+  if (value.length >= 2) {
+    saveRecentSearch(value);
+    renderRecentSearches();
+  }
+});
 window.addEventListener("online", () => updateSearchOfflineCard("Back online."));
 window.addEventListener("offline", () => updateSearchOfflineCard("Browsing cached site."));
 navigator.serviceWorker?.addEventListener?.("controllerchange", () => updateSearchOfflineCard("Offline pack updated."));

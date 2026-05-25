@@ -17,7 +17,7 @@ Last updated: 2026-05-25
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature was the Tire Shop Pack (`ridgeline-console-v395`), while more recent manual/shared-site tweaks have pushed the live service-worker cache higher.
+- The most recent Anton-delivered feature is the Global Search route upgrade (`ridgeline-console-v405`): recent search chips, query summaries, smart route cards, corrected tire-pressure routing, and a direct roadside dispatch anchor.
 
 ## Current Queue
 
@@ -46,6 +46,8 @@ Last updated: 2026-05-25
 ## Recent Delivered Work
 
 - Added the Tire Shop Pack in `tires.html#tire-shop-pack` for one-note tire counter/shop handoffs.
+- Added Global Search recent queries, result summaries, and smart owner routes that send iPhone searches such as `tow truck`, `tire pressure`, warning lights, no-start, power, and service terms to the right workflow.
+- Added `quick-sheet.html#roadside-dispatch-pack` so roadside dispatch searches can land directly on the dispatch handoff panel.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
 - Added Garage Recent Handoffs type filters for faster iPhone review of saved handoffs.
@@ -86,8 +88,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's last completed scheduled run verified the Tire Shop Pack with targeted Tires browser smoke, internal-link audit, and a page-scoped site audit.
-- The Anton productivity/rules changes made today were config/Markdown/runner changes only; `agent-loop.config.json` parsing was rechecked locally after the update.
+- Anton's latest scheduled run verified the Global Search route upgrade with a focused Python Playwright iPhone smoke against a temporary local server and a full internal-link/anchor audit. The repo's broader browser smoke wrapper timed out twice and was stopped; the focused smoke covered empty-search clutter, `tow truck` dispatch routing, suggestion-to-recent chips, and `tire pressure` routing.
 
 ## Archive
 
