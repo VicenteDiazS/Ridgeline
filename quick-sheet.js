@@ -9,6 +9,7 @@ const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
 const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
 const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
+const requestedRoadsidePlan = new URLSearchParams(window.location.search).get("roadside");
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
   { label: "Diagnostics", path: "diagnostics.html" },
@@ -1030,7 +1031,7 @@ function initRoadsideStack() {
     }
   });
 
-  updateRoadsidePlan(root, "flat");
+  updateRoadsidePlan(root, roadsidePlans[requestedRoadsidePlan] ? requestedRoadsidePlan : "flat");
   renderRoadsideReceipt(root);
   renderRoadsideContact(root);
   renderRoadsideSession(root);

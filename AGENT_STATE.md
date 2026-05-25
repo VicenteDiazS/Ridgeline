@@ -17,7 +17,7 @@ Last updated: 2026-05-25
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature is the Global Search route upgrade (`ridgeline-console-v405`): recent search chips, query summaries, smart route cards, corrected tire-pressure routing, and a direct roadside dispatch anchor.
+- The most recent Anton-delivered feature is the Quick Sheet roadside deep-link pass (`ridgeline-console-v407`): the Home Roadside Now shortcut and each Roadside Router situation can open `quick-sheet.html?roadside=...#roadside-action-stack`, and Quick Sheet honors the `roadside` query so the matching plan loads directly into the action stack.
 
 ## Current Queue
 
@@ -48,6 +48,7 @@ Last updated: 2026-05-25
 - Added the Tire Shop Pack in `tires.html#tire-shop-pack` for one-note tire counter/shop handoffs.
 - Added Global Search recent queries, result summaries, and smart owner routes that send iPhone searches such as `tow truck`, `tire pressure`, warning lights, no-start, power, and service terms to the right workflow.
 - Added `quick-sheet.html#roadside-dispatch-pack` so roadside dispatch searches can land directly on the dispatch handoff panel.
+- Added Quick Sheet roadside deep-link selection and visible Roadside Router `Use Stack` actions so Home, router cards, and future search/menu routes can open the action stack with the intended flat/no-start/warning/trailer plan selected.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
 - Added Garage Recent Handoffs type filters for faster iPhone review of saved handoffs.
@@ -88,7 +89,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run verified the Global Search route upgrade with a focused Python Playwright iPhone smoke against a temporary local server and a full internal-link/anchor audit. The repo's broader browser smoke wrapper timed out twice and was stopped; the focused smoke covered empty-search clutter, `tow truck` dispatch routing, suggestion-to-recent chips, and `tire pressure` routing.
+- Anton's latest scheduled run verified the Quick Sheet roadside deep-link pass with focused Python Playwright iPhone checks against a temporary local server and a full internal-link/anchor audit. The repo's broader browser smoke wrapper timed out on retry; the focused checks covered router `Use Stack` hrefs, selected plan loading for no-start/warning/trailer, fallback behavior for invalid plans, seeded Home Resume routing, Quick Sheet hero actions, and Diagnostics page load.
 
 ## Archive
 
