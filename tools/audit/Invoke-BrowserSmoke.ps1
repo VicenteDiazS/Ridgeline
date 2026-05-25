@@ -184,9 +184,12 @@ SEARCH_EXPECTATIONS = {
     "tire pressure sweep": "Tire Pressure Sweep",
     "tpms note": "Tire Pressure Sweep",
     "copy tire pressure": "Tire Pressure Sweep",
-    "tire pressure recheck": "Tire Pressure Recheck Plan",
-    "copy tire recheck": "Tire Pressure Recheck Plan",
-    "save tire recheck": "Tire Pressure Recheck Plan",
+        "tire pressure recheck": "Tire Pressure Recheck Plan",
+        "copy tire recheck": "Tire Pressure Recheck Plan",
+        "save tire recheck": "Tire Pressure Recheck Plan",
+        "tire shop pack": "Tire Shop Pack",
+        "copy tire shop pack": "Tire Shop Pack",
+        "save tire shop pack": "Tire Shop Pack",
     "cabin fuse quick finder": "Cabin Fuse Quick Finder",
     "hood fuse quick finder": "Hood Fuse Quick Finder",
     "cargo load planner": "Cargo Load Planner",
@@ -2518,6 +2521,7 @@ async def assert_tire_roadside_launcher(page, page_name):
             const builder = document.querySelector("#tire-handoff-builder");
             const sweep = document.querySelector("#tire-pressure-sweep");
             const recheck = document.querySelector("#tire-recheck-planner");
+            const shop = document.querySelector("#tire-shop-pack");
             const required = [
                 "quick-sheet.html#roadside-action-stack",
                 "index.html?system=jack-points#viewer",
@@ -2554,6 +2558,17 @@ async def assert_tire_roadside_launcher(page, page_name):
                 hasRecheckCopy: Boolean(recheck?.querySelector("[data-copy-tire-recheck]")),
                 hasRecheckShare: Boolean(recheck?.querySelector("[data-share-tire-recheck]")),
                 hasRecheckSave: Boolean(recheck?.querySelector("[data-save-tire-recheck]")),
+                hasShopPack: Boolean(shop),
+                shopText: shop?.innerText || "",
+                hasShopTarget: Boolean(shop?.querySelector("[data-tire-shop-target]")),
+                hasShopContact: Boolean(shop?.querySelector("[data-tire-shop-contact]")),
+                hasShopGoal: Boolean(shop?.querySelector("[data-tire-shop-goal]")),
+                hasShopQuestion: Boolean(shop?.querySelector("[data-tire-shop-question]")),
+                hasShopPreview: Boolean(shop?.querySelector("[data-tire-shop-preview]")),
+                hasShopCopy: Boolean(shop?.querySelector("[data-copy-tire-shop-pack]")),
+                hasShopShare: Boolean(shop?.querySelector("[data-share-tire-shop-pack]")),
+                hasShopSave: Boolean(shop?.querySelector("[data-save-tire-shop-pack]")),
+                hasShopHandoffRoute: Boolean(shop?.querySelector('a[href="garage.html#recent-handoffs"]')),
                 bottomHasRoadside: Boolean(document.querySelector('.context-action[href="#tire-roadside-launcher"]')),
                 bottomHasHandoff: Boolean(document.querySelector('.context-action[href="#tire-handoff-builder"]')),
                 bottomHasPressure: Boolean(document.querySelector('.context-action[href="#tire-pressure-sweep"]')),
@@ -2561,10 +2576,15 @@ async def assert_tire_roadside_launcher(page, page_name):
                     document.querySelector('.context-action[href="#tire-recheck-planner"]') ||
                     document.querySelector('.section-dock a[href="#tire-recheck-planner"]')
                 ),
+                bottomHasShop: Boolean(
+                    document.querySelector('.context-action[href="#tire-shop-pack"]') ||
+                    document.querySelector('.section-dock a[href="#tire-shop-pack"]')
+                ),
                 heroHasRoadside: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-roadside-launcher"]')),
                 heroHasHandoff: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-handoff-builder"]')),
                 heroHasPressure: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-pressure-sweep"]')),
                 heroHasRecheck: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-recheck-planner"]')),
+                heroHasShop: Boolean(document.querySelector('.wheel-utility-nav a[href="#tire-shop-pack"]')),
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
@@ -2602,14 +2622,28 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true(state["hasRecheckSave"], "pressure recheck planner is missing Save Recheck")
     for phrase in ["pressure recheck plan", "before drive", "tomorrow", "shop", "garage notes"]:
         assert_true(phrase in state["recheckText"].lower(), f"pressure recheck planner is missing {phrase}")
+    assert_true(state["hasShopPack"], "tires page is missing tire shop pack")
+    assert_true(state["hasShopTarget"], "tire shop pack is missing target picker")
+    assert_true(state["hasShopContact"], "tire shop pack is missing callback/store field")
+    assert_true(state["hasShopGoal"], "tire shop pack is missing tire goal field")
+    assert_true(state["hasShopQuestion"], "tire shop pack is missing owner question field")
+    assert_true(state["hasShopPreview"], "tire shop pack is missing preview")
+    assert_true(state["hasShopCopy"], "tire shop pack is missing Copy Pack")
+    assert_true(state["hasShopShare"], "tire shop pack is missing Share")
+    assert_true(state["hasShopSave"], "tire shop pack is missing Save Garage Note")
+    assert_true(state["hasShopHandoffRoute"], "tire shop pack is missing Recent Handoffs route")
+    for phrase in ["tire shop pack", "counter", "pressure sweep", "recheck plan", "garage notes"]:
+        assert_true(phrase in state["shopText"].lower(), f"tire shop pack is missing {phrase}")
     assert_true(state["bottomHasRoadside"], "tire page bottom bar is missing roadside launcher route")
     assert_true(state["bottomHasHandoff"], "tire page bottom bar is missing tire handoff route")
     assert_true(state["bottomHasPressure"], "tire page bottom bar is missing pressure sweep route")
     assert_true(state["bottomHasRecheck"], "tire page bottom bar is missing pressure recheck route")
+    assert_true(state["bottomHasShop"], "tire page bottom bar is missing tire shop pack route")
     assert_true(state["heroHasRoadside"], "tire page hero is missing roadside launcher route")
     assert_true(state["heroHasHandoff"], "tire page hero is missing tire handoff route")
     assert_true(state["heroHasPressure"], "tire page hero is missing pressure sweep route")
     assert_true(state["heroHasRecheck"], "tire page hero is missing pressure recheck route")
+    assert_true(state["heroHasShop"], "tire page hero is missing tire shop pack route")
     assert_true(not state["overflow"], "tire roadside launcher introduced horizontal overflow")
     await page.evaluate("""() => document.querySelector('[data-tire-handoff-plan="buying"]').click()""")
     await page.wait_for_timeout(150)
@@ -2716,6 +2750,41 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true("Pressure recheck saved to Garage Notes" in recheck_state["status"], "pressure recheck Save should report Garage save")
     assert_true("Tire Pressure Recheck" in recheck_state["notes"], "pressure recheck Save should write Garage Notes")
     assert_true("Watch front left for repeat drop" in recheck_state["notes"], "pressure recheck Garage note should include follow-up note")
+    await page.evaluate(
+        """() => {
+            const shop = document.querySelector("#tire-shop-pack");
+            shop.querySelector("[data-tire-shop-target]").value = "Parts counter";
+            shop.querySelector("[data-tire-shop-target]").dispatchEvent(new Event("change", { bubbles: true }));
+            shop.querySelector("[data-tire-shop-contact]").value = "Discount Tire, callback 555-0142";
+            shop.querySelector("[data-tire-shop-contact]").dispatchEvent(new Event("input", { bubbles: true }));
+            shop.querySelector("[data-tire-shop-goal]").value = "Confirm stock-size options and any 265/60R18 risk";
+            shop.querySelector("[data-tire-shop-goal]").dispatchEvent(new Event("input", { bubbles: true }));
+            shop.querySelector("[data-tire-shop-question]").value = "Inspect front left first and advise recheck timing";
+            shop.querySelector("[data-tire-shop-question]").dispatchEvent(new Event("input", { bubbles: true }));
+        }"""
+    )
+    await page.wait_for_timeout(150)
+    shop_state = await page.evaluate(
+        """() => {
+            document.querySelector("[data-save-tire-shop-pack]").click();
+            const shop = document.querySelector("#tire-shop-pack");
+            const saved = JSON.parse(localStorage.getItem("ridgeline-tire-shop-pack") || "{}");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                preview: shop.querySelector("[data-tire-shop-preview]")?.textContent || "",
+                status: shop.querySelector("[data-tire-shop-status]")?.textContent || "",
+                saved,
+                notes: notes.general_notes || ""
+            };
+        }"""
+    )
+    assert_true("Parts counter" in shop_state["preview"], "tire shop pack should preview the selected counter target")
+    assert_true("Front left" in shop_state["preview"], "tire shop pack should include the pressure watch target")
+    assert_true(shop_state["saved"].get("contact") == "Discount Tire, callback 555-0142", "tire shop pack should persist callback detail")
+    assert_true("Tire shop pack saved to Garage Notes" in shop_state["status"], "tire shop pack Save should report Garage save")
+    assert_true("Tire Shop Pack" in shop_state["notes"], "tire shop pack Save should write Garage Notes")
+    assert_true("Confirm stock-size options" in shop_state["notes"], "tire shop pack Garage note should include tire goal")
+    assert_true("Inspect front left first" in shop_state["notes"], "tire shop pack Garage note should include owner question")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
     mobile_state = await page.evaluate(
@@ -2732,6 +2801,9 @@ async def assert_tire_roadside_launcher(page, page_name):
             const recheckPicker = recheck?.querySelector(".tire-recheck-picker");
             const recheckActions = recheck?.querySelector(".tire-recheck-actions");
             const recheckFields = recheck?.querySelector(".tire-recheck-fields");
+            const shop = document.querySelector("#tire-shop-pack");
+            const shopFields = shop?.querySelector(".tire-shop-fields");
+            const shopActions = shop?.querySelector(".tire-shop-actions");
             const sweepCells = [...(sweep?.querySelectorAll(".tire-pressure-cell") || [])].map((cell) => {
                 const rect = cell.getBoundingClientRect();
                 return { width: rect.width, height: rect.height };
@@ -2754,6 +2826,9 @@ async def assert_tire_roadside_launcher(page, page_name):
                 recheckPickerColumns: recheckPicker ? getComputedStyle(recheckPicker).gridTemplateColumns.split(" ").length : 0,
                 recheckActionRows: recheckActions ? new Set([...recheckActions.children].map((button) => Math.round(button.getBoundingClientRect().top))).size : 0,
                 recheckFieldColumns: recheckFields ? getComputedStyle(recheckFields).gridTemplateColumns.split(" ").length : 0,
+                shopVisible: Boolean(shop && shop.getBoundingClientRect().height > 0),
+                shopFieldColumns: shopFields ? getComputedStyle(shopFields).gridTemplateColumns.split(" ").length : 0,
+                shopActionRows: shopActions ? new Set([...shopActions.children].map((button) => Math.round(button.getBoundingClientRect().top))).size : 0,
                 minSweepCellHeight: sweepCells.length ? Math.min(...sweepCells.map((cell) => cell.height)) : 0,
                 maxSweepCellWidth: sweepCells.length ? Math.max(...sweepCells.map((cell) => cell.width)) : 0,
                 minCardHeight: cards.length ? Math.min(...cards.map((card) => card.height)) : 0,
@@ -2774,6 +2849,9 @@ async def assert_tire_roadside_launcher(page, page_name):
     assert_true(mobile_state["recheckPickerColumns"] == 2, "pressure recheck timing buttons should use two compact columns on iPhone")
     assert_true(mobile_state["recheckActionRows"] == 2, "pressure recheck actions should use two rows on iPhone")
     assert_true(mobile_state["recheckFieldColumns"] == 1, "pressure recheck fields should stack on iPhone")
+    assert_true(mobile_state["shopVisible"], "tire shop pack is not visible at iPhone width")
+    assert_true(mobile_state["shopFieldColumns"] == 1, "tire shop pack fields should stack on iPhone")
+    assert_true(mobile_state["shopActionRows"] == 2, "tire shop pack actions should use two rows on iPhone")
     assert_true(mobile_state["minSweepCellHeight"] >= 92, "pressure sweep cells should remain thumb-readable on iPhone")
     assert_true(mobile_state["maxSweepCellWidth"] <= 190, "pressure sweep cells are wider than half the iPhone viewport")
     assert_true(mobile_state["minCardHeight"] >= 64, "tire roadside cards should remain thumb-sized on iPhone")

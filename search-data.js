@@ -316,6 +316,25 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Tire Shop Pack",
+    url: "tires.html#tire-shop-pack",
+    category: "Tools",
+    excerpt: "iPhone tire shop pack that combines the current pressure sweep, recheck plan, counter details, tire goal, and owner question for copy, share, or Garage Notes save.",
+    keywords: [
+      "tire shop pack",
+      "copy tire shop pack",
+      "save tire shop pack",
+      "tire counter pack",
+      "parts counter tire",
+      "discount tire note",
+      "tire sku question",
+      "tire shop handoff",
+      "tire service desk",
+      "tire buying note",
+      "iphone tire shop"
+    ]
+  },
+  {
     title: "NFC Tag Console",
     url: "nfc.html",
     category: "Tools",

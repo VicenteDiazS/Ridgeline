@@ -55,6 +55,7 @@
               <a class="utility-link utility-link-strong" href="#tire-handoff-builder">Handoff</a>
               <a class="utility-link utility-link-strong" href="#tire-pressure-sweep">Pressure Sweep</a>
               <a class="utility-link utility-link-strong" href="#tire-recheck-planner">Recheck</a>
+              <a class="utility-link utility-link-strong" href="#tire-shop-pack">Shop Pack</a>
               <a class="utility-link utility-link-strong" href="#fitment-guide">Fitment Guide</a>
               <a class="utility-link" href="#wheel-well">Wheel Well</a>
               <a class="utility-link" href="#source-audit">Sources</a>
@@ -278,6 +279,51 @@
               </div>
               <p class="small-note">
                 Recheck plans read the current sweep on this screen and save only into the existing Garage Notes field.
+              </p>
+            </div>
+            <div class="tire-shop-pack" id="tire-shop-pack" data-tire-shop-pack>
+              <div class="tire-recheck-head">
+                <div>
+                  <p class="eyebrow">Tire Shop Pack</p>
+                  <h3>Hand The Counter One Clean Note</h3>
+                </div>
+                <span data-tire-shop-status aria-live="polite">Shop pack ready.</span>
+              </div>
+              <div class="tire-shop-fields">
+                <label>
+                  <span>Counter / helper</span>
+                  <select data-tire-shop-target>
+                    <option value="Tire shop or service desk">Tire shop</option>
+                    <option value="Parts counter">Parts counter</option>
+                    <option value="Roadside or tow helper">Roadside/tow</option>
+                    <option value="Owner helper">Owner helper</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Callback / store detail</span>
+                  <input type="text" placeholder="Example: Discount Tire, callback 555-0142" data-tire-shop-contact />
+                </label>
+                <label>
+                  <span>Tire goal / SKU / size question</span>
+                  <textarea rows="2" placeholder="Example: check stock-size tire options; confirm any 265/60R18 fitment risk." data-tire-shop-goal></textarea>
+                </label>
+                <label>
+                  <span>Owner question</span>
+                  <textarea rows="2" placeholder="Example: Which corner should be inspected first, and should I recheck tomorrow cold?" data-tire-shop-question></textarea>
+                </label>
+              </div>
+              <div class="tire-shop-preview" data-tire-shop-preview>
+                Enter pressure readings above to build a tire shop pack.
+              </div>
+              <div class="inspector-actions tire-shop-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-tire-shop-pack>Copy Pack</button>
+                <button class="utility-link" type="button" data-share-tire-shop-pack>Share</button>
+                <button class="utility-link" type="button" data-save-tire-shop-pack>Save Garage Note</button>
+                <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+              </div>
+              <p class="small-note">
+                The pack combines this iPhone's current pressure sweep, recheck plan, and owner-entered counter details;
+                it saves through existing Garage Notes and does not add tire-fitment claims or change Garage storage.
               </p>
             </div>
             <div class="inspector-actions tire-pressure-actions">
@@ -577,6 +623,7 @@
         <a href="#tire-handoff-builder">Handoff</a>
         <a href="#tire-pressure-sweep">Pressure</a>
         <a href="#tire-recheck-planner">Recheck</a>
+        <a href="#tire-shop-pack">Shop Pack</a>
         <a href="#fitment-guide">Fitment</a>
       </nav>
     </div>
@@ -762,6 +809,7 @@
 
         const STORAGE_KEY = "ridgeline-tire-pressure-sweep";
         const RECHECK_STORAGE_KEY = "ridgeline-tire-recheck-plan";
+        const SHOP_PACK_STORAGE_KEY = "ridgeline-tire-shop-pack";
         const STORAGE_NOTES = "ridgeline-notes";
         const baselinePsi = 35;
         const statusLabels = {
@@ -783,6 +831,15 @@
           summary: root.querySelector("[data-tire-recheck-summary]"),
           place: root.querySelector("[data-tire-recheck-place]"),
           note: root.querySelector("[data-tire-recheck-note]")
+        };
+        const shopPack = {
+          root: root.querySelector("[data-tire-shop-pack]"),
+          status: root.querySelector("[data-tire-shop-status]"),
+          target: root.querySelector("[data-tire-shop-target]"),
+          contact: root.querySelector("[data-tire-shop-contact]"),
+          goal: root.querySelector("[data-tire-shop-goal]"),
+          question: root.querySelector("[data-tire-shop-question]"),
+          preview: root.querySelector("[data-tire-shop-preview]")
         };
         const inputs = [...root.querySelectorAll("[data-tire-corner]")];
         const selects = [...root.querySelectorAll("[data-tire-corner-status]")];
@@ -824,6 +881,18 @@
 
         function writeRecheck(data) {
           localStorage.setItem(RECHECK_STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadShopPack() {
+          try {
+            return JSON.parse(localStorage.getItem(SHOP_PACK_STORAGE_KEY) || "{}") || {};
+          } catch {
+            return {};
+          }
+        }
+
+        function writeShopPack(data) {
+          localStorage.setItem(SHOP_PACK_STORAGE_KEY, JSON.stringify(data));
         }
 
         function readSweep() {
@@ -887,6 +956,7 @@
           if (fields.summary) fields.summary.textContent = summarize(data);
           writeSweep(data);
           renderRecheckSummary(data);
+          renderShopPackPreview(data);
         }
 
         function renderRecheckPlan(key) {
@@ -906,6 +976,33 @@
 
         function renderRecheckSummary(data = readSweep()) {
           if (recheck.summary) recheck.summary.textContent = summarizeRecheck(data);
+          renderShopPackPreview(data);
+        }
+
+        function readShopPack() {
+          return {
+            target: shopPack.target?.value || "Tire shop or service desk",
+            contact: shopPack.contact?.value.trim() || "",
+            goal: shopPack.goal?.value.trim() || "",
+            question: shopPack.question?.value.trim() || ""
+          };
+        }
+
+        function summarizeShopPack(data = readSweep()) {
+          const checked = data.corners.filter((item) => item.psi || item.status !== "not checked");
+          const targets = getRecheckTargets(data);
+          const pack = readShopPack();
+          const targetLabel = targets.length
+            ? targets.map((item) => `${item.corner}${item.psi ? ` ${item.psi} psi` : ""} ${statusLabels[item.status] || item.status}`).join("; ")
+            : "no pressure readings entered yet";
+          const contactLabel = pack.contact ? ` Contact: ${pack.contact}.` : "";
+          return `${pack.target}: ${checked.length}/4 corners recorded. Watch: ${targetLabel}.${contactLabel}`;
+        }
+
+        function renderShopPackPreview(data = readSweep()) {
+          if (!data?.corners) data = readSweep();
+          if (shopPack.preview) shopPack.preview.textContent = summarizeShopPack(data);
+          writeShopPack(readShopPack());
         }
 
         function buildSweepText() {
@@ -931,6 +1028,26 @@
           const note = recheck.note?.value.trim();
           const pressureContext = fields.note?.value.trim();
           return `Ridgeline Tire Pressure Recheck\nTiming: ${recheckPlans[currentRecheckKey]}\nWhere: ${place || "not set"}\nWatch list:\n${targetLines.join("\n")}\nBaseline reference: ${baselinePsi} psi cold; verify against placard/sidewall/manual.${pressureContext ? `\nSweep context: ${pressureContext}` : ""}${note ? `\nFollow-up note: ${note}` : ""}\nNext: recheck the watch-list corner(s), then save the final result in Garage Notes.`;
+        }
+
+        function buildShopPackText() {
+          const data = readSweep();
+          const pack = readShopPack();
+          const targetLines = getRecheckTargets(data);
+          const sweepLines = data.corners.map((item) => {
+            const reading = item.psi ? `${item.psi} psi` : "no psi entered";
+            return `- ${item.corner}: ${reading}; ${statusLabels[item.status] || item.status}`;
+          });
+          const watchLines = targetLines.length
+            ? targetLines.map((item) => {
+                const reading = item.psi ? `${item.psi} psi` : "no psi entered";
+                return `- ${item.corner}: ${reading}; ${statusLabels[item.status] || item.status}`;
+              })
+            : ["- No pressure readings entered yet"];
+          const place = recheck.place?.value.trim();
+          const recheckNote = recheck.note?.value.trim();
+          const pressureContext = fields.note?.value.trim();
+          return `Ridgeline Tire Shop Pack\nFor: ${pack.target}\nCallback/store: ${pack.contact || "not set"}\nTire goal: ${pack.goal || "not set"}\nOwner question: ${pack.question || "not set"}\nPressure sweep:\n${sweepLines.join("\n")}\nWatch list:\n${watchLines.join("\n")}\nRecheck plan: ${recheckPlans[currentRecheckKey]}${place ? ` at ${place}` : ""}${pressureContext ? `\nSweep context: ${pressureContext}` : ""}${recheckNote ? `\nFollow-up note: ${recheckNote}` : ""}\nReferences: 35 psi cold is a quick reference only; verify against the door placard, installed tire sidewall, current load, and owner manual. Fitment changes must be confirmed before ordering.`;
         }
 
         function loadNotes() {
@@ -979,6 +1096,20 @@
           );
         }
 
+        function saveShopPackNote(text) {
+          const notes = loadNotes();
+          const stamp = new Date().toLocaleDateString();
+          const note = `[${stamp} - Tire Shop Pack]\n${text}`;
+          const existing = `${notes.general_notes || ""}`.trim();
+          localStorage.setItem(
+            STORAGE_NOTES,
+            JSON.stringify({
+              ...notes,
+              general_notes: existing ? `${note}\n\n${existing}` : note
+            })
+          );
+        }
+
         [...inputs, ...selects, fields.note].filter(Boolean).forEach((field) => {
           field.addEventListener("input", renderSummary);
           field.addEventListener("change", renderSummary);
@@ -994,6 +1125,11 @@
         [recheck.place, recheck.note].filter(Boolean).forEach((field) => {
           field.addEventListener("input", () => renderRecheckPlan(currentRecheckKey));
           field.addEventListener("change", () => renderRecheckPlan(currentRecheckKey));
+        });
+
+        [shopPack.target, shopPack.contact, shopPack.goal, shopPack.question].filter(Boolean).forEach((field) => {
+          field.addEventListener("input", () => renderShopPackPreview());
+          field.addEventListener("change", () => renderShopPackPreview());
         });
 
         root.querySelector("[data-copy-tire-pressure]")?.addEventListener("click", async () => {
@@ -1059,11 +1195,43 @@
           setRecheckStatus("Pressure recheck saved to Garage Notes.");
         });
 
+        root.querySelector("[data-copy-tire-shop-pack]")?.addEventListener("click", async () => {
+          const copied = await copyText(buildShopPackText());
+          if (shopPack.status) shopPack.status.textContent = copied ? "Tire shop pack copied." : "Copy unavailable; use the visible pack.";
+        });
+
+        root.querySelector("[data-share-tire-shop-pack]")?.addEventListener("click", async () => {
+          const text = buildShopPackText();
+          try {
+            if (navigator.share) {
+              await navigator.share({ title: "Ridgeline tire shop pack", text });
+              if (shopPack.status) shopPack.status.textContent = "Tire shop pack shared.";
+              return;
+            }
+            const copied = await copyText(text);
+            if (shopPack.status) {
+              shopPack.status.textContent = copied ? "Share unavailable; shop pack copied instead." : "Share unavailable on this browser.";
+            }
+          } catch {
+            if (shopPack.status) shopPack.status.textContent = "Share canceled or unavailable.";
+          }
+        });
+
+        root.querySelector("[data-save-tire-shop-pack]")?.addEventListener("click", () => {
+          saveShopPackNote(buildShopPackText());
+          if (shopPack.status) shopPack.status.textContent = "Tire shop pack saved to Garage Notes.";
+        });
+
         hydrateSweep();
         const savedRecheck = loadRecheck();
         currentRecheckKey = recheckPlans[savedRecheck.when] ? savedRecheck.when : "before-drive";
         if (recheck.place) recheck.place.value = savedRecheck.place || "";
         if (recheck.note) recheck.note.value = savedRecheck.note || "";
+        const savedShopPack = loadShopPack();
+        if (shopPack.target && savedShopPack.target) shopPack.target.value = savedShopPack.target;
+        if (shopPack.contact) shopPack.contact.value = savedShopPack.contact || "";
+        if (shopPack.goal) shopPack.goal.value = savedShopPack.goal || "";
+        if (shopPack.question) shopPack.question.value = savedShopPack.question || "";
         renderRecheckPlan(currentRecheckKey);
         renderSummary();
       })();

@@ -9239,7 +9239,8 @@ kbd {
   line-height: 1.4;
 }
 
-.tire-recheck-planner {
+.tire-recheck-planner,
+.tire-shop-pack {
   display: grid;
   gap: 12px;
   padding: 13px;
@@ -9268,29 +9269,34 @@ kbd {
 }
 
 .tire-recheck-picker,
-.tire-recheck-actions {
+.tire-recheck-actions,
+.tire-shop-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
 .tire-recheck-picker .utility-link,
-.tire-recheck-actions .utility-link {
+.tire-recheck-actions .utility-link,
+.tire-shop-actions .utility-link {
   min-height: 42px;
 }
 
-.tire-recheck-fields {
+.tire-recheck-fields,
+.tire-shop-fields {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 10px;
 }
 
-.tire-recheck-fields label {
+.tire-recheck-fields label,
+.tire-shop-fields label {
   display: grid;
   gap: 8px;
 }
 
-.tire-recheck-fields span {
+.tire-recheck-fields span,
+.tire-shop-fields span {
   color: rgba(231, 239, 246, 0.72);
   font-size: 0.74rem;
   font-weight: 850;
@@ -9299,7 +9305,10 @@ kbd {
 }
 
 .tire-recheck-fields input,
-.tire-recheck-fields textarea {
+.tire-recheck-fields textarea,
+.tire-shop-fields input,
+.tire-shop-fields select,
+.tire-shop-fields textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -9308,17 +9317,21 @@ kbd {
   color: #f7fbff;
 }
 
-.tire-recheck-fields input {
+.tire-recheck-fields input,
+.tire-shop-fields input,
+.tire-shop-fields select {
   padding: 9px 10px;
 }
 
-.tire-recheck-fields textarea {
+.tire-recheck-fields textarea,
+.tire-shop-fields textarea {
   min-height: 72px;
   padding: 10px 12px;
   resize: vertical;
 }
 
-.tire-recheck-summary {
+.tire-recheck-summary,
+.tire-shop-preview {
   padding: 10px 11px;
   border: 1px solid rgba(255, 214, 102, 0.18);
   border-radius: 12px;
@@ -13926,7 +13939,8 @@ kbd {
     line-height: 1.34;
   }
 
-  .tire-recheck-planner {
+  .tire-recheck-planner,
+  .tire-shop-pack {
     gap: 10px;
     padding: 12px;
   }
@@ -13948,34 +13962,42 @@ kbd {
   }
 
   .tire-recheck-picker,
-  .tire-recheck-actions {
+  .tire-recheck-actions,
+  .tire-shop-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
   }
 
   .tire-recheck-picker .utility-link,
-  .tire-recheck-actions .utility-link {
+  .tire-recheck-actions .utility-link,
+  .tire-shop-actions .utility-link {
     min-height: 40px;
     padding: 8px 6px;
     font-size: 0.7rem;
   }
 
-  .tire-recheck-fields {
+  .tire-recheck-fields,
+  .tire-shop-fields {
     grid-template-columns: 1fr;
     gap: 9px;
   }
 
-  .tire-recheck-fields span {
+  .tire-recheck-fields span,
+  .tire-shop-fields span {
     font-size: 0.68rem;
     line-height: 1.2;
   }
 
   .tire-recheck-fields input,
-  .tire-recheck-fields textarea {
+  .tire-recheck-fields textarea,
+  .tire-shop-fields input,
+  .tire-shop-fields select,
+  .tire-shop-fields textarea {
     font-size: 0.78rem;
   }
 
-  .tire-recheck-summary {
+  .tire-recheck-summary,
+  .tire-shop-preview {
     padding: 9px 10px;
     font-size: 0.76rem;
     line-height: 1.34;
@@ -17617,6 +17639,7 @@ select:focus {
 }
 
 .home-resume-panel {
+  order: 6;
   position: relative;
   z-index: 13;
   display: grid;
