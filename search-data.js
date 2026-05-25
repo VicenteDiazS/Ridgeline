@@ -462,6 +462,23 @@ export const searchIndex = [
     ]
   },
   {
+    title: "Fuse Counter Pack",
+    url: "hood.html#hood-saved-fuse-review",
+    category: "Electrical",
+    excerpt: "iPhone pack that combines saved Hood or Cabin fuses with symptom, callback, and owner question for a parts counter, shop, or helper.",
+    keywords: [
+      "fuse counter pack",
+      "copy fuse counter pack",
+      "parts counter fuse",
+      "shop fuse handoff",
+      "fuse parts counter",
+      "saved fuse ask",
+      "fuse callback note",
+      "send saved fuses",
+      "iphone fuse counter"
+    ]
+  },
+  {
     title: "Fuse Pull Checklist",
     url: "hood.html#hood-fuse-pull-checklist",
     category: "Electrical",

@@ -1,6 +1,7 @@
 import { STORAGE, initGarageCloudSync, loadJson, saveJson } from "./garage-data.js";
 
 const diagramEls = [...document.querySelectorAll("[data-fuse-diagram]")];
+const FUSE_COUNTER_PACK_KEY = "ridgeline-fuse-counter-pack";
 const acronymDefinitions = {
   ABS: "Anti-lock Brake System",
   VSA: "Vehicle Stability Assist",
@@ -469,6 +470,157 @@ function savedFuseReviewText(root, saved = loadJson(STORAGE.favorites, [])) {
     "Verify against the truck cover label and owner's manual before replacing anything.",
     `${location.origin}${location.pathname}#${root.id || "fuses"}`
   ].join("\n");
+}
+
+function fuseCounterPackKey(root) {
+  return root.closest("[data-saved-fuse-review]")?.dataset.savedFusePage || currentPageTitle();
+}
+
+function loadFuseCounterPack(root) {
+  const allPacks = loadJson(FUSE_COUNTER_PACK_KEY, {});
+  return allPacks[fuseCounterPackKey(root)] || {};
+}
+
+function saveFuseCounterPack(root) {
+  const allPacks = loadJson(FUSE_COUNTER_PACK_KEY, {});
+  allPacks[fuseCounterPackKey(root)] = {
+    target: root.querySelector("[data-fuse-counter-target]")?.value || "Parts counter",
+    callback: root.querySelector("[data-fuse-counter-callback]")?.value.trim() || "",
+    symptom: root.querySelector("[data-fuse-counter-symptom]")?.value.trim() || "",
+    ask: root.querySelector("[data-fuse-counter-ask]")?.value.trim() || ""
+  };
+  localStorage.setItem(FUSE_COUNTER_PACK_KEY, JSON.stringify(allPacks));
+}
+
+function fuseCounterSavedLines(saved = loadJson(STORAGE.favorites, [])) {
+  return saved.slice(-6).reverse().map((entry, index) => {
+    const locationLabel = entry.location ? ` / ${entry.location}` : "";
+    const url = entry.url || "hood.html#fuses";
+    return `${index + 1}. ${formatSavedFuse(entry)}${locationLabel}\n   ${url}`;
+  });
+}
+
+function buildFuseCounterPack(root, saved = loadJson(STORAGE.favorites, [])) {
+  const pageLabel = fuseCounterPackKey(root);
+  const target = root.querySelector("[data-fuse-counter-target]")?.value || "Parts counter";
+  const callback = root.querySelector("[data-fuse-counter-callback]")?.value.trim() || "Not entered";
+  const symptom = root.querySelector("[data-fuse-counter-symptom]")?.value.trim() || "Not entered";
+  const ask = root.querySelector("[data-fuse-counter-ask]")?.value.trim() || "Confirm next fuse or part to inspect.";
+  const savedLines = fuseCounterSavedLines(saved);
+
+  return [
+    `${pageLabel} fuse counter pack`,
+    `For: ${target}`,
+    `Callback / vehicle note: ${callback}`,
+    `Symptom / result: ${symptom}`,
+    `Question: ${ask}`,
+    "Saved fuses:",
+    ...(savedLines.length ? savedLines : ["No saved fuses yet. Save a fuse from the diagram first."]),
+    "Verify against the truck cover label and owner's manual before replacing anything.",
+    `${location.origin}${location.pathname}#${root.closest("[data-saved-fuse-review]")?.id || "fuses"}`
+  ].join("\n");
+}
+
+function renderFuseCounterPack(root) {
+  const saved = loadJson(STORAGE.favorites, []);
+  const preview = root.querySelector("[data-fuse-counter-preview]");
+  const buttons = root.querySelectorAll("[data-copy-fuse-counter-pack], [data-share-fuse-counter-pack], [data-save-fuse-counter-pack]");
+  const count = saved.length;
+  buttons.forEach((button) => {
+    button.disabled = count === 0;
+  });
+  if (!preview) {
+    return;
+  }
+
+  const target = root.querySelector("[data-fuse-counter-target]")?.value || "Parts counter";
+  const symptom = root.querySelector("[data-fuse-counter-symptom]")?.value.trim() || "Add symptom or result before sending.";
+  const ask = root.querySelector("[data-fuse-counter-ask]")?.value.trim() || "Confirm next fuse or part to inspect.";
+  preview.innerHTML = `
+    <span>${escapeHtml(target)} pack</span>
+    <strong>${escapeHtml(symptom)}</strong>
+    <small>${escapeHtml(count ? `${Math.min(count, 6)} saved fuse${count === 1 ? "" : "s"} attached.` : "Save at least one fuse from a diagram first.")}</small>
+    <small>${escapeHtml(ask)}</small>
+  `;
+}
+
+function setFuseCounterStatus(root, message) {
+  const review = root.closest("[data-saved-fuse-review]");
+  setSavedFuseStatus(review || root, message);
+}
+
+function initFuseCounterPacks() {
+  const roots = [...document.querySelectorAll("[data-fuse-counter-pack]")];
+  if (!roots.length) {
+    return;
+  }
+
+  roots.forEach((root) => {
+    const saved = loadFuseCounterPack(root);
+    const target = root.querySelector("[data-fuse-counter-target]");
+    const callback = root.querySelector("[data-fuse-counter-callback]");
+    const symptom = root.querySelector("[data-fuse-counter-symptom]");
+    const ask = root.querySelector("[data-fuse-counter-ask]");
+    const fields = [target, callback, symptom, ask].filter(Boolean);
+
+    if (saved.target && target) target.value = saved.target;
+    if (saved.callback && callback) callback.value = saved.callback;
+    if (saved.symptom && symptom) symptom.value = saved.symptom;
+    if (saved.ask && ask) ask.value = saved.ask;
+
+    fields.forEach((field) => {
+      field.addEventListener("input", () => {
+        saveFuseCounterPack(root);
+        renderFuseCounterPack(root);
+      });
+      field.addEventListener("change", () => {
+        saveFuseCounterPack(root);
+        renderFuseCounterPack(root);
+      });
+    });
+
+    root.querySelector("[data-copy-fuse-counter-pack]")?.addEventListener("click", async () => {
+      const copied = await copyText(buildFuseCounterPack(root));
+      setFuseCounterStatus(root, copied ? "Fuse counter pack copied." : "Copy is unavailable in this browser.");
+    });
+
+    root.querySelector("[data-share-fuse-counter-pack]")?.addEventListener("click", async () => {
+      const text = buildFuseCounterPack(root);
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Ridgeline fuse counter pack", text });
+          setFuseCounterStatus(root, "Fuse counter pack shared.");
+          return;
+        }
+        const copied = await copyText(text);
+        setFuseCounterStatus(root, copied ? "Share unavailable; fuse counter pack copied instead." : "Share is unavailable in this browser.");
+      } catch (error) {
+        setFuseCounterStatus(root, "Share canceled or unavailable.");
+      }
+    });
+
+    root.querySelector("[data-save-fuse-counter-pack]")?.addEventListener("click", () => {
+      const timestamp = new Date().toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+      try {
+        prependGarageGeneralNote(`[${timestamp} - Fuse Counter Pack]\n${buildFuseCounterPack(root)}`);
+        setFuseCounterStatus(root, "Fuse counter pack saved to Garage Notes.");
+      } catch (error) {
+        setFuseCounterStatus(root, "Could not save the counter pack in this browser session.");
+      }
+    });
+
+    renderFuseCounterPack(root);
+  });
+
+  window.addEventListener("ridgeline:fuse-favorites-updated", () => {
+    roots.forEach((root) => renderFuseCounterPack(root));
+  });
 }
 
 function setSavedFuseStatus(root, message) {
@@ -1030,4 +1182,5 @@ document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
 });
 initFusePullChecklists();
 initSavedFuseReviews();
+initFuseCounterPacks();
 initGarageCloudSync();

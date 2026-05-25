@@ -158,6 +158,45 @@
               <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
             </div>
             <div class="saved-fuse-list" data-saved-fuse-list aria-live="polite"></div>
+            <div class="fuse-counter-pack" data-fuse-counter-pack>
+              <div>
+                <p class="eyebrow">iPhone Fuse Counter Pack</p>
+                <h3>Send Saved Fuses With The Ask</h3>
+                <p class="section-copy">
+                  Package the saved fuse list, symptom, callback, and question
+                  for a parts counter, shop, or helper without retyping the fuse rows.
+                </p>
+              </div>
+              <div class="fuse-counter-grid">
+                <label>
+                  <span>Who needs this?</span>
+                  <select data-fuse-counter-target>
+                    <option value="Parts counter">Parts counter</option>
+                    <option value="Shop or service desk">Shop or service desk</option>
+                    <option value="Roadside or tow helper">Roadside or tow helper</option>
+                    <option value="Owner helper">Owner helper</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Callback or vehicle note</span>
+                  <input type="text" data-fuse-counter-callback placeholder="Example: call/text me before pulling more fuses" />
+                </label>
+                <label class="fuse-counter-wide">
+                  <span>Symptom or result</span>
+                  <textarea rows="3" data-fuse-counter-symptom placeholder="Example: front 12V socket still dead after cover-label check"></textarea>
+                </label>
+                <label class="fuse-counter-wide">
+                  <span>Question to answer</span>
+                  <input type="text" data-fuse-counter-ask placeholder="Example: confirm which fuse/part to inspect next" />
+                </label>
+              </div>
+              <div class="fuse-counter-preview" data-fuse-counter-preview aria-live="polite"></div>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-fuse-counter-pack>Copy Counter Pack</button>
+                <button class="utility-link" type="button" data-share-fuse-counter-pack>Share</button>
+                <button class="utility-link" type="button" data-save-fuse-counter-pack>Save Garage Note</button>
+              </div>
+            </div>
             <div class="inspector-actions">
               <button class="utility-link utility-link-strong" type="button" data-copy-saved-fuses>Copy Saved List</button>
               <button class="utility-link" type="button" data-save-saved-fuses>Save Garage Note</button>

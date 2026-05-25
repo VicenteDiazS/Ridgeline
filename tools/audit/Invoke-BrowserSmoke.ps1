@@ -164,6 +164,9 @@ SEARCH_EXPECTATIONS = {
     "saved fuse review": "Saved Fuse Review",
     "copy saved fuses": "Saved Fuse Review",
     "garage saved fuse": "Saved Fuse Review",
+    "fuse counter pack": "Fuse Counter Pack",
+    "copy fuse counter pack": "Fuse Counter Pack",
+    "parts counter fuse": "Fuse Counter Pack",
     "fuse pull checklist": "Fuse Pull Checklist",
     "save fuse checklist": "Fuse Pull Checklist",
     "fuse label decoder": "Fuse Label Decoder",
@@ -1777,6 +1780,16 @@ async def assert_fuse_mobile_readability(page, page_name):
                 hasCopyList: Boolean(root?.querySelector("[data-copy-saved-fuses]")),
                 hasSaveNote: Boolean(root?.querySelector("[data-save-saved-fuses]")),
                 hasRecentHandoffsRoute: Boolean(root?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                hasCounterPack: Boolean(root?.querySelector("[data-fuse-counter-pack]")),
+                hasCounterTarget: Boolean(root?.querySelector("[data-fuse-counter-target]")),
+                hasCounterCallback: Boolean(root?.querySelector("[data-fuse-counter-callback]")),
+                hasCounterSymptom: Boolean(root?.querySelector("[data-fuse-counter-symptom]")),
+                hasCounterAsk: Boolean(root?.querySelector("[data-fuse-counter-ask]")),
+                hasCounterCopy: Boolean(root?.querySelector("[data-copy-fuse-counter-pack]")),
+                hasCounterShare: Boolean(root?.querySelector("[data-share-fuse-counter-pack]")),
+                hasCounterSave: Boolean(root?.querySelector("[data-save-fuse-counter-pack]")),
+                counterCopyDisabled: Boolean(root?.querySelector("[data-copy-fuse-counter-pack]")?.disabled),
+                counterText: root?.querySelector("[data-fuse-counter-pack]")?.innerText || "",
                 minActionHeight: actionRects.length ? Math.min(...actionRects.map((rect) => rect.height)) : 0,
                 overflow: docWidth > document.documentElement.clientWidth + 1
             };
@@ -1789,9 +1802,44 @@ async def assert_fuse_mobile_readability(page, page_name):
     assert_true(review_state["hasCopyList"], f"{page_name} saved fuse review is missing Copy Saved List")
     assert_true(review_state["hasSaveNote"], f"{page_name} saved fuse review is missing Save Garage Note")
     assert_true(review_state["hasRecentHandoffsRoute"], f"{page_name} saved fuse review is missing Recent Handoffs route")
+    assert_true(review_state["hasCounterPack"], f"{page_name} saved fuse review is missing the Fuse Counter Pack")
+    assert_true(review_state["hasCounterTarget"], f"{page_name} Fuse Counter Pack is missing the target picker")
+    assert_true(review_state["hasCounterCallback"], f"{page_name} Fuse Counter Pack is missing the callback field")
+    assert_true(review_state["hasCounterSymptom"], f"{page_name} Fuse Counter Pack is missing the symptom field")
+    assert_true(review_state["hasCounterAsk"], f"{page_name} Fuse Counter Pack is missing the question field")
+    assert_true(review_state["hasCounterCopy"], f"{page_name} Fuse Counter Pack is missing Copy Counter Pack")
+    assert_true(review_state["hasCounterShare"], f"{page_name} Fuse Counter Pack is missing Share")
+    assert_true(review_state["hasCounterSave"], f"{page_name} Fuse Counter Pack is missing Save Garage Note")
+    assert_true(not review_state["counterCopyDisabled"], f"{page_name} Fuse Counter Pack copy should enable after saving a fuse")
+    assert_true("parts counter" in review_state["counterText"].lower(), f"{page_name} Fuse Counter Pack should name parts-counter use")
     assert_true("verify against the truck cover label" in review_state["text"].lower(), f"{page_name} saved fuse review is missing cover-label reminder")
     assert_true(review_state["minActionHeight"] >= 40, f"{page_name} saved fuse review actions are too small for iPhone")
     assert_true(not review_state["overflow"], f"{page_name} saved fuse review introduced iPhone horizontal overflow")
+    await page.locator(f"{review_id} [data-fuse-counter-callback]").fill("text owner before replacing anything")
+    await page.locator(f"{review_id} [data-fuse-counter-symptom]").fill("saved fuse still tied to the owner symptom")
+    await page.locator(f"{review_id} [data-fuse-counter-ask]").fill("confirm the next fuse or part to inspect")
+    await page.locator(f"{review_id} [data-copy-fuse-counter-pack]").click()
+    await page.wait_for_timeout(200)
+    counter_copy_state = await page.locator(f"{review_id} [data-saved-fuse-status]").inner_text()
+    assert_true("Fuse counter pack copied" in counter_copy_state or "Copy is unavailable" in counter_copy_state, f"{page_name} Fuse Counter Pack copy did not report a result")
+    await page.locator(f"{review_id} [data-save-fuse-counter-pack]").click()
+    await page.wait_for_timeout(200)
+    counter_saved_state = await page.evaluate(
+        """(selector) => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const root = document.querySelector(selector);
+            return {
+                notes: notes.general_notes || "",
+                status: root?.querySelector("[data-saved-fuse-status]")?.textContent || "",
+                stored: JSON.parse(localStorage.getItem("ridgeline-fuse-counter-pack") || "{}")
+            };
+        }""",
+        review_id,
+    )
+    assert_true("Fuse counter pack saved to Garage Notes" in counter_saved_state["status"], f"{page_name} Fuse Counter Pack did not report Garage save")
+    assert_true("Fuse Counter Pack" in counter_saved_state["notes"], f"{page_name} Fuse Counter Pack did not save a Garage note")
+    assert_true("saved fuse still tied to the owner symptom" in counter_saved_state["notes"], f"{page_name} Fuse Counter Pack did not save symptom detail")
+    assert_true("confirm the next fuse or part" in counter_saved_state["notes"], f"{page_name} Fuse Counter Pack did not save the owner question")
     await page.locator(f"{review_id} [data-copy-saved-fuses]").click()
     await page.wait_for_timeout(200)
     await page.locator(f"{review_id} [data-save-saved-fuses]").click()

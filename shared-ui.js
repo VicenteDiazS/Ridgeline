@@ -1973,6 +1973,8 @@ function buildOwnerAuthModal() {
     }
   };
 
+  modal.closeOwnerAuthModal = close;
+
   modal.querySelectorAll("[data-close-owner-auth]").forEach((button) => {
     button.addEventListener("click", close);
   });
@@ -2042,6 +2044,8 @@ function buildOwnerAuthModal() {
     try {
       await ownerAuth.signInOwner(email, password);
       form.reset();
+      showToast("Signed in successfully.");
+      close();
     } catch (error) {
       if (message) {
         message.textContent = error.message;
@@ -2085,8 +2089,8 @@ function buildOwnerAuthButton() {
   button.className = "header-nav-button owner-auth-button";
   button.type = "button";
   button.dataset.openOwnerAuth = "true";
-  button.setAttribute("aria-label", "Open owner sign-in");
-  button.textContent = "Owner";
+  button.setAttribute("aria-label", "Open sign-in");
+  button.textContent = "Sign In";
   button.addEventListener("click", openOwnerAuthModal);
 
   const searchButton = topbarActions.querySelector("[data-open-search]");
@@ -2106,10 +2110,18 @@ function buildOwnerAuthButton() {
           : "locked"
         : "setup";
     button.textContent = authState.isOwner
-      ? "Owner Signed In"
+      ? "Signed In"
       : authState.ownerEmailConfigured
-        ? "Owner Sign In"
-        : "Local Saves";
+        ? "Sign In"
+        : "Access";
+    button.setAttribute(
+      "aria-label",
+      authState.isOwner
+        ? "Owner signed in"
+        : authState.ownerEmailConfigured
+          ? "Open owner sign-in"
+          : "Owner access setup"
+    );
     button.title = authState.isOwner
       ? `Signed in as ${authState.user?.email || "owner"}`
       : authState.ownerEmailConfigured
