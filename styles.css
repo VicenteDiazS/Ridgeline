@@ -12355,15 +12355,28 @@ kbd {
   }
 
   .diagnostics-page .section-page-hero .section-utility-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 7px;
+    margin-inline: -2px;
+    overflow-x: auto;
+    padding: 0 2px 4px;
+    scroll-padding-inline: 2px;
+    scrollbar-width: none;
   }
 
   .diagnostics-page .section-page-hero .utility-link {
+    flex: 0 0 auto;
+    min-width: 116px;
     min-height: 38px;
     padding: 0 8px;
     font-size: 0.68rem;
     line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .diagnostics-page .section-page-hero .section-utility-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .diagnostics-page .diagnostic-workflow-index {
@@ -18768,14 +18781,27 @@ select:focus {
 
 @media (max-width: 560px) {
   .quick-sheet-page .section-page-hero .section-utility-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 7px;
+    margin-inline: -2px;
+    overflow-x: auto;
+    padding: 0 2px 4px;
+    scroll-padding-inline: 2px;
+    scrollbar-width: none;
   }
 
   .quick-sheet-page .section-page-hero .utility-link {
+    flex: 0 0 auto;
+    min-width: 116px;
     min-height: 38px;
     padding: 0 8px;
     font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .quick-sheet-page .section-page-hero .section-utility-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .roadside-router-section {

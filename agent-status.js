@@ -13,6 +13,13 @@ const HOME_RESUME_NOTE_TYPES = [
   { match: /trailer light|tow setup|pinout/i, label: "Tow note", href: "rear-hitch.html#tow-setup-saver" },
   { match: /service|maintenance|follow-up|minder|prep/i, label: "Service note", href: "maintenance.html#service-followup" }
 ];
+const HOME_DIAGNOSTIC_CHECK_LABELS = {
+  start: "No start or weak battery",
+  warning: "Warning light or MID message",
+  power: "12V socket or accessory power",
+  audio: "Audio, radio, or display issue",
+  trailer: "Trailer light or connector issue"
+};
 
 function formatDate(value) {
   if (!value) {
@@ -51,6 +58,11 @@ function readStoredJson(key, fallback = null) {
   } catch {
     return fallback;
   }
+}
+
+function homeResumeTimestamp(value) {
+  const date = new Date(value || "");
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 function firstLine(value = "") {
@@ -99,10 +111,66 @@ function parseGarageGeneralNotes() {
   });
 }
 
+function latestDiagnosticCheckResumeItem() {
+  const checks = readStoredJson("ridgeline-diagnostic-first-checks", {});
+  const latest = Object.entries(checks || {})
+    .map(([planKey, value]) => ({
+      planKey,
+      value: value || {},
+      at: homeResumeTimestamp(value?.updatedAt)
+    }))
+    .filter((entry) => entry.at || entry.value?.detail || entry.value?.markedChecks?.length)
+    .sort((a, b) => b.at - a.at)[0];
+
+  if (!latest) {
+    return null;
+  }
+
+  const markedCount = Array.isArray(latest.value.markedChecks) ? latest.value.markedChecks.length : 0;
+  const title = HOME_DIAGNOSTIC_CHECK_LABELS[latest.planKey] || "Diagnostic first checks";
+  return {
+    title,
+    label: "Diagnostic checks",
+    body: [
+      `Ridgeline first diagnostic checks: ${title}`,
+      `${markedCount} first checks marked on this iPhone.`,
+      latest.value.detail ? `Result or next clue: ${latest.value.detail}` : "",
+      latest.value.updatedAt ? `Updated: ${formatDate(latest.value.updatedAt)}` : ""
+    ].filter(Boolean).join("\n"),
+    href: "diagnostics.html#first-check-tracker",
+    source: "Diagnostics",
+    at: latest.at
+  };
+}
+
+function diagnosticCallResumeItem() {
+  const call = readStoredJson("ridgeline-diagnostic-call-summary", {});
+  if (!call?.updatedAt && !call?.truckStatus && !call?.callback && !call?.ask) {
+    return null;
+  }
+
+  return {
+    title: `${call.target || "Repair shop"} call summary`,
+    label: "Diagnostic call",
+    body: [
+      `Ridgeline diagnostic call summary for ${call.target || "Repair shop"}`,
+      call.truckStatus ? `Truck status: ${call.truckStatus}` : "",
+      call.callback ? `Callback: ${call.callback}` : "",
+      call.ask ? `Question / ask: ${call.ask}` : "",
+      call.updatedAt ? `Updated: ${formatDate(call.updatedAt)}` : ""
+    ].filter(Boolean).join("\n"),
+    href: "diagnostics.html#diagnostic-call-summary",
+    source: "Diagnostics",
+    at: homeResumeTimestamp(call.updatedAt)
+  };
+}
+
 function getHomeResumeItems() {
   const items = parseGarageGeneralNotes();
   const roadsideReceipt = readStoredJson("ridgeline-roadside-last-handoff", null);
   const roadsideSession = readStoredJson("ridgeline-roadside-live-session", null);
+  const diagnosticReceipt = readStoredJson("ridgeline-diagnostic-last-handoff", null);
+  const fuseNote = readStoredJson("ridgeline-fuse-check-last-note", null);
 
   if (roadsideReceipt?.text) {
     items.unshift({
@@ -110,7 +178,8 @@ function getHomeResumeItems() {
       label: "Roadside receipt",
       body: roadsideReceipt.text,
       href: "quick-sheet.html#roadside-action-stack",
-      source: "Quick Sheet"
+      source: "Quick Sheet",
+      at: homeResumeTimestamp(roadsideReceipt.savedAt)
     });
   }
 
@@ -126,11 +195,46 @@ function getHomeResumeItems() {
       label: "Roadside session",
       body,
       href: "quick-sheet.html#roadside-action-stack",
-      source: "Quick Sheet"
+      source: "Quick Sheet",
+      at: homeResumeTimestamp(roadsideSession.startedAt)
     });
   }
 
-  return items.slice(0, 8);
+  if (diagnosticReceipt?.text) {
+    items.unshift({
+      title: diagnosticReceipt.title || "Latest diagnostic handoff",
+      label: "Diagnostic receipt",
+      body: diagnosticReceipt.text,
+      href: "diagnostics.html#diagnostic-share-builder",
+      source: "Diagnostics",
+      at: homeResumeTimestamp(diagnosticReceipt.savedAt)
+    });
+  }
+
+  const diagnosticChecks = latestDiagnosticCheckResumeItem();
+  if (diagnosticChecks) {
+    items.unshift(diagnosticChecks);
+  }
+
+  const diagnosticCall = diagnosticCallResumeItem();
+  if (diagnosticCall) {
+    items.unshift(diagnosticCall);
+  }
+
+  if (fuseNote?.text) {
+    items.unshift({
+      title: fuseNote.title || "Latest fuse check",
+      label: "Fuse check",
+      body: fuseNote.text,
+      href: "quick-sheet.html#fuse-triage",
+      source: "Quick Sheet",
+      at: homeResumeTimestamp(fuseNote.savedAt)
+    });
+  }
+
+  return items
+    .sort((a, b) => (b.at || 0) - (a.at || 0))
+    .slice(0, 8);
 }
 
 function renderHomeResumePanel() {
@@ -141,6 +245,7 @@ function renderHomeResumePanel() {
   const titleNode = homeResumePanel.querySelector("[data-home-resume-title]");
   const summaryNode = homeResumePanel.querySelector("[data-home-resume-summary]");
   const copyButton = homeResumePanel.querySelector("[data-home-resume-copy]");
+  const openLink = homeResumePanel.querySelector("[data-home-resume-open]");
   const statusNode = homeResumePanel.querySelector("[data-home-resume-status]");
   const items = getHomeResumeItems();
   const latest = items[0];
@@ -173,8 +278,13 @@ function renderHomeResumePanel() {
         });
     };
   }
+  if (openLink) {
+    openLink.setAttribute("href", latest?.href || "garage.html#recent-handoffs");
+    openLink.textContent = latest ? "Open Latest" : "Open Handoffs";
+    openLink.toggleAttribute("aria-disabled", !latest);
+  }
   if (statusNode) {
-    statusNode.textContent = latest ? "Latest local note is ready to copy or open in Garage Recent Handoffs." : "";
+    statusNode.textContent = latest ? "Latest local note is ready to copy or reopen at its source route." : "";
   }
 }
 
