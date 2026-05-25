@@ -106,8 +106,8 @@ export const searchIndex = [
     title: "Garage Recent Handoffs",
     url: "garage.html#recent-handoffs",
     category: "Garage",
-    excerpt: "Garage dashboard panel that gathers saved roadside, tire recheck, fuse checklist, diagnostic, and trailer light handoff notes into one iPhone recovery list with copy and source routes.",
-    keywords: ["garage recent handoffs", "recent handoff", "copy latest handoff", "saved roadside notes", "saved tire recheck", "saved fuse checklist", "saved diagnostic handoff", "saved trailer light test", "iphone handoff recovery", "garage roadside notes", "latest handoff note"]
+    excerpt: "Garage dashboard panel that gathers saved roadside, service follow-up, tire recheck, fuse checklist, diagnostic, and trailer light handoff notes into one iPhone recovery list with type filters, copy, and source routes.",
+    keywords: ["garage recent handoffs", "recent handoff", "copy latest handoff", "filter handoffs", "handoff filters", "service handoff filter", "saved service follow-up", "saved roadside notes", "saved tire recheck", "saved fuse checklist", "saved diagnostic handoff", "saved trailer light test", "iphone handoff recovery", "garage roadside notes", "latest handoff note"]
   },
   {
     title: "Roadside Note Receipt",

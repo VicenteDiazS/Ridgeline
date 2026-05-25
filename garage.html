@@ -69,7 +69,7 @@
               <div class="compact-section-head">
                 <div>
                   <p class="eyebrow">Recent handoffs</p>
-                  <h4>Roadside, Tire, Fuse, Diagnostic, And Tow Notes</h4>
+                  <h4>Roadside, Service, Fuse, Diagnostic, Tire, And Tow Notes</h4>
                 </div>
                 <div class="inspector-actions">
                   <button class="utility-link" type="button" data-copy-recent-handoff>Copy Latest</button>
@@ -77,8 +77,16 @@
                 </div>
               </div>
               <p class="small-note">
-                One place to recover the latest iPhone notes saved from Quick Sheet, Diagnostics, Tires, fuse checklists, and Rear Hitch before the details get buried.
+                One place to recover the latest iPhone notes saved from Quick Sheet, Diagnostics, Maintenance, Tires, fuse checklists, and Rear Hitch before the details get buried.
               </p>
+              <div class="recent-handoff-filters" role="group" aria-label="Filter recent handoffs">
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="all" aria-pressed="true">All</button>
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="diagnostic" aria-pressed="false">Diagnostic</button>
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="roadside" aria-pressed="false">Roadside</button>
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="fuse" aria-pressed="false">Fuse</button>
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="service" aria-pressed="false">Service</button>
+                <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="tow" aria-pressed="false">Tire / Tow</button>
+              </div>
               <p class="small-note roadside-note-status" data-recent-handoff-status aria-live="polite"></p>
               <div class="roadside-note-list" data-recent-handoffs></div>
             </div>

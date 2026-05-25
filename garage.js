@@ -28,6 +28,7 @@ const garageSetupChecklist = document.querySelector("[data-garage-setup-checklis
 const recentHandoffList = document.querySelector("[data-recent-handoffs]");
 const recentHandoffCopyButton = document.querySelector("[data-copy-recent-handoff]");
 const recentHandoffStatus = document.querySelector("[data-recent-handoff-status]");
+const recentHandoffFilterButtons = [...document.querySelectorAll("[data-recent-handoff-filter]")];
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
 const maintenanceNoteCopyButton = document.querySelector("[data-copy-maintenance-note]");
@@ -81,6 +82,8 @@ let maintenanceCounterLastStaged = null;
 let maintenanceCounterSkippedKeys = [];
 let maintenanceFinalPartsDraft = "";
 let pendingGarageBackup = null;
+let currentRecentHandoffFilter = "all";
+let currentRecentHandoffItems = [];
 let pendingGarageBackupSummary = null;
 let currentGarageFillPlan = null;
 const MAINTENANCE_STAGING_STATE_KEY = "ridgeline-maintenance-staging-state";
@@ -267,6 +270,12 @@ jobNoteCopyButton?.addEventListener("click", () => {
 
 jobNoteAppendButton?.addEventListener("click", appendJobNoteToGeneralNotes);
 recentHandoffCopyButton?.addEventListener("click", () => copyRecentHandoff());
+recentHandoffFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentRecentHandoffFilter = button.dataset.recentHandoffFilter || "all";
+    renderRecentHandoffs();
+  });
+});
 
 if (trackerForm) {
   trackerForm.addEventListener("input", () => {
@@ -496,42 +505,63 @@ function classifyRecentHandoff(heading = "", body = "", sourceOverride = "") {
   const matchers = [
     {
       test: /\broadside note\b/i,
+      type: "roadside",
       source: "Quick Sheet",
       title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Roadside note",
       href: "quick-sheet.html#roadside-action-stack"
     },
     {
       test: /\blive roadside update\b/i,
+      type: "roadside",
       source: "Quick Sheet",
       title: "Live roadside session",
       href: "quick-sheet.html#roadside-action-stack"
     },
     {
       test: /\bfuse check note\b/i,
+      type: "fuse",
       source: "Quick Sheet",
       title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Fuse check note",
       href: "quick-sheet.html#fuse-triage"
     },
     {
       test: /\bfuse pull checklist\b/i,
+      type: "fuse",
       source: "Fuse Checklist",
       title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Fuse pull checklist",
       href: /cabin/i.test(haystack) ? "cabin.html#cabin-fuse-pull-checklist" : "hood.html#hood-fuse-pull-checklist"
     },
     {
       test: /\bdiagnostic note\b/i,
+      type: "diagnostic",
       source: "Diagnostics",
       title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Diagnostic note",
       href: "diagnostics.html#diagnostic-share-builder"
     },
     {
+      test: /\b(first diagnostic checks|diagnostic call summary)\b/i,
+      type: "diagnostic",
+      source: "Diagnostics",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Diagnostic handoff",
+      href: "diagnostics.html#diagnostic-call-summary"
+    },
+    {
+      test: /\b(service follow-up|ridgeline service follow-up|ridgeline service closeout|maintenance update|oil change|tire rotation|battery install|air filters|filters done)\b/i,
+      type: "service",
+      source: "Maintenance",
+      title: heading.replace(/^[^-]+-\s*/i, "").trim() || "Service handoff",
+      href: "maintenance.html#service-followup"
+    },
+    {
       test: /\btire pressure recheck\b/i,
+      type: "tow",
       source: "Tires",
       title: "Tire Pressure Recheck",
       href: "tires.html#tire-recheck-planner"
     },
     {
       test: /\btrailer light test\b/i,
+      type: "tow",
       source: source || "Rear Hitch Journal",
       title: "Trailer Light Test",
       href: "rear-hitch.html#tow-setup-saver"
@@ -543,6 +573,7 @@ function classifyRecentHandoff(heading = "", body = "", sourceOverride = "") {
   }
 
   return {
+    type: match.type,
     source: match.source,
     title: match.title,
     detail: shortText(body || heading, 170),
@@ -605,7 +636,23 @@ function getRecentHandoffItems() {
       return true;
     })
     .sort((a, b) => a.rank - b.rank)
-    .slice(0, 5);
+    .slice(0, 12);
+}
+
+function recentHandoffFilterLabel(type = currentRecentHandoffFilter) {
+  const labels = {
+    all: "All",
+    diagnostic: "Diagnostic",
+    roadside: "Roadside",
+    fuse: "Fuse",
+    service: "Service",
+    tow: "Tire / Tow"
+  };
+  return labels[type] || labels.all;
+}
+
+function filterRecentHandoffs(items = getRecentHandoffItems(), type = currentRecentHandoffFilter) {
+  return type === "all" ? items : items.filter((item) => item.type === type);
 }
 
 function isMaintenanceNoteTitle(value = "") {
@@ -2649,19 +2696,36 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
     return;
   }
 
-  setRecentHandoffStatus(items.length ? `Showing ${items.length} recent saved handoff${items.length === 1 ? "" : "s"}.` : "");
+  const filteredItems = filterRecentHandoffs(items).slice(0, 6);
+  currentRecentHandoffItems = filteredItems;
+  recentHandoffFilterButtons.forEach((button) => {
+    const type = button.dataset.recentHandoffFilter || "all";
+    const count = filterRecentHandoffs(items, type).length;
+    button.setAttribute("aria-pressed", type === currentRecentHandoffFilter ? "true" : "false");
+    button.textContent = `${recentHandoffFilterLabel(type)}${type === "all" ? "" : ` ${count}`}`;
+    button.disabled = type !== "all" && !count;
+  });
+  const filterLabel = recentHandoffFilterLabel().toLowerCase();
+  setRecentHandoffStatus(
+    filteredItems.length
+      ? `Showing ${filteredItems.length} ${filterLabel} saved handoff${filteredItems.length === 1 ? "" : "s"}.`
+      : items.length
+        ? `No ${filterLabel} handoffs saved yet. Switch filters or save one from its source page.`
+        : ""
+  );
   if (recentHandoffCopyButton) {
-    recentHandoffCopyButton.disabled = !items.length;
+    recentHandoffCopyButton.disabled = !filteredItems.length;
   }
 
   if (!items.length) {
     recentHandoffList.innerHTML = `
       <article class="roadside-note-empty">
         <strong>No saved handoffs yet.</strong>
-        <p>Save a roadside note, diagnostic handoff, tire pressure recheck, fuse checklist, or trailer light test, then recover it here before opening the full notes form.</p>
+        <p>Save a roadside note, diagnostic handoff, service follow-up, tire pressure recheck, fuse checklist, or trailer light test, then recover it here before opening the full notes form.</p>
         <div class="inspector-actions">
           <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Open Quick Sheet</a>
           <a class="utility-link" href="diagnostics.html#diagnostic-share-builder">Open Diagnostics</a>
+          <a class="utility-link" href="maintenance.html#service-followup">Open Follow-Up</a>
           <a class="utility-link" href="tires.html#tire-recheck-planner">Open Tire Recheck</a>
         </div>
       </article>
@@ -2669,7 +2733,17 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
     return;
   }
 
-  recentHandoffList.innerHTML = items
+  if (!filteredItems.length) {
+    recentHandoffList.innerHTML = `
+      <article class="roadside-note-empty">
+        <strong>No ${escapeHtml(recentHandoffFilterLabel().toLowerCase())} handoffs yet.</strong>
+        <p>Use another filter or save this type of note from the matching page; Copy Latest follows the active filter.</p>
+      </article>
+    `;
+    return;
+  }
+
+  recentHandoffList.innerHTML = filteredItems
     .map(
       (item, index) => `
         <article class="roadside-note-item">
@@ -2688,14 +2762,14 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
 }
 
 function copyRecentHandoff(index = 0) {
-  const item = getRecentHandoffItems()[index];
+  const item = currentRecentHandoffItems[index] || filterRecentHandoffs(getRecentHandoffItems())[index];
   if (!item) {
     setRecentHandoffStatus("No saved handoff is ready to copy yet.");
     return;
   }
 
   copyText(item.copyText)
-    .then(() => setRecentHandoffStatus(`Copied ${item.title}.`))
+    .then(() => setRecentHandoffStatus(`Copied ${recentHandoffFilterLabel().toLowerCase()} handoff: ${item.title}.`))
     .catch(() => setRecentHandoffStatus("Could not copy automatically. Open the full note and copy it manually."));
 }
 

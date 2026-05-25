@@ -7504,6 +7504,36 @@ kbd {
   gap: 12px;
 }
 
+.recent-handoff-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.recent-handoff-filter {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.recent-handoff-filter[aria-pressed="true"] {
+  border-color: rgba(97, 223, 255, 0.42);
+  background: rgba(97, 223, 255, 0.12);
+  color: var(--text);
+}
+
+.recent-handoff-filter:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .maintenance-note-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -13351,6 +13381,18 @@ kbd {
     min-width: 0;
     min-height: 42px;
     padding-inline: 8px;
+  }
+
+  .recent-handoff-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .recent-handoff-filter {
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 7px;
   }
 
   .garage-setup-card {
