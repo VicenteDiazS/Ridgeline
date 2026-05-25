@@ -7,6 +7,7 @@ import {
 
 const DIAGNOSTIC_RECEIPT_KEY = "ridgeline-diagnostic-last-handoff";
 const DIAGNOSTIC_CHECK_KEY = "ridgeline-diagnostic-first-checks";
+const DIAGNOSTIC_CALL_KEY = "ridgeline-diagnostic-call-summary";
 
 const diagnosticSharePlans = {
   start: {
@@ -255,9 +256,121 @@ function saveDiagnosticChecks(state) {
   localStorage.setItem(DIAGNOSTIC_CHECK_KEY, JSON.stringify(state));
 }
 
+function loadDiagnosticCallSummary() {
+  try {
+    return JSON.parse(localStorage.getItem(DIAGNOSTIC_CALL_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveDiagnosticCallSummary(state) {
+  localStorage.setItem(DIAGNOSTIC_CALL_KEY, JSON.stringify(state));
+}
+
 function currentDiagnosticReceiptText() {
   const receipt = loadDiagnosticReceipt();
   return receipt?.text || "";
+}
+
+function latestDiagnosticCheckEntry() {
+  const stored = loadDiagnosticChecks();
+  return Object.entries(stored)
+    .map(([planKey, value]) => ({
+      planKey,
+      plan: diagnosticCheckPlans[planKey] || diagnosticCheckPlans.start,
+      markedChecks: Array.isArray(value?.markedChecks) ? value.markedChecks : [],
+      detail: value?.detail || "",
+      updatedAt: value?.updatedAt || ""
+    }))
+    .sort((a, b) => `${b.updatedAt}`.localeCompare(`${a.updatedAt}`))[0] || null;
+}
+
+function diagnosticCallTimestamp() {
+  return new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function getDiagnosticCallState(root) {
+  const receipt = loadDiagnosticReceipt();
+  const latestCheck = latestDiagnosticCheckEntry();
+  return {
+    target: root.querySelector("[data-diagnostic-call-target]")?.value || "Repair shop",
+    truckStatus: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-status]")?.value || ""),
+    callback: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-callback]")?.value || ""),
+    ask: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-ask]")?.value || ""),
+    receipt,
+    latestCheck
+  };
+}
+
+function buildDiagnosticCallText(root) {
+  const { target, truckStatus, callback, ask, receipt, latestCheck } = getDiagnosticCallState(root);
+  const lines = [
+    `Ridgeline diagnostic call summary for ${target}`,
+    truckStatus ? `Truck status: ${truckStatus}` : "Truck status: not entered yet",
+    callback ? `Callback: ${callback}` : "Callback: not entered yet",
+    ask ? `Question / ask: ${ask}` : "Question / ask: confirm next diagnostic step or handoff need",
+    receipt?.title ? `Latest saved handoff: ${receipt.title}` : "Latest saved handoff: none saved on this iPhone yet",
+    receipt?.summary ? `Handoff note: ${receipt.summary}` : "",
+    latestCheck
+      ? `Latest first checks: ${latestCheck.plan.kicker} / ${latestCheck.markedChecks.length} of ${latestCheck.plan.checks.length} marked`
+      : "Latest first checks: none saved on this iPhone yet",
+    latestCheck?.detail ? `First-check clue: ${latestCheck.detail}` : "",
+    receipt?.reference ? `Reference route: ${receipt.reference}` : "Reference route: Diagnostics workflow index, Garage Recent Handoffs, or Roadside Stack",
+    "Use the truck, current warning state, fuse labels, owner manual, and roadside conditions as final authority."
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+function renderDiagnosticCallSummary(root) {
+  const { receipt, latestCheck } = getDiagnosticCallState(root);
+  const title = root.querySelector("[data-diagnostic-call-title]");
+  const preview = root.querySelector("[data-diagnostic-call-preview]");
+  const context = root.querySelector("[data-diagnostic-call-context]");
+
+  if (title) {
+    title.textContent = receipt?.title || latestCheck?.plan.kicker || "No saved diagnostic context yet";
+  }
+  if (preview) {
+    preview.textContent = receipt?.summary || latestCheck?.plan.title || "Save a Diagnostic Handoff or First Check Tracker note, then this panel will include the latest local context automatically.";
+  }
+  if (context) {
+    const items = [
+      receipt?.savedAt ? `Handoff saved: ${receipt.savedAt}` : "",
+      latestCheck ? `${latestCheck.markedChecks.length} of ${latestCheck.plan.checks.length} first checks marked` : "",
+      latestCheck?.detail ? `Clue: ${latestCheck.detail}` : "",
+      receipt?.reference ? `Route: ${receipt.reference}` : "Route: Diagnostics workflow index"
+    ].filter(Boolean);
+    context.innerHTML = "";
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      context.append(li);
+    });
+  }
+}
+
+function persistDiagnosticCallSummary(root) {
+  saveDiagnosticCallSummary({
+    target: root.querySelector("[data-diagnostic-call-target]")?.value || "Repair shop",
+    truckStatus: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-status]")?.value || ""),
+    callback: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-callback]")?.value || ""),
+    ask: cleanDiagnosticDetail(root.querySelector("[data-diagnostic-call-ask]")?.value || ""),
+    updatedAt: new Date().toISOString()
+  });
+}
+
+function setDiagnosticCallStatus(root, message) {
+  const status = root.querySelector("[data-diagnostic-call-status-text]");
+  if (status) {
+    status.textContent = message;
+  }
 }
 
 function prependGarageGeneralNote(noteText) {
@@ -433,6 +546,7 @@ function initDiagnosticShareBuilder() {
         text: noteText
       });
       renderDiagnosticReceipt(root);
+      document.querySelectorAll("[data-diagnostic-call-summary]").forEach(renderDiagnosticCallSummary);
       setDiagnosticShareStatus(root, `${plan.kicker} saved to Garage Notes.`);
     } catch (error) {
       setDiagnosticShareStatus(root, "Could not save the diagnostic note in this browser session.");
@@ -609,6 +723,7 @@ function initDiagnosticCheckTracker() {
     const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
     try {
       prependGarageGeneralNote(buildSavedDiagnosticCheckNote(plan, markedChecks, detail));
+      document.querySelectorAll("[data-diagnostic-call-summary]").forEach(renderDiagnosticCallSummary);
       setDiagnosticCheckStatus(root, `${plan.kicker} first checks saved to Garage Notes.`);
     } catch (error) {
       setDiagnosticCheckStatus(root, "Could not save first checks in this browser session.");
@@ -618,6 +733,79 @@ function initDiagnosticCheckTracker() {
   renderDiagnosticCheckPlan(root, "start");
 }
 
+function initDiagnosticCallSummary() {
+  const root = document.querySelector("[data-diagnostic-call-summary]");
+  if (!root) {
+    return;
+  }
+
+  const stored = loadDiagnosticCallSummary();
+  const target = root.querySelector("[data-diagnostic-call-target]");
+  const truckStatus = root.querySelector("[data-diagnostic-call-status]");
+  const callback = root.querySelector("[data-diagnostic-call-callback]");
+  const ask = root.querySelector("[data-diagnostic-call-ask]");
+  if (target && stored.target) {
+    target.value = stored.target;
+  }
+  if (truckStatus) {
+    truckStatus.value = stored.truckStatus || "";
+  }
+  if (callback) {
+    callback.value = stored.callback || "";
+  }
+  if (ask) {
+    ask.value = stored.ask || "";
+  }
+
+  root.querySelectorAll("input, textarea, select").forEach((field) => {
+    field.addEventListener("input", () => {
+      persistDiagnosticCallSummary(root);
+      renderDiagnosticCallSummary(root);
+    });
+    field.addEventListener("change", () => {
+      persistDiagnosticCallSummary(root);
+      renderDiagnosticCallSummary(root);
+    });
+  });
+
+  root.querySelector("[data-copy-diagnostic-call]")?.addEventListener("click", async () => {
+    try {
+      const copied = await copyText(buildDiagnosticCallText(root));
+      setDiagnosticCallStatus(root, copied ? "Diagnostic call summary copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticCallStatus(root, "Copy failed. Select and copy the visible call details instead.");
+    }
+  });
+
+  root.querySelector("[data-share-diagnostic-call]")?.addEventListener("click", async () => {
+    const text = buildDiagnosticCallText(root);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline diagnostic call summary", text });
+        setDiagnosticCallStatus(root, "Diagnostic call summary shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      setDiagnosticCallStatus(root, copied ? "Share unavailable; call summary copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      setDiagnosticCallStatus(root, "Share canceled or unavailable.");
+    }
+  });
+
+  root.querySelector("[data-save-diagnostic-call]")?.addEventListener("click", () => {
+    try {
+      prependGarageGeneralNote(`[${diagnosticCallTimestamp()} - Diagnostic Call Summary]\n${buildDiagnosticCallText(root)}`);
+      setDiagnosticCallStatus(root, "Diagnostic call summary saved to Garage Notes.");
+    } catch (error) {
+      setDiagnosticCallStatus(root, "Could not save the call summary in this browser session.");
+    }
+  });
+
+  renderDiagnosticCallSummary(root);
+  setDiagnosticCallStatus(root, "Call summary ready on this iPhone.");
+}
+
 initDiagnosticShareBuilder();
 initDiagnosticCheckTracker();
+initDiagnosticCallSummary();
 initGarageCloudSync();

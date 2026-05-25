@@ -39,6 +39,7 @@
             <a class="utility-link" href="#workflow-index">Workflow Index</a>
             <a class="utility-link" href="#diagnostic-handoff">Capture Clues</a>
             <a class="utility-link" href="#diagnostic-share-builder">Share Summary</a>
+            <a class="utility-link" href="#diagnostic-call-summary">Call Summary</a>
             <a class="utility-link" href="#quick-checks">Quick Checks</a>
             <a class="utility-link" href="hood.html#fuses">Engine Fuses</a>
             <a class="utility-link" href="cabin.html#fuses">Cabin Fuses</a>
@@ -219,6 +220,57 @@
             </article>
             <p class="source-note">
               Tracker rule: mark only what you verified on the truck. This preserves context and does not replace current warnings, fuse-cover labels, the owner manual, or professional diagnosis.
+            </p>
+          </section>
+          <section class="diagnostic-call-summary" id="diagnostic-call-summary" aria-labelledby="diagnostic-call-summary-title" data-diagnostic-call-summary>
+            <div class="compact-section-head">
+              <p class="eyebrow">Call summary</p>
+              <h2 id="diagnostic-call-summary-title">Copy The Next Call In One Tap</h2>
+              <p>
+                Use this after saving a handoff or first checks, so a shop, tow driver, or helper gets the current symptom without scrolling through the whole page.
+              </p>
+            </div>
+            <article class="diagnostic-call-card">
+              <div class="diagnostic-call-fields">
+                <label>
+                  <span>Send to</span>
+                  <select data-diagnostic-call-target>
+                    <option value="Repair shop">Repair shop</option>
+                    <option value="Tow or roadside help">Tow or roadside help</option>
+                    <option value="Parts counter">Parts counter</option>
+                    <option value="Owner helper">Owner helper</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Truck status</span>
+                  <input data-diagnostic-call-status type="text" placeholder="Example: parked at home, no-start, can text photos" />
+                </label>
+                <label>
+                  <span>Callback</span>
+                  <input data-diagnostic-call-callback type="text" placeholder="Example: text first, available after 3 PM" />
+                </label>
+                <label class="diagnostic-call-wide">
+                  <span>Question or ask</span>
+                  <textarea data-diagnostic-call-ask rows="3" placeholder="Example: confirm if I should tow it in or try one more battery/fuse check first"></textarea>
+                </label>
+              </div>
+              <div class="diagnostic-call-preview" aria-live="polite">
+                <span>Latest local context</span>
+                <strong data-diagnostic-call-title>No saved diagnostic context yet</strong>
+                <p data-diagnostic-call-preview>Save a Diagnostic Handoff or First Check Tracker note, then this panel will include the latest local context automatically.</p>
+                <ul data-diagnostic-call-context></ul>
+              </div>
+              <div class="inspector-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-diagnostic-call>Copy Call</button>
+                <button class="utility-link" type="button" data-share-diagnostic-call>Share</button>
+                <button class="utility-link" type="button" data-save-diagnostic-call>Save Garage Note</button>
+                <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+                <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Roadside Stack</a>
+              </div>
+              <p class="small-note" aria-live="polite" data-diagnostic-call-status-text></p>
+            </article>
+            <p class="source-note">
+              Call rule: this only packages what you recorded on this iPhone. Verify against the truck, current warning state, fuse labels, owner manual, and roadside conditions before acting.
             </p>
           </section>
           <section class="diagnostic-workflow-index" id="workflow-index" aria-labelledby="workflow-index-title">

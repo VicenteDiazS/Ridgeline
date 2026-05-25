@@ -75,6 +75,10 @@ SEARCH_EXPECTATIONS = {
     "diagnostic check tracker": "First Diagnostic Check Tracker",
     "copy diagnostic checks": "First Diagnostic Check Tracker",
     "save first checks": "First Diagnostic Check Tracker",
+    "diagnostic call summary": "Diagnostic Call Summary",
+    "copy diagnostic call": "Diagnostic Call Summary",
+    "shop call summary": "Diagnostic Call Summary",
+    "tow call summary": "Diagnostic Call Summary",
     "offline pack": "Offline Launch Pad",
     "refresh offline pack": "Offline Launch Pad",
     "offline route check": "Offline Route Check",
@@ -689,6 +693,7 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const firstMinute = document.querySelector("#first-minute-triage");
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
             const checkTracker = document.querySelector("#first-check-tracker");
+            const callSummary = document.querySelector("#diagnostic-call-summary");
             const workflowIndex = document.querySelector("#workflow-index");
             const handoff = document.querySelector("#diagnostic-handoff");
             const firstMinuteCards = firstMinute ? [...firstMinute.querySelectorAll(".diagnostic-first-minute-card")] : [];
@@ -719,6 +724,17 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 hasWorkflowIndex: Boolean(workflowIndex),
                 hasShareBuilder: Boolean(shareBuilder),
                 hasCheckTracker: Boolean(checkTracker),
+                hasCallSummary: Boolean(callSummary),
+                callText: callSummary ? callSummary.innerText : "",
+                hasCallTarget: Boolean(callSummary?.querySelector("[data-diagnostic-call-target]")),
+                hasCallStatusField: Boolean(callSummary?.querySelector("[data-diagnostic-call-status]")),
+                hasCallCallback: Boolean(callSummary?.querySelector("[data-diagnostic-call-callback]")),
+                hasCallAsk: Boolean(callSummary?.querySelector("[data-diagnostic-call-ask]")),
+                hasCallCopy: Boolean(callSummary?.querySelector("[data-copy-diagnostic-call]")),
+                hasCallShare: Boolean(callSummary?.querySelector("[data-share-diagnostic-call]")),
+                hasCallSave: Boolean(callSummary?.querySelector("[data-save-diagnostic-call]")),
+                hasCallGarageRoute: Boolean(callSummary?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                hasCallRoadsideRoute: Boolean(callSummary?.querySelector('a[href="quick-sheet.html#roadside-action-stack"]')),
                 checkButtons: checkTracker ? checkTracker.querySelectorAll("[data-diagnostic-check-plan]").length : 0,
                 checkItems: checkTracker ? checkTracker.querySelectorAll("[data-diagnostic-check]").length : 0,
                 hasCheckCopy: Boolean(checkTracker?.querySelector("[data-copy-diagnostic-checks]")),
@@ -767,6 +783,18 @@ async def assert_diagnostics_workflow_index(page, page_name):
         assert_true(phrase in first_minute_text, f"first-minute triage is missing {phrase}")
     assert_true(state["hasShareBuilder"], "diagnostics page is missing diagnostic handoff builder")
     assert_true(state["hasCheckTracker"], "diagnostics page is missing first diagnostic check tracker")
+    assert_true(state["hasCallSummary"], "diagnostics page is missing diagnostic call summary")
+    assert_true(state["hasCallTarget"], "diagnostic call summary is missing send-to selector")
+    assert_true(state["hasCallStatusField"], "diagnostic call summary is missing truck-status field")
+    assert_true(state["hasCallCallback"], "diagnostic call summary is missing callback field")
+    assert_true(state["hasCallAsk"], "diagnostic call summary is missing question field")
+    assert_true(state["hasCallCopy"], "diagnostic call summary is missing Copy Call")
+    assert_true(state["hasCallShare"], "diagnostic call summary is missing Share")
+    assert_true(state["hasCallSave"], "diagnostic call summary is missing Save Garage Note")
+    assert_true(state["hasCallGarageRoute"], "diagnostic call summary is missing Garage Recent Handoffs route")
+    assert_true(state["hasCallRoadsideRoute"], "diagnostic call summary is missing Roadside Stack route")
+    for phrase in ["Copy The Next Call In One Tap", "Repair shop", "Copy Call", "Roadside Stack"]:
+        assert_true(phrase in state["callText"], f"diagnostic call summary is missing {phrase}")
     assert_true(state["checkButtons"] == 5, "first diagnostic check tracker should expose five symptom buttons")
     assert_true(state["checkItems"] == 4, "first diagnostic check tracker should render four checks for the default symptom")
     assert_true(state["hasCheckCopy"], "first diagnostic check tracker is missing copy control")
@@ -895,6 +923,45 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(len(check_state["storedMarked"]) == 2, "first-check tracker did not persist marked checks locally")
     assert_true(check_state["storedDetail"] == "front socket dead, console socket works", "first-check tracker did not persist detail locally")
     assert_true(check_state["checkedCount"] == 2, "first-check tracker did not keep checked controls active")
+    await page.locator("[data-diagnostic-call-target]").select_option("Tow or roadside help")
+    await page.locator("[data-diagnostic-call-status]").fill("parked at home, no-start, can text photos")
+    await page.locator("[data-diagnostic-call-callback]").fill("text first, available after 3 PM")
+    await page.locator("[data-diagnostic-call-ask]").fill("confirm if I should tow it in or try one more battery/fuse check first")
+    await page.locator("[data-copy-diagnostic-call]").click()
+    await page.wait_for_timeout(200)
+    await page.locator("[data-save-diagnostic-call]").click()
+    await page.wait_for_timeout(250)
+    call_state = await page.evaluate(
+        """() => {
+            const root = document.querySelector("#diagnostic-call-summary");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const stored = JSON.parse(localStorage.getItem("ridgeline-diagnostic-call-summary") || "{}");
+            return {
+                title: root?.querySelector("[data-diagnostic-call-title]")?.textContent || "",
+                preview: root?.querySelector("[data-diagnostic-call-preview]")?.textContent || "",
+                context: root?.querySelector("[data-diagnostic-call-context]")?.textContent || "",
+                copyStatus: root?.querySelector("[data-diagnostic-call-status-text]")?.textContent || "",
+                note: notes.general_notes || "",
+                storedTarget: stored.target || "",
+                storedStatus: stored.truckStatus || "",
+                storedCallback: stored.callback || "",
+                storedAsk: stored.ask || ""
+            };
+        }"""
+    )
+    assert_true("Warning light" in call_state["title"], "diagnostic call summary should pick up the latest saved handoff")
+    assert_true("Garage Notes" in call_state["preview"], "diagnostic call summary preview should include saved handoff context")
+    assert_true("2 of 4 first checks marked" in call_state["context"], "diagnostic call summary should include latest first-check count")
+    assert_true("front socket dead, console socket works" in call_state["context"], "diagnostic call summary should include latest first-check clue")
+    assert_true("saved to Garage Notes" in call_state["copyStatus"], "diagnostic call summary save did not report Garage Notes status")
+    assert_true("Diagnostic Call Summary" in call_state["note"], "Garage Notes did not receive diagnostic call summary")
+    assert_true("Tow or roadside help" in call_state["note"], "diagnostic call summary did not preserve call target")
+    assert_true("parked at home, no-start" in call_state["note"], "diagnostic call summary did not preserve truck status")
+    assert_true("try one more battery/fuse check" in call_state["note"], "diagnostic call summary did not preserve owner ask")
+    assert_true(call_state["storedTarget"] == "Tow or roadside help", "diagnostic call summary did not persist target locally")
+    assert_true(call_state["storedStatus"] == "parked at home, no-start, can text photos", "diagnostic call summary did not persist truck status")
+    assert_true(call_state["storedCallback"] == "text first, available after 3 PM", "diagnostic call summary did not persist callback")
+    assert_true("try one more battery/fuse check" in call_state["storedAsk"], "diagnostic call summary did not persist owner ask")
     assert_true(state["hasWorkflowIndex"], "diagnostics page is missing workflow index")
     assert_true(state["cardCount"] == 7, "workflow index should expose seven workflow cards")
     assert_true(state["hasTrailerCard"], "workflow index is missing trailer-light workflow card")
@@ -915,13 +982,17 @@ async def assert_diagnostics_workflow_index(page, page_name):
             const firstActions = triage?.querySelector(".diagnostic-first-minute-card .inspector-actions");
             const shareBuilder = document.querySelector("#diagnostic-share-builder");
             const checkTracker = document.querySelector("#first-check-tracker");
+            const callSummary = document.querySelector("#diagnostic-call-summary");
             const sharePicker = shareBuilder?.querySelector(".diagnostic-share-picker");
             const shareActions = shareBuilder?.querySelector(".diagnostic-share-card .inspector-actions");
             const checkPicker = checkTracker?.querySelector(".diagnostic-check-picker");
             const checkList = checkTracker?.querySelector(".diagnostic-check-list");
             const checkActions = checkTracker?.querySelector(".diagnostic-check-card .inspector-actions");
+            const callFields = callSummary?.querySelector(".diagnostic-call-fields");
+            const callActions = callSummary?.querySelector(".diagnostic-call-card .inspector-actions");
             const detailField = shareBuilder?.querySelector("[data-diagnostic-detail]");
             const checkDetail = checkTracker?.querySelector("[data-diagnostic-check-detail]");
+            const callAsk = callSummary?.querySelector("[data-diagnostic-call-ask]");
             const receipt = shareBuilder?.querySelector("[data-diagnostic-save-receipt]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
@@ -940,6 +1011,15 @@ async def assert_diagnostics_workflow_index(page, page_name):
                 checkItemColumns: checkList ? getComputedStyle(checkList).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 checkActionRows: checkActions
                     ? new Set([...checkActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                callVisible: Boolean(callSummary && callSummary.getBoundingClientRect().height > 0),
+                callFieldColumns: callFields ? getComputedStyle(callFields).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                callActionRows: callActions
+                    ? new Set([...callActions.querySelectorAll(".utility-link")].map((link) => Math.round(link.getBoundingClientRect().top))).size
+                    : 0,
+                callAskVisible: Boolean(callAsk && callAsk.getBoundingClientRect().height >= 70),
+                minCallActionHeight: callActions
+                    ? Math.min(...[...callActions.querySelectorAll(".utility-link")].map((link) => link.getBoundingClientRect().height))
                     : 0,
                 checkDetailVisible: Boolean(checkDetail && checkDetail.getBoundingClientRect().height >= 70),
                 minCheckItemHeight: checkList
@@ -968,6 +1048,11 @@ async def assert_diagnostics_workflow_index(page, page_name):
     assert_true(mobile_state["checkColumns"] == 3, "first diagnostic check tracker picker should use three compact columns at iPhone width")
     assert_true(mobile_state["checkItemColumns"] == 2, "first diagnostic check tracker should keep checks in two iPhone columns")
     assert_true(mobile_state["checkActionRows"] == 2, "first diagnostic check tracker actions should use two compact rows at iPhone width")
+    assert_true(mobile_state["callVisible"], "diagnostic call summary is not visible at iPhone width")
+    assert_true(mobile_state["callFieldColumns"] == 1, "diagnostic call summary fields should stack on iPhone")
+    assert_true(mobile_state["callActionRows"] == 3, "diagnostic call summary actions should use three compact rows at iPhone width")
+    assert_true(mobile_state["callAskVisible"], "diagnostic call summary ask field should stay usable at iPhone width")
+    assert_true(mobile_state["minCallActionHeight"] >= 38, "diagnostic call summary actions should stay thumb-readable on iPhone")
     assert_true(mobile_state["checkDetailVisible"], "first diagnostic check tracker note field should stay usable at iPhone width")
     assert_true(mobile_state["minCheckItemHeight"] >= 38, "first diagnostic check tracker chips should stay thumb-readable on iPhone")
     assert_true(mobile_state["detailFieldVisible"], "diagnostic owner-detail field should stay usable at iPhone width")

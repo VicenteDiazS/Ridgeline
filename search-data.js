@@ -68,6 +68,13 @@ export const searchIndex = [
     keywords: ["first diagnostic checks", "first check tracker", "diagnostic check tracker", "mark diagnostic checks", "copy diagnostic checks", "save first checks", "save diagnostic checks", "no start checks", "warning light checks", "12v checks", "audio display checks", "trailer light checks", "iphone diagnostic checklist", "garage first checks"]
   },
   {
+    title: "Diagnostic Call Summary",
+    url: "diagnostics.html#diagnostic-call-summary",
+    category: "Diagnostics",
+    excerpt: "Diagnostics iPhone call summary that packages the latest saved handoff, first checks, truck status, callback detail, and owner question into one copy/share/save note for a shop, tow driver, parts counter, or helper.",
+    keywords: ["diagnostic call summary", "copy diagnostic call", "shop call summary", "tow call summary", "diagnostic phone call", "repair shop handoff", "tow driver handoff", "parts counter diagnostic", "copy call summary", "garage call note", "iphone diagnostic call"]
+  },
+  {
     title: "Owner Shortcut Strip",
     url: "quick-sheet.html#print-offline-pack",
     category: "Navigation",

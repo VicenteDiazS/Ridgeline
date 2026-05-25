@@ -11265,6 +11265,124 @@ kbd {
   text-align: center;
 }
 
+.diagnostic-call-summary {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 211, 106, 0.22);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 211, 106, 0.11), rgba(121, 212, 255, 0.06)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.diagnostic-call-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(8, 17, 28, 0.72);
+}
+
+.diagnostic-call-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.diagnostic-call-fields label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.diagnostic-call-fields span,
+.diagnostic-call-preview span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.diagnostic-call-fields input,
+.diagnostic-call-fields select,
+.diagnostic-call-fields textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(4, 10, 18, 0.74);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.42;
+  padding: 10px 11px;
+}
+
+.diagnostic-call-fields textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.diagnostic-call-fields input::placeholder,
+.diagnostic-call-fields textarea::placeholder {
+  color: rgba(204, 218, 235, 0.58);
+}
+
+.diagnostic-call-fields input:focus,
+.diagnostic-call-fields select:focus,
+.diagnostic-call-fields textarea:focus {
+  border-color: rgba(255, 211, 106, 0.72);
+  box-shadow: 0 0 0 3px rgba(255, 211, 106, 0.14);
+  outline: none;
+}
+
+.diagnostic-call-wide {
+  grid-column: 1 / -1;
+}
+
+.diagnostic-call-preview {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid rgba(255, 211, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 211, 106, 0.06);
+}
+
+.diagnostic-call-preview strong {
+  color: var(--text);
+  line-height: 1.28;
+}
+
+.diagnostic-call-preview p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.diagnostic-call-preview ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+  line-height: 1.38;
+}
+
+.diagnostic-call-card .inspector-actions {
+  gap: 8px;
+}
+
+.diagnostic-call-card .utility-link {
+  flex: 1 1 150px;
+  justify-content: center;
+  min-height: 40px;
+  text-align: center;
+}
+
 .diagnostic-save-receipt {
   display: grid;
   gap: 12px;
@@ -11808,6 +11926,69 @@ kbd {
   }
 
   .diagnostics-page .diagnostic-check-card .utility-link {
+    min-width: 0;
+    min-height: 38px;
+    padding-inline: 7px;
+  }
+
+  .diagnostics-page .diagnostic-call-summary {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .diagnostics-page .diagnostic-call-card {
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .diagnostics-page .diagnostic-call-fields {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .diagnostics-page .diagnostic-call-fields span,
+  .diagnostics-page .diagnostic-call-preview span {
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+  }
+
+  .diagnostics-page .diagnostic-call-fields input,
+  .diagnostics-page .diagnostic-call-fields select,
+  .diagnostics-page .diagnostic-call-fields textarea {
+    min-height: 40px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    padding: 9px;
+  }
+
+  .diagnostics-page .diagnostic-call-fields textarea {
+    min-height: 78px;
+  }
+
+  .diagnostics-page .diagnostic-call-preview {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .diagnostics-page .diagnostic-call-preview strong {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .diagnostics-page .diagnostic-call-preview p,
+  .diagnostics-page .diagnostic-call-preview ul {
+    font-size: 0.84rem;
+    line-height: 1.38;
+  }
+
+  .diagnostics-page .diagnostic-call-card .inspector-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .diagnostics-page .diagnostic-call-card .utility-link {
     min-width: 0;
     min-height: 38px;
     padding-inline: 7px;
