@@ -13,6 +13,7 @@ import {
   saveJson,
   STORAGE
 } from "./garage-data.js";
+import { getOwnerAuthState, onOwnerAuthChange } from "./owner-auth.js";
 
 const notesForm = document.querySelector("[data-notes-form]");
 const trackerForm = document.querySelector("[data-tracker-form]");
@@ -63,11 +64,11 @@ const defaultTracker = {
   timing_belt_service: "4/25/2026 / 165,980 miles"
 };
 const defaultProfile = {
-  vin: "5FPYK2F64KB002267",
+  vin: "",
   vehicle: "2019 Honda Ridgeline",
   trim_drive: "2WD",
   engine: "J35Y6 3.5L V6",
-  current_mileage: "165980",
+  current_mileage: "",
   tire_size_pressure: "245/60R18 / 35 psi",
   wheel_torque: "94 lb-ft",
   parts_notes: "Timing belt service completed 4/25/2026 at 165,980 miles using AISIN TKH-002."
@@ -138,6 +139,48 @@ const GARAGE_BACKUP_FALLBACKS = {
   [STORAGE.areaJournal]: {},
   [STORAGE.profile]: {}
 };
+const SENSITIVE_PROFILE_FIELDS = new Set(["vin", "current_mileage", "registration"]);
+
+function ownerCanViewSensitiveProfile() {
+  return Boolean(getOwnerAuthState().isOwner);
+}
+
+function maskVin(value = "") {
+  const cleaned = `${value || ""}`.trim();
+  if (!cleaned) {
+    return "";
+  }
+  const tail = cleaned.slice(-4);
+  return `Hidden for public view (${tail ? `ending ${tail}` : "owner only"})`;
+}
+
+function maskMileage(value = "") {
+  const numeric = Number(`${value || ""}`.replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return "";
+  }
+  return "Hidden for public view";
+}
+
+function redactedProfile(profile = {}) {
+  if (ownerCanViewSensitiveProfile()) {
+    return profile;
+  }
+
+  return {
+    ...profile,
+    vin: maskVin(profile.vin),
+    current_mileage: maskMileage(profile.current_mileage),
+    registration: profile.registration ? "Hidden for public view" : ""
+  };
+}
+
+function profileValue(profile = {}) {
+  if (ownerCanViewSensitiveProfile()) {
+    return profile.vin || "VIN not set";
+  }
+  return profile.vin ? "Truck identity hidden" : "Truck identity hidden";
+}
 
 function hydrateGarageForms() {
   if (notesForm) {
@@ -147,7 +190,7 @@ function hydrateGarageForms() {
     hydrateForm(trackerForm, loadJson(STORAGE.tracker, defaultTracker));
   }
   if (profileForm) {
-    hydrateForm(profileForm, loadJson(STORAGE.profile, defaultProfile));
+    hydrateForm(profileForm, redactedProfile(loadJson(STORAGE.profile, defaultProfile)));
     renderProfileSummary();
   }
 }
@@ -244,13 +287,13 @@ function renderProfileSummary() {
     return;
   }
 
-  const profile = profileForm ? formPayload(profileForm) : loadJson(STORAGE.profile, defaultProfile);
+  const profile = redactedProfile(profileForm ? formPayload(profileForm) : loadJson(STORAGE.profile, defaultProfile));
   const summaryItems = [
     ["VIN", profile.vin],
     ["Vehicle", profile.vehicle],
     ["Trim / drive", profile.trim_drive],
     ["Engine", profile.engine],
-    ["Mileage", profile.current_mileage ? `${Number(profile.current_mileage).toLocaleString("en-US")} mi` : ""],
+    ["Mileage", ownerCanViewSensitiveProfile() && profile.current_mileage ? `${Number(profile.current_mileage).toLocaleString("en-US")} mi` : profile.current_mileage],
     ["Tires", profile.tire_size_pressure],
     ["Wheel torque", profile.wheel_torque],
     ["Battery", profile.battery]
@@ -2248,7 +2291,7 @@ function renderDashboard() {
   const cards = [
     {
       label: "Truck Profile",
-      value: profile.vin || "VIN not set",
+      value: profileValue(profile),
       note: `${profile.vehicle || "2019 Ridgeline"} / ${profile.trim_drive || "Drive not set"} / ${profile.engine || "Engine not set"}`
     },
     { label: "Saved Notes", value: `${noteFields} fields`, note: "Installed parts and general truck memory" },
@@ -2357,8 +2400,10 @@ function renderGarageSetupChecklist({
       label: profileReady ? "Profile saved" : "Add truck identity",
       title: "Truck Profile",
       detail: profileReady
-        ? `${profile.vehicle || "Ridgeline"} has VIN, mileage, and parts notes ready for backups.`
-        : "Save VIN, current mileage, and verified parts notes before a parts counter or shop handoff.",
+        ? ownerCanViewSensitiveProfile()
+          ? `${profile.vehicle || "Ridgeline"} has truck identity, mileage, and parts notes ready for backups.`
+          : `${profile.vehicle || "Ridgeline"} has owner-managed truck identity and parts notes ready.`
+        : "Save truck identity, current mileage, and verified parts notes before a parts counter or shop handoff.",
       href: "#truck-profile",
       action: "Open Profile"
     },
@@ -2857,7 +2902,14 @@ function saveMaintenanceRunNote() {
     ...notes,
     general_notes: existing ? `${savedNote}\n\n${existing}` : savedNote
   });
-  hydrateGarageForms();
+hydrateGarageForms();
+onOwnerAuthChange(() => {
+  if (profileForm) {
+    hydrateForm(profileForm, redactedProfile(loadJson(STORAGE.profile, defaultProfile)));
+  }
+  renderProfileSummary();
+  renderDashboard();
+});
   renderDashboard();
   setMaintenanceNoteStatus(`Saved staging run note with ${count} item${count === 1 ? "" : "s"} into Garage Notes.`);
 }

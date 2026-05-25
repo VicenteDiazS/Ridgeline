@@ -1,3 +1,5 @@
+import * as ownerAuth from "./owner-auth.js";
+
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
@@ -16,7 +18,8 @@ const state = {
   serverOnline: false,
   latestStatus: null,
   latestReviewContext: null,
-  signoffChoice: "reviewed"
+  signoffChoice: "reviewed",
+  isOwner: false
 };
 
 const els = {
@@ -90,6 +93,10 @@ function setMessage(message, stateName = "idle") {
   }
   els.actionMessage.dataset.agentControlState = stateName;
   els.actionMessage.textContent = message;
+}
+
+function ownerCanInspectAntonInternals() {
+  return Boolean(state.isOwner);
 }
 
 function formatDate(value) {
@@ -573,6 +580,13 @@ function renderTabs() {
     return;
   }
 
+  if (!ownerCanInspectAntonInternals()) {
+    els.tabs.innerHTML = `
+      <p class="agent-status-empty">Sign in as owner to inspect Anton memory files and history.</p>
+    `;
+    return;
+  }
+
   els.tabs.innerHTML = state.files.map((file) => `
     <button
       class="anton-file-tab"
@@ -596,6 +610,11 @@ function renderHistory(history = []) {
     return;
   }
 
+  if (!ownerCanInspectAntonInternals()) {
+    els.historyList.innerHTML = `<p class="agent-status-empty">Anton file history is visible only to the signed-in owner.</p>`;
+    return;
+  }
+
   if (!history.length) {
     els.historyList.innerHTML = `<p class="agent-status-empty">No git history found for this file yet.</p>`;
     return;
@@ -612,6 +631,42 @@ function renderHistory(history = []) {
 
 async function loadStatus() {
   await loadAgentRunStatus();
+
+  if (!ownerCanInspectAntonInternals()) {
+    state.serverOnline = false;
+    els.liveCard?.setAttribute("data-anton-server", "offline");
+    if (els.serverState) {
+      els.serverState.textContent = "Owner Only";
+    }
+    if (els.serverDetail) {
+      els.serverDetail.textContent = "Sign in as owner to inspect the helper, control settings, and private Anton runtime details.";
+    }
+    if (els.scheduleState) {
+      els.scheduleState.textContent = "Protected";
+    }
+    if (els.scheduleDetail) {
+      els.scheduleDetail.textContent = "Schedule state is hidden until the owner signs in.";
+    }
+    if (els.remoteState) {
+      els.remoteState.textContent = "Protected";
+    }
+    if (els.remoteDetail) {
+      els.remoteDetail.textContent = "Control endpoint details are hidden until the owner signs in.";
+    }
+    if (els.taskState) {
+      els.taskState.textContent = "Protected";
+    }
+    if (els.lastRun) {
+      els.lastRun.textContent = "Protected";
+    }
+    if (els.nextRun) {
+      els.nextRun.textContent = "Protected";
+    }
+    if (els.lock) {
+      els.lock.textContent = "Protected";
+    }
+    return;
+  }
 
   try {
     const status = await controlFetch("/status");
@@ -820,6 +875,12 @@ els.signoffShare?.addEventListener("click", async () => {
 });
 
 async function loadFiles() {
+  if (!ownerCanInspectAntonInternals()) {
+    state.files = FALLBACK_FILES;
+    renderTabs();
+    return;
+  }
+
   try {
     const payload = await controlFetch("/files");
     state.files = Array.isArray(payload.files) && payload.files.length ? payload.files : FALLBACK_FILES;
@@ -830,6 +891,20 @@ async function loadFiles() {
 }
 
 async function loadFile(name = state.selectedFile) {
+  if (!ownerCanInspectAntonInternals()) {
+    if (els.fileTitle) {
+      els.fileTitle.textContent = "Anton Memory";
+    }
+    if (els.fileTime) {
+      els.fileTime.textContent = "Owner sign-in required";
+    }
+    if (els.fileContent) {
+      els.fileContent.textContent = "Anton markdown files are hidden from public viewers. Sign in as owner to read or edit them.";
+    }
+    renderHistory([]);
+    return;
+  }
+
   if (els.fileTitle) {
     els.fileTitle.textContent = name;
   }
@@ -973,7 +1048,17 @@ document.querySelector("[data-anton-refresh]")?.addEventListener("click", () => 
 });
 els.noteForm?.addEventListener("submit", appendNote);
 
-renderTabs();
-loadStatus();
-loadFiles().then(() => loadFile(state.selectedFile));
-setInterval(loadStatus, 30000);
+(async () => {
+  await ownerAuth.initOwnerAuth();
+  const applyOwnerState = () => {
+    state.isOwner = Boolean(ownerAuth.getOwnerAuthState().isOwner);
+    renderTabs();
+    renderSavedSignoff();
+    loadStatus();
+    loadFiles().then(() => loadFile(state.selectedFile));
+  };
+
+  ownerAuth.onOwnerAuthChange(applyOwnerState);
+  applyOwnerState();
+  setInterval(loadStatus, 30000);
+})();

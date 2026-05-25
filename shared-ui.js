@@ -38,8 +38,12 @@ const MEMORY_WRITE_SELECTORS = [
   "[data-profile-form] input",
   "[data-profile-form] textarea",
   "[data-profile-form] select",
+  "[data-area-form] input",
+  "[data-area-form] textarea",
+  "[data-area-form] select",
   "[data-photo-input]",
   "[data-area-photo-input]",
+  "[data-remove-area-photo]",
   "[data-import-garage-backup]",
   "[data-choose-garage-backup]",
   "[data-restore-garage-backup]",
@@ -74,7 +78,20 @@ const MEMORY_WRITE_SELECTORS = [
   "[data-remove-photo]",
   "[data-remove-favorite]",
   "[data-remove-pin]",
-  "[data-save-sync-settings]"
+  "[data-save-sync-settings]",
+  "[data-sync-enabled]",
+  "[data-github-backup-endpoint]",
+  "[data-quick-capture-form] input",
+  "[data-quick-capture-form] textarea",
+  "[data-quick-capture-form] select",
+  "[data-quick-capture-form] button[type='submit']",
+  "[data-anton-action]",
+  "[data-anton-settings]",
+  "[data-anton-note-form] textarea",
+  "[data-anton-note-form] button[type='submit']",
+  "[data-anton-signoff-choice]",
+  "[data-anton-signoff-note]",
+  "[data-anton-save-signoff]"
 ];
 
 const workAreas = [
@@ -2117,14 +2134,18 @@ function applyOwnerWriteProtection() {
       }
 
       if (canWrite) {
-        node.disabled = node.dataset.ownerLockWasDisabled === "true";
-        if ("readOnly" in node) {
-          node.readOnly = node.dataset.ownerLockWasReadonly === "true";
+        if (node.dataset.ownerLockApplied === "true") {
+          node.disabled = node.dataset.ownerLockWasDisabled === "true";
+          if ("readOnly" in node) {
+            node.readOnly = node.dataset.ownerLockWasReadonly === "true";
+          }
         }
+        node.dataset.ownerLockApplied = "false";
         node.removeAttribute("aria-disabled");
         return;
       }
 
+      node.dataset.ownerLockApplied = "true";
       if (node.tagName === "INPUT" && !["checkbox", "radio", "file", "button", "submit"].includes((node.type || "").toLowerCase())) {
         node.readOnly = true;
       } else if ("readOnly" in node && node.tagName === "TEXTAREA") {
