@@ -1187,6 +1187,10 @@ function isInsideHiddenContent(target) {
 
 function getNavigationScrollOffset() {
   const topbarHeight = document.querySelector(".topbar")?.getBoundingClientRect().height || 0;
+  if (window.matchMedia("(max-width: 760px)").matches) {
+    return Math.max(44, Math.min(62, topbarHeight + 8));
+  }
+
   return Math.max(72, topbarHeight + 18);
 }
 
