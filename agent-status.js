@@ -358,9 +358,10 @@ function renderHomeAgentCard(data) {
   const kickerNode = homeAgentCard.querySelector("[data-agent-home-kicker]");
   const score = Number.isFinite(Number(data.impactScore)) ? `${Number(data.impactScore)}/5` : "";
   const running = data.status === "running";
-  const title = running
+  const rawTitle = running
     ? (data.statusTitle || "Anton is working")
     : (impact.visibleChange || data.statusTitle || health.label || "Anton status");
+  const title = compactNoteBody(rawTitle, running ? 54 : 60);
   const next = describeNextRun(data.nextExpectedRunAt);
   const detailParts = running
     ? [
@@ -463,6 +464,9 @@ function renderAgentStatus(data) {
   const duration = Number.isFinite(Number(data.durationMinutes)) ? `${Number(data.durationMinutes)} min` : "In progress";
   const diagnostic = data.diagnostic ? firstUsefulLine(data.diagnostic) : "";
   const impact = describeImpact(data);
+  const endedEarlyBecause = firstUsefulLine(data.endedEarlyBecause || "");
+  const timeLostTo = firstUsefulLine(data.timeLostTo || "");
+  const blockedBy = firstUsefulLine(data.blockedBy || "");
 
   statusRoot.innerHTML = `
     <div class="agent-status-head">
@@ -498,6 +502,36 @@ function renderAgentStatus(data) {
       <strong>${escapeHtml(impact.visibleChange || "Waiting for Anton's next scored run.")}</strong>
       <p>${escapeHtml(impact.reason)}</p>
     </div>
+    ${
+      endedEarlyBecause || timeLostTo || blockedBy
+        ? `<div class="agent-now-grid">
+            ${
+              endedEarlyBecause
+                ? `<article class="agent-now-card">
+                    <span>Ended Early Because</span>
+                    <strong>${escapeHtml(endedEarlyBecause)}</strong>
+                  </article>`
+                : ""
+            }
+            ${
+              timeLostTo
+                ? `<article class="agent-now-card">
+                    <span>Time Lost To</span>
+                    <strong>${escapeHtml(timeLostTo)}</strong>
+                  </article>`
+                : ""
+            }
+            ${
+              blockedBy
+                ? `<article class="agent-now-card">
+                    <span>Blocked By</span>
+                    <strong>${escapeHtml(blockedBy)}</strong>
+                  </article>`
+                : ""
+            }
+          </div>`
+        : ""
+    }
     <div class="agent-control-panel">
       <div>
         <strong>Remote Start</strong>

@@ -16,6 +16,8 @@ Anton should bias toward meaningful, user-visible improvements. Small maintenanc
 
 Anton's scheduled cadence is intentionally slower than a chatty heartbeat. A 90-minute interval should give each run room to make a more meaningful iPhone-visible improvement while reducing status churn and token pressure.
 
+Anton should treat that 90-minute interval like a real work block. In scheduled mode, Anton should usually keep working until most of the available window has been used productively, not stop right after the first successful slice. After shipping one meaningful slice, Anton should normally move straight into the next best safe slice, follow-up fix, or verification-protected improvement unless the remaining time is too short or the next step would become risky.
+
 ## Working Memory
 
 Anton should read `ANTON_RUN_BRIEF.md` first on every run. It is the short operating brief that keeps runs focused and reduces repeated token use.
@@ -72,6 +74,13 @@ For large initiatives:
 - keep the site stable and usable between slices
 - prefer finishing an active initiative over starting unrelated novelty
 
+For scheduled runs with time left after a clean slice lands:
+
+- continue with the next obvious implementation step if it clearly adds more visible value
+- or rotate into the next highest-value safe slice if the current initiative has reached a good stopping point
+- avoid ending a run only because the first commit-worthy change is done
+- prefer using the remaining time for more coding and targeted verification over extra status/doc churn
+
 ## Impact Standard
 
 Before choosing work, Anton should ask: "Will the user notice this on their iPhone?" Prefer work that adds or improves a real workflow, page section, interactive tool, search path, garage handoff, offline behavior, or clear navigation improvement.
@@ -98,6 +107,7 @@ Avoid spending a normal run only on:
 - adding more status noise
 - duplicating existing workflow cards
 - broad refactors without a visible user benefit
+- stopping early with plenty of safe time left in the work block
 
 Good normal-run outcomes include:
 
@@ -130,6 +140,7 @@ Good helper uses:
 - one helper researches current Ridgeline-owner pain points or website feature ideas while Anton implements a local fix
 - one helper audits a narrow page or workflow while Anton improves another area
 - one helper verifies screenshots, links, or accessibility after Anton makes UI changes
+- one helper checks likely next slices or regression risks while Anton keeps coding
 
 Bad helper uses:
 

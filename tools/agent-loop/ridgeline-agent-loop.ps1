@@ -131,6 +131,9 @@ function Get-ImpactFromMessage {
   $score = $null
   $visibleChange = ""
   $reason = ""
+  $endedEarlyBecause = ""
+  $timeLostTo = ""
+  $blockedBy = ""
 
   if (-not [string]::IsNullOrWhiteSpace($Message)) {
     $scoreMatch = [regex]::Match($Message, "(?im)^\s*(?:Impact\s*Score|Impact)\s*:\s*([0-5])\s*(?:/|out\s+of\s+)?\s*5?\b")
@@ -147,6 +150,21 @@ function Get-ImpactFromMessage {
     if ($reasonMatch.Success) {
       $reason = $reasonMatch.Groups[1].Value.Trim()
     }
+
+    $endedEarlyMatch = [regex]::Match($Message, "(?im)^\s*(?:Ended\s*Early\s*Because|Run\s*End\s*Reason)\s*:\s*(.+)$")
+    if ($endedEarlyMatch.Success) {
+      $endedEarlyBecause = $endedEarlyMatch.Groups[1].Value.Trim()
+    }
+
+    $timeLostMatch = [regex]::Match($Message, "(?im)^\s*Time\s*Lost\s*To\s*:\s*(.+)$")
+    if ($timeLostMatch.Success) {
+      $timeLostTo = $timeLostMatch.Groups[1].Value.Trim()
+    }
+
+    $blockedByMatch = [regex]::Match($Message, "(?im)^\s*Blocked\s*By\s*:\s*(.+)$")
+    if ($blockedByMatch.Success) {
+      $blockedBy = $blockedByMatch.Groups[1].Value.Trim()
+    }
   }
 
   return [ordered]@{
@@ -154,7 +172,85 @@ function Get-ImpactFromMessage {
     label = Get-ImpactLabel -Score $score
     visibleChange = $visibleChange
     reason = $reason
+    endedEarlyBecause = $endedEarlyBecause
+    timeLostTo = $timeLostTo
+    blockedBy = $blockedBy
   }
+}
+
+function Get-FirstUsefulSummaryLine {
+  param([string]$Message)
+
+  if ([string]::IsNullOrWhiteSpace($Message)) {
+    return ""
+  }
+
+  $lines = $Message -replace "\r\n", "`n" -split "`n"
+  foreach ($line in $lines) {
+    $trimmed = $line.Trim()
+    if ([string]::IsNullOrWhiteSpace($trimmed)) {
+      continue
+    }
+    if ($trimmed -match '^(Impact\s*Score|Visible\s*Change|Impact\s*Reason|Ended\s*Early\s*Because|Run\s*End\s*Reason|Time\s*Lost\s*To|Blocked\s*By|Next safe slice)\s*:') {
+      continue
+    }
+    return $trimmed
+  }
+
+  return ""
+}
+
+function Get-ShortCommitSubject {
+  param([string]$Text)
+
+  if ([string]::IsNullOrWhiteSpace($Text)) {
+    return ""
+  }
+
+  $subject = $Text.Trim()
+  $subject = $subject -replace '`', ''
+  $subject = $subject -replace '\[(.*?)\]\((.*?)\)', '$1'
+  $subject = $subject -replace '\s+', ' '
+  $subject = $subject.Trim(' ', '.', ':', ';', '-', '!', '?')
+  if ($subject.Length -gt 72) {
+    $subject = $subject.Substring(0, 72).Trim()
+    $subject = $subject.TrimEnd('.', ':', ';', '-', '!', '?')
+  }
+  return $subject
+}
+
+function Get-AutoCommitMessage {
+  param(
+    $Config,
+    [string]$LastMessage,
+    [array]$ChangedFiles,
+    [object]$Impact
+  )
+
+  $files = @($ChangedFiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+  $visible = if ($Impact -and $Impact.visibleChange) { $Impact.visibleChange } else { "" }
+  $summaryLine = Get-FirstUsefulSummaryLine -Message $LastMessage
+  $subject = Get-ShortCommitSubject -Text $(if ($visible) { $visible } else { $summaryLine })
+
+  $combined = (($visible + " " + $summaryLine + " " + $LastMessage).ToLowerInvariant())
+  $extensions = @($files | ForEach-Object { [IO.Path]::GetExtension($_).ToLowerInvariant() } | Where-Object { $_ })
+
+  $prefix = "chore"
+  if ($combined -match '\b(fix|fixed|fixes|bug|regression|broken|stuck|overflow|crash|error|failed|restore|offline|auth)\b') {
+    $prefix = "fix"
+  } elseif ($Impact -and $null -ne $Impact.score -and [int]$Impact.score -ge 3) {
+    $prefix = "feat"
+  } elseif ($extensions.Count -gt 0 -and ($extensions | Where-Object { $_ -notin @('.md') }).Count -eq 0) {
+    $prefix = "docs"
+  } elseif ($extensions -contains '.ps1' -and ($extensions | Where-Object { $_ -in @('.ps1', '.json', '.md') }).Count -eq $extensions.Count) {
+    $prefix = "chore"
+  }
+
+  if ([string]::IsNullOrWhiteSpace($subject)) {
+    return "{0}: automated Ridgeline agent run {1}" -f $prefix, (Get-Date).ToString("yyyy-MM-dd HH:mm")
+  }
+
+  return "{0}: {1}" -f $prefix, $subject
 }
 
 function Write-AgentStatus {
@@ -173,7 +269,10 @@ function Write-AgentStatus {
     [string]$FailureKind = "",
     [string]$Diagnostic = "",
     [string]$OutputLog = "",
-    [object]$Impact = $null
+    [object]$Impact = $null,
+    [string]$EndedEarlyBecause = "",
+    [string]$TimeLostTo = "",
+    [string]$BlockedBy = ""
   )
 
   $intervalMinutes = 90
@@ -208,7 +307,7 @@ function Write-AgentStatus {
 
   $payload = [ordered]@{
     agentName = "Anton"
-    statusVersion = 4
+    statusVersion = 5
     status = $Status
     statusTitle = $StatusTitle
     statusDetail = $StatusDetail
@@ -225,11 +324,14 @@ function Write-AgentStatus {
     commit = $Commit
     pushed = $Pushed
     summary = $Summary
-    changedFiles = @($ChangedFiles)
+    changedFiles = @($ChangedFiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     impactScore = if ($Impact -and $null -ne $Impact.score) { $Impact.score } else { $null }
     impactLabel = if ($Impact -and $Impact.label) { $Impact.label } else { "Not scored yet" }
     visibleChange = if ($Impact -and $Impact.visibleChange) { $Impact.visibleChange } else { "" }
     impactReason = if ($Impact -and $Impact.reason) { $Impact.reason } else { "" }
+    endedEarlyBecause = if ($Impact -and $Impact.endedEarlyBecause) { $Impact.endedEarlyBecause } elseif ($EndedEarlyBecause) { $EndedEarlyBecause } else { "" }
+    timeLostTo = if ($Impact -and $Impact.timeLostTo) { $Impact.timeLostTo } elseif ($TimeLostTo) { $TimeLostTo } else { "" }
+    blockedBy = if ($Impact -and $Impact.blockedBy) { $Impact.blockedBy } elseif ($BlockedBy) { $BlockedBy } else { "" }
     log = "agent-runs/agent-loop.log"
     outputLog = $OutputLog
   }
@@ -312,7 +414,9 @@ function Invoke-AgentOnce {
         -Phase "Preflight" `
         -StatusTitle "Blocked by local changes" `
         -StatusDetail "Anton found uncommitted files before it started. It stopped so it would not mix unrelated work into an automated commit." `
-        -ActionRequired "Review, commit, or stash the local changes, then start Anton again."
+        -ActionRequired "Review, commit, or stash the local changes, then start Anton again." `
+        -EndedEarlyBecause "The worktree already had local changes that could mix with an automated run." `
+        -BlockedBy "dirty-worktree"
       Publish-AgentStatus -Reason "blocked"
       return
     }
@@ -399,7 +503,9 @@ function Invoke-AgentOnce {
         -ActionRequired $actionRequired `
         -FailureKind $failureKind `
         -Diagnostic (Get-StatusExcerpt -Text $combinedOutput) `
-        -OutputLog ($outputPath.Replace("$RepoRoot\", ""))
+        -OutputLog ($outputPath.Replace("$RepoRoot\", "")) `
+        -EndedEarlyBecause $failureText `
+        -BlockedBy $failureKind
       Publish-AgentStatus -Reason "needs-attention"
       return
     }
@@ -420,7 +526,7 @@ function Invoke-AgentOnce {
     if ($config.commitChanges -and $changedFiles.Count -gt 0) {
       Write-Log "Staging and committing $($changedFiles.Count) changed file(s)."
       git add -A -- .
-      $message = "{0}: {1}" -f $config.commitMessagePrefix, (Get-Date).ToString("yyyy-MM-dd HH:mm")
+      $message = Get-AutoCommitMessage -Config $config -LastMessage $lastMessage -ChangedFiles $changedFiles -Impact $impact
       git commit -m $message
       if ($LASTEXITCODE -eq 0) {
         $commitSha = (git rev-parse --short HEAD).Trim()
@@ -497,7 +603,9 @@ function Invoke-AgentOnce {
       -StatusDetail $message `
       -ActionRequired "Check the Anton logs and runner script. Anton will retry on the next scheduled run." `
       -FailureKind "runner-error" `
-      -Diagnostic (Get-StatusExcerpt -Text $_.ScriptStackTrace)
+      -Diagnostic (Get-StatusExcerpt -Text $_.ScriptStackTrace) `
+      -EndedEarlyBecause $message `
+      -BlockedBy "runner-error"
     Publish-AgentStatus -Reason "error"
   } finally {
     Pop-Location

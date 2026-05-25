@@ -6,7 +6,7 @@ This file defines the repeatable workflow for Anton, the main coding agent impro
 
 Continuously improve the 2019 Honda Ridgeline service site while keeping it correct, usable, verified, and easy to resume after tokens or time run out.
 
-The agent should not make random changes just to stay busy. Each session should produce useful, reviewable improvements.
+The agent should not make random changes just to stay busy. Each session should produce useful, reviewable improvements and should normally use most of the scheduled work window rather than ending right after one clean slice.
 
 ## Session Loop
 
@@ -24,7 +24,8 @@ The agent should not make random changes just to stay busy. Each session should 
    - the best next task
    - useful sources or research ideas
    - durable lessons or preferences that should guide future Anton runs
-9. Stop cleanly when tokens/time are low, leaving the project resumable.
+9. If useful time remains after a slice lands, continue with the next best safe slice instead of ending early.
+10. Stop cleanly only when tokens/time are low, the next slice would be risky, or the run has already used most of its work window, leaving the project resumable.
 
 ## Multi-Day Work
 
@@ -37,6 +38,7 @@ For multi-day initiatives, Anton should:
 - prefer roadmap continuity over unrelated feature hopping
 - update the next-step notes before stopping
 - interrupt the roadmap for user-facing glitches, broken navigation/scrolling/loading, safety-critical corrections, or direct user requests
+- keep chaining safe slices within a single scheduled run when time remains instead of treating one landed slice as the whole run
 
 ## User Input Rules
 

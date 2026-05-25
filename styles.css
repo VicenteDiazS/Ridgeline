@@ -158,6 +158,34 @@ body[data-site-theme="light"] .brand,
 body[data-site-theme="light"] .route-strip a,
 body[data-site-theme="light"] .header-quick-nav a,
 body[data-site-theme="light"] .utility-link,
+body[data-site-theme="light"] .quick-action-link,
+body[data-site-theme="light"] .page-section-link,
+body[data-site-theme="light"] .context-action,
+body[data-site-theme="light"] .page-action-bar a,
+body[data-site-theme="light"] .page-action-bar button,
+body[data-site-theme="light"] .recent-strip a,
+body[data-site-theme="light"] .search-offline-actions a,
+body[data-site-theme="light"] .search-offline-actions button,
+body[data-site-theme="light"] .search-suggestions button,
+body[data-site-theme="light"] .site-menu-tool-button,
+body[data-site-theme="light"] .viewer-quick-menu-panel a,
+body[data-site-theme="light"] .viewer-quick-menu-button,
+body[data-site-theme="light"] .hotspot-tray-actions a,
+body[data-site-theme="light"] .map-mode-switch button,
+body[data-site-theme="light"] .callout-pill,
+body[data-site-theme="light"] .hud-chip-button,
+body[data-site-theme="light"] .section-stepper-button,
+body[data-site-theme="light"] .view-mode-button,
+body[data-site-theme="light"] .work-mode-options button,
+body[data-site-theme="light"] .minder-samples button,
+body[data-site-theme="light"] .staging-filter-button,
+body[data-site-theme="light"] .nfc-card-actions button,
+body[data-site-theme="light"] .nfc-scan-status-picker button,
+body[data-site-theme="light"] .fuse-label-chips button,
+body[data-site-theme="light"] .saved-fuse-review button,
+body[data-site-theme="light"] .fuse-counter-pack button,
+body[data-site-theme="light"] .agent-control-button,
+body[data-site-theme="light"] .agent-control-button-secondary,
 body[data-site-theme="light"] .ghost-button,
 body[data-site-theme="light"] .primary-button,
 body[data-site-theme="light"] .secondary-button,
@@ -169,6 +197,46 @@ body[data-site-theme="light"] .doc-link {
     rgba(248, 251, 254, 0.92);
   color: var(--text);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+body[data-site-theme="light"] .quick-action-link::before,
+body[data-site-theme="light"] .page-section-link::before,
+body[data-site-theme="light"] .context-action::before {
+  filter: saturate(0.9) brightness(0.92);
+}
+
+body[data-site-theme="light"] .callout-pill.orientation-pill,
+body[data-site-theme="light"] .theme-toggle-button[data-theme-state="light"],
+body[data-site-theme="light"] .owner-auth-button[data-owner-auth-state="owner"],
+body[data-site-theme="light"] .utility-link-strong,
+body[data-site-theme="light"] .primary-button,
+body[data-site-theme="light"] .hotspot-button.active,
+body[data-site-theme="light"] .viewer-tools-button[aria-expanded="true"],
+body[data-site-theme="light"] .map-mode-switch button.is-active,
+body[data-site-theme="light"] .quick-action-link.is-active,
+body[data-site-theme="light"] .page-section-link.is-active,
+body[data-site-theme="light"] .header-nav-button.is-current-link,
+body[data-site-theme="light"] .context-action.is-current-link {
+  color: #173042;
+}
+
+body[data-site-theme="light"] .search-offline-actions a:hover,
+body[data-site-theme="light"] .search-offline-actions a:focus-visible,
+body[data-site-theme="light"] .search-offline-actions button:hover,
+body[data-site-theme="light"] .search-offline-actions button:focus-visible,
+body[data-site-theme="light"] .viewer-tools-button:hover,
+body[data-site-theme="light"] .viewer-tools-button:focus-visible,
+body[data-site-theme="light"] .viewer-toggle:hover,
+body[data-site-theme="light"] .viewer-toggle:focus-visible,
+body[data-site-theme="light"] .viewer-link:hover,
+body[data-site-theme="light"] .viewer-link:focus-visible,
+body[data-site-theme="light"] .context-action:hover,
+body[data-site-theme="light"] .context-action:focus-visible,
+body[data-site-theme="light"] .quick-action-link:hover,
+body[data-site-theme="light"] .quick-action-link:focus-visible,
+body[data-site-theme="light"] .page-section-link:hover,
+body[data-site-theme="light"] .page-section-link:focus-visible {
+  color: #173042;
 }
 
 body[data-site-theme="light"] .search-input,
@@ -15486,6 +15554,10 @@ body[data-site-theme="light"] .theme-toggle-button {
     display: none;
   }
 
+  .topbar.is-compact .theme-toggle-button {
+    display: none;
+  }
+
   .topbar.is-compact .topbar-actions > .header-nav-button,
   .topbar.is-compact .topbar-actions > .search-button {
     min-height: 32px;
@@ -17858,6 +17930,15 @@ select:focus {
     rgba(7, 17, 26, 0.8);
   color: var(--text);
   text-decoration: none;
+}
+
+.home-status-pill-agent strong,
+.home-status-pill-agent small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-status-pill-agent[data-agent-health="healthy"],
