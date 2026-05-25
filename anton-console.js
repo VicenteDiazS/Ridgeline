@@ -1,4 +1,5 @@
 import * as ownerAuth from "./owner-auth.js";
+import { loadVisitorLog } from "./visitor-log.js";
 
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
@@ -68,7 +69,9 @@ const els = {
   fileTime: document.querySelector("[data-anton-file-time]"),
   fileContent: document.querySelector("[data-anton-file-content]"),
   historyList: document.querySelector("[data-anton-history-list]"),
-  noteForm: document.querySelector("[data-anton-note-form]")
+  noteForm: document.querySelector("[data-anton-note-form]"),
+  visitorLogStatus: document.querySelector("[data-visitor-log-status]"),
+  visitorLogList: document.querySelector("[data-visitor-log-list]")
 };
 
 function getControlUrl() {
@@ -629,6 +632,65 @@ function renderHistory(history = []) {
   `).join("");
 }
 
+function renderVisitorLog(entries = []) {
+  if (!els.visitorLogList) {
+    return;
+  }
+
+  if (!ownerCanInspectAntonInternals()) {
+    els.visitorLogList.innerHTML = `<p class="agent-status-empty">Visitor log is visible only to the signed-in owner.</p>`;
+    return;
+  }
+
+  if (!entries.length) {
+    els.visitorLogList.innerHTML = `<p class="agent-status-empty">No visitor entries recorded yet.</p>`;
+    return;
+  }
+
+  els.visitorLogList.innerHTML = entries.map((entry) => {
+    const name = entry.visitor_name ? escapeHtml(entry.visitor_name) : "Unnamed visitor";
+    const browser = escapeHtml(entry.browser_label || "Browser");
+    const page = escapeHtml(entry.page_title || entry.page || "Unknown page");
+    const seen = escapeHtml(formatDate(entry.seen_at));
+    const referrer = entry.referrer ? `Referrer: ${escapeHtml(entry.referrer)}` : "Direct visit";
+    const viewport = entry.viewport ? `Viewport: ${escapeHtml(entry.viewport)}` : "";
+    const visitId = entry.visit_id ? `Visitor ID: ${escapeHtml(entry.visit_id)}` : "";
+
+    return `
+      <article class="anton-history-item">
+        <strong>${name}</strong>
+        <span>${seen}</span>
+        <p>${browser} opened ${page}.</p>
+        <p>${referrer}${viewport ? ` - ${viewport}` : ""}${visitId ? ` - ${visitId}` : ""}</p>
+      </article>
+    `;
+  }).join("");
+}
+
+async function refreshVisitorLog() {
+  if (!els.visitorLogStatus) {
+    return;
+  }
+
+  if (!ownerCanInspectAntonInternals()) {
+    els.visitorLogStatus.textContent = "Sign in as owner to load the visitor log.";
+    renderVisitorLog([]);
+    return;
+  }
+
+  els.visitorLogStatus.textContent = "Loading visitor log...";
+  try {
+    const entries = await loadVisitorLog(80);
+    renderVisitorLog(entries);
+    els.visitorLogStatus.textContent = entries.length
+      ? `Loaded ${entries.length} recent visitor entr${entries.length === 1 ? "y" : "ies"}.`
+      : "No visitor entries recorded yet.";
+  } catch (error) {
+    renderVisitorLog([]);
+    els.visitorLogStatus.textContent = `Could not load visitor log: ${error.message}`;
+  }
+}
+
 async function loadStatus() {
   await loadAgentRunStatus();
 
@@ -1056,9 +1118,11 @@ els.noteForm?.addEventListener("submit", appendNote);
     renderSavedSignoff();
     loadStatus();
     loadFiles().then(() => loadFile(state.selectedFile));
+    refreshVisitorLog();
   };
 
   ownerAuth.onOwnerAuthChange(applyOwnerState);
+  document.querySelector("[data-visitor-log-refresh]")?.addEventListener("click", refreshVisitorLog);
   applyOwnerState();
   setInterval(loadStatus, 30000);
 })();

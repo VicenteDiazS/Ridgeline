@@ -25,6 +25,7 @@
           <a href="#anton-files">Markdown</a>
           <a href="#anton-note">Add Note</a>
           <a href="#anton-history">History</a>
+          <a href="#anton-visitors">Visitors</a>
         </nav>
         <div class="topbar-actions">
           <a class="header-nav-button" href="index.html#viewer" data-nav-icon="map" aria-label="Open vehicle map" title="Vehicle map">Map</a>
@@ -49,6 +50,7 @@
         <a href="#anton-files">Markdown</a>
         <a href="#anton-note">Add Note</a>
         <a href="#anton-history">History</a>
+        <a href="#anton-visitors">Visitors</a>
       </nav>
 
       <main id="top">
@@ -265,6 +267,21 @@
           </div>
           <div class="anton-history-list" data-anton-history-list>
             <p class="agent-status-empty">No history loaded yet.</p>
+          </div>
+        </section>
+
+        <section class="anton-panel" id="anton-visitors">
+          <div class="compact-section-head">
+            <div>
+              <p class="eyebrow">Owner Only</p>
+              <h2>Visitor Log</h2>
+            </div>
+            <button class="agent-control-button agent-control-button-secondary" type="button" data-visitor-log-refresh>Refresh</button>
+          </div>
+          <p class="section-copy">Tracks when a browser/device visited, what page it opened, and basic browser context. This identifies visitors by browser/device, not by real-world identity.</p>
+          <p class="agent-status-summary" data-visitor-log-status>Sign in as owner to load the visitor log.</p>
+          <div class="anton-history-list" data-visitor-log-list>
+            <p class="agent-status-empty">Visitor log loading is owner-only.</p>
           </div>
         </section>
       </main>

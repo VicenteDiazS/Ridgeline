@@ -1,6 +1,7 @@
 import { searchIndex } from "./search-data.js";
 import { nfcTargets } from "./nfc-data.js";
 import * as ownerAuth from "./owner-auth.js";
+import * as visitorLog from "./visitor-log.js";
 
 const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
@@ -4838,6 +4839,7 @@ bindCompactStickyHeader();
 buildDynamicIslandShelf();
 buildViewerParallax();
 await ownerAuth.initOwnerAuth();
+visitorLog.trackVisit();
 buildOwnerAuthButton();
 buildOwnerAuthModal();
 enableOwnerWriteProtection();

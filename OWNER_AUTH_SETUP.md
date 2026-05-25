@@ -25,6 +25,7 @@ Those policies are designed to:
 - allow storage reads for public visitors
 - allow `INSERT`, `UPDATE`, and `DELETE` only for the signed-in owner email
 - migrate older per-device Garage rows into the new shared site-memory key before the tighter rules take over
+- create an owner-only visitor log with public insert and owner-only read
 
 ## 3. Create the owner account in Supabase Auth
 

@@ -9,7 +9,26 @@ create table if not exists public.garage_kv (
   unique (device_id, storage_key)
 );
 
+create table if not exists public.ridgeline_visits (
+  id bigserial primary key,
+  visit_id text not null,
+  seen_at timestamptz not null default now(),
+  page text not null,
+  page_path text not null default '',
+  page_title text not null default '',
+  visitor_name text,
+  referrer text,
+  browser_label text,
+  language text,
+  timezone text,
+  viewport text,
+  screen_size text,
+  user_agent text,
+  metadata jsonb not null default '{}'::jsonb
+);
+
 alter table public.garage_kv enable row level security;
+alter table public.ridgeline_visits enable row level security;
 
 insert into public.garage_kv (device_id, storage_key, payload, updated_at, created_at)
 select
@@ -45,6 +64,33 @@ stable
 as $$
   select coalesce(auth.jwt() ->> 'email', '') = 'vicente.diaz.sal@gmail.com';
 $$;
+
+drop policy if exists ridgeline_visits_select on public.ridgeline_visits;
+create policy ridgeline_visits_select
+on public.ridgeline_visits
+for select
+to authenticated
+using (public.ridgeline_is_owner());
+
+drop policy if exists ridgeline_visits_insert on public.ridgeline_visits;
+create policy ridgeline_visits_insert
+on public.ridgeline_visits
+for insert
+to anon, authenticated
+with check (
+  char_length(coalesce(page, '')) > 0
+  and char_length(coalesce(page, '')) <= 120
+  and char_length(coalesce(page_path, '')) <= 300
+  and char_length(coalesce(page_title, '')) <= 200
+  and char_length(coalesce(visitor_name, '')) <= 80
+);
+
+drop policy if exists ridgeline_visits_delete on public.ridgeline_visits;
+create policy ridgeline_visits_delete
+on public.ridgeline_visits
+for delete
+to authenticated
+using (public.ridgeline_is_owner());
 
 drop policy if exists garage_kv_select on public.garage_kv;
 create policy garage_kv_select
