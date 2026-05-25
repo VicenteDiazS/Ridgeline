@@ -124,6 +124,13 @@ export const searchIndex = [
     keywords: ["roadside live session", "roadside session", "roadside timer", "roadside checkpoint", "safe stop", "help called", "moving again", "copy roadside update", "save roadside log", "incident timeline", "iphone roadside session"]
   },
   {
+    title: "Roadside Dispatch Pack",
+    url: "quick-sheet.html#roadside-action-stack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet dispatch pack that combines the selected roadside situation, contact details, live checkpoints, route-cache status, and source reminder into one copy/share/save handoff.",
+    keywords: ["roadside dispatch pack", "copy roadside dispatch", "save dispatch log", "tow dispatch note", "helper dispatch note", "roadside complete update", "dispatch handoff", "copy dispatch pack", "iphone dispatch pack"]
+  },
+  {
     title: "Roadside Contact Card",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Quick Sheet",
@@ -1248,6 +1255,9 @@ export const searchIndex = [
       "roadside live session",
       "roadside checkpoint",
       "copy roadside update",
+      "roadside dispatch pack",
+      "copy roadside dispatch",
+      "save dispatch log",
       "flat tire steps",
       "no start steps",
       "warning light note",

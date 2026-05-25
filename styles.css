@@ -17911,6 +17911,39 @@ select:focus {
     rgba(17, 16, 10, 0.74);
 }
 
+.roadside-dispatch-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  border-color: rgba(188, 148, 255, 0.24);
+  background:
+    linear-gradient(135deg, rgba(188, 148, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(11, 10, 22, 0.74);
+}
+
+.roadside-dispatch-card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.roadside-dispatch-preview {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(188, 148, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(188, 148, 255, 0.08);
+  color: #eee7ff;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.roadside-dispatch-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .roadside-contact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -18210,6 +18243,14 @@ select:focus {
 
   .roadside-contact-card {
     padding: 14px;
+  }
+
+  .roadside-dispatch-card {
+    padding: 14px;
+  }
+
+  .roadside-dispatch-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roadside-contact-grid {
