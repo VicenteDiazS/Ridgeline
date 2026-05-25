@@ -11,70 +11,135 @@ create table if not exists public.garage_kv (
 
 alter table public.garage_kv enable row level security;
 
--- Current client integration uses publishable key without user auth.
--- This keeps setup simple for now.
+insert into public.garage_kv (device_id, storage_key, payload, updated_at, created_at)
+select
+  'ridgeline-site-memory' as device_id,
+  latest.storage_key,
+  latest.payload,
+  latest.updated_at,
+  latest.created_at
+from (
+  select distinct on (storage_key)
+    storage_key,
+    payload,
+    updated_at,
+    created_at,
+    device_id,
+    id
+  from public.garage_kv
+  order by
+    storage_key,
+    case when device_id = 'ridgeline-site-memory' then 0 else 1 end,
+    updated_at desc,
+    id desc
+) as latest
+on conflict (device_id, storage_key) do update
+set
+  payload = excluded.payload,
+  updated_at = excluded.updated_at;
+
+create or replace function public.ridgeline_is_owner()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(auth.jwt() ->> 'email', '') = 'vicente.diaz.sal@gmail.com';
+$$;
+
 drop policy if exists garage_kv_select on public.garage_kv;
 create policy garage_kv_select
 on public.garage_kv
 for select
 to anon, authenticated
-using (true);
+using (device_id = 'ridgeline-site-memory');
 
 drop policy if exists garage_kv_insert on public.garage_kv;
 create policy garage_kv_insert
 on public.garage_kv
 for insert
-to anon, authenticated
-with check (true);
+to authenticated
+with check (
+  public.ridgeline_is_owner()
+  and device_id = 'ridgeline-site-memory'
+);
 
 drop policy if exists garage_kv_update on public.garage_kv;
 create policy garage_kv_update
 on public.garage_kv
 for update
-to anon, authenticated
-using (true)
-with check (true);
+to authenticated
+using (
+  public.ridgeline_is_owner()
+  and device_id = 'ridgeline-site-memory'
+)
+with check (
+  public.ridgeline_is_owner()
+  and device_id = 'ridgeline-site-memory'
+);
 
 drop policy if exists garage_kv_delete on public.garage_kv;
 create policy garage_kv_delete
 on public.garage_kv
 for delete
-to anon, authenticated
-using (true);
+to authenticated
+using (
+  public.ridgeline_is_owner()
+  and device_id = 'ridgeline-site-memory'
+);
 
--- Private storage bucket for Ridgeline photos.
+-- Shared public-read storage buckets for Ridgeline photos.
 insert into storage.buckets (id, name, public)
 values ('2019 Honda Ridgeline Main', '2019 Honda Ridgeline Main', false)
 on conflict (id) do update
 set name = excluded.name,
     public = excluded.public;
 
--- Allow the client to list, read, write, update, and delete objects in this bucket.
+insert into storage.buckets (id, name, public)
+values ('2019-honda-ridgeline-main', '2019-honda-ridgeline-main', false)
+on conflict (id) do update
+set name = excluded.name,
+    public = excluded.public;
+
 drop policy if exists ridgeline_bucket_select on storage.objects;
 create policy ridgeline_bucket_select
 on storage.objects
 for select
 to anon, authenticated
-using (bucket_id = '2019 Honda Ridgeline Main');
+using (
+  bucket_id in ('2019 Honda Ridgeline Main', '2019-honda-ridgeline-main')
+);
 
 drop policy if exists ridgeline_bucket_insert on storage.objects;
 create policy ridgeline_bucket_insert
 on storage.objects
 for insert
-to anon, authenticated
-with check (bucket_id = '2019 Honda Ridgeline Main');
+to authenticated
+with check (
+  public.ridgeline_is_owner()
+  and bucket_id in ('2019 Honda Ridgeline Main', '2019-honda-ridgeline-main')
+  and split_part(name, '/', 1) = 'ridgeline-site-memory'
+);
 
 drop policy if exists ridgeline_bucket_update on storage.objects;
 create policy ridgeline_bucket_update
 on storage.objects
 for update
-to anon, authenticated
-using (bucket_id = '2019 Honda Ridgeline Main')
-with check (bucket_id = '2019 Honda Ridgeline Main');
+to authenticated
+using (
+  public.ridgeline_is_owner()
+  and bucket_id in ('2019 Honda Ridgeline Main', '2019-honda-ridgeline-main')
+)
+with check (
+  public.ridgeline_is_owner()
+  and bucket_id in ('2019 Honda Ridgeline Main', '2019-honda-ridgeline-main')
+);
 
 drop policy if exists ridgeline_bucket_delete on storage.objects;
 create policy ridgeline_bucket_delete
 on storage.objects
 for delete
-to anon, authenticated
-using (bucket_id = '2019 Honda Ridgeline Main');
+to authenticated
+using (
+  public.ridgeline_is_owner()
+  and bucket_id in ('2019 Honda Ridgeline Main', '2019-honda-ridgeline-main')
+);

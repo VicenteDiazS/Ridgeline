@@ -75,6 +75,13 @@ export const searchIndex = [
     keywords: ["owner shortcut strip", "i need to", "finish service", "fill garage", "share symptom", "prep offline", "owner workflow", "iphone owner shortcuts", "search owner intent"]
   },
   {
+    title: "Owner Sign In",
+    url: "garage.html#diagnostic-activity",
+    category: "Garage",
+    excerpt: "Shared Owner Access path in the header and More menu for unlocking hosted site-memory writes while keeping local audit/file-mode saves usable.",
+    keywords: ["owner sign in", "owner access", "site memory sign in", "unlock site memory", "memory writes", "local saves", "owner auth", "garage owner access"]
+  },
+  {
     title: "Resume Search Strip",
     url: "index.html?search=resume",
     category: "Navigation",

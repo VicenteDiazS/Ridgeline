@@ -21,6 +21,7 @@ import argparse
 import asyncio
 from pathlib import Path
 
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 from playwright.async_api import async_playwright
 
 
@@ -133,6 +134,8 @@ SEARCH_EXPECTATIONS = {
     "before pulling a fuse": "Fuse Check Note",
     "owner shortcut strip": "Owner Shortcut Strip",
     "i need to": "Owner Shortcut Strip",
+    "owner sign in": "Owner Sign In",
+    "unlock site memory": "Owner Sign In",
     "resume last task": "Resume Search Strip",
     "continue where i left off": "Resume Search Strip",
     "recent owner work": "Recent Work Search Strip",
@@ -263,6 +266,17 @@ async def assert_current_page_navigation(page, page_name):
     await page.evaluate("window.scrollTo(0, 0);")
     await page.mouse.wheel(0, 920)
     await page.wait_for_timeout(250)
+    try:
+        await page.wait_for_function(
+            """() => {
+                const canScroll = document.documentElement.scrollHeight > window.innerHeight + 160;
+                return !canScroll || document.querySelector(".topbar")?.classList.contains("is-compact");
+            }""",
+            timeout=1200,
+        )
+    except PlaywrightTimeoutError:
+        await page.evaluate("window.scrollTo(0, 920); window.dispatchEvent(new Event('scroll'));")
+        await page.wait_for_timeout(250)
     compact_state = await page.evaluate(
         """() => {
             const topbar = document.querySelector(".topbar");
@@ -4549,6 +4563,19 @@ async def run_overlay_checks(page, page_name):
     menu_opener_focused = await page.evaluate("() => document.activeElement?.matches('[data-open-site-menu]') || false")
     assert_true(menu_opener_focused, "site menu focus did not return to opener")
     await assert_scroll_unlocked(page, "site menu close")
+
+    await page.locator("[data-open-site-menu]").first.click()
+    await page.wait_for_timeout(200)
+    assert_true(await page.locator("[data-tool-action='owner-auth']").count() == 1, "site menu quick tools should expose Owner Sign In")
+    await page.locator("[data-tools-toggle]").click()
+    await page.wait_for_timeout(150)
+    await page.locator("[data-tool-action='owner-auth']").click()
+    await page.wait_for_timeout(200)
+    assert_true(not await page.locator("[data-owner-auth-modal]").evaluate("node => node.hidden"), "Owner Sign In quick tool did not open owner auth modal")
+    await page.keyboard.press("Escape")
+    await page.wait_for_timeout(150)
+    assert_true(await page.locator("[data-owner-auth-modal]").evaluate("node => node.hidden"), "Escape did not close owner auth modal")
+    await assert_scroll_unlocked(page, "owner auth close")
 
     await page.locator("[data-open-site-menu]").first.focus()
     await page.keyboard.press("Control+Shift+K")

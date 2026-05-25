@@ -1,5 +1,6 @@
 import { searchIndex } from "./search-data.js";
 import { nfcTargets } from "./nfc-data.js";
+import * as ownerAuth from "./owner-auth.js";
 
 const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
@@ -25,6 +26,56 @@ let viewModeButtons = [];
 let navActionButtons = [];
 let fullSearchIndexPromise = null;
 let fullSearchIndexCache = null;
+let memoryWriteObserver = null;
+
+const MEMORY_WRITE_SELECTORS = [
+  "[data-notes-form] input",
+  "[data-notes-form] textarea",
+  "[data-notes-form] select",
+  "[data-tracker-form] input",
+  "[data-tracker-form] textarea",
+  "[data-tracker-form] select",
+  "[data-profile-form] input",
+  "[data-profile-form] textarea",
+  "[data-profile-form] select",
+  "[data-photo-input]",
+  "[data-area-photo-input]",
+  "[data-import-garage-backup]",
+  "[data-choose-garage-backup]",
+  "[data-restore-garage-backup]",
+  "[data-garage-backup-quick='choose']",
+  "[data-garage-backup-quick='restore']",
+  "[data-cloud-sync-retry]",
+  "[data-append-job-note]",
+  "[data-quick-log-button]",
+  "[data-save-service-prep]",
+  "[data-save-open-service-staging]",
+  "[data-save-minder-note]",
+  "[data-save-open-minder-staging]",
+  "[data-save-diagnostic-note]",
+  "[data-save-diagnostic-checks]",
+  "[data-save-roadside-note]",
+  "[data-save-roadside-contact]",
+  "[data-save-roadside-session]",
+  "[data-save-fuse-note]",
+  "[data-save-fuse-pull]",
+  "[data-save-saved-fuses]",
+  "[data-save-fuse]",
+  "[data-save-tow-light]",
+  "[data-save-tow-setup]",
+  "[data-save-tire-handoff]",
+  "[data-save-tire-recheck]",
+  "[data-save-tire-pressure]",
+  "[data-save-maintenance-needed-inline]",
+  "[data-save-maintenance-run-inline]",
+  "[data-save-maintenance-needed-index]",
+  "[data-maintenance-final-parts-save]",
+  "[data-maintenance-custom-staging-remove]",
+  "[data-remove-photo]",
+  "[data-remove-favorite]",
+  "[data-remove-pin]",
+  "[data-save-sync-settings]"
+];
 
 const workAreas = [
   {
@@ -1857,6 +1908,251 @@ function buildDynamicIslandShelf() {
   document.body.prepend(shelf);
 }
 
+function buildOwnerAuthModal() {
+  if (document.querySelector("[data-owner-auth-modal]")) {
+    return document.querySelector("[data-owner-auth-modal]");
+  }
+
+  const modal = document.createElement("section");
+  modal.className = "search-modal owner-auth-modal";
+  modal.hidden = true;
+  modal.setAttribute("data-owner-auth-modal", "");
+  modal.innerHTML = `
+    <div class="search-dialog owner-auth-dialog" role="dialog" aria-modal="true" aria-labelledby="owner-auth-title">
+      <button class="search-close" type="button" data-close-owner-auth aria-label="Close owner sign-in">Close</button>
+      <div class="owner-auth-head">
+        <p class="eyebrow">Owner Access</p>
+        <h2 id="owner-auth-title">Sign In To Change Site Memory</h2>
+        <p data-owner-auth-detail>Anyone can browse memory content. Only the owner account can change it.</p>
+      </div>
+      <form class="owner-auth-form" data-owner-auth-form>
+        <label>
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" inputmode="email" required />
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" autocomplete="current-password" required />
+        </label>
+        <div class="owner-auth-actions">
+          <button class="agent-control-button" type="submit" data-owner-auth-submit>Sign In</button>
+          <button class="agent-control-button agent-control-button-secondary" type="button" data-owner-auth-signout>Sign Out</button>
+        </div>
+      </form>
+      <p class="agent-status-summary owner-auth-message" data-owner-auth-message aria-live="polite"></p>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => {
+    modal.hidden = true;
+    if (!isAnyModalOpen()) {
+      document.body.classList.remove("modal-open");
+    }
+  };
+
+  modal.querySelectorAll("[data-close-owner-auth]").forEach((button) => {
+    button.addEventListener("click", close);
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      close();
+    }
+  });
+
+  const form = modal.querySelector("[data-owner-auth-form]");
+  const message = modal.querySelector("[data-owner-auth-message]");
+  const signOutButton = modal.querySelector("[data-owner-auth-signout]");
+  const detail = modal.querySelector("[data-owner-auth-detail]");
+
+  const render = () => {
+    const authState = ownerAuth.getOwnerAuthState();
+    const configured = authState.ownerEmailConfigured;
+    const userEmail = authState.user?.email || "";
+
+    if (detail) {
+      detail.textContent = configured
+        ? authState.isOwner
+          ? `Signed in as ${userEmail}. Owner write access is enabled on this device.`
+          : "Anyone can browse memory content. Only the configured owner account can change it."
+        : "Owner email is not configured yet, so this browser keeps local saves available while setup is finished.";
+    }
+
+    if (signOutButton) {
+      signOutButton.disabled = !authState.user;
+    }
+
+    if (message) {
+      if (authState.isOwner) {
+        message.textContent = `Signed in as ${userEmail}. Memory write controls are unlocked.`;
+      } else if (authState.user && !authState.isOwner) {
+        message.textContent = configured
+          ? `${userEmail} is signed in, but that account is not the configured owner.`
+          : "An account is signed in, but owner email is not configured yet.";
+      } else {
+        message.textContent = configured
+          ? "Sign in with the owner email and password to write, upload, restore, or delete memory."
+          : "Local saves are available. Set the owner email in owner-auth.js and Supabase policies to lock shared-memory writes.";
+      }
+    }
+  };
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submit = form.querySelector("[data-owner-auth-submit]");
+    const formData = new FormData(form);
+    const email = `${formData.get("email") || ""}`.trim();
+    const password = `${formData.get("password") || ""}`;
+    if (!email || !password) {
+      if (message) {
+        message.textContent = "Enter both email and password.";
+      }
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = "Signing In...";
+    if (message) {
+      message.textContent = "Checking owner account...";
+    }
+
+    try {
+      await ownerAuth.signInOwner(email, password);
+      form.reset();
+    } catch (error) {
+      if (message) {
+        message.textContent = error.message;
+      }
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "Sign In";
+      render();
+    }
+  });
+
+  signOutButton?.addEventListener("click", async () => {
+    signOutButton.disabled = true;
+    if (message) {
+      message.textContent = "Signing out...";
+    }
+    await ownerAuth.signOutOwner();
+    signOutButton.disabled = false;
+    render();
+  });
+
+  ownerAuth.onOwnerAuthChange(render);
+  render();
+  return modal;
+}
+
+function openOwnerAuthModal() {
+  const modal = buildOwnerAuthModal();
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+  const firstInput = modal.querySelector("input");
+  firstInput?.focus();
+}
+
+function buildOwnerAuthButton() {
+  if (!topbarActions || topbarActions.querySelector("[data-open-owner-auth]")) {
+    return;
+  }
+
+  const button = document.createElement("button");
+  button.className = "header-nav-button owner-auth-button";
+  button.type = "button";
+  button.dataset.openOwnerAuth = "true";
+  button.setAttribute("aria-label", "Open owner sign-in");
+  button.textContent = "Owner";
+  button.addEventListener("click", openOwnerAuthModal);
+
+  const searchButton = topbarActions.querySelector("[data-open-search]");
+  if (searchButton) {
+    topbarActions.insertBefore(button, searchButton);
+  } else {
+    topbarActions.appendChild(button);
+  }
+
+  const render = () => {
+    const authState = ownerAuth.getOwnerAuthState();
+    button.dataset.ownerAuthState = authState.isOwner
+      ? "owner"
+      : authState.ownerEmailConfigured
+        ? authState.user
+          ? "viewer"
+          : "locked"
+        : "setup";
+    button.textContent = authState.isOwner
+      ? "Owner Signed In"
+      : authState.ownerEmailConfigured
+        ? "Owner Sign In"
+        : "Local Saves";
+    button.title = authState.isOwner
+      ? `Signed in as ${authState.user?.email || "owner"}`
+      : authState.ownerEmailConfigured
+        ? "Sign in to unlock site-memory write controls"
+        : "Local saves stay available until owner auth is configured";
+  };
+
+  ownerAuth.onOwnerAuthChange(render);
+  render();
+}
+
+function applyOwnerWriteProtection() {
+  const authState = ownerAuth.getOwnerAuthState();
+  const canWrite = ownerAuth.canWriteMemory();
+  document.body.classList.toggle("memory-write-locked", !canWrite);
+
+  MEMORY_WRITE_SELECTORS.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((element) => {
+      const node = element;
+      if (!node.dataset.ownerLockManaged) {
+        node.dataset.ownerLockManaged = "true";
+        node.dataset.ownerLockWasDisabled = node.disabled ? "true" : "false";
+        if ("readOnly" in node) {
+          node.dataset.ownerLockWasReadonly = node.readOnly ? "true" : "false";
+        }
+      }
+
+      if (canWrite) {
+        node.disabled = node.dataset.ownerLockWasDisabled === "true";
+        if ("readOnly" in node) {
+          node.readOnly = node.dataset.ownerLockWasReadonly === "true";
+        }
+        node.removeAttribute("aria-disabled");
+        return;
+      }
+
+      if (node.tagName === "INPUT" && !["checkbox", "radio", "file", "button", "submit"].includes((node.type || "").toLowerCase())) {
+        node.readOnly = true;
+      } else if ("readOnly" in node && node.tagName === "TEXTAREA") {
+        node.readOnly = true;
+      } else {
+        node.disabled = true;
+      }
+      node.setAttribute("aria-disabled", "true");
+    });
+  });
+}
+
+function enableOwnerWriteProtection() {
+  applyOwnerWriteProtection();
+
+  if (!memoryWriteObserver && main) {
+    memoryWriteObserver = new MutationObserver(() => applyOwnerWriteProtection());
+    memoryWriteObserver.observe(main, { subtree: true, childList: true });
+  }
+
+  ownerAuth.onOwnerAuthChange(() => applyOwnerWriteProtection());
+  window.addEventListener("ridgeline:memory-write-blocked", (event) => {
+    const message = event.detail?.message || "Owner sign-in is required to change site memory.";
+    showToast(message);
+    openOwnerAuthModal();
+  });
+}
+
 function buildViewerParallax() {
   const viewerSection = document.querySelector(".viewer-section#viewer");
   const viewerStage = viewerSection?.querySelector(".viewer-stage");
@@ -2906,6 +3202,9 @@ function buildSiteMenu() {
           <button class="site-menu-tool-button" type="button" data-tool-action="refresh-live">
             Live Refresh
           </button>
+          <button class="site-menu-tool-button" type="button" data-tool-action="owner-auth">
+            Owner Sign In
+          </button>
           <button class="site-menu-tool-button" type="button" data-tool-action="resume-section">
             Resume Last Section
           </button>
@@ -3016,6 +3315,14 @@ function buildSiteMenu() {
     () => {
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       setToolsStatus("Scrolled to top.");
+    }
+  );
+
+  menu.querySelector("[data-tool-action='owner-auth']") && bindPress(
+    menu.querySelector("[data-tool-action='owner-auth']"),
+    () => {
+      closeMenu();
+      openOwnerAuthModal();
     }
   );
 
@@ -4493,6 +4800,10 @@ buildScrollProgress();
 bindCompactStickyHeader();
 buildDynamicIslandShelf();
 buildViewerParallax();
+await ownerAuth.initOwnerAuth();
+buildOwnerAuthButton();
+buildOwnerAuthModal();
+enableOwnerWriteProtection();
 if (!isMobileNavMode) {
   buildSectionStepper(pageSections);
 }
@@ -5143,6 +5454,14 @@ document.addEventListener("keydown", (event) => {
 
   if (event.key === "Escape" && !searchModal.hidden) {
     closeSearch();
+  }
+
+  const ownerAuthModal = document.querySelector("[data-owner-auth-modal]");
+  if (event.key === "Escape" && ownerAuthModal && !ownerAuthModal.hidden) {
+    ownerAuthModal.hidden = true;
+    if (!isAnyModalOpen()) {
+      document.body.classList.remove("modal-open");
+    }
   }
 
   if (event.key === "Escape" && !commandPalette.modal.hidden) {

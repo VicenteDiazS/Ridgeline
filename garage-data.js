@@ -1,3 +1,11 @@
+import {
+  SUPABASE_PUBLIC_CONFIG,
+  canWriteRemoteMemory,
+  canWriteMemory,
+  getOwnerAccessToken,
+  initOwnerAuth
+} from "./owner-auth.js";
+
 export const STORAGE = {
   notes: "ridgeline-notes",
   tracker: "ridgeline-tracker",
@@ -8,14 +16,7 @@ export const STORAGE = {
   profile: "ridgeline-truck-profile"
 };
 
-const SUPABASE = {
-  url: "https://liogrqeevozzwefnketm.supabase.co",
-  publishableKey: "sb_publishable_LFaNldVgRH4iXHX3U0OVUg_nE1DiHfs",
-  table: "garage_kv",
-  bucket: "2019 Honda Ridgeline Main",
-  bucketFallback: "2019-honda-ridgeline-main",
-  signedUrlTtlSeconds: 60 * 60 * 24
-};
+const SUPABASE = SUPABASE_PUBLIC_CONFIG;
 
 const DEVICE_ID_KEY = "ridgeline-device-id";
 const REMOTE_ENABLED_KEY = "ridgeline-remote-enabled";
@@ -66,10 +67,15 @@ function getDeviceId() {
   return deviceId;
 }
 
+function getSharedMemoryId() {
+  return SUPABASE.sharedMemoryId || "ridgeline-site-memory";
+}
+
 function supabaseHeaders(json = true) {
+  const accessToken = getOwnerAccessToken();
   const headers = {
     apikey: SUPABASE.publishableKey,
-    Authorization: `Bearer ${SUPABASE.publishableKey}`
+    Authorization: `Bearer ${accessToken || SUPABASE.publishableKey}`
   };
 
   if (json) {
@@ -77,6 +83,25 @@ function supabaseHeaders(json = true) {
   }
 
   return headers;
+}
+
+function notifyWriteBlocked(message = "Owner sign-in is required to change site memory.") {
+  window.dispatchEvent(
+    new CustomEvent("ridgeline:memory-write-blocked", {
+      detail: {
+        message
+      }
+    })
+  );
+}
+
+function guardOwnerWrite(message = "Owner sign-in is required to change site memory.") {
+  if (canWriteMemory()) {
+    return true;
+  }
+
+  notifyWriteBlocked(message);
+  return false;
 }
 
 function encodeStoragePath(path) {
@@ -197,6 +222,10 @@ export function buildGarageBackupPayload() {
 }
 
 export function restoreGarageBackupPayload(bundle, options = {}) {
+  if (!guardOwnerWrite("Owner sign-in is required before restoring Garage backups.")) {
+    return false;
+  }
+
   if (bundle?.kind !== "ridgeline-garage-backup") {
     return false;
   }
@@ -290,6 +319,14 @@ export async function refreshGitHubBackupData() {
 }
 
 async function uploadPhotoToStorage(file, scope = "garage") {
+  if (!guardOwnerWrite("Owner sign-in is required before uploading Garage and journal photos.")) {
+    return null;
+  }
+
+  if (!canWriteRemoteMemory()) {
+    return null;
+  }
+
   if (!SUPABASE.url || !SUPABASE.publishableKey || !SUPABASE.bucket) {
     return null;
   }
@@ -297,7 +334,7 @@ async function uploadPhotoToStorage(file, scope = "garage") {
   const timestamp = Date.now();
   const random = Math.random().toString(36).slice(2, 9);
   const safeName = sanitizeFileName(file.name || `photo-${timestamp}.jpg`) || `photo-${timestamp}.jpg`;
-  const storagePath = `${getDeviceId()}/${scope}/${timestamp}-${random}-${safeName}`;
+  const storagePath = `${getSharedMemoryId()}/${scope}/${timestamp}-${random}-${safeName}`;
   const bucketCandidates = [SUPABASE.bucket, SUPABASE.bucketFallback].filter(Boolean);
 
   for (const bucketName of bucketCandidates) {
@@ -373,6 +410,10 @@ async function createSignedPhotoUrl(storagePath) {
 }
 
 function enqueueRemoteWrite(key, value) {
+  if (!canWriteRemoteMemory()) {
+    return;
+  }
+
   if (!SYNCABLE_KEYS.has(key)) {
     return;
   }
@@ -389,7 +430,7 @@ async function flushRemoteWrites() {
   flushInFlight = true;
   try {
     while (remoteAvailable && pendingWrites.size) {
-      const deviceId = getDeviceId();
+      const deviceId = getSharedMemoryId();
       const rows = [...pendingWrites.entries()].map(([storage_key, payload]) => ({
         device_id: deviceId,
         storage_key,
@@ -473,7 +514,7 @@ export async function refreshGarageRemoteData(options = {}) {
   }
 
   try {
-    const deviceId = encodeURIComponent(getDeviceId());
+    const deviceId = encodeURIComponent(getSharedMemoryId());
     const response = await requestSupabase(
       `${SUPABASE.table}?select=storage_key,payload,updated_at&device_id=eq.${deviceId}`,
       {
@@ -524,6 +565,7 @@ export async function initGarageCloudSync(options = {}) {
   }
 
   remoteInitPromise = (async () => {
+    await initOwnerAuth();
     if (!SUPABASE.url || !SUPABASE.publishableKey) {
       remoteAvailable = false;
       remoteInitDone = true;
@@ -559,7 +601,9 @@ export function getGarageCloudState() {
     enabled: isRemoteEnabledForDevice(),
     temporarilyDisabled: Number.isFinite(disabledUntil) && disabledUntil > Date.now(),
     disabledUntil: Number.isFinite(disabledUntil) ? disabledUntil : 0,
-    githubBackupConfigured: Boolean(getGitHubBackupEndpoint())
+    githubBackupConfigured: Boolean(getGitHubBackupEndpoint()),
+    sharedMemoryId: getSharedMemoryId(),
+    writeUnlocked: canWriteMemory()
   };
 }
 
@@ -594,12 +638,17 @@ export function loadJson(key, fallback) {
 }
 
 export function saveJson(key, value) {
+  if (!guardOwnerWrite()) {
+    return false;
+  }
+
   localStorage.setItem(key, JSON.stringify(value));
   if (!remoteInitDone) {
     initGarageCloudSync();
   }
   enqueueRemoteWrite(key, value);
   enqueueGitHubBackup();
+  return true;
 }
 
 export async function resolvePhotoSrc(photo) {
@@ -646,10 +695,14 @@ export function saveAreaJournal(area, value) {
     notes: value.notes || {},
     photos: value.photos || []
   };
-  saveJson(STORAGE.areaJournal, all);
+  return saveJson(STORAGE.areaJournal, all);
 }
 
 export async function filesToPhotoEntries(files, options = {}) {
+  if (!guardOwnerWrite("Owner sign-in is required before uploading site-memory photos.")) {
+    return [];
+  }
+
   const entries = [];
   const scope = options.scope || "garage";
 
