@@ -16,12 +16,15 @@ const closeoutStatus = document.querySelector("[data-service-closeout-status]");
 const followupForm = document.querySelector("[data-service-followup-form]");
 const followupButtons = [...document.querySelectorAll("[data-followup-service]")];
 const followupStatus = document.querySelector("[data-service-followup-status]");
+const serviceRunPackForm = document.querySelector("[data-service-run-pack-form]");
+const serviceRunPackStatus = document.querySelector("[data-service-run-pack-status]");
 const minderPlanner = document.querySelector("#minder-pocket-planner");
 const minderInput = document.querySelector("[data-minder-code-input]");
 const minderOutput = document.querySelector("[data-minder-plan-output]");
 const minderStatus = document.querySelector("[data-minder-plan-status]");
 const GARAGE_MAINTENANCE_STAGING_URL = "garage.html#maintenance-note-preview";
 const MAINTENANCE_STAGE_HANDOFF_KEY = "ridgeline-maintenance-stage-handoff";
+const SERVICE_RUN_PACK_DRAFT_KEY = "ridgeline-service-run-pack";
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -54,6 +57,7 @@ let lastMinderPlanCode = "";
 let lastUpdateReceiptText = "";
 let selectedCloseout = null;
 let selectedFollowup = null;
+let lastServiceRunPackText = "";
 
 const followupPresets = {
   oil_change: {
@@ -76,6 +80,13 @@ const followupPresets = {
     summary: "Recheck filter fitment, airbox or glove-box closure, noise, and saved part numbers.",
     checks: ["Airbox or glove box fully closed", "No new noise or airflow issue noticed", "Old/new part numbers saved", "Access clips or tabs rechecked"]
   }
+};
+
+const servicePrepCardTitles = {
+  oil_change: "Oil Change Prep",
+  tire_rotation: "Wheel And Tire Prep",
+  battery_install: "Battery Service Prep",
+  filters: "Filter Service Prep"
 };
 
 function formatMileage(value) {
@@ -158,6 +169,86 @@ function followupText() {
   ].join("\n");
 }
 
+function getServiceRunPrepLines(service) {
+  const title = servicePrepCardTitles[service] || "";
+  const card = servicePrepCards.find((item) => item.dataset.servicePrepTitle === title);
+  if (!card) {
+    return ["- No matching prep card selected"];
+  }
+
+  const checked = [...card.querySelectorAll("[data-service-prep-item]")]
+    .filter((item) => item.checked)
+    .map((item) => `- ${item.value}`);
+  return checked.length ? checked : ["- No prep boxes checked yet"];
+}
+
+function serviceRunPackText() {
+  if (!serviceRunPackForm) {
+    return "";
+  }
+
+  const service = serviceRunPackForm.elements.pack_service?.value || "general_note";
+  const label = serviceLabels[service] || "General service";
+  const mileage = formatMileage(serviceRunPackForm.elements.pack_mileage?.value);
+  const minderCode = `${serviceRunPackForm.elements.pack_minder?.value || minderInput?.value || ""}`.trim().toUpperCase();
+  const contact = `${serviceRunPackForm.elements.pack_contact?.value || ""}`.trim();
+  const note = `${serviceRunPackForm.elements.pack_note?.value || ""}`.trim();
+  const question = `${serviceRunPackForm.elements.pack_question?.value || ""}`.trim();
+  const prepLines = getServiceRunPrepLines(service);
+
+  return [
+    `Ridgeline service run pack: ${label}`,
+    mileage ? `Mileage: ${mileage}` : "Mileage: not entered",
+    minderCode ? `Dash/Minder code: ${minderCode}` : "Dash/Minder code: not entered",
+    contact ? `Counter/callback: ${contact}` : "Counter/callback: not entered",
+    note ? `Owner detail: ${note}` : "Owner detail: none entered",
+    question ? `Question: ${question}` : "Question: Verify parts, fitment, condition, and closeout needs before buying or saving final notes.",
+    "Checked prep:",
+    ...prepLines,
+    "Save path: Garage Notes"
+  ].join("\n");
+}
+
+function persistServiceRunPackDraft() {
+  if (!serviceRunPackForm) {
+    return;
+  }
+
+  const draft = {
+    service: serviceRunPackForm.elements.pack_service?.value || "general_note",
+    mileage: serviceRunPackForm.elements.pack_mileage?.value || "",
+    minder: serviceRunPackForm.elements.pack_minder?.value || "",
+    contact: serviceRunPackForm.elements.pack_contact?.value || "",
+    note: serviceRunPackForm.elements.pack_note?.value || "",
+    question: serviceRunPackForm.elements.pack_question?.value || "",
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem(SERVICE_RUN_PACK_DRAFT_KEY, JSON.stringify(draft));
+}
+
+function renderServiceRunPackPreview() {
+  const preview = serviceRunPackForm?.querySelector("[data-service-run-pack-preview]");
+  if (!preview) {
+    return;
+  }
+
+  lastServiceRunPackText = serviceRunPackText();
+  const lines = lastServiceRunPackText.split("\n");
+  preview.innerHTML = "";
+  const title = document.createElement("strong");
+  title.textContent = lines[0] || "Ridgeline service run pack";
+  const meta = document.createElement("p");
+  meta.textContent = lines.slice(1, 6).join(" / ");
+  const prep = document.createElement("ul");
+  prep.className = "highlight-list";
+  lines.slice(lines.indexOf("Checked prep:") + 1, -1).forEach((line) => {
+    const item = document.createElement("li");
+    item.textContent = line.replace(/^- /, "");
+    prep.appendChild(item);
+  });
+  preview.append(title, meta, prep);
+}
+
 function renderUpdateReceipt(entry) {
   if (!updateReceipt || !entry) {
     return;
@@ -211,6 +302,15 @@ function selectFollowupService(service = "oil_change", { mileage = "", announce 
   }
 }
 
+function setServiceRunPackService(service = "general_note") {
+  const serviceField = serviceRunPackForm?.elements.pack_service;
+  if (serviceField && [...serviceField.options].some((option) => option.value === service)) {
+    serviceField.value = service;
+    renderServiceRunPackPreview();
+    persistServiceRunPackDraft();
+  }
+}
+
 function saveMaintenanceEntry(entry) {
   const entries = loadJson(STORAGE.maintenanceLog, []);
   saveJson(STORAGE.maintenanceLog, [entry, ...entries].slice(0, 80));
@@ -225,6 +325,7 @@ function saveMaintenanceEntry(entry) {
   renderRecentUpdates();
   renderUpdateReceipt(entry);
   selectFollowupService(entry.service, { mileage: entry.mileage, announce: true });
+  setServiceRunPackService(entry.service);
 }
 
 function buildMaintenanceEntry({ mileage, service = "general_note", note = "" } = {}) {
@@ -421,6 +522,11 @@ function initServicePrepCards() {
         item.checked = false;
       });
       setServicePrepStatus(card, "Checklist reset.");
+      renderServiceRunPackPreview();
+    });
+
+    card.querySelectorAll("[data-service-prep-item]").forEach((item) => {
+      item.addEventListener("change", renderServiceRunPackPreview);
     });
   });
 }
@@ -461,6 +567,7 @@ function initServiceCloseout() {
       }
 
       selectedCloseout = { service, note };
+      setServiceRunPackService(service);
       closeoutButtons.forEach((item) => {
         const active = item === button;
         item.classList.toggle("is-selected", active);
@@ -538,6 +645,76 @@ function initServiceCloseout() {
       closeoutStatus.textContent = "Share canceled or unavailable.";
     }
   });
+}
+
+function initServiceRunPack() {
+  if (!serviceRunPackForm) {
+    return;
+  }
+
+  const draft = loadJson(SERVICE_RUN_PACK_DRAFT_KEY, {});
+  if (draft && typeof draft === "object") {
+    if (draft.service && serviceRunPackForm.elements.pack_service) {
+      serviceRunPackForm.elements.pack_service.value = draft.service;
+    }
+    ["mileage", "minder", "contact", "note", "question"].forEach((key) => {
+      const field = serviceRunPackForm.elements[`pack_${key}`];
+      if (field && draft[key]) {
+        field.value = draft[key];
+      }
+    });
+  }
+
+  serviceRunPackForm.addEventListener("input", () => {
+    renderServiceRunPackPreview();
+    persistServiceRunPackDraft();
+  });
+  serviceRunPackForm.addEventListener("change", () => {
+    renderServiceRunPackPreview();
+    persistServiceRunPackDraft();
+  });
+
+  serviceRunPackForm.querySelector("[data-copy-service-run-pack]")?.addEventListener("click", () => {
+    renderServiceRunPackPreview();
+    copyText(lastServiceRunPackText)
+      .then(() => {
+        if (serviceRunPackStatus) {
+          serviceRunPackStatus.textContent = "Service run pack copied.";
+        }
+      })
+      .catch(() => {
+        if (serviceRunPackStatus) {
+          serviceRunPackStatus.textContent = "Could not copy the service run pack automatically.";
+        }
+      });
+  });
+
+  serviceRunPackForm.querySelector("[data-share-service-run-pack]")?.addEventListener("click", async () => {
+    renderServiceRunPackPreview();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline service run pack", text: lastServiceRunPackText });
+        serviceRunPackStatus.textContent = "Service run pack shared.";
+        return;
+      }
+      await copyText(lastServiceRunPackText);
+      serviceRunPackStatus.textContent = "Share unavailable; service run pack copied instead.";
+    } catch {
+      serviceRunPackStatus.textContent = "Share canceled or unavailable.";
+    }
+  });
+
+  serviceRunPackForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    renderServiceRunPackPreview();
+    prependGarageGeneralNote(`[${new Date().toLocaleDateString("en-US")} - Service Run Pack]\n${lastServiceRunPackText}`);
+    persistServiceRunPackDraft();
+    if (serviceRunPackStatus) {
+      serviceRunPackStatus.textContent = "Service run pack saved to Garage Notes.";
+    }
+  });
+
+  renderServiceRunPackPreview();
 }
 
 function initServiceFollowup() {
@@ -736,6 +913,7 @@ initServiceCloseout();
 initServicePrepCards();
 initServiceFollowup();
 initMinderPlanner();
+initServiceRunPack();
 
 window.addEventListener("ridgeline:storage-hydrated", renderRecentUpdates);
 renderRecentUpdates();

@@ -709,6 +709,13 @@ export const searchIndex = [
     keywords: ["service follow-up", "service follow up", "maintenance follow-up", "maintenance follow up", "after service recheck", "recheck after service", "next drive recheck", "oil recheck", "wheel torque recheck", "tire pressure recheck", "battery follow-up", "filter follow-up", "save follow-up note", "copy follow-up note", "share follow-up note", "garage follow-up note"]
   },
   {
+    title: "Service Run Pack",
+    url: "maintenance.html#service-run-pack",
+    category: "Maintenance",
+    excerpt: "iPhone handoff pack for taking a selected maintenance job, checked prep items, dash code, mileage, callback detail, and owner question to a parts counter, shop, or helper.",
+    keywords: ["service run pack", "copy service run pack", "maintenance run pack", "parts counter service pack", "shop service handoff", "service handoff pack", "counter callback", "service owner question", "maintenance owner question", "save service run pack", "service pack garage note"]
+  },
+  {
     title: "Service Prep Planner",
     url: "maintenance.html#service-prep",
     category: "Maintenance",

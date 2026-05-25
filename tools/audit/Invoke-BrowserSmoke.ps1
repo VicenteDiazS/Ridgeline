@@ -99,6 +99,8 @@ SEARCH_EXPECTATIONS = {
     "service follow-up": "Service Follow-Up Note",
     "next drive recheck": "Service Follow-Up Note",
     "copy maintenance receipt": "Service Closeout",
+    "service run pack": "Service Run Pack",
+    "copy service run pack": "Service Run Pack",
     "service prep": "Service Prep Planner",
     "minder planner": "Maintenance Minder Pocket Planner",
     "save and stage": "Service Prep Planner",
@@ -2983,6 +2985,7 @@ async def assert_maintenance_features(page, page_name):
             const launcher = document.querySelector("#service-run-launcher");
             const closeout = document.querySelector("#service-closeout");
             const followup = document.querySelector("#service-followup");
+            const runPack = document.querySelector("#service-run-pack");
             const receipt = document.querySelector("[data-maintenance-save-receipt]");
             const launcherCards = launcher ? [...launcher.querySelectorAll(".maintenance-run-card")] : [];
             const closeoutCards = closeout ? [...closeout.querySelectorAll("[data-closeout-service]")] : [];
@@ -3029,6 +3032,19 @@ async def assert_maintenance_features(page, page_name):
                 hasFollowupCopy: Boolean(followup?.querySelector("[data-copy-service-followup]")),
                 hasFollowupShare: Boolean(followup?.querySelector("[data-share-service-followup]")),
                 hasFollowupHandoffRoute: Boolean(followup?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                hasRunPack: Boolean(runPack),
+                runPackText: runPack?.innerText || "",
+                hasRunPackService: Boolean(runPack?.querySelector("[data-service-run-pack-service]")),
+                hasRunPackMileage: Boolean(runPack?.querySelector("[data-service-run-pack-mileage]")),
+                hasRunPackMinder: Boolean(runPack?.querySelector("[data-service-run-pack-minder]")),
+                hasRunPackContact: Boolean(runPack?.querySelector("[data-service-run-pack-contact]")),
+                hasRunPackNote: Boolean(runPack?.querySelector("[data-service-run-pack-note]")),
+                hasRunPackQuestion: Boolean(runPack?.querySelector("[data-service-run-pack-question]")),
+                hasRunPackPreview: Boolean(runPack?.querySelector("[data-service-run-pack-preview]")),
+                hasRunPackCopy: Boolean(runPack?.querySelector("[data-copy-service-run-pack]")),
+                hasRunPackShare: Boolean(runPack?.querySelector("[data-share-service-run-pack]")),
+                hasRunPackSave: Boolean(runPack?.querySelector("button[type='submit']")),
+                hasRunPackStagingRoute: Boolean(runPack?.querySelector('a[href="garage.html#maintenance-note-preview"]')),
                 hasSaveReceipt: Boolean(receipt),
                 receiptInitiallyHidden: Boolean(receipt?.hidden),
                 hasReceiptCopy: Boolean(receipt?.querySelector("[data-copy-maintenance-receipt]")),
@@ -3084,6 +3100,21 @@ async def assert_maintenance_features(page, page_name):
     followup_text_upper = state["followupText"].upper()
     for phrase in ["NEXT CHECK", "SERVICE FOLLOW-UP NOTE", "OIL", "WHEEL", "BATTERY", "FILTERS"]:
         assert_true(phrase in followup_text_upper, f"service follow-up is missing text: {phrase}")
+    assert_true(state["hasRunPack"], "maintenance page is missing the Service Run Pack")
+    assert_true(state["hasRunPackService"], "Service Run Pack is missing its service selector")
+    assert_true(state["hasRunPackMileage"], "Service Run Pack is missing its mileage field")
+    assert_true(state["hasRunPackMinder"], "Service Run Pack is missing its dash code field")
+    assert_true(state["hasRunPackContact"], "Service Run Pack is missing its counter/callback field")
+    assert_true(state["hasRunPackNote"], "Service Run Pack is missing its owner detail field")
+    assert_true(state["hasRunPackQuestion"], "Service Run Pack is missing its owner question field")
+    assert_true(state["hasRunPackPreview"], "Service Run Pack is missing its live preview")
+    assert_true(state["hasRunPackCopy"], "Service Run Pack is missing Copy Pack")
+    assert_true(state["hasRunPackShare"], "Service Run Pack is missing Share")
+    assert_true(state["hasRunPackSave"], "Service Run Pack is missing Save Garage Note")
+    assert_true(state["hasRunPackStagingRoute"], "Service Run Pack is missing its Garage staging route")
+    run_pack_text_upper = state["runPackText"].upper()
+    for phrase in ["BEFORE THE COUNTER", "SERVICE RUN PACK", "COPY PACK", "SAVE GARAGE NOTE"]:
+        assert_true(phrase in run_pack_text_upper, f"Service Run Pack is missing text: {phrase}")
     assert_true(state["hasSaveReceipt"], "Quick Maintenance Update is missing its saved receipt panel")
     assert_true(state["receiptInitiallyHidden"], "maintenance saved receipt should stay hidden until an update is saved")
     assert_true(state["hasReceiptCopy"], "maintenance saved receipt is missing Copy Receipt")
@@ -3121,6 +3152,8 @@ async def assert_maintenance_features(page, page_name):
             const followupPicker = document.querySelector("#service-followup .service-followup-picker");
             const followupChecks = document.querySelector("#service-followup [data-service-followup-checks]");
             const followupActions = document.querySelector("#service-followup .service-followup-actions");
+            const runPackTool = document.querySelector("#service-run-pack .service-run-pack-tool");
+            const runPackActions = document.querySelector("#service-run-pack .service-run-pack-actions");
             const firstFollowupButton = document.querySelector("#service-followup [data-followup-service]");
             const receiptActions = document.querySelector("[data-maintenance-save-receipt] .maintenance-receipt-actions");
             const firstCloseoutButton = document.querySelector("#service-closeout [data-closeout-service]");
@@ -3178,11 +3211,15 @@ async def assert_maintenance_features(page, page_name):
                 closeoutColumns,
                 followupColumns: followupPicker ? getComputedStyle(followupPicker).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 followupCheckColumns: followupChecks ? getComputedStyle(followupChecks).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+                runPackColumns: runPackTool ? getComputedStyle(runPackTool).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
                 followupButtonHeight: firstFollowupButton?.getBoundingClientRect().height || 0,
                 closeoutButtonHeight: firstCloseoutButton?.getBoundingClientRect().height || 0,
                 closeoutActionRows,
                 followupActionRows: followupActions
                     ? new Set([...followupActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
+                    : 0,
+                runPackActionRows: runPackActions
+                    ? new Set([...runPackActions.querySelectorAll(".utility-link")].map((button) => Math.round(button.getBoundingClientRect().top))).size
                     : 0,
                 receiptActionRows,
                 launcherActionRows,
@@ -3198,8 +3235,10 @@ async def assert_maintenance_features(page, page_name):
     assert_true(mobile_state["closeoutColumns"] == 2, "service closeout should keep two compact columns at iPhone width")
     assert_true(mobile_state["followupColumns"] == 4, "service follow-up chips should stay compact on iPhone width")
     assert_true(mobile_state["followupCheckColumns"] == 2, "service follow-up checks should use two compact iPhone columns")
+    assert_true(mobile_state["runPackColumns"] == 2, "Service Run Pack fields should use two compact iPhone columns")
     assert_true(mobile_state["followupButtonHeight"] >= 40, "service follow-up chips should remain thumb-sized on iPhone width")
     assert_true(mobile_state["followupActionRows"] == 1, "service follow-up actions should stay on one compact iPhone row")
+    assert_true(mobile_state["runPackActionRows"] == 1, "Service Run Pack actions should stay on one compact iPhone row")
     assert_true(mobile_state["closeoutButtonHeight"] >= 44, "service closeout shortcuts should remain thumb-sized on iPhone width")
     assert_true(mobile_state["closeoutActionRows"] <= 1, "service closeout tray actions should stay on one compact iPhone row")
     assert_true(mobile_state["receiptActionRows"] == 1, "maintenance receipt actions should stay on one compact iPhone row")
@@ -3351,6 +3390,44 @@ async def assert_maintenance_features(page, page_name):
     assert_true("Oil filter and 14 mm crush washer" not in prep_saved_notes, "service prep save should use checked items when at least one item is checked")
     assert_true(prep_saved_notes.index("Oil Change Prep") < prep_saved_notes.index("Existing garage note"), "service prep save should prepend instead of replacing or appending Garage notes")
     assert_true(prep_preserved_key == "preserve me", "service prep save dropped an unrelated Garage note key")
+    await page.locator("#service-run-pack [data-service-run-pack-service]").select_option("oil_change")
+    await page.locator("#service-run-pack [data-service-run-pack-mileage]").fill("166245")
+    await page.locator("#service-run-pack [data-service-run-pack-minder]").fill("A1")
+    await page.locator("#service-run-pack [data-service-run-pack-contact]").fill("Parts counter callback")
+    await page.locator("#service-run-pack [data-service-run-pack-note]").fill("Bring oil filter and crush washer options.")
+    await page.locator("#service-run-pack [data-service-run-pack-question]").fill("Verify filter fitment before checkout.")
+    await page.wait_for_timeout(150)
+    run_pack_preview = await page.locator("#service-run-pack [data-service-run-pack-preview]").inner_text()
+    assert_true("Ridgeline service run pack: Oil change" in run_pack_preview, "Service Run Pack preview did not name the selected service")
+    assert_true("166,245 miles" in run_pack_preview, "Service Run Pack preview did not include mileage")
+    assert_true("0W-20 oil and final dipstick level check" in run_pack_preview, "Service Run Pack preview did not include checked prep items")
+    await page.locator("#service-run-pack [data-copy-service-run-pack]").click()
+    await page.wait_for_timeout(100)
+    run_pack_copy_status = await page.locator("[data-service-run-pack-status]").inner_text()
+    assert_true("Service run pack copied" in run_pack_copy_status, "Service Run Pack copy did not report success")
+    await page.locator("#service-run-pack button[type='submit']").click()
+    await page.wait_for_timeout(150)
+    run_pack_saved = await page.evaluate(
+        """() => {
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            const draft = JSON.parse(localStorage.getItem("ridgeline-service-run-pack") || "{}");
+            return {
+                status: document.querySelector("[data-service-run-pack-status]")?.textContent || "",
+                notes: notes.general_notes || "",
+                preservedKey: notes.quick_capture_keep || "",
+                draftService: draft.service || "",
+                draftQuestion: draft.question || ""
+            };
+        }"""
+    )
+    assert_true("Service run pack saved to Garage Notes" in run_pack_saved["status"], "Service Run Pack save did not report success")
+    assert_true("Ridgeline service run pack: Oil change" in run_pack_saved["notes"], "Service Run Pack save did not write the selected service")
+    assert_true("Parts counter callback" in run_pack_saved["notes"], "Service Run Pack save did not write the counter/callback detail")
+    assert_true("Verify filter fitment before checkout" in run_pack_saved["notes"], "Service Run Pack save did not write the owner question")
+    assert_true("0W-20 oil and final dipstick level check" in run_pack_saved["notes"], "Service Run Pack save did not include checked prep")
+    assert_true(run_pack_saved["preservedKey"] == "preserve me", "Service Run Pack save dropped an unrelated Garage note key")
+    assert_true(run_pack_saved["draftService"] == "oil_change", "Service Run Pack did not persist the selected service draft")
+    assert_true("Verify filter fitment" in run_pack_saved["draftQuestion"], "Service Run Pack did not persist the owner question draft")
     await page.locator("#service-prep [data-reset-service-prep]").first.click()
     unchecked = await page.locator("#service-prep [data-service-prep-card]").first.locator("input[type='checkbox']").first.is_checked()
     assert_true(not unchecked, "service prep reset did not uncheck the item")

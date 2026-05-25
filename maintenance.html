@@ -323,6 +323,61 @@
             </p>
           </article>
 
+          <article class="tech-card span-2 service-run-pack-card" id="service-run-pack">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Before The Counter</p>
+                <h3>Service Run Pack</h3>
+                <p class="section-copy">
+                  Package the current service, checked prep items, dash code, mileage, and owner question into one note before buying parts or handing the truck off.
+                </p>
+              </div>
+              <a class="utility-link" href="garage.html#maintenance-note-preview">Open Staging</a>
+            </div>
+            <form class="service-run-pack-tool" data-service-run-pack-form>
+              <label>
+                <span>Service</span>
+                <select name="pack_service" data-service-run-pack-service>
+                  <option value="oil_change">Oil change</option>
+                  <option value="tire_rotation">Wheel / tire</option>
+                  <option value="battery_install">Battery</option>
+                  <option value="filters">Filters</option>
+                  <option value="general_note">General service</option>
+                </select>
+              </label>
+              <label>
+                <span>Mileage now</span>
+                <input name="pack_mileage" type="number" min="0" step="1" inputmode="numeric" placeholder="166240" autocomplete="off" data-service-run-pack-mileage />
+              </label>
+              <label>
+                <span>Dash code</span>
+                <input name="pack_minder" type="text" inputmode="text" placeholder="B12" autocomplete="off" data-service-run-pack-minder />
+              </label>
+              <label>
+                <span>Counter / callback</span>
+                <input name="pack_contact" type="text" placeholder="Parts counter, shop, or callback" autocomplete="off" data-service-run-pack-contact />
+              </label>
+              <label class="service-run-pack-note">
+                <span>Owner detail</span>
+                <textarea name="pack_note" rows="3" placeholder="Part brand, symptom, order question, or staging note" data-service-run-pack-note></textarea>
+              </label>
+              <label class="service-run-pack-question">
+                <span>Question to answer</span>
+                <textarea name="pack_question" rows="3" placeholder="What should be verified before buying or closing out this service?" data-service-run-pack-question></textarea>
+              </label>
+              <div class="service-run-pack-preview" data-service-run-pack-preview aria-live="polite"></div>
+              <div class="service-run-pack-actions">
+                <button class="utility-link utility-link-strong" type="button" data-copy-service-run-pack>Copy Pack</button>
+                <button class="utility-link" type="button" data-share-service-run-pack>Share</button>
+                <button class="utility-link" type="submit">Save Garage Note</button>
+              </div>
+            </form>
+            <p class="small-note" data-service-run-pack-status aria-live="polite"></p>
+            <p class="source-note">
+              The pack reuses existing service labels, checked prep items, and Garage Notes. It does not add service intervals, fitment claims, repair procedures, or a new Garage data shape.
+            </p>
+          </article>
+
           <article class="tech-card span-2 service-prep-card" id="service-prep">
             <div class="section-head">
               <div>
