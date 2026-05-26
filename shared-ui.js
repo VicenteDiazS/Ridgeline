@@ -32,6 +32,7 @@ let fullSearchIndexCache = null;
 let memoryWriteObserver = null;
 let currentSiteTheme = localStorage.getItem(SITE_THEME_STORAGE_KEY) === "light" ? "light" : "dark";
 let lastRenderedSearchResults = [];
+let deferredInstallPrompt = null;
 
 const MEMORY_WRITE_SELECTORS = [
   "[data-notes-form] input",
@@ -468,6 +469,44 @@ function copyCurrentLocation() {
     .catch(() => showToast("Could not copy link", "warning"));
 }
 
+function shareCurrentLocation() {
+  const url = new URL(currentLocationHref(), location.href).href;
+  const title = document.title || "Ridgeline Service Console";
+  const text = `Open ${currentPageDisplayLabel()} in the Ridgeline site.`;
+
+  if (navigator.share) {
+    navigator.share({ title, text, url })
+      .then(() => showToast("Shared from your phone"))
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          return;
+        }
+        copyText(url)
+          .then(() => showToast("Share unavailable, copied link instead"))
+          .catch(() => showToast("Could not share or copy link", "warning"));
+      });
+    return;
+  }
+
+  copyText(url)
+    .then(() => showToast("Share unavailable, copied link instead"))
+    .catch(() => showToast("Could not copy link", "warning"));
+}
+
+function installHelpMode() {
+  if (isStandaloneLaunch()) {
+    return "installed";
+  }
+  if (deferredInstallPrompt) {
+    return "prompt";
+  }
+  const ua = navigator.userAgent || "";
+  if (/iphone|ipad|ipod/i.test(ua)) {
+    return "ios";
+  }
+  return "manual";
+}
+
 function recordRecentNavEntry({ href, label }) {
   if (!href || !label) {
     return;
@@ -833,7 +872,7 @@ function insertSubpageIntroTool(element) {
 }
 
 function buildViewModeRail() {
-  if (!topbar || !main || document.querySelector(".view-mode-rail")) {
+  if (!topbar || !main || document.querySelector(".view-mode-rail") || !isMobileNavMode) {
     return;
   }
 
@@ -2183,6 +2222,181 @@ function openOwnerAuthModal() {
   preferredTarget?.focus();
 }
 
+function buildInstallAppModal() {
+  if (document.querySelector("[data-install-app-modal]")) {
+    return document.querySelector("[data-install-app-modal]");
+  }
+
+  const modal = document.createElement("section");
+  modal.className = "search-modal install-app-modal";
+  modal.hidden = true;
+  modal.setAttribute("data-install-app-modal", "");
+  modal.innerHTML = `
+    <div class="search-dialog owner-auth-dialog install-app-dialog" role="dialog" aria-modal="true" aria-labelledby="install-app-title">
+      <button class="search-close" type="button" data-close-install-app aria-label="Close install app panel">Close</button>
+      <div class="owner-auth-head">
+        <p class="eyebrow">Mobile App</p>
+        <h2 id="install-app-title" data-install-app-title>Add Ridgeline To Your Home Screen</h2>
+        <p data-install-app-detail>Open this site faster and use it more like an app on your phone.</p>
+      </div>
+      <section class="install-app-steps" data-install-app-steps></section>
+      <div class="owner-auth-actions">
+        <button class="agent-control-button" type="button" data-install-app-primary>Install App</button>
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-install-app-copy>Copy Link</button>
+      </div>
+      <p class="agent-status-summary owner-auth-message" data-install-app-message aria-live="polite"></p>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => {
+    modal.hidden = true;
+    if (!isAnyModalOpen()) {
+      document.body.classList.remove("modal-open");
+    }
+  };
+
+  modal.querySelectorAll("[data-close-install-app]").forEach((button) => {
+    button.addEventListener("click", close);
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      close();
+    }
+  });
+
+  const title = modal.querySelector("[data-install-app-title]");
+  const detail = modal.querySelector("[data-install-app-detail]");
+  const steps = modal.querySelector("[data-install-app-steps]");
+  const message = modal.querySelector("[data-install-app-message]");
+  const primary = modal.querySelector("[data-install-app-primary]");
+  const copy = modal.querySelector("[data-install-app-copy]");
+
+  const render = () => {
+    const mode = installHelpMode();
+    if (!title || !detail || !steps || !message || !primary) {
+      return;
+    }
+
+    if (mode === "installed") {
+      title.textContent = "Ridgeline Is Already Installed";
+      detail.textContent = "This phone is already opening the site in app-style mode.";
+      steps.innerHTML = `
+        <div class="install-app-step">
+          <strong>Already set</strong>
+          <p>Launch Ridgeline from your home screen whenever you want the cleanest mobile experience.</p>
+        </div>
+      `;
+      primary.textContent = "Installed";
+      primary.disabled = true;
+      message.textContent = "No install needed on this device.";
+      return;
+    }
+
+    primary.disabled = false;
+
+    if (mode === "prompt") {
+      title.textContent = "Install Ridgeline As An App";
+      detail.textContent = "Your browser can install this site directly for a faster, cleaner mobile launch.";
+      steps.innerHTML = `
+        <div class="install-app-step">
+          <strong>One tap install</strong>
+          <p>Use the browser install prompt, then launch Ridgeline from your home screen like an app.</p>
+        </div>
+      `;
+      primary.textContent = "Install App";
+      message.textContent = "Install prompt ready.";
+      return;
+    }
+
+    if (mode === "ios") {
+      title.textContent = "Add Ridgeline To Home Screen";
+      detail.textContent = "On iPhone, adding the site to your home screen gives you the cleanest full-screen version.";
+      steps.innerHTML = `
+        <div class="install-app-step">
+          <strong>1. Open Share</strong>
+          <p>Tap the Share button in Safari.</p>
+        </div>
+        <div class="install-app-step">
+          <strong>2. Choose Add to Home Screen</strong>
+          <p>Scroll in the share sheet if you do not see it right away.</p>
+        </div>
+        <div class="install-app-step">
+          <strong>3. Launch from your home screen</strong>
+          <p>That opens Ridgeline in the more app-like mobile view.</p>
+        </div>
+      `;
+      primary.textContent = "Got It";
+      message.textContent = "Use Safari's Share menu to finish install.";
+      return;
+    }
+
+    title.textContent = "Install Ridgeline";
+    detail.textContent = "If your browser supports it, look for Install App or Add to Home Screen in the browser menu.";
+    steps.innerHTML = `
+      <div class="install-app-step">
+        <strong>Install from browser menu</strong>
+        <p>Look for Install App, Add to Home Screen, or Create Shortcut in your browser menu.</p>
+      </div>
+    `;
+    primary.textContent = "Got It";
+    message.textContent = "Browser menu install is the fallback on this device.";
+  };
+
+  primary?.addEventListener("click", async () => {
+    const mode = installHelpMode();
+    if (mode === "prompt" && deferredInstallPrompt) {
+      try {
+        await deferredInstallPrompt.prompt();
+        const outcome = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        render();
+        message.textContent = outcome?.outcome === "accepted"
+          ? "Install prompt accepted."
+          : "Install prompt dismissed.";
+      } catch {
+        message.textContent = "Could not open the install prompt in this browser session.";
+      }
+      return;
+    }
+
+    if (mode === "installed") {
+      close();
+      return;
+    }
+
+    close();
+  });
+
+  copy?.addEventListener("click", () => copyCurrentLocation());
+
+  modal.renderInstallApp = render;
+  render();
+  return modal;
+}
+
+function openInstallAppModal() {
+  const modal = buildInstallAppModal();
+  modal.renderInstallApp?.();
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+  focusFirstIn(modal, "[data-install-app-primary], [data-install-app-copy], [data-close-install-app]");
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  document.querySelector("[data-install-app-modal]")?.renderInstallApp?.();
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  document.querySelector("[data-install-app-modal]")?.renderInstallApp?.();
+  showToast("Ridgeline installed on this device.");
+});
+
 function buildOwnerAuthButton() {
   if (!topbarActions || topbarActions.querySelector("[data-open-owner-auth]")) {
     return;
@@ -2563,8 +2777,16 @@ function performUiAction(action) {
     openSearch();
     return;
   }
+  if (action === "share") {
+    shareCurrentLocation();
+    return;
+  }
   if (action === "copy-location") {
     copyCurrentLocation();
+    return;
+  }
+  if (action === "install-app") {
+    openInstallAppModal();
     return;
   }
   if (action === "last-task") {
@@ -2635,7 +2857,7 @@ function buildMiniToolsDrawer() {
       <div class="mini-tools-grid">
         <button type="button" data-mini-action="command" data-nav-icon="search">Command Palette</button>
         <button type="button" data-mini-action="search" data-nav-icon="search">Search Site</button>
-        <button type="button" data-mini-action="copy-location" data-nav-icon="copy">Copy Location</button>
+        <button type="button" data-mini-action="share" data-nav-icon="share">Share This Page</button>
         <button type="button" data-mini-action="last-task" data-nav-icon="history">Last Task</button>
         <button type="button" data-mini-action="quick-capture" data-nav-icon="garage">Quick Add</button>
         <button type="button" data-mini-action="sync-settings" data-nav-icon="bolt">Sync Settings</button>
@@ -3637,13 +3859,9 @@ function buildPageActionBar() {
   bar.setAttribute("aria-label", "Page actions");
   bar.innerHTML = `
     <a href="garage.html#notes">Save Note</a>
-    <a href="photo-atlas.html">Add Photo</a>
-    <a href="maintenance.html">Mark Done</a>
-    <a href="${relatedHref}">Open Related</a>
-    <button type="button" data-page-action="quick-capture">Quick Add</button>
+    <a href="${relatedHref}">Related</a>
+    <button type="button" data-page-action="share">Share</button>
     <button type="button" data-page-action="sync-settings">Sync</button>
-    <button type="button" data-page-action="copy-location">Copy Link</button>
-    <button type="button" data-page-action="last-task">Last Task</button>
   `;
   bar.addEventListener("click", (event) => {
     const button = event.target.closest("[data-page-action]");
@@ -5872,6 +6090,14 @@ document.addEventListener("keydown", (event) => {
   const ownerAuthModal = document.querySelector("[data-owner-auth-modal]");
   if (event.key === "Escape" && ownerAuthModal && !ownerAuthModal.hidden) {
     ownerAuthModal.hidden = true;
+    if (!isAnyModalOpen()) {
+      document.body.classList.remove("modal-open");
+    }
+  }
+
+  const installAppModal = document.querySelector("[data-install-app-modal]");
+  if (event.key === "Escape" && installAppModal && !installAppModal.hidden) {
+    installAppModal.hidden = true;
     if (!isAnyModalOpen()) {
       document.body.classList.remove("modal-open");
     }

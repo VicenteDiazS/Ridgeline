@@ -250,6 +250,7 @@ function renderHomeResumePanel() {
   const items = getHomeResumeItems();
   const latest = items[0];
 
+  homeResumePanel.hidden = !latest;
   homeResumePanel.dataset.resumeState = latest ? "ready" : "empty";
   if (titleNode) {
     titleNode.textContent = latest ? `${latest.label}: ${latest.title}` : "No saved handoffs yet";

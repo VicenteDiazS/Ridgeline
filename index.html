@@ -70,24 +70,17 @@
           <div class="viewer-ambient viewer-ambient-c" aria-hidden="true"></div>
           <div class="viewer-header home-viewer-header">
             <div>
-              <p class="eyebrow">Live Vehicle Map</p>
+              <p class="eyebrow">Interactive Truck Map</p>
               <h1>Ridgeline Service Console</h1>
               <p class="home-viewer-subtitle">
-                3D truck map, service shortcuts, NFC targets, and garage records built around this 2019 Ridgeline.
+                Start with the truck. Open service, diagnostics, and saved memory only when you need them.
               </p>
             </div>
             <div class="home-status-stack" aria-label="Truck status summary">
               <div class="home-status-pill">
                 <span>Truck</span>
-                <strong>2019 Ridgeline</strong>
-              </div>
-              <div class="home-status-pill">
-                <span>Drive</span>
-                <strong>2WD</strong>
-              </div>
-              <div class="home-status-pill">
-                <span>Major Service</span>
-                <strong>165,980 mi</strong>
+                <strong>2019 Ridgeline RTL-T</strong>
+                <small>2WD · 3.5L V6 · personal service reference</small>
               </div>
               <a class="home-status-pill home-status-pill-agent" href="anton.html" data-agent-home-card>
                 <span data-agent-home-kicker>Anton</span>
@@ -197,17 +190,13 @@
               <span>Roadside Now</span>
               <strong>Action Stack</strong>
             </a>
-            <a href="diagnostics.html#no-start-workflow">
-              <span>Won't Start</span>
-              <strong>No-Start Flow</strong>
+            <a href="diagnostics.html#workflow-index">
+              <span>Diagnose</span>
+              <strong>Workflow Index</strong>
             </a>
-            <a href="garage.html#warning-light-template">
-              <span>Warning Light</span>
-              <strong>Save Exact Text</strong>
-            </a>
-            <a href="diagnostics.html#fuse-symptom-finder">
-              <span>Dead Power</span>
-              <strong>Fuse Route</strong>
+            <a href="maintenance.html#service-closeout">
+              <span>Log Service</span>
+              <strong>Closeout Form</strong>
             </a>
           </div>
 
@@ -241,17 +230,8 @@
               </div>
             </div>
             <div class="viewer-quick-menu">
-              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-models-menu">Models</button>
-              <div class="viewer-quick-menu-panel" id="viewer-models-menu" hidden>
-                <a href="index.html">Truck Map</a>
-                <a href="engine.html">Engine Model</a>
-                <a href="tires.html">Wheel Model</a>
-                <a href="ar-lab.html">AR Lab</a>
-              </div>
-            </div>
-            <div class="viewer-quick-menu">
-              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-electrical-menu">Electrical</button>
-              <div class="viewer-quick-menu-panel" id="viewer-electrical-menu" hidden>
+              <button class="viewer-tools-button viewer-quick-menu-button" type="button" aria-expanded="false" aria-controls="viewer-diagnostics-menu">Diagnose</button>
+              <div class="viewer-quick-menu-panel" id="viewer-diagnostics-menu" hidden>
                 <a href="hood.html">Engine Fuses</a>
                 <a href="cabin.html">Cabin Fuses</a>
                 <a href="diagnostics.html">Diagnostics</a>
@@ -337,36 +317,35 @@
 
         <section class="hero-panel">
           <div class="hero-copy">
-            <p class="eyebrow">Personal Garage Reference</p>
-            <h1>Truck Info Without The Clutter</h1>
+            <p class="eyebrow">Owner Reference</p>
+            <h1>Truck info that stays calm under pressure.</h1>
             <p class="hero-subtitle">2019 Honda Ridgeline</p>
             <p class="hero-text">
-              Keep the vehicle map front and center, then open the garage menu only when you need a shortcut
-              into fuses, battery, maintenance, diagnostics, or your saved notes.
+              The homepage should help you decide what to do next, not bury you in options. Start with the map, then open the exact workflow you need.
             </p>
             <div class="hero-actions" aria-label="Common actions">
-              <a class="utility-link utility-link-strong" href="hood.html#fuses">Fuse Lookup</a>
-              <a class="utility-link" href="maintenance.html">Maintenance</a>
-              <a class="utility-link" href="garage.html#dashboard">Garage Dashboard</a>
+              <a class="utility-link utility-link-strong" href="diagnostics.html#workflow-index">Open Diagnostics</a>
+              <a class="utility-link" href="maintenance.html#service-closeout">Log Service</a>
+              <a class="utility-link" href="garage.html#recent-handoffs">Open Handoffs</a>
             </div>
           </div>
 
           <div class="hero-readout">
             <div class="readout-card">
-              <span>VIN</span>
-              <strong>5FPYK2F64KB002267</strong>
+              <span>Trim</span>
+              <strong>RTL-T</strong>
             </div>
             <div class="readout-card">
-              <span>Drive</span>
-              <strong>2WD</strong>
+              <span>Powertrain</span>
+              <strong>2WD · 3.5L V6</strong>
             </div>
             <div class="readout-card">
-              <span>Engine</span>
-              <strong>3.5L SOHC i-VTEC V6</strong>
+              <span>Priority</span>
+              <strong>Fast diagnosis and clean service records</strong>
             </div>
             <div class="readout-card">
-              <span>Built</span>
-              <strong>Lincoln, Alabama</strong>
+              <span>Focus</span>
+              <strong>iPhone-first owner workflow</strong>
             </div>
           </div>
         </section>
