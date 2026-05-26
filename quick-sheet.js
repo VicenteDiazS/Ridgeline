@@ -9,6 +9,7 @@ const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
 const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
 const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
+const OFFLINE_ROUTE_RECEIPT_KEY = "ridgeline-offline-route-last-check";
 const requestedRoadsidePlan = new URLSearchParams(window.location.search).get("roadside");
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
@@ -20,6 +21,47 @@ const offlineRouteChecks = [
 ];
 let lastOfflineRouteResults = [];
 let lastOfflinePrimeSummary = "";
+
+function formatOfflineCheckTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "checked recently";
+  }
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function loadOfflineRouteReceipt() {
+  try {
+    const receipt = JSON.parse(localStorage.getItem(OFFLINE_ROUTE_RECEIPT_KEY) || "null");
+    return receipt && Array.isArray(receipt.results) ? receipt : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveOfflineRouteReceipt(results, action = "checked") {
+  const normalized = Array.isArray(results) ? results : [];
+  const readyCount = normalized.filter((route) => route.ready).length;
+  const receipt = {
+    action,
+    savedAt: new Date().toISOString(),
+    readyCount,
+    totalCount: normalized.length,
+    results: normalized.map((route) => ({
+      label: route.label,
+      path: route.path,
+      ready: Boolean(route.ready),
+      unavailable: Boolean(route.unavailable)
+    }))
+  };
+  localStorage.setItem(OFFLINE_ROUTE_RECEIPT_KEY, JSON.stringify(receipt));
+  return receipt;
+}
 
 const fuseNotePlans = {
   accessory: {
@@ -128,10 +170,16 @@ function buildSavedRoadsideNote(plan) {
 }
 
 function buildPrintPackHandoff() {
+  const receipt = loadOfflineRouteReceipt();
   const routeLines = lastOfflineRouteResults.length
     ? lastOfflineRouteResults.map((route) => `- ${route.label}: ${route.ready ? "cached" : "check while online"}`)
+    : receipt?.results?.length
+      ? receipt.results.map((route) => `- ${route.label}: ${route.ready ? "cached" : "check while online"}`)
     : ["- Route check: run Check Routes while online before leaving signal."];
   const primeLine = lastOfflinePrimeSummary ? [`Route prime: ${lastOfflinePrimeSummary}`] : [];
+  const receiptLine = receipt
+    ? [`Last saved route check: ${receipt.readyCount}/${receipt.totalCount} ready at ${formatOfflineCheckTime(receipt.savedAt)}`]
+    : [];
   return [
     "Ridgeline Quick Sheet prep before signal drops",
     "1. Refresh the offline pack while still online.",
@@ -139,6 +187,7 @@ function buildPrintPackHandoff() {
     "3. Download a Garage backup from the Backup Checkpoint.",
     "4. Use truck labels, owner's manual, fuse covers, and current conditions as final authority.",
     "Offline route check:",
+    ...receiptLine,
     ...routeLines,
     ...primeLine
   ].join("\n");
@@ -640,6 +689,47 @@ function renderOfflineRouteResults(root, results = lastOfflineRouteResults) {
   document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => renderRoadsideDispatch(stackRoot));
 }
 
+function renderOfflineRouteReceipt(root, receipt = loadOfflineRouteReceipt()) {
+  const card = root.querySelector("[data-offline-route-receipt]");
+  if (!card) {
+    return;
+  }
+
+  card.hidden = !receipt;
+  if (!receipt) {
+    return;
+  }
+
+  const title = card.querySelector("[data-offline-receipt-title]");
+  const summary = card.querySelector("[data-offline-receipt-summary]");
+  const missing = card.querySelector("[data-offline-missing-routes]");
+  const missingRoutes = receipt.results.filter((route) => !route.ready);
+  const readyText = `${receipt.readyCount}/${receipt.totalCount} routes ready`;
+
+  if (title) {
+    title.textContent = `${readyText} after ${receipt.action === "primed" ? "prime" : "check"}`;
+  }
+  if (summary) {
+    summary.textContent = `${formatOfflineCheckTime(receipt.savedAt)}. ${missingRoutes.length ? "Open missing routes while online before coverage drops." : "All key routes were found in this browser cache."}`;
+  }
+  if (missing) {
+    missing.replaceChildren();
+    if (!missingRoutes.length) {
+      const allSet = document.createElement("span");
+      allSet.textContent = "No missing routes from the last check";
+      missing.appendChild(allSet);
+      return;
+    }
+    missingRoutes.forEach((route) => {
+      const link = document.createElement("a");
+      link.className = "utility-link";
+      link.href = route.path;
+      link.textContent = route.label;
+      missing.appendChild(link);
+    });
+  }
+}
+
 function initQuickPrintPack() {
   const root = document.querySelector("[data-quick-print-pack]");
   if (!root) {
@@ -648,6 +738,7 @@ function initQuickPrintPack() {
 
   renderQuickOfflineStatus(root);
   renderOfflineRouteResults(root);
+  renderOfflineRouteReceipt(root);
   navigator.serviceWorker?.ready?.then(() => renderQuickOfflineStatus(root)).catch(() => {});
   navigator.serviceWorker?.addEventListener?.("controllerchange", () => renderQuickOfflineStatus(root, "Offline pack updated"));
   window.addEventListener("online", () => renderQuickOfflineStatus(root));
@@ -658,7 +749,9 @@ function initQuickPrintPack() {
     try {
       const hadRegistrations = await refreshServiceWorkerRegistrations();
       const routeResults = await checkOfflineRoutes();
+      const receipt = saveOfflineRouteReceipt(routeResults, "checked");
       renderOfflineRouteResults(root, routeResults);
+      renderOfflineRouteReceipt(root, receipt);
       renderQuickOfflineStatus(root, hadRegistrations ? "Offline pack update check complete" : "Offline pack not registered yet");
       setPrintPackStatus(root, hadRegistrations ? "Offline pack update check complete." : "Open the site once while online to finish offline setup.");
     } catch (error) {
@@ -671,7 +764,9 @@ function initQuickPrintPack() {
     setPrintPackStatus(root, "Checking cached roadside routes...");
     try {
       const routeResults = await checkOfflineRoutes();
+      const receipt = saveOfflineRouteReceipt(routeResults, "checked");
       renderOfflineRouteResults(root, routeResults);
+      renderOfflineRouteReceipt(root, receipt);
       const readyCount = routeResults.filter((route) => route.ready).length;
       setPrintPackStatus(root, `${readyCount}/${routeResults.length} key offline routes found.`);
     } catch (error) {
@@ -684,7 +779,9 @@ function initQuickPrintPack() {
     setPrintPackStatus(root, "Priming key roadside routes while online...");
     try {
       const routeResults = await primeOfflineRoutes();
+      const receipt = saveOfflineRouteReceipt(routeResults, "primed");
       renderOfflineRouteResults(root, routeResults);
+      renderOfflineRouteReceipt(root, receipt);
       const readyCount = routeResults.filter((route) => route.ready).length;
       const unavailable = routeResults.every((route) => route.unavailable);
       renderQuickOfflineStatus(root, `${readyCount}/${routeResults.length} routes ready`);

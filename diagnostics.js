@@ -9,6 +9,39 @@ const DIAGNOSTIC_RECEIPT_KEY = "ridgeline-diagnostic-last-handoff";
 const DIAGNOSTIC_CHECK_KEY = "ridgeline-diagnostic-first-checks";
 const DIAGNOSTIC_CALL_KEY = "ridgeline-diagnostic-call-summary";
 
+const diagnosticRouteAliases = {
+  start: "start",
+  "no-start": "start",
+  no_start: "start",
+  battery: "start",
+  warning: "warning",
+  "warning-light": "warning",
+  warning_light: "warning",
+  power: "power",
+  accessory: "power",
+  "accessory-power": "power",
+  accessory_power: "power",
+  "12v": "power",
+  audio: "audio",
+  radio: "audio",
+  display: "audio",
+  "audio-display": "audio",
+  audio_display: "audio",
+  trailer: "trailer",
+  tow: "trailer",
+  towing: "trailer",
+  "trailer-light": "trailer",
+  trailer_light: "trailer"
+};
+
+const diagnosticHashPlans = {
+  "#no-start-workflow": "start",
+  "#warning-light-workflow": "warning",
+  "#accessory-power-workflow": "power",
+  "#audio-display-workflow": "audio",
+  "#trailer-light-workflow": "trailer"
+};
+
 const diagnosticSharePlans = {
   start: {
     kicker: "No start or weak battery",
@@ -159,6 +192,33 @@ const diagnosticCheckPlans = {
     reference: "trailer-light workflow / 7-way pinout"
   }
 };
+
+function normalizeDiagnosticPlanKey(value) {
+  const key = `${value || ""}`.trim().toLowerCase();
+  return diagnosticRouteAliases[key] || null;
+}
+
+function requestedDiagnosticPlanKey() {
+  const params = new URLSearchParams(window.location.search);
+  const queryPlan = normalizeDiagnosticPlanKey(params.get("diagnostic") || params.get("symptom"));
+  if (queryPlan) {
+    return queryPlan;
+  }
+  return diagnosticHashPlans[window.location.hash] || null;
+}
+
+function syncDiagnosticToolsToLocation() {
+  const key = requestedDiagnosticPlanKey();
+  if (!key) {
+    return;
+  }
+  document.querySelectorAll("[data-diagnostic-share-builder]").forEach((root) => {
+    updateDiagnosticSharePlan(root, key);
+  });
+  document.querySelectorAll("[data-diagnostic-check-tracker]").forEach((root) => {
+    renderDiagnosticCheckPlan(root, key);
+  });
+}
 
 function cleanDiagnosticDetail(detail) {
   return `${detail || ""}`.replace(/\s+/g, " ").trim();
@@ -588,7 +648,7 @@ function initDiagnosticShareBuilder() {
     }
   });
 
-  updateDiagnosticSharePlan(root, "start");
+  updateDiagnosticSharePlan(root, requestedDiagnosticPlanKey() || "start");
   renderDiagnosticReceipt(root);
 }
 
@@ -730,7 +790,7 @@ function initDiagnosticCheckTracker() {
     }
   });
 
-  renderDiagnosticCheckPlan(root, "start");
+  renderDiagnosticCheckPlan(root, requestedDiagnosticPlanKey() || "start");
 }
 
 function initDiagnosticCallSummary() {
@@ -808,4 +868,5 @@ function initDiagnosticCallSummary() {
 initDiagnosticShareBuilder();
 initDiagnosticCheckTracker();
 initDiagnosticCallSummary();
+window.addEventListener("hashchange", syncDiagnosticToolsToLocation);
 initGarageCloudSync();

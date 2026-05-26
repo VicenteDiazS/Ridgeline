@@ -2003,9 +2003,17 @@ function buildOwnerAuthModal() {
       <button class="search-close" type="button" data-close-owner-auth aria-label="Close owner sign-in">Close</button>
       <div class="owner-auth-head">
         <p class="eyebrow">Owner Access</p>
-        <h2 id="owner-auth-title">Sign In To Change Site Memory</h2>
+        <h2 id="owner-auth-title" data-owner-auth-title>Sign In To Change Site Memory</h2>
         <p data-owner-auth-detail>Anyone can browse memory content. Only the owner account can change it.</p>
       </div>
+      <section class="owner-auth-session-card" data-owner-auth-session hidden>
+        <span class="owner-auth-session-badge" data-owner-auth-session-badge>Owner Session</span>
+        <strong data-owner-auth-session-email>Not signed in</strong>
+        <p data-owner-auth-session-copy>You're signed in on this device.</p>
+        <div class="owner-auth-actions">
+          <button class="agent-control-button agent-control-button-secondary" type="button" data-owner-auth-signout>Sign Out</button>
+        </div>
+      </section>
       <form class="owner-auth-form" data-owner-auth-form>
         <label>
           <span>Email</span>
@@ -2017,7 +2025,6 @@ function buildOwnerAuthModal() {
         </label>
         <div class="owner-auth-actions">
           <button class="agent-control-button" type="submit" data-owner-auth-submit>Sign In</button>
-          <button class="agent-control-button agent-control-button-secondary" type="button" data-owner-auth-signout>Sign Out</button>
         </div>
       </form>
       <p class="agent-status-summary owner-auth-message" data-owner-auth-message aria-live="polite"></p>
@@ -2049,28 +2056,61 @@ function buildOwnerAuthModal() {
   const message = modal.querySelector("[data-owner-auth-message]");
   const signOutButton = modal.querySelector("[data-owner-auth-signout]");
   const detail = modal.querySelector("[data-owner-auth-detail]");
+  const title = modal.querySelector("[data-owner-auth-title]");
+  const sessionCard = modal.querySelector("[data-owner-auth-session]");
+  const sessionBadge = modal.querySelector("[data-owner-auth-session-badge]");
+  const sessionEmail = modal.querySelector("[data-owner-auth-session-email]");
+  const sessionCopy = modal.querySelector("[data-owner-auth-session-copy]");
 
   const render = () => {
     const authState = ownerAuth.getOwnerAuthState();
     const configured = authState.ownerEmailConfigured;
     const userEmail = authState.user?.email || "";
+    const signedIn = Boolean(authState.user);
+    const ownerSignedIn = Boolean(authState.isOwner);
+
+    if (title) {
+      title.textContent = ownerSignedIn
+        ? "Owner Account"
+        : signedIn
+          ? "Signed In"
+          : "Sign In To Change Site Memory";
+    }
 
     if (detail) {
       detail.textContent = configured
-        ? authState.isOwner
+        ? ownerSignedIn
           ? `Signed in as ${userEmail}. Owner write access is enabled on this device.`
-          : "Anyone can browse memory content. Only the configured owner account can change it."
+          : signedIn
+            ? `${userEmail} is signed in on this device. Only the configured owner account can change site memory.`
+            : "Anyone can browse memory content. Only the configured owner account can change it."
         : "Owner email is not configured yet, so this browser keeps local saves available while setup is finished.";
     }
 
+    if (form) {
+      form.hidden = ownerSignedIn;
+    }
+
+    if (sessionCard && sessionBadge && sessionEmail && sessionCopy) {
+      sessionCard.hidden = !signedIn;
+      sessionBadge.textContent = ownerSignedIn ? "Owner Session" : "Signed In";
+      sessionBadge.dataset.ownerAuthTone = ownerSignedIn ? "owner" : "viewer";
+      sessionEmail.textContent = userEmail || "Signed in";
+      sessionCopy.textContent = ownerSignedIn
+        ? "This browser has full owner access to update, upload, restore, and delete site memory."
+        : configured
+          ? "This account can browse, but only the configured owner account can change site memory."
+          : "This browser is signed in, but owner setup is still incomplete.";
+    }
+
     if (signOutButton) {
-      signOutButton.disabled = !authState.user;
+      signOutButton.disabled = !signedIn;
     }
 
     if (message) {
-      if (authState.isOwner) {
+      if (ownerSignedIn) {
         message.textContent = `Signed in as ${userEmail}. Memory write controls are unlocked.`;
-      } else if (authState.user && !authState.isOwner) {
+      } else if (signedIn && !ownerSignedIn) {
         message.textContent = configured
           ? `${userEmail} is signed in, but that account is not the configured owner.`
           : "An account is signed in, but owner email is not configured yet.";
@@ -2136,8 +2176,11 @@ function openOwnerAuthModal() {
   const modal = buildOwnerAuthModal();
   modal.hidden = false;
   document.body.classList.add("modal-open");
-  const firstInput = modal.querySelector("input");
-  firstInput?.focus();
+  const authState = ownerAuth.getOwnerAuthState();
+  const preferredTarget = authState.user
+    ? modal.querySelector("[data-owner-auth-signout]")
+    : modal.querySelector("input");
+  preferredTarget?.focus();
 }
 
 function buildOwnerAuthButton() {
@@ -2170,14 +2213,18 @@ function buildOwnerAuthButton() {
           : "locked"
         : "setup";
     button.textContent = authState.isOwner
-      ? "Signed In"
+      ? "Account"
+      : authState.user
+        ? "Signed In"
       : authState.ownerEmailConfigured
         ? "Sign In"
         : "Access";
     button.setAttribute(
       "aria-label",
       authState.isOwner
-        ? "Owner signed in"
+        ? "Open owner account"
+        : authState.user
+          ? "Open signed-in account"
         : authState.ownerEmailConfigured
           ? "Open owner sign-in"
           : "Owner access setup"
