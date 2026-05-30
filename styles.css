@@ -446,6 +446,290 @@ body.motion-reduced .viewer-stage {
   }
 }
 
+.nfc-manager,
+.nfc-manager-summary-card,
+.nfc-manager-card,
+.nfc-manager-card-meta article,
+.nfc-manager-toggle {
+  border: 1px solid rgba(121, 212, 255, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.018)),
+    rgba(7, 15, 25, 0.92);
+  box-shadow: var(--shadow-soft);
+}
+
+.nfc-manager {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 24px;
+}
+
+.nfc-manager-head-actions,
+.nfc-manager-summary,
+.nfc-manager-grid,
+.nfc-manager-card-meta {
+  display: grid;
+  gap: 14px;
+}
+
+.nfc-manager-head-actions {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: end;
+  align-items: center;
+}
+
+.nfc-manager-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.nfc-manager-summary-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.nfc-manager-summary-card span,
+.nfc-manager-field span,
+.nfc-manager-card-meta span,
+.nfc-manager-status-badge,
+.nfc-manager-card-kicker small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nfc-manager-summary-card strong,
+.nfc-manager-card-title strong,
+.nfc-manager-card-meta strong {
+  color: var(--text);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.nfc-manager-summary-card p,
+.nfc-manager-card-copy,
+.nfc-manager-card-subtitle,
+.nfc-manager-toggle span,
+.nfc-manager-status {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.nfc-manager-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nfc-manager-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.nfc-manager-card.is-active {
+  border-color: rgba(111, 255, 180, 0.34);
+  background:
+    radial-gradient(circle at top right, rgba(111, 255, 180, 0.12), transparent 34%),
+    rgba(7, 15, 25, 0.94);
+}
+
+.nfc-manager-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.nfc-manager-card-title {
+  display: grid;
+  gap: 6px;
+}
+
+.nfc-manager-card-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.nfc-manager-card-kicker span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #071019;
+  background: #9ee8ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.nfc-manager-card-subtitle {
+  font-size: 0.84rem;
+}
+
+.nfc-manager-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nfc-manager-status-badge[data-state="planned"] {
+  border-color: rgba(132, 167, 196, 0.22);
+  color: #c0d0de;
+}
+
+.nfc-manager-status-badge[data-state="programmed"] {
+  border-color: rgba(121, 212, 255, 0.24);
+  color: #b6ebff;
+}
+
+.nfc-manager-status-badge[data-state="mounted"] {
+  border-color: rgba(255, 196, 106, 0.24);
+  color: #f8dfaa;
+}
+
+.nfc-manager-status-badge[data-state="verified"] {
+  border-color: rgba(111, 255, 180, 0.28);
+  color: #cbffe3;
+}
+
+.nfc-manager-card-meta {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nfc-manager-card-meta article {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.nfc-manager-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nfc-manager-field {
+  display: grid;
+  gap: 6px;
+}
+
+.nfc-manager-field input {
+  width: 100%;
+}
+
+.nfc-manager-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.nfc-manager-toggle input {
+  margin: 4px 0 0;
+}
+
+.nfc-manager-status[data-tone="success"] {
+  border-color: rgba(111, 255, 180, 0.24);
+  background: rgba(111, 255, 180, 0.08);
+  color: #cbffe3;
+}
+
+.nfc-manager-status[data-tone="warning"] {
+  border-color: rgba(255, 145, 94, 0.28);
+  background: rgba(255, 145, 94, 0.08);
+  color: #ffd9c7;
+}
+
+body[data-site-theme="light"] .nfc-manager,
+body[data-site-theme="light"] .nfc-manager-summary-card,
+body[data-site-theme="light"] .nfc-manager-card,
+body[data-site-theme="light"] .nfc-manager-card-meta article,
+body[data-site-theme="light"] .nfc-manager-toggle {
+  border-color: rgba(61, 101, 137, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(44, 137, 199, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.93), rgba(244, 249, 253, 0.87)),
+    rgba(249, 252, 255, 0.94);
+  box-shadow:
+    0 18px 42px rgba(85, 111, 135, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+body[data-site-theme="light"] .nfc-manager-summary-card p,
+body[data-site-theme="light"] .nfc-manager-card-copy,
+body[data-site-theme="light"] .nfc-manager-card-subtitle,
+body[data-site-theme="light"] .nfc-manager-toggle span,
+body[data-site-theme="light"] .nfc-manager-status,
+body[data-site-theme="light"] .nfc-manager-summary-card span,
+body[data-site-theme="light"] .nfc-manager-field span,
+body[data-site-theme="light"] .nfc-manager-card-meta span,
+body[data-site-theme="light"] .nfc-manager-status-badge,
+body[data-site-theme="light"] .nfc-manager-card-kicker small {
+  color: #4f6b80;
+}
+
+body[data-site-theme="light"] .nfc-manager-card-kicker span {
+  background: #7ad3ff;
+}
+
+@media (max-width: 980px) {
+  .nfc-manager-summary,
+  .nfc-manager-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .nfc-manager {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .nfc-manager-head-actions {
+    grid-auto-flow: row;
+    grid-auto-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+
+  .nfc-manager-summary,
+  .nfc-manager-grid,
+  .nfc-manager-card-meta,
+  .nfc-manager-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nfc-manager-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .nfc-manager-card-head {
+    grid-template-columns: 1fr;
+  }
+}
+
 .viewer-layout {
   gap: 12px;
 }
@@ -19267,5 +19551,1011 @@ select:focus {
     content: " (" attr(href) ")";
     font-size: 8pt;
     font-weight: 400;
+  }
+}
+
+/* 2026 shared shell refresh */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: shellFadeOut;
+}
+
+::view-transition-new(root) {
+  animation-name: shellFadeIn;
+}
+
+@keyframes shellFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+    filter: saturate(0.88) blur(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes shellFadeOut {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(1.01);
+    filter: saturate(0.92) blur(2px);
+  }
+}
+
+.topbar {
+  isolation: isolate;
+  border-radius: 24px;
+  border-color: rgba(121, 212, 255, 0.22);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(121, 212, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 100% 100%, rgba(255, 145, 94, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(10, 21, 32, 0.84), rgba(4, 8, 14, 0.92)),
+    rgba(6, 12, 20, 0.78);
+  box-shadow:
+    0 28px 72px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease,
+    background 240ms ease,
+    box-shadow 240ms ease,
+    backdrop-filter 240ms ease;
+}
+
+.topbar::before {
+  inset: 1px;
+  opacity: 0.84;
+  background:
+    linear-gradient(95deg, rgba(121, 212, 255, 0.18), transparent 38%, transparent 64%, rgba(255, 145, 94, 0.14)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 42%);
+}
+
+.topbar::after {
+  left: 16px;
+  right: 16px;
+  bottom: 5px;
+  height: 3px;
+  opacity: 0.74;
+}
+
+.topbar.is-compact {
+  transform: translateY(-1px);
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.045) inset;
+}
+
+.route-strip {
+  position: relative;
+  border-radius: 20px;
+  border-color: rgba(121, 212, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(10, 18, 28, 0.82), rgba(5, 11, 19, 0.78)),
+    rgba(5, 12, 20, 0.64);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  backdrop-filter: blur(16px) saturate(145%);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+}
+
+.route-strip a,
+.topnav a,
+.header-quick-nav a,
+.header-nav-button,
+.search-button,
+.viewer-tools-button,
+.viewer-toggle,
+.viewer-link,
+.page-section-link,
+.context-action,
+.page-action-bar a,
+.page-action-bar button,
+.home-quick-strip a,
+.need-launcher-grid a,
+.favorite-pin a,
+.site-map-group a {
+  transition:
+    transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 190ms ease,
+    background 190ms ease,
+    color 190ms ease,
+    box-shadow 190ms ease;
+}
+
+.route-strip a:hover,
+.route-strip a:focus-visible,
+.topnav a:hover,
+.topnav a:focus-visible,
+.header-quick-nav a:hover,
+.header-quick-nav a:focus-visible,
+.header-nav-button:hover,
+.header-nav-button:focus-visible,
+.search-button:hover,
+.search-button:focus-visible,
+.viewer-tools-button:hover,
+.viewer-tools-button:focus-visible,
+.viewer-toggle:hover,
+.viewer-toggle:focus-visible,
+.viewer-link:hover,
+.viewer-link:focus-visible,
+.page-section-link:hover,
+.page-section-link:focus-visible,
+.context-action:hover,
+.context-action:focus-visible,
+.page-action-bar a:hover,
+.page-action-bar a:focus-visible,
+.page-action-bar button:hover,
+.page-action-bar button:focus-visible,
+.home-quick-strip a:hover,
+.home-quick-strip a:focus-visible,
+.need-launcher-grid a:hover,
+.need-launcher-grid a:focus-visible,
+.favorite-pin a:hover,
+.favorite-pin a:focus-visible,
+.site-map-group a:hover,
+.site-map-group a:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(121, 212, 255, 0.28);
+  box-shadow: 0 16px 34px rgba(4, 15, 24, 0.24);
+}
+
+.topnav a.is-current-link,
+.route-strip a.is-current-link,
+.header-quick-nav a.is-current-link,
+.header-nav-button.is-current-link,
+.page-section-link.is-active,
+.context-action.is-current-link,
+.section-dock a.is-current-link,
+.section-utility-nav a.is-current-link {
+  border-color: rgba(121, 212, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(121, 212, 255, 0.18), rgba(121, 212, 255, 0.05)),
+    rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 14px 32px rgba(4, 15, 24, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.home-viewer-header {
+  gap: clamp(14px, 2vw, 24px);
+  align-items: center;
+  padding: 14px 4px 2px;
+  margin: 12px 0 10px;
+}
+
+.home-viewer-header h1 {
+  max-width: 10ch;
+  margin-bottom: 12px;
+  font-size: clamp(2.35rem, 5.4vw, 4.8rem);
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+  text-wrap: balance;
+}
+
+.home-viewer-subtitle {
+  max-width: 52rem;
+  font-size: clamp(1rem, 1.4vw, 1.14rem);
+  line-height: 1.72;
+  color: #b8cad9;
+}
+
+.home-status-stack {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.home-status-pill,
+.home-quick-strip a,
+.viewer-console,
+.home-resume-panel {
+  border-radius: 18px;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px) saturate(135%);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+}
+
+.home-status-pill,
+.home-quick-strip a,
+.home-resume-panel {
+  border-color: rgba(121, 212, 255, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    rgba(7, 14, 22, 0.72);
+}
+
+.viewer-console {
+  padding: 8px;
+  gap: 8px;
+  border-color: rgba(121, 212, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(9, 18, 28, 0.78), rgba(5, 11, 19, 0.78)),
+    rgba(5, 12, 20, 0.7);
+}
+
+.viewer-section,
+.model-launchpad,
+.hero-panel,
+.truck-profile-section,
+.systems-section,
+.technical-section,
+.references-section,
+.inspector-panel,
+.system-card,
+.tech-card,
+.dashboard-card,
+.model-preview-card,
+.related-card,
+.action-card,
+.search-panel,
+.search-offline-card,
+.need-launcher,
+.favorite-pins,
+.visual-site-map,
+.quick-capture-panel,
+.sync-settings-panel,
+.command-panel,
+.mini-tools-panel,
+.owner-auth-dialog,
+.owner-auth-session-card {
+  border-radius: 24px;
+  border-color: rgba(121, 212, 255, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(121, 212, 255, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.048), rgba(255, 255, 255, 0.014)),
+    rgba(7, 14, 22, 0.84);
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+
+.system-card,
+.tech-card,
+.dashboard-card,
+.model-preview-card,
+.related-card,
+.action-card {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.system-card:hover,
+.tech-card:hover,
+.dashboard-card:hover,
+.model-preview-card:hover,
+.related-card:hover,
+.action-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(121, 212, 255, 0.26);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.065);
+}
+
+.viewer-section {
+  padding: clamp(16px, 2.2vw, 26px);
+}
+
+.viewer-stage {
+  border-radius: 28px;
+  border-color: rgba(121, 212, 255, 0.24);
+  background:
+    radial-gradient(circle at 50% 82%, rgba(59, 133, 167, 0.28), transparent 30%),
+    radial-gradient(circle at 50% 0%, rgba(121, 212, 255, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(10, 21, 31, 0.78), rgba(3, 9, 15, 0.94)),
+    #050b12;
+  box-shadow:
+    0 24px 62px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.viewer-stage::after {
+  opacity: 0.58;
+}
+
+.viewer-tools-button,
+.viewer-toggle,
+.viewer-link {
+  min-height: 36px;
+  border-radius: 12px;
+}
+
+body[data-site-theme="light"] .topbar {
+  border-color: rgba(61, 101, 137, 0.18);
+  background:
+    radial-gradient(circle at 14% 0%, rgba(44, 137, 199, 0.14), transparent 34%),
+    radial-gradient(circle at 100% 100%, rgba(215, 122, 69, 0.1), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(240, 246, 251, 0.94)),
+    rgba(246, 250, 253, 0.92);
+  box-shadow:
+    0 24px 54px rgba(85, 111, 135, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.62) inset;
+}
+
+body[data-site-theme="light"] .route-strip,
+body[data-site-theme="light"] .viewer-console,
+body[data-site-theme="light"] .home-status-pill,
+body[data-site-theme="light"] .home-quick-strip a,
+body[data-site-theme="light"] .home-resume-panel,
+body[data-site-theme="light"] .viewer-tools-button,
+body[data-site-theme="light"] .viewer-toggle,
+body[data-site-theme="light"] .viewer-link,
+body[data-site-theme="light"] .topnav a,
+body[data-site-theme="light"] .route-strip a,
+body[data-site-theme="light"] .header-quick-nav a,
+body[data-site-theme="light"] .header-nav-button,
+body[data-site-theme="light"] .search-button,
+body[data-site-theme="light"] .page-action-bar a,
+body[data-site-theme="light"] .page-action-bar button,
+body[data-site-theme="light"] .need-launcher-grid a,
+body[data-site-theme="light"] .favorite-pin a,
+body[data-site-theme="light"] .site-map-group a {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 248, 252, 0.86)),
+    rgba(247, 250, 253, 0.92);
+  box-shadow:
+    0 12px 28px rgba(85, 111, 135, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+body[data-site-theme="light"] .viewer-section,
+body[data-site-theme="light"] .model-launchpad,
+body[data-site-theme="light"] .hero-panel,
+body[data-site-theme="light"] .truck-profile-section,
+body[data-site-theme="light"] .systems-section,
+body[data-site-theme="light"] .technical-section,
+body[data-site-theme="light"] .references-section,
+body[data-site-theme="light"] .inspector-panel,
+body[data-site-theme="light"] .system-card,
+body[data-site-theme="light"] .tech-card,
+body[data-site-theme="light"] .dashboard-card,
+body[data-site-theme="light"] .model-preview-card,
+body[data-site-theme="light"] .related-card,
+body[data-site-theme="light"] .action-card,
+body[data-site-theme="light"] .search-panel,
+body[data-site-theme="light"] .search-offline-card,
+body[data-site-theme="light"] .need-launcher,
+body[data-site-theme="light"] .favorite-pins,
+body[data-site-theme="light"] .visual-site-map,
+body[data-site-theme="light"] .quick-capture-panel,
+body[data-site-theme="light"] .sync-settings-panel,
+body[data-site-theme="light"] .command-panel,
+body[data-site-theme="light"] .mini-tools-panel,
+body[data-site-theme="light"] .owner-auth-dialog,
+body[data-site-theme="light"] .owner-auth-session-card {
+  background:
+    radial-gradient(circle at top right, rgba(44, 137, 199, 0.1), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 249, 253, 0.86)),
+    rgba(250, 252, 255, 0.94);
+  box-shadow:
+    0 18px 42px rgba(85, 111, 135, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+body[data-site-theme="light"] .home-viewer-subtitle {
+  color: #4f6b80;
+}
+
+body[data-site-theme="light"] .topnav a.is-current-link,
+body[data-site-theme="light"] .route-strip a.is-current-link,
+body[data-site-theme="light"] .header-quick-nav a.is-current-link,
+body[data-site-theme="light"] .header-nav-button.is-current-link,
+body[data-site-theme="light"] .page-section-link.is-active,
+body[data-site-theme="light"] .context-action.is-current-link,
+body[data-site-theme="light"] .section-dock a.is-current-link,
+body[data-site-theme="light"] .section-utility-nav a.is-current-link {
+  color: #173042;
+  box-shadow:
+    0 14px 30px rgba(85, 111, 135, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    border-radius: 20px;
+  }
+
+  .route-strip {
+    border-radius: 18px;
+  }
+
+  .home-viewer-header {
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .home-viewer-header h1 {
+    max-width: 12ch;
+    font-size: clamp(2rem, 11vw, 3.4rem);
+  }
+
+  .home-status-stack {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .viewer-stage {
+    border-radius: 22px;
+  }
+}
+
+@media screen {
+  .section-page-main,
+  .nfc-landing-main {
+    gap: clamp(20px, 2.6vw, 30px);
+    max-width: 1160px;
+  }
+
+  .section-page-stack,
+  .section-page-grid,
+  .dashboard-grid,
+  .truck-dashboard-grid,
+  .hero-action-grid,
+  .related-grid,
+  .form-grid,
+  .checklist-grid,
+  .nfc-landing-grid,
+  .anton-runtime-grid,
+  .anton-owner-check,
+  .anton-run-snapshot,
+  .anton-review-queue {
+    gap: clamp(12px, 1.5vw, 20px);
+  }
+
+  .section-page-hero,
+  .nfc-landing-hero,
+  .anton-console-hero,
+  .related-strip,
+  .page-action-bar,
+  .recent-strip,
+  .section-dock,
+  .section-page-hero .section-utility-nav,
+  .nfc-landing-card,
+  .nfc-scan-handoff,
+  .nfc-landing-notes,
+  .nfc-landing-related,
+  .nfc-landing-note-list article,
+  .nfc-landing-related-link,
+  .photo-capture-plan,
+  .photo-mission-card,
+  .photo-mission-list li,
+  .atlas-card,
+  .anton-live-card,
+  .anton-panel,
+  .anton-runtime-card,
+  .anton-impact-card,
+  .anton-run-snapshot article,
+  .anton-owner-check article,
+  .anton-review-queue article,
+  .anton-signoff-panel,
+  .anton-signoff-latest,
+  .anton-history-item,
+  .anton-markdown-view {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(121, 212, 255, 0.16);
+    background:
+      radial-gradient(circle at top right, rgba(121, 212, 255, 0.1), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.014)),
+      rgba(7, 14, 22, 0.82);
+    box-shadow:
+      0 22px 56px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px) saturate(138%);
+    -webkit-backdrop-filter: blur(16px) saturate(138%);
+  }
+
+  .section-page-hero::before,
+  .nfc-landing-hero::before,
+  .anton-console-hero::before,
+  .related-strip::before,
+  .page-action-bar::before,
+  .recent-strip::before,
+  .section-dock::before,
+  .section-page-hero .section-utility-nav::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(105deg, rgba(121, 212, 255, 0.16), transparent 34%, transparent 66%, rgba(255, 145, 94, 0.12)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 42%);
+    opacity: 0.75;
+  }
+
+  .section-page-hero > *,
+  .nfc-landing-hero > *,
+  .anton-console-hero > *,
+  .related-strip > *,
+  .page-action-bar > *,
+  .recent-strip > *,
+  .section-dock > *,
+  .section-page-hero .section-utility-nav > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-page-hero,
+  .nfc-landing-hero,
+  .anton-console-hero {
+    border-radius: 30px;
+    padding: clamp(22px, 3.2vw, 36px);
+  }
+
+  .section-page-hero {
+    display: grid;
+    gap: 14px;
+    background:
+      radial-gradient(circle at 10% 0%, rgba(121, 212, 255, 0.18), transparent 34%),
+      radial-gradient(circle at 100% 100%, rgba(255, 145, 94, 0.1), transparent 36%),
+      linear-gradient(180deg, rgba(10, 19, 30, 0.9), rgba(4, 9, 15, 0.92)),
+      rgba(6, 12, 20, 0.86);
+  }
+
+  .section-page-hero h1,
+  .nfc-landing-hero h1 {
+    margin: 0 0 8px;
+    max-width: 14ch;
+    font-size: clamp(2.6rem, 6vw, 5.4rem);
+    line-height: 0.92;
+    letter-spacing: -0.065em;
+    text-wrap: balance;
+  }
+
+  .section-page-hero .section-copy,
+  .nfc-landing-hero .section-copy,
+  .anton-console-hero .section-copy,
+  .anton-console-hero p.section-copy {
+    max-width: 68ch;
+    font-size: clamp(1rem, 1.35vw, 1.14rem);
+    line-height: 1.72;
+    color: #b7cad8;
+  }
+
+  .section-page-hero .eyebrow,
+  .nfc-landing-hero .eyebrow,
+  .anton-console-hero .eyebrow {
+    letter-spacing: 0.16em;
+  }
+
+  .section-page-hero .section-utility-nav {
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 8px;
+    border: 1px solid rgba(121, 212, 255, 0.14);
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(7, 14, 22, 0.7), rgba(5, 11, 19, 0.68)),
+      rgba(5, 12, 20, 0.54);
+  }
+
+  .utility-link,
+  .section-dock a,
+  .page-action-bar a,
+  .page-action-bar button,
+  .recent-strip a,
+  .nfc-card-actions > button,
+  .nfc-card-actions > a,
+  .nfc-landing-related-link,
+  .anton-file-tab {
+    min-height: 44px;
+    border-radius: 14px;
+    border-color: rgba(121, 212, 255, 0.18);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+      rgba(7, 14, 22, 0.78);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 22px rgba(4, 15, 24, 0.16);
+    backdrop-filter: blur(14px) saturate(132%);
+    -webkit-backdrop-filter: blur(14px) saturate(132%);
+    transition:
+      transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 190ms ease,
+      background 190ms ease,
+      color 190ms ease,
+      box-shadow 190ms ease;
+  }
+
+  .utility-link:hover,
+  .utility-link:focus-visible,
+  .section-dock a:hover,
+  .section-dock a:focus-visible,
+  .page-action-bar a:hover,
+  .page-action-bar a:focus-visible,
+  .page-action-bar button:hover,
+  .page-action-bar button:focus-visible,
+  .recent-strip a:hover,
+  .recent-strip a:focus-visible,
+  .nfc-card-actions > button:hover,
+  .nfc-card-actions > button:focus-visible,
+  .nfc-card-actions > a:hover,
+  .nfc-card-actions > a:focus-visible,
+  .nfc-landing-related-link:hover,
+  .nfc-landing-related-link:focus-visible,
+  .anton-file-tab:hover,
+  .anton-file-tab:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(121, 212, 255, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 16px 34px rgba(4, 15, 24, 0.22);
+  }
+
+  .utility-link-strong {
+    color: #04111a;
+    background:
+      linear-gradient(135deg, #97ebff, #c6f9d8),
+      #c6f9d8;
+    box-shadow: 0 14px 28px rgba(97, 223, 255, 0.24);
+  }
+
+  .utility-link-strong:hover,
+  .utility-link-strong:focus-visible {
+    box-shadow: 0 18px 36px rgba(97, 223, 255, 0.28);
+  }
+
+  .section-dock {
+    width: min(860px, calc(100% - 20px));
+    padding: 12px;
+    border-radius: 26px;
+    border-color: rgba(121, 212, 255, 0.18);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(121, 212, 255, 0.16), transparent 28%),
+      linear-gradient(180deg, rgba(9, 17, 27, 0.94), rgba(4, 9, 15, 0.96)),
+      rgba(5, 12, 20, 0.88);
+    box-shadow:
+      0 28px 64px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .section-dock a {
+    min-height: 46px;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .related-strip,
+  .page-action-bar,
+  .recent-strip {
+    border-radius: 24px;
+    border-color: rgba(121, 212, 255, 0.16);
+  }
+
+  .related-strip {
+    padding: clamp(20px, 2.2vw, 28px);
+  }
+
+  .page-action-bar,
+  .recent-strip {
+    padding: 10px;
+  }
+
+  .dashboard-card,
+  .action-card,
+  .related-card,
+  .nfc-landing-card,
+  .photo-mission-list li,
+  .atlas-card,
+  .anton-runtime-card,
+  .anton-run-snapshot article,
+  .anton-owner-check article,
+  .anton-review-queue article {
+    border-radius: 20px;
+  }
+
+  .dashboard-card {
+    padding: clamp(16px, 1.8vw, 22px);
+    background:
+      radial-gradient(circle at top right, rgba(97, 223, 255, 0.12), transparent 40%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      rgba(8, 16, 28, 0.82);
+    box-shadow:
+      0 18px 38px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .dashboard-card strong {
+    font-size: clamp(1.08rem, 1.7vw, 1.28rem);
+    line-height: 1.2;
+  }
+
+  .section-page-grid {
+    margin-top: 20px;
+  }
+
+  .form-grid,
+  .checklist-grid {
+    align-items: start;
+  }
+
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.024)),
+      rgba(6, 13, 21, 0.74);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  textarea {
+    padding-block: 12px;
+  }
+
+  .nfc-landing-hero {
+    background:
+      radial-gradient(circle at 10% 10%, rgba(111, 255, 180, 0.18), transparent 34%),
+      radial-gradient(circle at 88% 4%, rgba(121, 212, 255, 0.18), transparent 32%),
+      linear-gradient(180deg, rgba(10, 19, 30, 0.92), rgba(4, 9, 15, 0.92)),
+      rgba(7, 15, 25, 0.95);
+  }
+
+  .nfc-landing-status {
+    padding: 8px;
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(7, 15, 24, 0.82), rgba(4, 9, 15, 0.82)),
+      rgba(2, 8, 14, 0.52);
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.16);
+  }
+
+  .nfc-landing-card,
+  .nfc-scan-handoff,
+  .nfc-landing-notes,
+  .nfc-landing-related,
+  .nfc-landing-note-list article,
+  .photo-capture-plan,
+  .photo-mission-card,
+  .photo-mission-list li,
+  .atlas-card {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .nfc-landing-card:hover,
+  .nfc-scan-handoff:hover,
+  .nfc-landing-related-link:hover,
+  .photo-capture-plan:hover,
+  .photo-mission-card:hover,
+  .photo-mission-list li:hover,
+  .atlas-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(121, 212, 255, 0.24);
+    box-shadow:
+      0 24px 50px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .nfc-card-actions,
+  .nfc-landing-actions,
+  .nfc-landing-related-grid,
+  .photo-mission-actions,
+  .anton-control-row,
+  .anton-file-tabs {
+    gap: 10px;
+  }
+
+  .anton-console-hero {
+    background:
+      radial-gradient(circle at 10% 0%, rgba(93, 223, 255, 0.18), transparent 34%),
+      radial-gradient(circle at 96% 10%, rgba(104, 255, 190, 0.14), transparent 30%),
+      linear-gradient(135deg, rgba(8, 20, 31, 0.94), rgba(17, 14, 30, 0.96));
+    box-shadow:
+      0 34px 86px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .anton-console-hero h1 {
+    margin-bottom: 10px;
+    letter-spacing: -0.06em;
+  }
+
+  .anton-live-card,
+  .anton-panel,
+  .anton-runtime-card,
+  .anton-impact-card,
+  .anton-run-snapshot article,
+  .anton-owner-check article,
+  .anton-review-queue article,
+  .anton-signoff-panel,
+  .anton-signoff-latest,
+  .anton-history-item {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .anton-live-card:hover,
+  .anton-runtime-card:hover,
+  .anton-run-snapshot article:hover,
+  .anton-owner-check article:hover,
+  .anton-review-queue article:hover,
+  .anton-signoff-latest:hover,
+  .anton-history-item:hover {
+    transform: translateY(-3px);
+    border-color: rgba(121, 212, 255, 0.24);
+    box-shadow:
+      0 24px 50px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  body[data-site-theme="light"] .section-page-hero,
+  body[data-site-theme="light"] .nfc-landing-hero,
+  body[data-site-theme="light"] .anton-console-hero,
+  body[data-site-theme="light"] .related-strip,
+  body[data-site-theme="light"] .page-action-bar,
+  body[data-site-theme="light"] .recent-strip,
+  body[data-site-theme="light"] .section-dock,
+  body[data-site-theme="light"] .section-page-hero .section-utility-nav,
+  body[data-site-theme="light"] .nfc-landing-card,
+  body[data-site-theme="light"] .nfc-scan-handoff,
+  body[data-site-theme="light"] .nfc-landing-notes,
+  body[data-site-theme="light"] .nfc-landing-related,
+  body[data-site-theme="light"] .nfc-landing-note-list article,
+  body[data-site-theme="light"] .nfc-landing-related-link,
+  body[data-site-theme="light"] .photo-capture-plan,
+  body[data-site-theme="light"] .photo-mission-card,
+  body[data-site-theme="light"] .photo-mission-list li,
+  body[data-site-theme="light"] .atlas-card,
+  body[data-site-theme="light"] .anton-live-card,
+  body[data-site-theme="light"] .anton-panel,
+  body[data-site-theme="light"] .anton-runtime-card,
+  body[data-site-theme="light"] .anton-impact-card,
+  body[data-site-theme="light"] .anton-run-snapshot article,
+  body[data-site-theme="light"] .anton-owner-check article,
+  body[data-site-theme="light"] .anton-review-queue article,
+  body[data-site-theme="light"] .anton-signoff-panel,
+  body[data-site-theme="light"] .anton-signoff-latest,
+  body[data-site-theme="light"] .anton-history-item,
+  body[data-site-theme="light"] .anton-markdown-view {
+    border-color: rgba(61, 101, 137, 0.16);
+    background:
+      radial-gradient(circle at top right, rgba(44, 137, 199, 0.1), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.93), rgba(244, 249, 253, 0.87)),
+      rgba(249, 252, 255, 0.94);
+    box-shadow:
+      0 18px 42px rgba(85, 111, 135, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  }
+
+  body[data-site-theme="light"] .section-page-hero::before,
+  body[data-site-theme="light"] .nfc-landing-hero::before,
+  body[data-site-theme="light"] .anton-console-hero::before,
+  body[data-site-theme="light"] .related-strip::before,
+  body[data-site-theme="light"] .page-action-bar::before,
+  body[data-site-theme="light"] .recent-strip::before,
+  body[data-site-theme="light"] .section-dock::before,
+  body[data-site-theme="light"] .section-page-hero .section-utility-nav::before {
+    background:
+      linear-gradient(105deg, rgba(44, 137, 199, 0.14), transparent 34%, transparent 66%, rgba(215, 122, 69, 0.1)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 42%);
+  }
+
+  body[data-site-theme="light"] .section-page-hero .section-copy,
+  body[data-site-theme="light"] .nfc-landing-hero .section-copy,
+  body[data-site-theme="light"] .anton-console-hero .section-copy,
+  body[data-site-theme="light"] .anton-console-hero p.section-copy {
+    color: #4b687d;
+  }
+
+  body[data-site-theme="light"] .utility-link,
+  body[data-site-theme="light"] .section-dock a,
+  body[data-site-theme="light"] .page-action-bar a,
+  body[data-site-theme="light"] .page-action-bar button,
+  body[data-site-theme="light"] .recent-strip a,
+  body[data-site-theme="light"] .nfc-card-actions > button,
+  body[data-site-theme="light"] .nfc-card-actions > a,
+  body[data-site-theme="light"] .nfc-landing-related-link,
+  body[data-site-theme="light"] .anton-file-tab {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(243, 248, 252, 0.88)),
+      rgba(247, 250, 253, 0.92);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      0 10px 22px rgba(85, 111, 135, 0.12);
+  }
+
+  body[data-site-theme="light"] .utility-link-strong {
+    color: #173042;
+    background:
+      linear-gradient(135deg, #8fdfff, #c8f7d6),
+      #c8f7d6;
+  }
+
+  body[data-site-theme="light"] input,
+  body[data-site-theme="light"] textarea,
+  body[data-site-theme="light"] select {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 252, 0.92)),
+      rgba(255, 255, 255, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  @media (max-width: 760px) {
+    .section-page-main,
+    .nfc-landing-main {
+      gap: 16px;
+    }
+
+    .section-page-hero,
+    .nfc-landing-hero,
+    .anton-console-hero,
+    .related-strip,
+    .section-dock {
+      border-radius: 24px;
+    }
+
+    .section-page-hero,
+    .nfc-landing-hero,
+    .anton-console-hero {
+      padding: 20px;
+    }
+
+    .section-page-hero h1,
+    .nfc-landing-hero h1,
+    .anton-console-hero h1 {
+      max-width: none;
+      font-size: clamp(2.1rem, 10vw, 3.8rem);
+    }
+
+    .section-page-hero .section-utility-nav {
+      gap: 6px;
+      padding: 6px;
+    }
+
+    .utility-link,
+    .section-dock a,
+    .page-action-bar a,
+    .page-action-bar button,
+    .recent-strip a,
+    .nfc-card-actions > button,
+    .nfc-card-actions > a,
+    .nfc-landing-related-link,
+    .anton-file-tab {
+      min-height: 40px;
+      border-radius: 12px;
+      font-size: 0.74rem;
+    }
+
+    .section-dock {
+      width: calc(100% - 12px);
+      padding: 8px;
+    }
   }
 }

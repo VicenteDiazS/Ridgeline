@@ -33,6 +33,8 @@ let memoryWriteObserver = null;
 let currentSiteTheme = localStorage.getItem(SITE_THEME_STORAGE_KEY) === "light" ? "light" : "dark";
 let lastRenderedSearchResults = [];
 let deferredInstallPrompt = null;
+let liveActiveSectionId = location.hash.replace(/^#/, "");
+let activeNavSyncFrame = 0;
 
 const MEMORY_WRITE_SELECTORS = [
   "[data-notes-form] input",
@@ -226,16 +228,31 @@ function applySiteTheme(theme = "dark") {
   }
 }
 
-function toggleSiteTheme() {
-  const nextTheme = currentSiteTheme === "light" ? "dark" : "light";
-  localStorage.setItem(SITE_THEME_STORAGE_KEY, nextTheme);
-  applySiteTheme(nextTheme);
+function commitSiteTheme(theme) {
+  localStorage.setItem(SITE_THEME_STORAGE_KEY, theme);
+  applySiteTheme(theme);
   window.dispatchEvent(
     new CustomEvent("ridgeline:theme-change", {
-      detail: { theme: nextTheme }
+      detail: { theme }
     })
   );
-  showToast(nextTheme === "light" ? "Light theme on." : "Dark theme on.");
+  showToast(theme === "light" ? "Light theme on." : "Dark theme on.");
+}
+
+function toggleSiteTheme() {
+  const nextTheme = currentSiteTheme === "light" ? "dark" : "light";
+  const supportsViewTransitions =
+    typeof document.startViewTransition === "function" &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (supportsViewTransitions) {
+    document.startViewTransition(() => {
+      commitSiteTheme(nextTheme);
+    });
+    return;
+  }
+
+  commitSiteTheme(nextTheme);
 }
 
 applySiteTheme(currentSiteTheme);
@@ -1876,6 +1893,64 @@ function buildSectionRail(sections) {
   return rail;
 }
 
+function setLiveActiveSection(id = "") {
+  liveActiveSectionId = `${id || ""}`.replace(/^#/, "");
+  if (!document.body) {
+    return;
+  }
+
+  if (liveActiveSectionId) {
+    document.body.dataset.activeSection = liveActiveSectionId;
+  } else {
+    document.body.removeAttribute("data-active-section");
+  }
+}
+
+function centerActiveLinkWithinScroller(link) {
+  if (!(link instanceof HTMLElement)) {
+    return;
+  }
+
+  const scroller = link.closest(
+    ".route-strip, .header-quick-nav, .page-section-rail-links, .section-dock, .section-utility-nav, .topnav"
+  );
+  if (!(scroller instanceof HTMLElement) || scroller.scrollWidth <= scroller.clientWidth + 12) {
+    return;
+  }
+
+  const scrollerRect = scroller.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  const targetLeft =
+    scroller.scrollLeft + (linkRect.left - scrollerRect.left) - (scroller.clientWidth - linkRect.width) / 2;
+  const nextLeft = Math.max(0, Math.min(targetLeft, scroller.scrollWidth - scroller.clientWidth));
+
+  if (Math.abs(nextLeft - scroller.scrollLeft) < 8) {
+    return;
+  }
+
+  scroller.scrollTo({
+    left: nextLeft,
+    behavior: document.body?.dataset.motionMode === "off" ? "auto" : "smooth"
+  });
+}
+
+function scheduleActiveNavSync() {
+  if (activeNavSyncFrame) {
+    cancelAnimationFrame(activeNavSyncFrame);
+  }
+
+  activeNavSyncFrame = requestAnimationFrame(() => {
+    activeNavSyncFrame = 0;
+    const activeLinks = [
+      ...document.querySelectorAll(
+        ".topnav a.is-current-link, .route-strip a.is-current-link, .header-quick-nav a.is-current-link, .page-section-link.is-active, .section-dock a.is-current-link, .section-utility-nav a.is-current-link"
+      )
+    ];
+
+    activeLinks.forEach((link) => centerActiveLinkWithinScroller(link));
+  });
+}
+
 function syncActiveSectionUi(sections, rail) {
   if (!sections.length) {
     return;
@@ -1888,19 +1963,22 @@ function syncActiveSectionUi(sections, rail) {
     : new Map();
 
   const setActive = (id) => {
-    const activeIndex = sections.findIndex((section) => section.id === id);
+    const nextId = sections.some((section) => section.id === id) ? id : sections[0].id;
+    const activeIndex = sections.findIndex((section) => section.id === nextId);
     const activeSection = sections[activeIndex] || sections[0];
     if (linkMap.size) {
       linkMap.forEach((link, key) => {
-        const active = key === id;
+        const active = key === nextId;
         link.classList.toggle("is-active", active);
         link.setAttribute("aria-current", active ? "true" : "false");
       });
     }
-    saveLastSection(id);
+    setLiveActiveSection(nextId);
+    saveLastSection(nextId);
+    enhanceActiveLinks();
     window.dispatchEvent(new CustomEvent("ridgeline:active-section", {
       detail: {
-        id,
+        id: nextId,
         label: activeSection?.label || "",
         index: activeIndex + 1,
         total: sections.length
@@ -3415,7 +3493,7 @@ function buildRelatedStrip() {
 
 function enhanceActiveLinks() {
   const page = currentPageName();
-  const hash = location.hash;
+  const hash = liveActiveSectionId ? `#${liveActiveSectionId}` : location.hash;
   const links = [
     ...document.querySelectorAll(
       ".topnav a, .route-strip a, .header-quick-nav a, .header-current-page, .header-nav-button[href], .mobile-nav-link, .context-action[href], .site-menu-link, .section-dock a, .section-utility-nav a"
@@ -3448,6 +3526,8 @@ function enhanceActiveLinks() {
       link.removeAttribute("aria-current");
     }
   });
+
+  scheduleActiveNavSync();
 }
 
 function buildCollapsibleCards() {
@@ -5209,6 +5289,8 @@ if (location.hash || new URLSearchParams(location.search).has("nfc")) {
 
 window.addEventListener("hashchange", () => {
   clearScheduledHashScroll();
+  setLiveActiveSection(location.hash);
+  enhanceActiveLinks();
   requestAnimationFrame(scrollToHashTarget);
 });
 document.addEventListener("click", (event) => {
@@ -5229,6 +5311,8 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   const nextLocation = `${localUrl.pathname}${localUrl.search}${localUrl.hash}`;
   history.pushState({}, "", nextLocation);
+  setLiveActiveSection(localUrl.hash);
+  enhanceActiveLinks();
   const behavior = sectionNavigationBehavior();
   scrollToHashValue(localUrl.hash, behavior);
   scheduleHashScroll(localUrl.hash, behavior, [120, 360]);

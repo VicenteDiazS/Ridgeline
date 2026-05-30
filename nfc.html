@@ -40,6 +40,7 @@
           </p>
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#tag-writer">Write A Tag</a>
+            <a class="utility-link utility-link-strong" href="#tag-manager">Tag Manager</a>
             <a class="utility-link" href="#tag-map">Tag Map</a>
             <a class="utility-link" href="#iphone-nfc-workflow">iPhone Setup</a>
             <a class="utility-link" href="nfc-landing.html?target=hood-fuse-box-a">Sample Landing</a>
@@ -117,6 +118,48 @@
           <p class="nfc-platform-note" data-nfc-starter-status aria-live="polite">
             Select a card to load its URL into the writer, or copy the starter list before programming tags.
           </p>
+        </section>
+
+        <section class="nfc-manager" id="tag-manager" aria-labelledby="tag-manager-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Tag Manager</p>
+              <h2 id="tag-manager-title">Track Every NFC Tag</h2>
+            </div>
+            <div class="nfc-manager-head-actions">
+              <button class="secondary-button" type="button" data-nfc-copy-manager-plan>Copy Tag Plan</button>
+              <button class="ghost-button" type="button" data-nfc-reset-manager>Reset Local Manager</button>
+            </div>
+          </div>
+          <p class="section-copy">
+            Keep a local record of which tags are programmed, mounted, renamed, or already verified on your phone.
+          </p>
+          <div class="nfc-manager-summary" aria-label="NFC manager summary">
+            <article class="nfc-manager-summary-card">
+              <span>Total Targets</span>
+              <strong data-nfc-manager-total>0</strong>
+              <p>All tag destinations currently defined in this site.</p>
+            </article>
+            <article class="nfc-manager-summary-card">
+              <span>Programmed</span>
+              <strong data-nfc-manager-programmed>0</strong>
+              <p>Tags that have a recorded write from this device.</p>
+            </article>
+            <article class="nfc-manager-summary-card">
+              <span>Mounted</span>
+              <strong data-nfc-manager-mounted>0</strong>
+              <p>Tags marked as physically placed on the truck.</p>
+            </article>
+            <article class="nfc-manager-summary-card">
+              <span>Last Activity</span>
+              <strong data-nfc-manager-last-activity>Not yet</strong>
+              <p data-nfc-manager-last-detail>No recorded writes or scans on this device.</p>
+            </article>
+          </div>
+          <p class="nfc-platform-note nfc-manager-status" data-nfc-manager-status aria-live="polite">
+            Local manager details stay on this device unless you copy or export them.
+          </p>
+          <div id="nfc-manager-grid" class="nfc-manager-grid"></div>
         </section>
 
         <section class="nfc-iphone-workflow" id="iphone-nfc-workflow" tabindex="-1">
@@ -215,8 +258,8 @@
 
       <nav class="section-dock" aria-label="Quick return">
         <a href="#starter-tag-pack">Starter Pack</a>
-        <a href="index.html#viewer">Vehicle Map</a>
-        <a href="hood.html#fuses">Fuses</a>
+        <a href="#tag-manager">Tag Manager</a>
+        <a href="#tag-map">Tag Map</a>
         <a href="#top">Top</a>
       </nav>
     </div>
