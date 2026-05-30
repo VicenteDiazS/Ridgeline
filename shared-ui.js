@@ -718,6 +718,17 @@ function ensureIndexViewerFirst() {
   if (main.firstElementChild !== viewerSection) {
     main.insertBefore(viewerSection, main.firstElementChild);
   }
+
+  const viewerLayout = viewerSection.querySelector(":scope > .viewer-layout");
+  const homeViewerHeader = viewerSection.querySelector(":scope > .home-viewer-header");
+  if (viewerLayout instanceof HTMLElement && homeViewerHeader instanceof HTMLElement) {
+    viewerSection.insertBefore(viewerLayout, homeViewerHeader);
+  }
+
+  const routeStrip = document.querySelector(".route-strip");
+  if (routeStrip instanceof HTMLElement && routeStrip.parentElement !== main) {
+    main.insertBefore(routeStrip, viewerSection.nextElementSibling);
+  }
 }
 
 function isStandaloneLaunch() {
