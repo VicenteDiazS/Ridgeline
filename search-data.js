@@ -358,6 +358,26 @@ export const searchIndex = [
     ]
   },
   {
+    title: "NFC Tag Manager",
+    url: "nfc.html#tag-manager",
+    category: "Tools",
+    excerpt: "Local NFC tag planner for saving custom labels, placement notes, mounted status, programmed history, last scans, and a copyable tag plan on this device.",
+    keywords: [
+      "nfc tag manager",
+      "tag manager",
+      "manage nfc tags",
+      "tag plan",
+      "tag inventory",
+      "programmed tags",
+      "mounted tags",
+      "scan history",
+      "write history",
+      "copy tag plan",
+      "nfc labels",
+      "nfc notes"
+    ]
+  },
+  {
     title: "NFC Landing Pages",
     url: "nfc-landing.html?target=vehicle-map",
     category: "Tools",

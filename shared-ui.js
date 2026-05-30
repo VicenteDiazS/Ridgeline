@@ -3516,7 +3516,11 @@ function enhanceActiveLinks() {
       active = isSectionOnlyLink
         ? href.split("#")[0] === page && (!localHash || localHash === hash)
         : isCurrentPageHref(href);
-      ariaCurrent = localHash && localHash === hash ? "location" : "page";
+      ariaCurrent = link.closest(".site-menu-links")
+        ? "page"
+        : localHash && localHash === hash
+          ? "location"
+          : "page";
     }
 
     link.classList.toggle("is-current-link", active);
@@ -4700,6 +4704,13 @@ function buildSearchModal() {
         <button class="modal-close" type="button" data-close-search aria-label="Close search">Close</button>
       </div>
       <input class="search-input" id="site-search-input" type="search" placeholder="Search fuses, specs, acronyms, pages..." />
+      <section class="search-lens-strip" aria-label="How search understands this query" data-search-lens-strip hidden>
+        <div class="search-lens-head">
+          <strong>Search Lens</strong>
+          <span data-search-lens-copy>Search by symptom, location, task, or part.</span>
+        </div>
+        <div class="search-lens-grid" data-search-lens-list></div>
+      </section>
       <section class="search-resume-strip" aria-label="Resume owner workflow" data-search-resume-work hidden>
         <div class="search-resume-head">
           <strong>Resume</strong>
@@ -4909,6 +4920,162 @@ const SEARCH_SYNONYMS = new Map([
   ["jack", ["jack point", "jacking", "roadside", "spare tire"]]
 ]);
 
+const SEARCH_INTENT_RULES = {
+  symptom: [
+    {
+      id: "no-start",
+      label: "No-start",
+      patterns: ["no start", "won't start", "wont start", "no crank", "slow crank", "dead battery", "jump start", "jump", "click", "clicking", "starter", "dead"]
+    },
+    {
+      id: "warning-light",
+      label: "Warning lights",
+      patterns: ["warning light", "warning lights", "check engine", "cel", "abs", "vsa", "tpms", "mid message", "warning", "message"]
+    },
+    {
+      id: "accessory-power",
+      label: "Accessory power",
+      patterns: ["12v", "12 volt", "power outlet", "outlet", "socket", "charger", "usb", "carplay", "radio", "audio", "screen", "display", "accessory power", "phone charger", "inverter"]
+    },
+    {
+      id: "trailer-lights",
+      label: "Trailer lights",
+      patterns: ["trailer", "trailer lights", "7 way", "7-way", "7 pin", "7-pin", "tow", "hitch", "adapter", "running light", "brake light", "reverse light"]
+    },
+    {
+      id: "service",
+      label: "Service",
+      patterns: ["oil", "maintenance", "service", "filter", "fluid", "rotation", "brake service", "transmission", "washer", "drain plug", "drain bolt", "torque spec"]
+    },
+    {
+      id: "tire",
+      label: "Tires",
+      patterns: ["tire", "tires", "wheel", "wheels", "flat", "pressure", "lug", "spare", "jack", "psi"]
+    },
+    {
+      id: "roadside",
+      label: "Roadside",
+      patterns: ["roadside", "tow truck", "tow driver", "dispatch", "help called", "stuck", "shoulder", "emergency"]
+    },
+    {
+      id: "nfc",
+      label: "NFC tags",
+      patterns: ["nfc", "tag", "tags", "scan tag", "write tag", "url tag", "landing page"]
+    },
+    {
+      id: "photo",
+      label: "Photos",
+      patterns: ["photo", "photos", "picture", "pictures", "image", "atlas", "diagram"]
+    }
+  ],
+  location: [
+    {
+      id: "hood",
+      label: "Hood",
+      patterns: ["hood", "under hood", "engine bay", "fuse box a", "fuse box b", "battery", "jump point"]
+    },
+    {
+      id: "cabin",
+      label: "Cabin",
+      patterns: ["cabin", "interior", "under dash", "dashboard", "dash", "kick panel", "driver left"]
+    },
+    {
+      id: "engine",
+      label: "Engine",
+      patterns: ["engine", "j35", "timing belt", "water pump"]
+    },
+    {
+      id: "hitch",
+      label: "Hitch",
+      patterns: ["hitch", "rear hitch", "pinout", "7 way", "7-way", "7 pin", "7-pin", "trailer connector"]
+    },
+    {
+      id: "cargo",
+      label: "Cargo",
+      patterns: ["cargo", "bed", "trunk", "in bed", "tailgate"]
+    },
+    {
+      id: "wheels",
+      label: "Wheels",
+      patterns: ["wheel", "wheels", "tire", "tires", "jack", "lug", "spare"]
+    },
+    {
+      id: "garage",
+      label: "Garage",
+      patterns: ["garage", "notes", "backup", "history", "log"]
+    },
+    {
+      id: "nfc",
+      label: "NFC",
+      patterns: ["nfc", "tag", "landing"]
+    }
+  ],
+  task: [
+    {
+      id: "diagnose",
+      label: "Diagnosis",
+      patterns: ["diagnose", "diagnostic", "troubleshoot", "problem", "issue", "not working", "why"]
+    },
+    {
+      id: "find",
+      label: "Lookup",
+      patterns: ["find", "where", "which", "locate", "lookup", "search", "show me"]
+    },
+    {
+      id: "service",
+      label: "Service",
+      patterns: ["replace", "change", "install", "maintenance", "service", "torque", "spec", "interval"]
+    },
+    {
+      id: "record",
+      label: "Record keeping",
+      patterns: ["save", "saved", "log", "record", "track", "history", "note", "backup"]
+    },
+    {
+      id: "copy-share",
+      label: "Copy / share",
+      patterns: ["copy", "share", "send", "handoff", "export"]
+    },
+    {
+      id: "write-scan",
+      label: "Write / scan",
+      patterns: ["write", "scan", "read", "program", "tap"]
+    },
+    {
+      id: "prep-offline",
+      label: "Offline prep",
+      patterns: ["offline", "print", "cache", "prime", "signal", "route plan"]
+    }
+  ],
+  type: [
+    {
+      id: "workflow",
+      label: "Workflow",
+      patterns: ["workflow", "steps", "checklist", "triage", "route", "pack", "planner", "launcher", "jumpstart", "check"]
+    },
+    {
+      id: "spec",
+      label: "Specs",
+      patterns: ["spec", "specs", "torque", "psi", "capacity", "size", "part number", "washer", "bolt"]
+    },
+    {
+      id: "record",
+      label: "Saved data",
+      patterns: ["note", "notes", "receipt", "history", "log", "backup", "saved", "record"]
+    },
+    {
+      id: "visual",
+      label: "Visual reference",
+      patterns: ["diagram", "map", "viewer", "photo", "atlas", "pinout", "landing"]
+    },
+    {
+      id: "tool",
+      label: "Tool",
+      patterns: ["tool", "console", "manager", "builder", "tracker", "lab"]
+    }
+  ]
+};
+
 function normalizeSearchText(value = "") {
   return `${value}`
     .normalize("NFKD")
@@ -4931,6 +5098,49 @@ function tokenizeSearch(value = "") {
     .filter((token) => token.length > 1 || /\d/.test(token));
 }
 
+function searchRuleMatches(phrase, tokenSet, patterns = []) {
+  return patterns.some((pattern) => {
+    const normalizedPattern = normalizeSearchText(pattern);
+    if (!normalizedPattern) {
+      return false;
+    }
+
+    if (phrase.includes(normalizedPattern)) {
+      return true;
+    }
+
+    const patternTokens = tokenizeSearch(normalizedPattern);
+    if (!patternTokens.length) {
+      return false;
+    }
+
+    if (patternTokens.length === 1) {
+      return tokenSet.has(patternTokens[0]);
+    }
+
+    return patternTokens.every((token) => tokenSet.has(token));
+  });
+}
+
+function buildSearchIntent(queryParts) {
+  if (!queryParts?.phrase) {
+    return {
+      symptom: [],
+      location: [],
+      task: [],
+      type: []
+    };
+  }
+
+  const tokenSet = queryParts.expandedTokenSet || new Set(queryParts.expandedTokens || []);
+  return Object.fromEntries(
+    Object.entries(SEARCH_INTENT_RULES).map(([group, rules]) => [
+      group,
+      rules.filter((rule) => searchRuleMatches(queryParts.phrase, tokenSet, rule.patterns))
+    ])
+  );
+}
+
 function expandSearchQuery(value = "") {
   const normalized = normalizeSearchText(value);
   const tokens = tokenizeSearch(normalized);
@@ -4942,10 +5152,20 @@ function expandSearchQuery(value = "") {
     });
   });
 
+  const expandedTokens = [...expanded];
+  const expandedTokenSet = new Set(expandedTokens);
+
   return {
     phrase: normalized,
     tokens,
-    expandedTokens: [...expanded]
+    expandedTokens,
+    expandedTokenSet,
+    intent: buildSearchIntent({
+      phrase: normalized,
+      tokens,
+      expandedTokens,
+      expandedTokenSet
+    })
   };
 }
 
@@ -4970,6 +5190,32 @@ function makeSearchEntry(entry, source = "static") {
   const text = getSearchEntryText({ ...entry, keywords });
   const normalized = normalizeSearchText(text);
   const tokens = tokenizeSearch(normalized);
+  const ruleMatches = buildSearchIntent({
+    phrase: normalized,
+    expandedTokens: tokens,
+    expandedTokenSet: new Set(tokens)
+  });
+  const typeSignals = new Set(ruleMatches.type.map((rule) => rule.id));
+
+  if (source === "section") {
+    typeSignals.add("section");
+  }
+  if (/(workflow|checklist|tracker|builder|pack|launcher|jumpstart|planner|triage|route)/.test(normalized)) {
+    typeSignals.add("workflow");
+  }
+  if (/(spec|torque|psi|capacity|size|washer|bolt|fluid)/.test(normalized)) {
+    typeSignals.add("spec");
+  }
+  if (/(note|receipt|log|backup|history|record|save)/.test(normalized)) {
+    typeSignals.add("record");
+  }
+  if (/(viewer|map|atlas|photo|diagram|pinout)/.test(normalized)) {
+    typeSignals.add("visual");
+  }
+  if (/(tool|lab|console|manager|builder|tracker)/.test(normalized)) {
+    typeSignals.add("tool");
+  }
+
   return {
     title: entry.title || "Untitled",
     url: entry.url || "#",
@@ -4978,7 +5224,13 @@ function makeSearchEntry(entry, source = "static") {
     excerpt: entry.excerpt || "",
     source,
     normalized,
-    tokens
+    tokens,
+    signals: {
+      symptom: ruleMatches.symptom.map((rule) => rule.id),
+      location: ruleMatches.location.map((rule) => rule.id),
+      task: ruleMatches.task.map((rule) => rule.id),
+      type: [...typeSignals]
+    }
   };
 }
 
@@ -5146,6 +5398,19 @@ async function buildFullSearchIndex() {
   return fullSearchIndexPromise;
 }
 
+function countSearchSignalMatches(entrySignals = [], querySignals = []) {
+  if (!entrySignals.length || !querySignals.length) {
+    return 0;
+  }
+
+  const ids = new Set(querySignals.map((rule) => rule.id));
+  return entrySignals.reduce((count, id) => count + (ids.has(id) ? 1 : 0), 0);
+}
+
+function searchIntentIncludes(intent, group, id) {
+  return Boolean(intent?.[group]?.some((rule) => rule.id === id));
+}
+
 function scoreSearchEntry(entry, queryParts) {
   if (!queryParts.phrase) {
     return 0;
@@ -5157,6 +5422,8 @@ function scoreSearchEntry(entry, queryParts) {
   const haystack = entry.normalized || normalizeSearchText(getSearchEntryText(entry));
   const entryTokens = entry.tokens || tokenizeSearch(haystack);
   const tokenSet = new Set(entryTokens);
+  const entrySignals = entry.signals || { symptom: [], location: [], task: [], type: [] };
+  const queryIntent = queryParts.intent || buildSearchIntent(queryParts);
   let score = 0;
   let matchedOriginalTokens = 0;
 
@@ -5190,6 +5457,27 @@ function scoreSearchEntry(entry, queryParts) {
     }
   }
 
+  const symptomMatches = countSearchSignalMatches(entrySignals.symptom, queryIntent.symptom);
+  const locationMatches = countSearchSignalMatches(entrySignals.location, queryIntent.location);
+  const taskMatches = countSearchSignalMatches(entrySignals.task, queryIntent.task);
+  const typeMatches = countSearchSignalMatches(entrySignals.type, queryIntent.type);
+  const matchedGroups = [symptomMatches, locationMatches, taskMatches, typeMatches].filter(Boolean).length;
+
+  score += symptomMatches * 30;
+  score += locationMatches * 18;
+  score += taskMatches * 14;
+  score += typeMatches * 11;
+
+  if (matchedGroups >= 2) score += 18;
+  if (matchedGroups >= 3) score += 12;
+
+  if (queryIntent.symptom.length && entrySignals.type.includes("workflow")) score += 11;
+  if (searchIntentIncludes(queryIntent, "task", "find") && (entrySignals.type.includes("visual") || entry.source === "section")) score += 7;
+  if (searchIntentIncludes(queryIntent, "task", "record") && entrySignals.type.includes("record")) score += 10;
+  if (searchIntentIncludes(queryIntent, "task", "write-scan") && entry.category === "NFC") score += 12;
+  if (searchIntentIncludes(queryIntent, "type", "spec") && entrySignals.type.includes("spec")) score += 12;
+  if (queryIntent.location.length && entrySignals.location.length && locationMatches === 0) score -= 8;
+
   if (entry.source === "static") score += 7;
   if (entry.source === "section") score += 3;
 
@@ -5214,6 +5502,9 @@ const searchModal = buildSearchModal();
 const searchInput = searchModal.querySelector("#site-search-input");
 const searchResults = searchModal.querySelector("#site-search-results");
 const searchOfflineCard = searchModal.querySelector("[data-search-offline-card]");
+const searchLensStrip = searchModal.querySelector("[data-search-lens-strip]");
+const searchLensList = searchModal.querySelector("[data-search-lens-list]");
+const searchLensCopy = searchModal.querySelector("[data-search-lens-copy]");
 const searchResumeWork = searchModal.querySelector("[data-search-resume-work]");
 const searchResumeList = searchModal.querySelector("[data-search-resume-list]");
 const searchRecentWork = searchModal.querySelector("[data-search-recent-work]");
@@ -5406,6 +5697,7 @@ function renderResults(query = "") {
   ];
   const staticResults = searchEntries(staticEntries, trimmedQuery);
   renderSearchEntries(staticResults);
+  renderSearchLens(trimmedQuery);
   renderSmartSearchRoutes(trimmedQuery, staticResults);
   renderSearchSummary(trimmedQuery, staticResults);
 
@@ -5416,6 +5708,7 @@ function renderResults(query = "") {
       }
       const results = searchEntries(entries, trimmedQuery);
       renderSearchEntries(results);
+      renderSearchLens(trimmedQuery);
       renderSmartSearchRoutes(trimmedQuery, results);
       renderSearchSummary(trimmedQuery, results);
     })
@@ -5423,6 +5716,7 @@ function renderResults(query = "") {
       if (!searchResults.children.length) {
         renderSearchEntries(staticResults);
       }
+      renderSearchLens(trimmedQuery);
       renderSmartSearchRoutes(trimmedQuery, staticResults);
       renderSearchSummary(trimmedQuery, staticResults);
     });
@@ -5866,47 +6160,156 @@ function renderRecentSearches() {
   });
 }
 
+function joinSearchPhraseParts(parts = []) {
+  if (!parts.length) {
+    return "";
+  }
+
+  if (parts.length === 1) {
+    return parts[0];
+  }
+
+  if (parts.length === 2) {
+    return `${parts[0]} and ${parts[1]}`;
+  }
+
+  return `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+}
+
+function pickPrimarySearchType(queryParts) {
+  const types = queryParts?.intent?.type || [];
+  if (!types.length) {
+    return null;
+  }
+
+  if (/(manager|console|builder|tracker|lab)/.test(queryParts.phrase)) {
+    return types.find((rule) => rule.id === "tool") || types[0];
+  }
+
+  if (/(map|viewer|photo|atlas|diagram|pinout|landing)/.test(queryParts.phrase)) {
+    return types.find((rule) => rule.id === "visual") || types[0];
+  }
+
+  if (/(spec|specs|torque|psi|capacity|washer|bolt|size)/.test(queryParts.phrase)) {
+    return types.find((rule) => rule.id === "spec") || types[0];
+  }
+
+  return types[0];
+}
+
+function buildSearchIntentPhrase(queryParts) {
+  const intent = queryParts?.intent || queryParts || {};
+  const parts = [];
+
+  if (intent.symptom?.[0]) {
+    parts.push(intent.symptom[0].label.toLowerCase());
+  }
+  if (intent.location?.[0]) {
+    parts.push(intent.location[0].label.toLowerCase());
+  }
+  const primaryType = pickPrimarySearchType(queryParts);
+  if (primaryType) {
+    parts.push(primaryType.label.toLowerCase());
+  } else if (intent.task?.[0]) {
+    parts.push(intent.task[0].label.toLowerCase());
+  }
+
+  return joinSearchPhraseParts(parts.slice(0, 3));
+}
+
+function renderSearchLens(query = "") {
+  if (!searchLensStrip || !searchLensList || !searchLensCopy) {
+    return;
+  }
+
+  const trimmedQuery = `${query || ""}`.trim();
+  const queryParts = expandSearchQuery(trimmedQuery);
+  const items = [];
+  const primaryType = pickPrimarySearchType(queryParts);
+  const pushItem = (label, tone, rule) => {
+    if (!rule) {
+      return;
+    }
+    items.push({ label, tone, value: rule.label });
+  };
+
+  pushItem("Symptom", "symptom", queryParts.intent.symptom[0]);
+  pushItem("Area", "location", queryParts.intent.location[0]);
+  pushItem("Goal", "task", queryParts.intent.task[0]);
+  pushItem("Mode", "type", primaryType);
+
+  searchLensList.innerHTML = "";
+  searchLensStrip.hidden = !trimmedQuery || items.length === 0;
+  if (searchLensStrip.hidden) {
+    searchLensCopy.textContent = "Search by symptom, location, task, or part.";
+    return;
+  }
+
+  const intentPhrase = buildSearchIntentPhrase(queryParts);
+  searchLensCopy.textContent = intentPhrase
+    ? `Prioritizing ${intentPhrase} results.`
+    : "Search by symptom, location, task, or part.";
+
+  items.forEach((item) => {
+    const pill = document.createElement("div");
+    pill.className = "search-lens-pill";
+    pill.dataset.tone = item.tone;
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = item.value;
+
+    pill.append(label, value);
+    searchLensList.appendChild(pill);
+  });
+}
+
 function buildSmartSearchRoutes(query, results) {
-  const normalized = normalizeSearchText(query);
+  const queryParts = expandSearchQuery(query);
+  const normalized = queryParts.phrase;
+  const intent = queryParts.intent;
   if (!normalized) {
     return [];
   }
-  const topResults = results.slice(0, 3);
   const routes = [];
 
   const pushRoute = (route) => {
-    if (!route?.href || routes.some((item) => item.href === route.href)) {
+    if (!route?.href || routes.some((item) => item.href === route.href || item.title === route.title)) {
       return;
     }
     routes.push(route);
   };
 
-  topResults.forEach((entry, index) => {
-    pushRoute({
-      href: entry.url,
-      label: index === 0 ? "Best Match" : "Also Helpful",
-      title: entry.title,
-      detail: entry.excerpt || entry.category || entry.url
-    });
-  });
+  const wantsFuseLookup = /(fuse|relay|electrical|circuit|power outlet|outlet|socket|12v|12 volt|charger|radio|audio|carplay|accessory)/.test(normalized);
+  const wantsSpecs = /(torque|psi|capacity|size|washer|bolt|drain|plug|part number)/.test(normalized);
+  const wantsNfcManager = searchIntentIncludes(intent, "symptom", "nfc") && /(manager|manage|plan|inventory|label|mount|mounted|programmed|history|track)/.test(normalized);
 
-  if (/(start|battery|crank|dead|jump|click)/.test(normalized)) {
+  if (searchIntentIncludes(intent, "symptom", "no-start")) {
     pushRoute({
       href: "diagnostics.html#no-start-workflow",
-      label: "No Start",
+      label: "Fast Path",
       title: "Run the no-start workflow",
-      detail: "Clicks, slow crank, dead battery, or cranks without firing."
+      detail: "Battery, click, crank, jump, and first checks in one route."
     });
   }
-  if (/(warning|light|abs|vsa|check engine|tpms|message)/.test(normalized)) {
+  if (searchIntentIncludes(intent, "symptom", "warning-light")) {
     pushRoute({
       href: "diagnostics.html#warning-light-workflow",
-      label: "Warning",
+      label: "Fast Path",
       title: "Go straight to warning-light triage",
       detail: "Red, amber, MID messages, or multiple alerts."
     });
   }
-  if (/(roadside|tow truck|tow driver|aaa|dispatch|helper|help called|stuck|shoulder)/.test(normalized)) {
+  if (searchIntentIncludes(intent, "symptom", "accessory-power")) {
+    pushRoute({
+      href: "diagnostics.html#accessory-power-workflow",
+      label: "Fast Path",
+      title: "Trace the accessory power path",
+      detail: "Outlets, charger issues, radio, USB, and fuse checks."
+    });
+  }
+  if (searchIntentIncludes(intent, "symptom", "roadside")) {
     pushRoute({
       href: "quick-sheet.html#roadside-dispatch-pack",
       label: "Roadside",
@@ -5914,46 +6317,144 @@ function buildSmartSearchRoutes(query, results) {
       detail: "Location, callback, checkpoints, cached routes, and source reminder."
     });
   }
-  if (/(trailer|7-way|tow|brake light|running light|adapter|hitch)/.test(normalized)) {
+  if (searchIntentIncludes(intent, "symptom", "trailer-lights")) {
     pushRoute({
-      href: "rear-hitch.html#trailer-hookup-flow",
+      href: searchIntentIncludes(intent, "task", "diagnose")
+        ? "diagnostics.html#trailer-light-workflow"
+        : "rear-hitch.html#trailer-hookup-flow",
       label: "Trailer",
-      title: "Check the trailer hookup flow",
-      detail: "Tow setup, 7-way pinout, lights, and hitch prep."
+      title: searchIntentIncludes(intent, "task", "diagnose")
+        ? "Run trailer-light diagnostics"
+        : "Check the trailer hookup flow",
+      detail: searchIntentIncludes(intent, "task", "diagnose")
+        ? "Brake, turn, running, reverse, and adapter checks."
+        : "Tow setup, 7-way pinout, lights, and hitch prep."
     });
   }
-  if (/(fuse|outlet|socket|usb|power|radio|carplay|accessory)/.test(normalized)) {
+  if (wantsFuseLookup && searchIntentIncludes(intent, "location", "cabin")) {
     pushRoute({
-      href: "diagnostics.html#accessory-power-workflow",
-      label: "Power",
-      title: "Trace the accessory power path",
-      detail: "Outlets, charger issues, radio, USB, and fuse checks."
+      href: "cabin.html#cabin-fuse-quick-finder",
+      label: "Cabin",
+      title: "Open the cabin fuse quick finder",
+      detail: "Interior outlets, chargers, radio, and under-dash fuse lookups."
     });
   }
-  if (/(oil|service|fluid|maintenance|filter|rotation|brake|transmission)/.test(normalized)) {
+  if (wantsFuseLookup && (searchIntentIncludes(intent, "location", "hood") || searchIntentIncludes(intent, "symptom", "no-start"))) {
     pushRoute({
-      href: "maintenance.html#service-closeout",
+      href: "hood.html#hood-fuse-quick-finder",
+      label: "Hood",
+      title: "Open the under-hood fuse quick finder",
+      detail: "Battery, jump, trailer, and engine-bay electrical checks."
+    });
+  }
+  if (searchIntentIncludes(intent, "symptom", "service")) {
+    pushRoute({
+      href: searchIntentIncludes(intent, "task", "record")
+        ? "maintenance.html#maintenance-updater"
+        : "maintenance.html#service-closeout",
       label: "Service",
-      title: "Jump into the maintenance closeout flow",
-      detail: "Log what you did and update the truck record quickly."
+      title: searchIntentIncludes(intent, "task", "record")
+        ? "Open the maintenance updater"
+        : "Jump into the maintenance closeout flow",
+      detail: searchIntentIncludes(intent, "task", "record")
+        ? "Update service history, mileage, notes, and parts quickly."
+        : "Log what you did and update the truck record quickly."
     });
   }
-  if (/(tire|flat|pressure|lug|jack|spare)/.test(normalized)) {
+  if (wantsSpecs) {
     pushRoute({
-      href: "tires.html#tire-pressure-sweep",
+      href: /(washer|bolt|drain|plug)/.test(normalized)
+        ? "maintenance.html#drain-hardware"
+        : "index.html#technical",
+      label: "Specs",
+      title: /(washer|bolt|drain|plug)/.test(normalized)
+        ? "Open drain hardware specs"
+        : "Open technical specs",
+      detail: /(washer|bolt|drain|plug)/.test(normalized)
+        ? "Drain plug washers, bolts, and part numbers."
+        : "Torque, capacities, sizes, and reference specs."
+    });
+  }
+
+  if (searchIntentIncludes(intent, "symptom", "tire")) {
+    pushRoute({
+      href: /pressure|psi/.test(normalized)
+        ? "tires.html#tire-pressure-sweep"
+        : "tires.html#tire-roadside-launcher",
       label: "Tires",
-      title: "Open tire tools and roadside tire help",
-      detail: "Pressure, flat-tire help, lug specs, and recheck notes."
+      title: /pressure|psi/.test(normalized)
+        ? "Open the tire pressure sweep"
+        : "Open tire tools and roadside tire help",
+      detail: /pressure|psi/.test(normalized)
+        ? "Record four-corner PSI and stage the next recheck."
+        : "Pressure, flat-tire help, lug specs, and recheck notes."
     });
   }
-  if (/(photo|picture|image|diagram|atlas)/.test(normalized)) {
+
+  if (searchIntentIncludes(intent, "symptom", "nfc")) {
     pushRoute({
-      href: "photo-atlas.html",
-      label: "Photos",
-      title: "Browse the photo atlas",
-      detail: "Use visual references instead of hunting through text."
+      href: wantsNfcManager
+        ? "nfc.html#tag-manager"
+        : searchIntentIncludes(intent, "task", "write-scan")
+          ? "nfc.html#tag-writer"
+          : "nfc.html#starter-tag-pack",
+      label: "NFC",
+      title: wantsNfcManager
+        ? "Open the NFC Tag Manager"
+        : searchIntentIncludes(intent, "task", "write-scan")
+          ? "Open the NFC writer and reader"
+          : "Start with the NFC starter pack",
+      detail: wantsNfcManager
+        ? "Track mounted, programmed, and scanned tags with a local plan."
+        : searchIntentIncludes(intent, "task", "write-scan")
+          ? "Write, scan, copy, or share tag URLs directly from the console."
+          : "Load the first four truck tags with ready-made placements and URLs."
     });
   }
+
+  if (searchIntentIncludes(intent, "symptom", "photo") || searchIntentIncludes(intent, "type", "visual")) {
+    pushRoute({
+      href: /map|viewer/.test(normalized) ? "index.html#viewer" : "photo-atlas.html",
+      label: "Visual",
+      title: /map|viewer/.test(normalized) ? "Open the vehicle map" : "Browse the photo atlas",
+      detail: /map|viewer/.test(normalized)
+        ? "Use the 3D map when you know the truck area but not the page."
+        : "Use visual references instead of hunting through text."
+    });
+  }
+
+  if (searchIntentIncludes(intent, "task", "record") || searchIntentIncludes(intent, "type", "record")) {
+    pushRoute({
+      href: searchIntentIncludes(intent, "symptom", "service")
+        ? "maintenance.html#maintenance-updater"
+        : "garage.html#recent-handoffs",
+      label: "Saved Work",
+      title: searchIntentIncludes(intent, "symptom", "service")
+        ? "Open saved service history"
+        : "Resume recent owner work",
+      detail: searchIntentIncludes(intent, "symptom", "service")
+        ? "Update the log, receipts, notes, and maintenance cadence."
+        : "Jump back into the latest notes, handoffs, and saved activity."
+    });
+  }
+
+  if (searchIntentIncludes(intent, "task", "prep-offline")) {
+    pushRoute({
+      href: "quick-sheet.html#print-offline-pack",
+      label: "Offline",
+      title: "Prep the offline pack",
+      detail: "Prime routes, print the Quick Sheet, and confirm cached pages."
+    });
+  }
+
+  results.slice(0, 3).forEach((entry, index) => {
+    pushRoute({
+      href: entry.url,
+      label: index === 0 && !routes.length ? "Best Match" : "Also Helpful",
+      title: entry.title,
+      detail: entry.excerpt || entry.category || entry.url
+    });
+  });
 
   return routes.slice(0, 4);
 }
@@ -6002,14 +6503,20 @@ function renderSearchSummary(query, results) {
     return;
   }
 
+  const intentPhrase = buildSearchIntentPhrase(expandSearchQuery(trimmedQuery));
+
   const lead = results[0];
   if (!lead) {
-    searchResultsSummary.textContent = `No direct matches for "${trimmedQuery}" yet. Try a shorter symptom, part name, or page title.`;
+    searchResultsSummary.textContent = intentPhrase
+      ? `Prioritizing ${intentPhrase}. No direct matches for "${trimmedQuery}" yet. Try a shorter symptom, part name, or page title.`
+      : `No direct matches for "${trimmedQuery}" yet. Try a shorter symptom, part name, or page title.`;
     return;
   }
 
   const category = lead.source === "section" ? "Page section" : lead.category || "Reference";
-  searchResultsSummary.textContent = `Best match: ${lead.title} in ${category}. ${results.length} result${results.length === 1 ? "" : "s"} ready.`;
+  searchResultsSummary.textContent = intentPhrase
+    ? `Prioritizing ${intentPhrase}. Best match: ${lead.title} in ${category}. ${results.length} result${results.length === 1 ? "" : "s"} ready.`
+    : `Best match: ${lead.title} in ${category}. ${results.length} result${results.length === 1 ? "" : "s"} ready.`;
 }
 
 function activateSearchQuery(query) {

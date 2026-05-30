@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-25
+Last updated: 2026-05-30
 
 ## Current Site Status
 
@@ -17,7 +17,7 @@ Last updated: 2026-05-25
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature is the iPhone roadside/offline routing pass: Quick Sheet now remembers the last offline route readiness check and shows missing routes as tappable online-prep links, while Diagnostics honors `diagnostic` / `symptom` query aliases and key workflow hashes so handoff/check tools open on the matching symptom instead of defaulting to no-start.
+- The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
 
 ## Current Queue
 
@@ -50,6 +50,7 @@ Last updated: 2026-05-25
 - Added `quick-sheet.html#roadside-dispatch-pack` so roadside dispatch searches can land directly on the dispatch handoff panel.
 - Added Quick Sheet roadside deep-link selection and visible Roadside Router `Use Stack` actions so Home, router cards, and future search/menu routes can open the action stack with the intended flat/no-start/warning/trailer plan selected.
 - Added Quick Sheet offline readiness receipts and Diagnostics symptom-aware deep-link selection for warning, power, audio, trailer, and no-start workflows.
+- Added the homepage iPhone Task Launcher and repaired shared site-menu current-page semantics for hash-focused homepage routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
 - Added Garage Recent Handoffs type filters for faster iPhone review of saved handoffs.
@@ -90,7 +91,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run verified the Quick Sheet offline readiness and Diagnostics symptom-deep-link pass with the full internal-link/anchor audit and targeted static selector/code assertions for the new receipt and routing hooks. The repo's broader browser smoke wrapper timed out again, Node was unavailable for `node --check`, and headless Edge/Chrome returned no DOM in this Windows session, so the next run should prefer real browser/iPhone smoke for `quick-sheet.html#print-offline-pack` and `diagnostics.html?diagnostic=warning#diagnostic-share-builder`.
+- Anton's latest scheduled run verified the homepage iPhone Task Launcher and shared current-page menu fix with the full internal-link/anchor audit plus a local-server Playwright iPhone viewport check for `index.html`. The check confirmed six task cards, horizontal mobile scrolling, no horizontal overflow, no browser console/page errors, and a page-level site-menu current badge. The repo browser smoke wrapper still timed out after the local-server check passed, so future shared-navigation work should continue preferring local-server or real-device smoke over the file-mode wrapper when module loading matters.
 
 ## Archive
 
