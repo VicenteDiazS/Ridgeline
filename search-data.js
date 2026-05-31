@@ -33,6 +33,13 @@ export const searchIndex = [
     keywords: ["anton owner check", "anton review queue", "anton iphone review", "anton next check", "anton changed page", "what anton changed", "agent owner check", "agent next check", "anton controls", "anton page", "anton run snapshot", "anton heartbeat", "anton running now", "anton stage", "anton review pack", "copy review pack", "share review pack", "agent review note", "anton sign off", "anton sign-off", "iphone sign-off", "save anton review", "copy sign-off", "needs follow-up", "works on iphone"]
   },
   {
+    title: "Ask Anton AI",
+    url: "ask-anton.html#ask-anton-chat",
+    category: "Navigation",
+    excerpt: "Ridgeline question-and-answer page that grounds answers in local site routes first, then can blend in broader web knowledge when an API key and web search are enabled.",
+    keywords: ["ask anton", "ask anton ai", "ridgeline ai", "truck question", "site assistant", "web search assistant", "language model", "chat with ridgeline", "ask site questions", "ridgeline questions"]
+  },
+  {
     title: "Offline Launch Pad",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Navigation",
@@ -136,13 +143,6 @@ export const searchIndex = [
     category: "Quick Sheet",
     excerpt: "Quick Sheet iPhone card for keeping roadside location, callback, tow/help detail, and ETA ready to copy, save, or include in live roadside updates.",
     keywords: ["roadside contact card", "roadside location", "copy roadside contact", "save roadside contact", "tow eta", "callback roadside", "roadside landmark", "roadside helper", "roadside eta", "iphone roadside contact"]
-  },
-  {
-    title: "Ask Anton AI Assistant",
-    url: "ask-anton.html#ask-anton-chat",
-    category: "Navigation",
-    excerpt: "On-site AI chat that grounds answers in Ridgeline pages and can optionally use live web search for added context.",
-    keywords: ["ask anton", "ai chat", "language model", "ridgeline assistant", "site grounded answers", "web search answers", "chat with anton", "owner questions"]
   },
   {
     title: "Fuse Check Note",

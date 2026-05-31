@@ -714,7 +714,6 @@ stripLiveRefreshParam();
 
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
-  { label: "Ask Anton AI", href: "ask-anton.html", match: "ask-anton.html", note: "Ask questions with local site grounding and optional web search" },
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
   { label: "Tire And Wheel Lab", href: "tires.html", match: "tires.html", note: "3D tire model, wheel specs, and fitment guidance" },
   { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
@@ -729,6 +728,7 @@ const menuLinks = [
   { label: "Emergency Card", href: "quick-sheet.html#emergency-card", match: "quick-sheet.html", note: "Critical specs and links for roadside or garage work" },
   { label: "Diagnostics", href: "diagnostics.html", match: "diagnostics.html", note: "Symptom-based troubleshooting shortcuts" },
   { label: "Garage Log", href: "garage.html", match: "garage.html", note: "Your notes, service history, and saved references" },
+  { label: "Ask Anton", href: "ask-anton.html", match: "ask-anton.html", note: "Ridgeline Q&A with local grounding and web search" },
   { label: "Anton Console", href: "anton.html", match: "anton.html", note: "Agent instructions, notes, history, and controls" }
 ];
 
@@ -2918,18 +2918,17 @@ function actionForPage(page) {
       { label: "Backup", href: "#diagnostic-activity", icon: "save" },
       { label: "More", action: "tools", icon: "menu" }
     ],
+    "ask-anton.html": [
+      { label: "Chat", href: "#ask-anton-chat", icon: "note" },
+      { label: "Settings", href: "#ask-anton-settings", icon: "wrench" },
+      { label: "Sources", href: "#ask-anton-sources", icon: "search" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
     "anton.html": [
       { label: "Review", href: "#anton-progress", icon: "check" },
       { label: "Sign", href: "#anton-signoff", icon: "note" },
       { label: "Home", href: "index.html#agent-status", icon: "home" },
       { label: "Controls", href: "#anton-controls", icon: "wrench" },
-      { label: "More", action: "tools", icon: "menu" }
-    ],
-    "ask-anton.html": [
-      { label: "Chat", href: "#ask-anton-chat", icon: "note" },
-      { label: "Settings", href: "#ask-anton-settings", icon: "wrench" },
-      { label: "Sources", href: "#ask-anton-sources", icon: "map" },
-      { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ]
   };

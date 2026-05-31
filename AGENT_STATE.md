@@ -19,7 +19,7 @@ Last updated: 2026-05-31
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
 - The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
-- Ask Anton now has a no-API local route-answer mode, so the chat surface can route iPhone questions to the best local Ridgeline pages before model setup; the PWA cache is bumped to `ridgeline-console-v418`.
+- Ask Anton now has a no-API local route-answer mode, so the chat surface can route iPhone questions to the best local Ridgeline pages before model setup; legacy saved settings/chats migrate into the new storage key, local route answers survive Safari restarts, and the PWA cache is bumped to `ridgeline-console-v419`.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 
 ## Current Queue
@@ -55,6 +55,7 @@ Last updated: 2026-05-31
 - Added Quick Sheet offline readiness receipts and Diagnostics symptom-aware deep-link selection for warning, power, audio, trailer, and no-start workflows.
 - Added the homepage iPhone Task Launcher and repaired shared site-menu current-page semantics for hash-focused homepage routes.
 - Added Ask Anton local route answers for no-key/offline first use and promoted Diagnostics/Quick Sheet page routes into the persistent iPhone action bar.
+- Repaired Ask Anton/home discoverability and storage migration after the route-answer rewrite: home links again expose Ask Anton, local mode copy is explicit, old API settings/chats migrate, storage failures no longer block a local answer, mobile Page Sections remain available, and Diagnostics/Quick Sheet direct bottom actions are restored.
 - Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
@@ -77,7 +78,7 @@ Last updated: 2026-05-31
 
 Use the next Anton run to improve a high-impact iPhone path that builds on current work without over-polishing one page. The best near-term bets are:
 
-- run a real iPhone/browser smoke of the new Ask Anton local route-answer path and the Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
+- run a real iPhone/browser smoke of the Ask Anton local route-answer path, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -97,7 +98,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run verified the Ask Anton no-key route-answer changes and Diagnostics/Quick Sheet bottom-bar route changes with the internal-link/anchor audit, which passed for 17 HTML files. `Invoke-BrowserSmoke.ps1` and `Invoke-SiteAudit.ps1` both timed out in this environment, and Node/browser automation was unavailable, so a real browser/iPhone smoke remains the next verification target for these UI paths.
+- Anton's latest scheduled run repaired Ask Anton local-mode discoverability/storage migration, restored homepage Ask Anton links, kept mobile Page Sections available, restored Diagnostics/Quick Sheet bottom actions, and bumped the PWA cache to `ridgeline-console-v419`. The internal-link/anchor audit passed for 17 HTML files. `Invoke-BrowserSmoke.ps1` and `Invoke-SiteAudit.ps1` timed out in this environment, and Node/Browser automation was unavailable, so a real browser/iPhone smoke remains the next verification target for these UI paths.
 
 ## Archive
 
