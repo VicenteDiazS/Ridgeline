@@ -11,6 +11,8 @@ const DEFAULT_MODEL = "gpt-4.1-mini";
 const DEFAULT_LOCAL_LIMIT = 6;
 const MAX_WEB_CITATIONS = 3;
 const GARAGE_NOTES_STORAGE_KEY = "ridgeline-notes";
+const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+const SITE_ROUTE_REGEX = /\b(?:\.\/)?([a-z0-9][a-z0-9-]*\.html(?:#[a-z0-9][a-z0-9-]*)?)(?=[)\].,!?:;"']?(?:\s|$))/gi;
 
 const els = {
   transcript: document.querySelector("[data-ask-transcript]"),
@@ -170,6 +172,20 @@ const intentMap = {
   }
 };
 
+const localRouteTitleMap = new Map(
+  searchIndex
+    .filter((entry) => typeof entry?.url === "string" && entry.url && typeof entry?.title === "string" && entry.title)
+    .map((entry) => [entry.url, entry.title])
+);
+
+Object.values(intentMap).forEach((intent) => {
+  (intent.actions || []).forEach((action) => {
+    if (action?.href && action?.label && !localRouteTitleMap.has(action.href)) {
+      localRouteTitleMap.set(action.href, action.label);
+    }
+  });
+});
+
 function readStoredJson(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -212,6 +228,35 @@ function hasModelEndpointConfigured(endpoint = "") {
 
 function normalizeText(value = "") {
   return `${value}`.toLowerCase().replace(/[^a-z0-9/]+/g, " ").trim();
+}
+
+function normalizeLocalRoute(url = "") {
+  return `${url}`.trim().replace(/^\.\//, "").replace(/[)\].,!?:;"']+$/g, "");
+}
+
+function isLocalSiteRoute(url = "") {
+  const value = normalizeLocalRoute(url);
+  return /^[a-z0-9][a-z0-9-]*\.html(?:#[a-z0-9][a-z0-9-]*)?$/i.test(value);
+}
+
+function isSafeExternalUrl(url = "") {
+  return /^https?:\/\//i.test(`${url}`.trim());
+}
+
+function prettifyRouteLabel(url = "") {
+  const route = normalizeLocalRoute(url);
+  const [path] = route.split("#");
+  const stem = path.replace(/\.html$/i, "");
+  return stem
+    .split("-")
+    .filter(Boolean)
+    .map((piece) => piece.charAt(0).toUpperCase() + piece.slice(1))
+    .join(" ");
+}
+
+function routeTitleFor(url = "") {
+  const route = normalizeLocalRoute(url);
+  return localRouteTitleMap.get(route) || prettifyRouteLabel(route) || route;
 }
 
 function tokenize(value = "") {
@@ -626,6 +671,9 @@ function buildModelInput(query, localMatches, mode = "quick") {
       ? "Deep mode: provide concise but complete reasoning and alternatives."
       : "Quick mode: provide a short direct answer first, then minimal next steps.",
     "Always prioritize local Ridgeline context. Use web context only when available and needed.",
+    "Use plain language and keep each step concrete.",
+    "Formatting requirements: use sections in this order: Summary, Do This Now, Next Routes, Note.",
+    "Under Next Routes, include 2-4 local links in markdown format like [Diagnostics](diagnostics.html#warning-light-workflow) when relevant.",
     "For safety-critical instructions, include a verification reminder.",
     localContext ? `Local context:\n${localContext}` : "No strong local context.",
     threadContext ? `Recent follow-up thread:\n${threadContext}` : "No follow-up thread.",
@@ -684,26 +732,41 @@ async function requestModelAnswer(query, localMatches, options) {
 }
 
 function makeLocalAnswer(query, intent, localMatches, mode = "quick") {
-  const top = localMatches[0];
-  const routeSummary = localMatches.slice(0, 4)
-    .map((entry) => `${entry.title} (${entry.url})`)
-    .join(" | ");
+  const top = localMatches[0] || null;
+  const nextRoutes = localMatches
+    .slice(0, 4)
+    .map((entry) => `- [${entry.title}](${entry.url})${entry.excerpt ? `: ${entry.excerpt}` : ""}`)
+    .join("\n");
+
+  const summary = top
+    ? `${top.title}: ${top.excerpt || "Use this route first."}`
+    : "Use the nearest diagnostics route first, then refine by symptom.";
+
+  const immediateStep = intent?.plan?.now?.[0] || "Capture the current symptom before changing state.";
+  const followupStep = intent?.plan?.next?.[0] || "Open the best matching workflow and follow it step by step.";
 
   if (mode === "deep") {
     return [
-      `Best local route: ${top?.title || "Diagnostics"}.`,
-      top?.excerpt || "Use the closest local workflow first.",
-      `Do this now: ${intent.plan.now?.[0] || "capture current symptom details."}`,
-      `Then: ${intent.plan.next?.[0] || "follow the linked workflow."}`,
-      routeSummary ? `Open next: ${routeSummary}.` : "",
-      "Enable internet for this question if you want broader external references."
+      "Summary",
+      summary,
+      "Do This Now",
+      `- ${immediateStep}`,
+      `- ${followupStep}`,
+      "Next Routes",
+      nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
+      "Note",
+      "Enable internet for this question if you want current outside references."
     ].filter(Boolean).join("\n\n");
   }
 
   return [
-    `Best route: ${top?.title || "Diagnostics"}`,
-    top?.excerpt || "Open the top local route and start with symptom-first checks.",
-    routeSummary ? `Open: ${routeSummary}` : "",
+    "Summary",
+    summary,
+    "Do This Now",
+    `- ${immediateStep}`,
+    "Next Routes",
+    nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
+    "Note",
     "Enable internet for this question if you need current outside sources."
   ].filter(Boolean).join("\n\n");
 }
@@ -816,6 +879,243 @@ function renderThreadActions(article, messageIndex, message) {
   }
 }
 
+function appendAutoLinkedText(parent, text = "") {
+  if (!parent) {
+    return;
+  }
+  const source = `${text}`;
+  if (!source) {
+    return;
+  }
+
+  SITE_ROUTE_REGEX.lastIndex = 0;
+  let cursor = 0;
+  let match = SITE_ROUTE_REGEX.exec(source);
+
+  while (match) {
+    const [raw, routePart] = match;
+    const route = normalizeLocalRoute(routePart);
+    const start = match.index;
+    const end = start + raw.length;
+
+    if (start > cursor) {
+      parent.append(document.createTextNode(source.slice(cursor, start)));
+    }
+
+    if (isLocalSiteRoute(route)) {
+      const link = document.createElement("a");
+      link.className = "ask-inline-route";
+      link.href = route;
+      link.textContent = routeTitleFor(route);
+      parent.append(link);
+    } else {
+      parent.append(document.createTextNode(raw));
+    }
+
+    cursor = end;
+    match = SITE_ROUTE_REGEX.exec(source);
+  }
+
+  if (cursor < source.length) {
+    parent.append(document.createTextNode(source.slice(cursor)));
+  }
+}
+
+function appendParsedText(parent, text = "") {
+  const source = `${text}`;
+  if (!source.trim()) {
+    return;
+  }
+
+  MARKDOWN_LINK_REGEX.lastIndex = 0;
+  let cursor = 0;
+  let match = MARKDOWN_LINK_REGEX.exec(source);
+
+  while (match) {
+    const [raw, label, rawUrl] = match;
+    const start = match.index;
+    const end = start + raw.length;
+
+    if (start > cursor) {
+      appendAutoLinkedText(parent, source.slice(cursor, start));
+    }
+
+    const localRoute = normalizeLocalRoute(rawUrl);
+    if (isLocalSiteRoute(localRoute) || isSafeExternalUrl(rawUrl)) {
+      const link = document.createElement("a");
+      link.className = isLocalSiteRoute(localRoute) ? "ask-inline-route" : "ask-inline-link";
+      link.href = isLocalSiteRoute(localRoute) ? localRoute : rawUrl;
+      link.textContent = `${label}`.trim() || routeTitleFor(localRoute || rawUrl);
+      if (isSafeExternalUrl(rawUrl)) {
+        link.target = "_blank";
+        link.rel = "noreferrer";
+      }
+      parent.append(link);
+    } else {
+      appendAutoLinkedText(parent, raw);
+    }
+
+    cursor = end;
+    match = MARKDOWN_LINK_REGEX.exec(source);
+  }
+
+  if (cursor < source.length) {
+    appendAutoLinkedText(parent, source.slice(cursor));
+  }
+}
+
+function renderAnswerBlock(container, blockText = "") {
+  const lines = blockText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!lines.length) {
+    return;
+  }
+
+  if (lines.every((line) => /^[-*]\s+/.test(line))) {
+    const list = document.createElement("ul");
+    list.className = "ask-answer-list";
+    lines.forEach((line) => {
+      const item = document.createElement("li");
+      appendParsedText(item, line.replace(/^[-*]\s+/, ""));
+      list.append(item);
+    });
+    container.append(list);
+    return;
+  }
+
+  if (lines.every((line) => /^\d+\.\s+/.test(line))) {
+    const list = document.createElement("ol");
+    list.className = "ask-answer-list";
+    lines.forEach((line) => {
+      const item = document.createElement("li");
+      appendParsedText(item, line.replace(/^\d+\.\s+/, ""));
+      list.append(item);
+    });
+    container.append(list);
+    return;
+  }
+
+  const paragraph = document.createElement("p");
+  paragraph.className = "ask-answer-paragraph";
+  appendParsedText(paragraph, lines.join(" "));
+  container.append(paragraph);
+}
+
+function renderAssistantBody(message) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "ask-answer-content";
+
+  const blocks = `${message?.content || ""}`
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  if (!blocks.length) {
+    const paragraph = document.createElement("p");
+    paragraph.className = "ask-answer-paragraph";
+    paragraph.textContent = "No answer text returned.";
+    wrapper.append(paragraph);
+    return wrapper;
+  }
+
+  blocks.forEach((block, index) => {
+    const lines = block
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 1 && /^[A-Z][A-Za-z ]{2,36}$/.test(lines[0])) {
+      const heading = document.createElement("h4");
+      heading.className = "ask-answer-heading";
+      heading.textContent = lines[0];
+      wrapper.append(heading);
+      return;
+    }
+
+    if (index === 0 && lines.length === 1 && lines[0].length > 180) {
+      const summary = document.createElement("p");
+      summary.className = "ask-answer-paragraph ask-answer-summary";
+      appendParsedText(summary, lines[0]);
+      wrapper.append(summary);
+      return;
+    }
+
+    renderAnswerBlock(wrapper, block);
+  });
+
+  return wrapper;
+}
+
+function collectLocalLinksFromText(text = "") {
+  const links = [];
+  const seen = new Set();
+  const source = `${text}`;
+
+  const addLink = (url, label = "") => {
+    const route = normalizeLocalRoute(url);
+    if (!isLocalSiteRoute(route) || seen.has(route)) {
+      return;
+    }
+    seen.add(route);
+    links.push({
+      title: `${label}`.trim() || routeTitleFor(route),
+      url: route
+    });
+  };
+
+  MARKDOWN_LINK_REGEX.lastIndex = 0;
+  let markdownMatch = MARKDOWN_LINK_REGEX.exec(source);
+  while (markdownMatch) {
+    addLink(markdownMatch[2], markdownMatch[1]);
+    markdownMatch = MARKDOWN_LINK_REGEX.exec(source);
+  }
+
+  SITE_ROUTE_REGEX.lastIndex = 0;
+  let routeMatch = SITE_ROUTE_REGEX.exec(source);
+  while (routeMatch) {
+    addLink(routeMatch[1]);
+    routeMatch = SITE_ROUTE_REGEX.exec(source);
+  }
+
+  return links;
+}
+
+function renderNavigationLinks(article, message) {
+  const fromText = collectLocalLinksFromText(message.content);
+  const fallback = Array.isArray(message.sources)
+    ? message.sources
+        .filter((entry) => isLocalSiteRoute(entry?.url || ""))
+        .slice(0, 4)
+        .map((entry) => ({ title: entry.title || routeTitleFor(entry.url), url: normalizeLocalRoute(entry.url) }))
+    : [];
+
+  const links = (fromText.length ? fromText : fallback).slice(0, 4);
+  if (!links.length) {
+    return [];
+  }
+
+  const heading = document.createElement("p");
+  heading.className = "ask-source-kicker";
+  heading.textContent = "Quick Navigation";
+  article.append(heading);
+
+  const nav = document.createElement("div");
+  nav.className = "ask-inline-nav";
+  links.forEach((linkItem) => {
+    const link = document.createElement("a");
+    link.className = "ask-inline-route ask-inline-route-chip";
+    link.href = linkItem.url;
+    link.textContent = linkItem.title;
+    nav.append(link);
+  });
+
+  article.append(nav);
+  return links;
+}
+
 function renderMessage(message, index) {
   if (!els.transcript) {
     return;
@@ -828,9 +1128,17 @@ function renderMessage(message, index) {
   heading.textContent = message.role === "user" ? "You" : `Anton${message.intent?.label ? ` - ${message.intent.label}` : ""}`;
   article.append(heading);
 
-  const body = document.createElement("p");
-  body.textContent = message.content;
-  article.append(body);
+  let quickNavigationLinks = [];
+
+  if (message.role === "assistant") {
+    article.append(renderAssistantBody(message));
+    quickNavigationLinks = renderNavigationLinks(article, message);
+  } else {
+    const body = document.createElement("p");
+    body.className = "ask-answer-paragraph";
+    appendParsedText(body, message.content);
+    article.append(body);
+  }
 
   if (message.role === "assistant" && message.confidence) {
     const confidence = document.createElement("p");
@@ -920,22 +1228,32 @@ function renderMessage(message, index) {
   }
 
   if (message.role === "assistant" && Array.isArray(message.sources) && message.sources.length) {
-    const sourceHeading = document.createElement("p");
-    sourceHeading.className = "ask-source-kicker";
-    sourceHeading.textContent = "Local Routes";
-    article.append(sourceHeading);
+    const quickNavSet = new Set((quickNavigationLinks || []).map((entry) => normalizeLocalRoute(entry?.url || "")));
+    const additionalSources = message.sources
+      .filter((entry) => {
+        const route = normalizeLocalRoute(entry?.url || "");
+        return route && !quickNavSet.has(route);
+      })
+      .slice(0, 4);
 
-    const sourceList = document.createElement("ul");
-    sourceList.className = "ask-source-links";
-    message.sources.slice(0, 5).forEach((entry) => {
-      const item = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = entry.url;
-      link.textContent = entry.title;
-      item.append(link);
-      sourceList.append(item);
-    });
-    article.append(sourceList);
+    if (additionalSources.length) {
+      const sourceHeading = document.createElement("p");
+      sourceHeading.className = "ask-source-kicker";
+      sourceHeading.textContent = quickNavSet.size ? "More Local Routes" : "Local Routes";
+      article.append(sourceHeading);
+
+      const sourceList = document.createElement("ul");
+      sourceList.className = "ask-source-links";
+      additionalSources.forEach((entry) => {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = entry.url;
+        link.textContent = entry.title;
+        item.append(link);
+        sourceList.append(item);
+      });
+      article.append(sourceList);
+    }
   }
 
   if (message.role === "assistant") {

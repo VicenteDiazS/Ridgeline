@@ -1845,7 +1845,15 @@ function buildMobileNavAccordion(sections) {
     )
     .join("");
 
+  const askShortcutMarkup = `
+    <a class="mobile-nav-ask-link" href="ask-anton.html#ask-anton-chat" data-nav-icon="ask" aria-label="Open Ask Anton assistant">
+      <span>Ask Anton</span>
+      <strong>AI Assistant</strong>
+    </a>
+  `;
+
   container.innerHTML = `
+    ${askShortcutMarkup}
     ${hasSectionDock ? "" : `
     <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="sections" aria-expanded="false">
       <span>Page Sections</span>
@@ -1910,7 +1918,7 @@ function buildMobileNavAccordion(sections) {
   });
 
   container.addEventListener("click", (event) => {
-    if (event.target.closest("a.mobile-nav-link")) {
+    if (event.target.closest("a.mobile-nav-link") || event.target.closest("a.mobile-nav-ask-link")) {
       closeAll();
     }
   });
@@ -2155,6 +2163,22 @@ function buildBackToMapButton() {
   button.href = "index.html#viewer";
   button.dataset.navIcon = "map";
   button.textContent = "Back To Map";
+  document.body.appendChild(button);
+}
+
+function buildAskAntonFloatingButton() {
+  if (document.querySelector(".ask-anton-fab")) {
+    return;
+  }
+
+  const askPage = currentPageName() === "ask-anton.html";
+  const button = document.createElement("a");
+  button.className = "ask-anton-fab";
+  button.href = askPage ? "#ask-anton-chat" : "ask-anton.html#ask-anton-chat";
+  button.dataset.navIcon = "ask";
+  button.setAttribute("aria-label", askPage ? "Jump to Ask Anton chat" : "Open Ask Anton assistant");
+  button.title = askPage ? "Ask Anton chat" : "Ask Anton";
+  button.innerHTML = `<span>Ask</span><strong>Anton</strong>`;
   document.body.appendChild(button);
 }
 
@@ -5673,6 +5697,12 @@ buildMiniToolsDrawer();
 const sectionRail = isMobileNavMode ? null : buildSectionRail(pageSections);
 syncActiveSectionUi(pageSections, sectionRail);
 buildBackToMapButton();
+buildAskAntonFloatingButton();
+window.setTimeout(() => {
+  if (!document.querySelector(".ask-anton-fab")) {
+    buildAskAntonFloatingButton();
+  }
+}, 180);
 buildScrollProgress();
 bindCompactStickyHeader();
 buildDynamicIslandShelf();
