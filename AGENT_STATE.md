@@ -25,6 +25,7 @@ Last updated: 2026-05-31
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
+- Diagnostics and Quick Sheet generated handoffs now show an in-card manual copy fallback when iOS/browser clipboard or share APIs fail, and Quick Sheet contact/session/dispatch actions report status beside the tapped card.
 
 ## Current Queue
 
@@ -64,6 +65,7 @@ Last updated: 2026-05-31
 - Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
 - Added the Diagnostics Decision Guide and synchronized Diagnostics symptom pickers across the decision, handoff, first-check, and dock surfaces.
 - Added Quick Sheet roadside URL/history preservation so roadside stack selection survives reload, share, and back navigation.
+- Added manual copy fallback panels for Diagnostics handoffs/checks/call summaries and Quick Sheet prep/roadside/fuse/dispatch copy paths, with local roadside status feedback for contact, session, and dispatch cards.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -106,7 +108,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added the Diagnostics Decision Guide, synchronized Diagnostics symptom picker state, preserved Quick Sheet roadside selection in URL/history, and bumped the PWA cache to `ridgeline-console-v421`. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. Targeted mobile Playwright checks passed for `diagnostics.html?diagnostic=warning#diagnostic-decision-guide` and `quick-sheet.html?roadside=start#roadside-action-stack`, including no horizontal overflow, correct deep-link selection, synchronized symptom state, source-link presence, and Quick Sheet back/history restoration. `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html')` first caught removed legacy first-minute links, which were restored, then timed out in this environment without returning a new assertion.
+- Anton's latest scheduled run added in-card manual copy fallbacks for Diagnostics and Quick Sheet handoffs when clipboard/share APIs fail, added local Quick Sheet roadside status beside contact/session/dispatch actions, and bumped the PWA cache to `ridgeline-console-v422`. Targeted Playwright checks passed on iPhone-sized viewports for forced clipboard failure on `diagnostics.html` and `quick-sheet.html`, including one visible fallback panel, expected generated text, local dispatch status, and no horizontal overflow. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. The broad `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html','quick-sheet.html')` wrapper still timed out in this environment before returning assertions.
 
 ## Archive
 

@@ -198,6 +198,10 @@
                 <button class="utility-link" type="button" data-save-diagnostic-note>Save Note</button>
               </div>
               <p class="small-note" aria-live="polite" data-diagnostic-share-status></p>
+              <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
+                <span>Manual copy fallback</span>
+                <textarea readonly rows="6" data-manual-copy-text aria-label="Generated diagnostic handoff text"></textarea>
+              </div>
             </article>
             <article class="diagnostic-save-receipt" data-diagnostic-save-receipt hidden>
               <div>
@@ -210,6 +214,10 @@
                 <button class="utility-link utility-link-strong" type="button" data-copy-diagnostic-receipt>Copy Note</button>
                 <button class="utility-link" type="button" data-share-diagnostic-receipt>Share</button>
                 <a class="utility-link" href="garage.html#notes">Open Garage Notes</a>
+              </div>
+              <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
+                <span>Manual copy fallback</span>
+                <textarea readonly rows="6" data-manual-copy-text aria-label="Generated saved diagnostic note text"></textarea>
               </div>
             </article>
             <p class="source-note">
@@ -257,6 +265,10 @@
                 <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
               </div>
               <p class="small-note" aria-live="polite" data-diagnostic-check-status></p>
+              <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
+                <span>Manual copy fallback</span>
+                <textarea readonly rows="6" data-manual-copy-text aria-label="Generated first-check text"></textarea>
+              </div>
             </article>
             <p class="source-note">
               Tracker rule: mark only what you verified on the truck. This preserves context and does not replace current warnings, fuse-cover labels, the owner manual, or professional diagnosis.
@@ -308,6 +320,10 @@
                 <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Roadside Stack</a>
               </div>
               <p class="small-note" aria-live="polite" data-diagnostic-call-status-text></p>
+              <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
+                <span>Manual copy fallback</span>
+                <textarea readonly rows="6" data-manual-copy-text aria-label="Generated diagnostic call summary text"></textarea>
+              </div>
             </article>
             <p class="source-note">
               Call rule: this only packages what you recorded on this iPhone. Verify against the truck, current warning state, fuse labels, owner manual, and roadside conditions before acting.

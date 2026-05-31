@@ -687,6 +687,36 @@ async function copyText(text) {
   return false;
 }
 
+function manualCopyScope(trigger) {
+  return trigger?.closest?.("article, section") || trigger || document;
+}
+
+function showManualCopyFallback(trigger, text) {
+  const fallback = manualCopyScope(trigger).querySelector?.("[data-manual-copy-fallback]");
+  const field = fallback?.querySelector("[data-manual-copy-text]");
+  if (!fallback || !field) {
+    return;
+  }
+  document.querySelectorAll("[data-manual-copy-fallback]").forEach((panel) => {
+    if (panel !== fallback) {
+      panel.hidden = true;
+    }
+  });
+  field.value = text;
+  fallback.hidden = false;
+  window.requestAnimationFrame(() => {
+    field.focus({ preventScroll: true });
+    field.select();
+  });
+}
+
+function hideManualCopyFallback(trigger) {
+  const fallback = manualCopyScope(trigger).querySelector?.("[data-manual-copy-fallback]");
+  if (fallback) {
+    fallback.hidden = true;
+  }
+}
+
 function initDiagnosticShareBuilder() {
   const root = document.querySelector("[data-diagnostic-share-builder]");
   if (!root) {
@@ -697,31 +727,45 @@ function initDiagnosticShareBuilder() {
     button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticSharePlan));
   });
 
-  root.querySelector("[data-copy-diagnostic-share]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-diagnostic-share]")?.addEventListener("click", async (event) => {
     const plan = diagnosticSharePlans[root.dataset.currentDiagnosticSharePlan] || diagnosticSharePlans.start;
     const detail = root.querySelector("[data-diagnostic-detail]")?.value || "";
+    const text = buildDiagnosticHandoff(plan, detail);
     try {
-      const copied = await copyText(buildDiagnosticHandoff(plan, detail));
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticShareStatus(root, copied ? "Diagnostic handoff copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticShareStatus(root, "Copy failed. Select and copy the visible handoff instead.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticShareStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-diagnostic-share]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-diagnostic-share]")?.addEventListener("click", async (event) => {
     const plan = diagnosticSharePlans[root.dataset.currentDiagnosticSharePlan] || diagnosticSharePlans.start;
     const detail = root.querySelector("[data-diagnostic-detail]")?.value || "";
     const text = buildDiagnosticHandoff(plan, detail);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline diagnostic handoff", text });
+        hideManualCopyFallback(event.currentTarget);
         setDiagnosticShareStatus(root, "Diagnostic handoff shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticShareStatus(root, copied ? "Share unavailable; handoff copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticShareStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticShareStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -755,7 +799,7 @@ function initDiagnosticShareBuilder() {
     }
   });
 
-  root.querySelector("[data-copy-diagnostic-receipt]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-diagnostic-receipt]")?.addEventListener("click", async (event) => {
     const text = currentDiagnosticReceiptText();
     if (!text) {
       setDiagnosticShareStatus(root, "Save a diagnostic note before copying the receipt.");
@@ -764,13 +808,19 @@ function initDiagnosticShareBuilder() {
 
     try {
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticShareStatus(root, copied ? "Saved diagnostic note copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticShareStatus(root, "Copy failed. Open Garage Notes to select the saved note.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticShareStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-diagnostic-receipt]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-diagnostic-receipt]")?.addEventListener("click", async (event) => {
     const text = currentDiagnosticReceiptText();
     if (!text) {
       setDiagnosticShareStatus(root, "Save a diagnostic note before sharing the receipt.");
@@ -780,13 +830,20 @@ function initDiagnosticShareBuilder() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline diagnostic note", text });
+        hideManualCopyFallback(event.currentTarget);
         setDiagnosticShareStatus(root, "Saved diagnostic note shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticShareStatus(root, copied ? "Share unavailable; saved note copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticShareStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticShareStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -895,29 +952,43 @@ function initDiagnosticCheckTracker() {
     persistDiagnosticCheckState(root);
   });
 
-  root.querySelector("[data-copy-diagnostic-checks]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-diagnostic-checks]")?.addEventListener("click", async (event) => {
     const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
+    const text = buildDiagnosticCheckText(plan, markedChecks, detail);
     try {
-      const copied = await copyText(buildDiagnosticCheckText(plan, markedChecks, detail));
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticCheckStatus(root, copied ? "First diagnostic checks copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticCheckStatus(root, "Copy failed. Select and copy the visible note instead.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticCheckStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-diagnostic-checks]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-diagnostic-checks]")?.addEventListener("click", async (event) => {
     const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
     const text = buildDiagnosticCheckText(plan, markedChecks, detail);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline first diagnostic checks", text });
+        hideManualCopyFallback(event.currentTarget);
         setDiagnosticCheckStatus(root, "First diagnostic checks shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticCheckStatus(root, copied ? "Share unavailable; checks copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticCheckStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticCheckStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -970,27 +1041,41 @@ function initDiagnosticCallSummary() {
     });
   });
 
-  root.querySelector("[data-copy-diagnostic-call]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-diagnostic-call]")?.addEventListener("click", async (event) => {
+    const text = buildDiagnosticCallText(root);
     try {
-      const copied = await copyText(buildDiagnosticCallText(root));
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticCallStatus(root, copied ? "Diagnostic call summary copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticCallStatus(root, "Copy failed. Select and copy the visible call details instead.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticCallStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-diagnostic-call]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-diagnostic-call]")?.addEventListener("click", async (event) => {
     const text = buildDiagnosticCallText(root);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline diagnostic call summary", text });
+        hideManualCopyFallback(event.currentTarget);
         setDiagnosticCallStatus(root, "Diagnostic call summary shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setDiagnosticCallStatus(root, copied ? "Share unavailable; call summary copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setDiagnosticCallStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setDiagnosticCallStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 

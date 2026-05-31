@@ -8239,6 +8239,60 @@ body[data-site-theme="light"] .ask-message-assistant {
   line-height: 1.65;
 }
 
+.manual-copy-fallback {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(121, 212, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(4, 10, 18, 0.64);
+}
+
+.manual-copy-fallback[hidden] {
+  display: none;
+}
+
+.manual-copy-fallback span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.manual-copy-fallback textarea {
+  width: 100%;
+  min-height: 118px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(2, 8, 15, 0.84);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  padding: 10px 11px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.manual-copy-fallback textarea:focus {
+  border-color: rgba(121, 212, 255, 0.68);
+  box-shadow: 0 0 0 3px rgba(121, 212, 255, 0.14);
+  outline: none;
+}
+
+body[data-site-theme="light"] .manual-copy-fallback {
+  border-color: rgba(12, 108, 148, 0.24);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+body[data-site-theme="light"] .manual-copy-fallback textarea {
+  border-color: rgba(19, 36, 56, 0.16);
+  background: #ffffff;
+  color: #132438;
+}
+
 .status-list {
   display: grid;
   gap: 10px;

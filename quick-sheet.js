@@ -541,6 +541,14 @@ function setStatus(root, message) {
   }
 }
 
+function setActionStatus(root, trigger, message) {
+  const localStatus = trigger?.closest?.("article")?.querySelector("[data-roadside-local-status]");
+  if (localStatus) {
+    localStatus.textContent = message;
+  }
+  setStatus(root, message);
+}
+
 function setFuseNoteStatus(root, message) {
   const status = root.querySelector("[data-fuse-note-status]");
   if (status) {
@@ -605,6 +613,36 @@ async function copyText(text) {
     return true;
   }
   return false;
+}
+
+function manualCopyScope(trigger) {
+  return trigger?.closest?.("article, section") || trigger || document;
+}
+
+function showManualCopyFallback(trigger, text) {
+  const fallback = manualCopyScope(trigger).querySelector?.("[data-manual-copy-fallback]");
+  const field = fallback?.querySelector("[data-manual-copy-text]");
+  if (!fallback || !field) {
+    return;
+  }
+  document.querySelectorAll("[data-manual-copy-fallback]").forEach((panel) => {
+    if (panel !== fallback) {
+      panel.hidden = true;
+    }
+  });
+  field.value = text;
+  fallback.hidden = false;
+  window.requestAnimationFrame(() => {
+    field.focus({ preventScroll: true });
+    field.select();
+  });
+}
+
+function hideManualCopyFallback(trigger) {
+  const fallback = manualCopyScope(trigger).querySelector?.("[data-manual-copy-fallback]");
+  if (fallback) {
+    fallback.hidden = true;
+  }
 }
 
 async function refreshServiceWorkerRegistrations() {
@@ -823,36 +861,57 @@ function initQuickPrintPack() {
     }
   });
 
-  root.querySelector("[data-copy-offline-route-plan]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-offline-route-plan]")?.addEventListener("click", async (event) => {
+    const text = buildOfflineRoutePlan();
     try {
-      const copied = await copyText(buildOfflineRoutePlan());
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setPrintPackStatus(root, copied ? "Offline route plan copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setPrintPackStatus(root, "Copy failed. Run Check Routes, then select the route list if needed.");
+      showManualCopyFallback(event.currentTarget, text);
+      setPrintPackStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-copy-print-pack]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-print-pack]")?.addEventListener("click", async (event) => {
+    const text = buildPrintPackHandoff();
     try {
-      const copied = await copyText(buildPrintPackHandoff());
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setPrintPackStatus(root, copied ? "Print prep copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setPrintPackStatus(root, "Copy failed. Select and copy the visible prep steps instead.");
+      showManualCopyFallback(event.currentTarget, text);
+      setPrintPackStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-print-pack]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-print-pack]")?.addEventListener("click", async (event) => {
     const text = buildPrintPackHandoff();
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline Quick Sheet prep", text });
+        hideManualCopyFallback(event.currentTarget);
         setPrintPackStatus(root, "Print prep shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setPrintPackStatus(root, copied ? "Share unavailable; print prep copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setPrintPackStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setPrintPackStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 }
@@ -873,27 +932,41 @@ function initFuseCheckNote() {
   });
   root.querySelector("[data-fuse-note-context]")?.addEventListener("input", () => renderFuseNote(root));
 
-  root.querySelector("[data-copy-fuse-note]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-fuse-note]")?.addEventListener("click", async (event) => {
+    const text = buildFuseNoteText(root);
     try {
-      const copied = await copyText(buildFuseNoteText(root));
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setFuseNoteStatus(root, copied ? "Fuse check note copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setFuseNoteStatus(root, "Copy failed. Keep the note visible for reference.");
+      showManualCopyFallback(event.currentTarget, text);
+      setFuseNoteStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-fuse-note]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-fuse-note]")?.addEventListener("click", async (event) => {
     const text = buildFuseNoteText(root);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline fuse check note", text });
+        hideManualCopyFallback(event.currentTarget);
         setFuseNoteStatus(root, "Fuse check note shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setFuseNoteStatus(root, copied ? "Share unavailable; fuse note copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setFuseNoteStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setFuseNoteStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -933,29 +1006,43 @@ function initRoadsideStack() {
     button.addEventListener("click", () => updateRoadsidePlan(root, button.dataset.roadsidePlan, { updateUrl: true }));
   });
 
-  root.querySelector("[data-copy-roadside-stack]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-roadside-stack]")?.addEventListener("click", async (event) => {
     const plan = roadsidePlans[root.dataset.currentRoadsidePlan] || roadsidePlans.flat;
+    const text = buildHandoff(plan);
     try {
-      const copied = await copyText(buildHandoff(plan));
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setStatus(root, copied ? "Roadside handoff copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Copy failed. Select and copy the visible steps instead.");
+      showManualCopyFallback(event.currentTarget, text);
+      setStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-roadside-stack]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-roadside-stack]")?.addEventListener("click", async (event) => {
     const plan = roadsidePlans[root.dataset.currentRoadsidePlan] || roadsidePlans.flat;
     const text = buildHandoff(plan);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline roadside handoff", text });
+        hideManualCopyFallback(event.currentTarget);
         setStatus(root, "Roadside handoff shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setStatus(root, copied ? "Share unavailable; handoff copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -988,7 +1075,7 @@ function initRoadsideStack() {
     }
   });
 
-  root.querySelector("[data-copy-roadside-receipt]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-roadside-receipt]")?.addEventListener("click", async (event) => {
     const text = currentReceiptText();
     if (!text) {
       setStatus(root, "Save a roadside note before copying the receipt.");
@@ -997,13 +1084,19 @@ function initRoadsideStack() {
 
     try {
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setStatus(root, copied ? "Saved roadside note copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Copy failed. Open Garage Notes to select the saved note.");
+      showManualCopyFallback(event.currentTarget, text);
+      setStatus(root, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-roadside-receipt]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-roadside-receipt]")?.addEventListener("click", async (event) => {
     const text = currentReceiptText();
     if (!text) {
       setStatus(root, "Save a roadside note before sharing the receipt.");
@@ -1013,13 +1106,20 @@ function initRoadsideStack() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline roadside note", text });
+        hideManualCopyFallback(event.currentTarget);
         setStatus(root, "Saved roadside note shared.");
         return;
       }
       const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
       setStatus(root, copied ? "Share unavailable; saved note copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setStatus(root, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
@@ -1030,30 +1130,37 @@ function initRoadsideStack() {
       saveRoadsideContact(contact);
       renderRoadsideContact(root);
       renderRoadsideDispatch(root);
-      setStatus(root, "Roadside contact card saved on this iPhone.");
+      setActionStatus(root, field, "Roadside contact card saved on this iPhone.");
     });
   });
 
-  root.querySelector("[data-copy-roadside-contact]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-roadside-contact]")?.addEventListener("click", async (event) => {
+    const text = buildRoadsideContactText();
     try {
-      const copied = await copyText(buildRoadsideContactText());
-      setStatus(root, copied ? "Roadside contact card copied." : "Copy is unavailable in this browser.");
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Roadside contact card copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Copy failed. Keep the contact card visible for reference.");
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-save-roadside-contact]")?.addEventListener("click", () => {
+  root.querySelector("[data-save-roadside-contact]")?.addEventListener("click", (event) => {
     try {
       prependGarageGeneralNote(buildRoadsideContactText());
       renderRoadsideDispatch(root);
-      setStatus(root, "Roadside contact card saved to Garage Notes.");
+      setActionStatus(root, event.currentTarget, "Roadside contact card saved to Garage Notes.");
     } catch (error) {
-      setStatus(root, "Could not save the roadside contact card in this browser.");
+      setActionStatus(root, event.currentTarget, "Could not save the roadside contact card in this browser.");
     }
   });
 
-  root.querySelector("[data-start-roadside-session]")?.addEventListener("click", () => {
+  root.querySelector("[data-start-roadside-session]")?.addEventListener("click", (event) => {
     const planKey = root.dataset.currentRoadsidePlan || "flat";
     saveRoadsideSession({
       planKey,
@@ -1065,11 +1172,11 @@ function initRoadsideStack() {
     });
     renderRoadsideSession(root);
     renderRoadsideDispatch(root);
-    setStatus(root, "Live roadside session started on this iPhone.");
+    setActionStatus(root, event.currentTarget, "Live roadside session started on this iPhone.");
   });
 
   root.querySelectorAll("[data-roadside-checkpoint]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
       const planKey = root.dataset.currentRoadsidePlan || "flat";
       const session = loadRoadsideSession() || {
         planKey,
@@ -1085,76 +1192,97 @@ function initRoadsideStack() {
       saveRoadsideSession(session);
       renderRoadsideSession(root);
       renderRoadsideDispatch(root);
-      setStatus(root, `${button.dataset.roadsideCheckpoint} checkpoint added.`);
+      setActionStatus(root, event.currentTarget, `${button.dataset.roadsideCheckpoint} checkpoint added.`);
     });
   });
 
-  root.querySelector("[data-copy-roadside-session]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-roadside-session]")?.addEventListener("click", async (event) => {
     const session = loadRoadsideSession();
     if (!session) {
-      setStatus(root, "Start a live roadside session before copying an update.");
+      setActionStatus(root, event.currentTarget, "Start a live roadside session before copying an update.");
       return;
     }
+    const text = buildRoadsideSessionText(session);
     try {
-      const copied = await copyText(buildRoadsideSessionText(session));
-      setStatus(root, copied ? "Live roadside update copied." : "Copy is unavailable in this browser.");
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Live roadside update copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Copy failed. Keep the session card visible for reference.");
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-save-roadside-session]")?.addEventListener("click", () => {
+  root.querySelector("[data-save-roadside-session]")?.addEventListener("click", (event) => {
     const session = loadRoadsideSession();
     if (!session) {
-      setStatus(root, "Start a live roadside session before saving a log.");
+      setActionStatus(root, event.currentTarget, "Start a live roadside session before saving a log.");
       return;
     }
     try {
       prependGarageGeneralNote(buildRoadsideSessionText(session));
       renderRoadsideDispatch(root);
-      setStatus(root, "Live roadside session saved to Garage Notes.");
+      setActionStatus(root, event.currentTarget, "Live roadside session saved to Garage Notes.");
     } catch (error) {
-      setStatus(root, "Could not save the live roadside session in this browser.");
+      setActionStatus(root, event.currentTarget, "Could not save the live roadside session in this browser.");
     }
   });
 
-  root.querySelector("[data-reset-roadside-session]")?.addEventListener("click", () => {
+  root.querySelector("[data-reset-roadside-session]")?.addEventListener("click", (event) => {
     clearRoadsideSession();
     renderRoadsideSession(root);
     renderRoadsideDispatch(root);
-    setStatus(root, "Live roadside session reset on this iPhone.");
+    setActionStatus(root, event.currentTarget, "Live roadside session reset on this iPhone.");
   });
 
-  root.querySelector("[data-copy-roadside-dispatch]")?.addEventListener("click", async () => {
+  root.querySelector("[data-copy-roadside-dispatch]")?.addEventListener("click", async (event) => {
+    const text = buildRoadsideDispatchText(root);
     try {
-      const copied = await copyText(buildRoadsideDispatchText(root));
-      setStatus(root, copied ? "Roadside dispatch pack copied." : "Copy is unavailable in this browser.");
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Roadside dispatch pack copied." : "Copy is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Copy failed. Keep the dispatch pack visible for reference.");
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Copy failed. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-share-roadside-dispatch]")?.addEventListener("click", async () => {
+  root.querySelector("[data-share-roadside-dispatch]")?.addEventListener("click", async (event) => {
     const text = buildRoadsideDispatchText(root);
     try {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline roadside dispatch pack", text });
-        setStatus(root, "Roadside dispatch pack shared.");
+        hideManualCopyFallback(event.currentTarget);
+        setActionStatus(root, event.currentTarget, "Roadside dispatch pack shared.");
         return;
       }
       const copied = await copyText(text);
-      setStatus(root, copied ? "Share unavailable; dispatch pack copied instead." : "Share is unavailable in this browser.");
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Share unavailable; dispatch pack copied instead." : "Share is unavailable in this browser.");
     } catch (error) {
-      setStatus(root, "Share canceled or unavailable.");
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Share canceled or unavailable. Select the fallback text below.");
     }
   });
 
-  root.querySelector("[data-save-roadside-dispatch]")?.addEventListener("click", () => {
+  root.querySelector("[data-save-roadside-dispatch]")?.addEventListener("click", (event) => {
     try {
       prependGarageGeneralNote(buildRoadsideDispatchText(root));
-      setStatus(root, "Roadside dispatch pack saved to Garage Notes.");
+      setActionStatus(root, event.currentTarget, "Roadside dispatch pack saved to Garage Notes.");
     } catch (error) {
-      setStatus(root, "Could not save the roadside dispatch pack in this browser.");
+      setActionStatus(root, event.currentTarget, "Could not save the roadside dispatch pack in this browser.");
     }
   });
 
