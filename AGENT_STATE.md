@@ -18,12 +18,12 @@ Last updated: 2026-05-31
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature is the Home signal-loss prep strip plus route-specific Global Search offline readiness: the truck-first home view now exposes offline pack, roadside stack, Garage backup, and tow prep shortcuts, and `?search=offline` checks the exact iPhone route targets automatically.
+- The most recent Anton-delivered feature is the Quick Sheet Roadside Command strip plus Diagnostics shareable symptom URLs and Search live-roadside resume: Quick Sheet now summarizes the selected roadside plan, contact/session/cache readiness, Diagnostics symptom buttons update `?diagnostic=` history, and Global Search can reopen a running roadside session with the selected stack preserved.
 - Garage Recent Handoffs now has a latest-handoff review card with Copy, Share, Open Source, and manual-copy fallback for iOS clipboard/share failures; the owner-auth listener was also moved out of the maintenance staging save path so repeated saves do not stack callbacks.
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is bumped to `ridgeline-console-v425` for Maintenance route persistence and Garage staging parser updates.
+- The PWA cache is bumped to `ridgeline-console-v426` for Quick Sheet Roadside Command, Diagnostics URL-state updates, and Search live-roadside resume.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
@@ -73,6 +73,7 @@ Last updated: 2026-05-31
 - Added the Home signal-loss prep strip and made Global Search offline readiness check exact route targets such as Roadside Stack, Diagnostics Guide, Hood/Cabin Fuses, 7-Way Pinout, and Garage Backup, including auto-checks for `?search=offline`.
 - Added a Garage Recent Handoffs latest-review card, Share Latest/Open Latest actions, and an in-panel manual copy fallback for failed iOS clipboard/share paths; also fixed the maintenance staging run save path so it no longer registers owner-auth callbacks repeatedly.
 - Added stale-running detection to Anton status on Home and `anton.html`, using a 20-minute heartbeat threshold to show inspect-controls guidance instead of an indefinite running state.
+- Added Quick Sheet Roadside Command, Diagnostics `?diagnostic=` history/back persistence, Search live-roadside resume routing, and updated the Quick Sheet/search smoke assertions that had fallen behind the current critical strip and route-prime behavior.
 - Added Maintenance service route persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so brake-fluid calendar cautions are not treated as need-to-buy parts lines.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
@@ -95,8 +96,8 @@ Last updated: 2026-05-31
 
 Use the next Anton run to verify or improve a high-impact iPhone path outside Maintenance/Garage unless a regression appears. The best near-term bets are:
 
-- run a real iPhone/browser smoke of the Ask Anton local route-answer path, Maintenance service/action deep links, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
-- Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
+- run a real iPhone/browser smoke of the Ask Anton local route-answer path, home Ask Anton links, Diagnostics/Quick Sheet bottom action bars, and the new Quick Sheet Roadside Command once the broader browser audit wrapper is healthy
+- unify Search and Quick Sheet offline route readiness so roadside route confidence cannot drift between the two surfaces
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
 Avoid another long single-page niche pass unless it clearly completes a user-visible workflow or fixes a regression.
@@ -115,7 +116,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added Maintenance service URL persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so Maintenance Minder brake-fluid calendar cautions do not become need-to-buy lines; and bumped the PWA cache to `ridgeline-console-v425`. A targeted Playwright check passed for Maintenance deep links, launcher URL updates, browser Back restoration, and Garage staging preview filtering. `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')`, `Test-InternalLinks.ps1`, and `git diff --check` passed.
+- Anton's latest scheduled run added Quick Sheet Roadside Command, Diagnostics `?diagnostic=` history/back persistence, Search live-roadside resume routing, and bumped the PWA cache to `ridgeline-console-v426`. Focused localhost Playwright checks passed for `quick-sheet.html?roadside=start#roadside-action-stack` command state/no iPhone overflow, Diagnostics trailer/audio back-state restoration, and Search reopening a live warning-roadside session. `Test-InternalLinks.ps1` and `git diff --check` passed. The broader `Invoke-BrowserSmoke.ps1 -Pages @('quick-sheet.html','diagnostics.html')` wrapper timed out after stale Quick Sheet/Search audit expectations were repaired, so future runs should recheck wrapper health separately.
 
 ## Archive
 

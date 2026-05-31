@@ -1292,7 +1292,7 @@ async def assert_quick_sheet(page, page_name):
     assert_true("/6" in prime_state["offlineStatus"], "prime-routes action did not update the live offline route count")
     assert_true("rear-hitch.html#pinout" in prime_state["routeLinks"], "prime-routes list should preserve the pinout route link")
     assert_true(state["hasCritical"], "quick sheet is missing the critical strip")
-    assert_true(state["criticalCards"] == 6, "quick sheet critical strip should expose six compact references")
+    assert_true(state["criticalCards"] == 7, "quick sheet critical strip should expose seven compact references")
     assert_true(not state["missingCriticalTargets"], f"critical strip is missing routes: {state['missingCriticalTargets']}")
     for phrase in ["35 psi", "94 lb-ft", "jump path", "symptom first", "3,500 / 5,000 lb", "save exact text"]:
         assert_true(phrase in state["criticalText"], f"critical strip is missing text: {phrase}")
@@ -4947,7 +4947,16 @@ async def run_overlay_checks(page, page_name):
     route_plan_status = await page.locator("[data-search-refresh-status]").inner_text()
     assert_true("route plan copied" in route_plan_status.lower() or "could not copy" in route_plan_status.lower(), "search copy-route-plan action did not report status")
     await page.locator("[data-search-prime-routes]").click()
-    await page.wait_for_timeout(650)
+    try:
+        await page.wait_for_function(
+            """() => {
+                const status = document.querySelector("[data-search-refresh-status]")?.textContent || "";
+                return status.includes("/6") || status.includes("Could not prime");
+            }""",
+            timeout=2500,
+        )
+    except PlaywrightTimeoutError:
+        pass
     prime_status = await page.locator("[data-search-refresh-status]").inner_text()
     assert_true("/6" in prime_status or "Could not prime" in prime_status, "search prime-routes action did not report route readiness")
     await set_search_query(page, "fuse")

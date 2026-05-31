@@ -280,6 +280,30 @@ function requestedDiagnosticPlanKey() {
   return diagnosticHashPlans[window.location.hash] || null;
 }
 
+function updateDiagnosticPlanUrl(key, mode = "push") {
+  const planKey = diagnosticSharePlans[key] ? key : null;
+  if (!planKey || !window.history?.pushState) {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("diagnostic", planKey);
+  url.searchParams.delete("symptom");
+  if (!url.hash) {
+    url.hash = "diagnostic-decision-guide";
+  }
+  if (url.href === window.location.href) {
+    return;
+  }
+
+  const state = { diagnosticPlan: planKey };
+  if (mode === "replace") {
+    window.history.replaceState(state, "", url);
+    return;
+  }
+  window.history.pushState(state, "", url);
+}
+
 function syncDiagnosticToolsToLocation() {
   const key = requestedDiagnosticPlanKey();
   if (!key) {
@@ -616,7 +640,7 @@ function updateDiagnosticDecisionPlan(root, key) {
   updateDiagnosticDock(sharePlan);
 }
 
-function setDiagnosticPlanEverywhere(key) {
+function setDiagnosticPlanEverywhere(key, options = {}) {
   const planKey = diagnosticSharePlans[key] ? key : "start";
   document.querySelectorAll("[data-diagnostic-decision-guide]").forEach((root) => {
     updateDiagnosticDecisionPlan(root, planKey);
@@ -627,6 +651,9 @@ function setDiagnosticPlanEverywhere(key) {
   document.querySelectorAll("[data-diagnostic-check-tracker]").forEach((root) => {
     renderDiagnosticCheckPlan(root, planKey);
   });
+  if (options.updateUrl) {
+    updateDiagnosticPlanUrl(planKey, options.urlMode);
+  }
 }
 
 function updateDiagnosticSharePlan(root, key) {
@@ -673,7 +700,7 @@ function initDiagnosticDecisionGuide() {
   }
 
   root.querySelectorAll("[data-diagnostic-decision-plan]").forEach((button) => {
-    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticDecisionPlan));
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticDecisionPlan, { updateUrl: true }));
   });
 
   updateDiagnosticDecisionPlan(root, requestedDiagnosticPlanKey() || "start");
@@ -724,7 +751,7 @@ function initDiagnosticShareBuilder() {
   }
 
   root.querySelectorAll("[data-diagnostic-share-plan]").forEach((button) => {
-    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticSharePlan));
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticSharePlan, { updateUrl: true }));
   });
 
   root.querySelector("[data-copy-diagnostic-share]")?.addEventListener("click", async (event) => {
@@ -937,7 +964,7 @@ function initDiagnosticCheckTracker() {
   }
 
   root.querySelectorAll("[data-diagnostic-check-plan]").forEach((button) => {
-    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticCheckPlan));
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticCheckPlan, { updateUrl: true }));
   });
 
   root.addEventListener("change", (event) => {
@@ -1097,4 +1124,5 @@ initDiagnosticShareBuilder();
 initDiagnosticCheckTracker();
 initDiagnosticCallSummary();
 window.addEventListener("hashchange", syncDiagnosticToolsToLocation);
+window.addEventListener("popstate", syncDiagnosticToolsToLocation);
 initGarageCloudSync();

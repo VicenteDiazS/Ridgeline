@@ -6141,6 +6141,7 @@ function buildSearchRecentItems() {
   const items = [];
   const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
   const roadside = readSearchStorage("ridgeline-roadside-last-handoff", null);
+  const roadsideSession = readSearchStorage("ridgeline-roadside-live-session", null);
   const maintenanceLog = readSearchStorage("ridgeline-maintenance-log", []);
   const notes = readSearchStorage("ridgeline-notes", {});
 
@@ -6176,6 +6177,18 @@ function buildSearchRecentItems() {
       detail: shortSearchText(roadside.summary || roadside.title || "Last saved roadside handoff"),
       meta: formatSearchRecentDate(roadside.savedAt),
       href: "quick-sheet.html#roadside-action-stack"
+    });
+  }
+
+  if (roadsideSession?.startedAt || roadsideSession?.checkpoints?.length) {
+    const checkpoints = Array.isArray(roadsideSession.checkpoints) ? roadsideSession.checkpoints : [];
+    const planKey = `${roadsideSession.planKey || "flat"}`.trim().toLowerCase();
+    const routeKey = ["flat", "start", "warning", "trailer"].includes(planKey) ? planKey : "flat";
+    items.unshift({
+      label: "Live roadside",
+      detail: shortSearchText(`${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"} / ${routeKey}`),
+      meta: formatSearchRecentDate(roadsideSession.startedAt),
+      href: `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`
     });
   }
 

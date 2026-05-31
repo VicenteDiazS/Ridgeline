@@ -320,6 +320,41 @@ body[data-site-theme="light"] .install-app-step strong {
   color: #173042;
 }
 
+body[data-site-theme="light"] .quick-roadside-command-card {
+  border-color: rgba(151, 102, 31, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 235, 190, 0.74), rgba(235, 249, 255, 0.72)),
+    rgba(255, 255, 255, 0.94);
+}
+
+body[data-site-theme="light"] .quick-roadside-command-main span {
+  color: #8b5c16;
+}
+
+body[data-site-theme="light"] .quick-roadside-command-main strong {
+  color: #173042;
+}
+
+body[data-site-theme="light"] .quick-roadside-command-main p {
+  color: #5f7487;
+}
+
+body[data-site-theme="light"] .quick-roadside-command-status span {
+  border-color: rgba(61, 101, 137, 0.14);
+  color: #445d70;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+body[data-site-theme="light"] .quick-roadside-command-status span[data-command-state="ready"] {
+  border-color: rgba(46, 154, 115, 0.2);
+  color: #21674f;
+}
+
+body[data-site-theme="light"] .quick-roadside-command-status span[data-command-state="missing"] {
+  border-color: rgba(151, 102, 31, 0.2);
+  color: #7a541b;
+}
+
 body[data-site-theme="light"] .search-smart-grid span {
   color: #176ca0;
 }
@@ -19575,6 +19610,99 @@ body[data-site-theme="light"] .home-signal-card span {
   margin-top: 18px;
 }
 
+.quick-roadside-command {
+  border-color: rgba(255, 207, 117, 0.22);
+}
+
+.quick-roadside-command-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 207, 117, 0.18);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 207, 117, 0.1), rgba(97, 223, 255, 0.055)),
+    rgba(8, 16, 28, 0.86);
+}
+
+.quick-roadside-command-main {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.quick-roadside-command-main span {
+  color: #ffe4a8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.quick-roadside-command-main strong {
+  color: #ffffff;
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+
+.quick-roadside-command-main p {
+  margin: 0;
+  color: rgba(241, 247, 255, 0.76);
+  line-height: 1.5;
+}
+
+.quick-roadside-command-status {
+  display: grid;
+  gap: 8px;
+}
+
+.quick-roadside-command-status span {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(241, 247, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.quick-roadside-command-status span::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: rgba(241, 247, 255, 0.34);
+}
+
+.quick-roadside-command-status span[data-command-state="ready"] {
+  border-color: rgba(111, 255, 180, 0.24);
+  color: #d7ffe7;
+}
+
+.quick-roadside-command-status span[data-command-state="ready"]::before {
+  background: #6fffb4;
+}
+
+.quick-roadside-command-status span[data-command-state="missing"] {
+  border-color: rgba(255, 207, 117, 0.22);
+  color: #ffe4a8;
+}
+
+.quick-roadside-command-status span[data-command-state="missing"]::before {
+  background: #ffcf75;
+}
+
+.quick-roadside-command-actions {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
 .quick-print-pack-section {
   border-color: rgba(72, 202, 228, 0.22);
 }
@@ -20156,6 +20284,33 @@ body[data-site-theme="light"] .home-signal-card span {
 
   .quick-print-pack-section {
     padding: 14px;
+  }
+
+  .quick-roadside-command {
+    padding: 14px;
+  }
+
+  .quick-roadside-command-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .quick-roadside-command-status {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-roadside-command-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .quick-roadside-command-actions .utility-link {
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 8px;
+    text-align: center;
   }
 
   .quick-print-pack-grid {

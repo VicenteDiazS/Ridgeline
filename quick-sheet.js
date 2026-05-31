@@ -462,6 +462,7 @@ function renderRoadsideContact(root) {
       ? roadsideContactLines(contact).slice(1).join(" / ")
       : "Add location or callback detail to include it in copied roadside updates.";
   }
+  renderRoadsideCommand();
 }
 
 function renderRoadsideSession(root) {
@@ -497,11 +498,13 @@ function renderRoadsideSession(root) {
       row.appendChild(time);
       checks.appendChild(row);
     });
+    renderRoadsideCommand();
     return;
   }
   const empty = document.createElement("span");
   empty.textContent = "No checkpoints yet";
   checks.appendChild(empty);
+  renderRoadsideCommand();
 }
 
 function renderRoadsideDispatch(root) {
@@ -523,6 +526,68 @@ function renderRoadsideDispatch(root) {
   if (preview) {
     preview.textContent = `${plan.kicker} / ${contactSummary} / ${checkpointCount} checkpoints / ${routeSummary}.`;
   }
+  renderRoadsideCommand();
+}
+
+function currentRoadsidePlanKey() {
+  const stack = document.querySelector("[data-roadside-stack]");
+  return stack?.dataset.currentRoadsidePlan || requestedRoadsidePlanKey() || "flat";
+}
+
+function routeCacheSummary() {
+  const receipt = loadOfflineRouteReceipt();
+  const results = lastOfflineRouteResults.length ? lastOfflineRouteResults : receipt?.results || [];
+  if (!results.length) {
+    return "Routes not checked";
+  }
+  const readyCount = results.filter((route) => route.ready).length;
+  return `${readyCount}/${results.length} routes cached`;
+}
+
+function renderRoadsideCommand() {
+  const planKey = currentRoadsidePlanKey();
+  const plan = roadsidePlans[planKey] || roadsidePlans.flat;
+  const contact = loadRoadsideContact();
+  const session = loadRoadsideSession();
+  const checkpoints = Array.isArray(session?.checkpoints) ? session.checkpoints : [];
+  const contactText = hasRoadsideContact(contact) ? "Contact ready" : "Contact not filled";
+  const sessionText = session
+    ? `${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"} running`
+    : "No session running";
+  document.querySelectorAll("[data-roadside-command]").forEach((root) => {
+    const kicker = root.querySelector("[data-command-kicker]");
+    const title = root.querySelector("[data-command-title]");
+    const summary = root.querySelector("[data-command-summary]");
+    const primary = root.querySelector("[data-command-primary]");
+    const contactStatus = root.querySelector("[data-command-contact]");
+    const sessionStatus = root.querySelector("[data-command-session]");
+    const cacheStatus = root.querySelector("[data-command-cache]");
+    if (kicker) {
+      kicker.textContent = plan.kicker;
+    }
+    if (title) {
+      title.textContent = plan.title;
+    }
+    if (summary) {
+      summary.textContent = `${plan.summary} ${plan.reference}`;
+    }
+    if (primary) {
+      primary.textContent = plan.primary.label;
+      primary.setAttribute("href", plan.primary.href);
+    }
+    if (contactStatus) {
+      contactStatus.textContent = contactText;
+      contactStatus.dataset.commandState = hasRoadsideContact(contact) ? "ready" : "missing";
+    }
+    if (sessionStatus) {
+      sessionStatus.textContent = sessionText;
+      sessionStatus.dataset.commandState = session ? "ready" : "missing";
+    }
+    if (cacheStatus) {
+      cacheStatus.textContent = routeCacheSummary();
+      cacheStatus.dataset.commandState = routeCacheSummary().startsWith("0/") || routeCacheSummary() === "Routes not checked" ? "missing" : "ready";
+    }
+  });
 }
 
 function prependGarageGeneralNote(noteText) {
@@ -605,6 +670,7 @@ function updateRoadsidePlan(root, key, options = {}) {
   setStatus(root, `${plan.kicker} handoff ready.`);
   renderRoadsideSession(root);
   renderRoadsideDispatch(root);
+  renderRoadsideCommand();
 }
 
 async function copyText(text) {
@@ -755,6 +821,7 @@ function renderOfflineRouteResults(root, results = lastOfflineRouteResults) {
     .join("");
 
   document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => renderRoadsideDispatch(stackRoot));
+  renderRoadsideCommand();
 }
 
 function renderOfflineRouteReceipt(root, receipt = loadOfflineRouteReceipt()) {
@@ -786,6 +853,7 @@ function renderOfflineRouteReceipt(root, receipt = loadOfflineRouteReceipt()) {
       const allSet = document.createElement("span");
       allSet.textContent = "No missing routes from the last check";
       missing.appendChild(allSet);
+      renderRoadsideCommand();
       return;
     }
     missingRoutes.forEach((route) => {
@@ -796,6 +864,7 @@ function renderOfflineRouteReceipt(root, receipt = loadOfflineRouteReceipt()) {
       missing.appendChild(link);
     });
   }
+  renderRoadsideCommand();
 }
 
 function initQuickPrintPack() {
