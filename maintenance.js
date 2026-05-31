@@ -13,6 +13,9 @@ const servicePrepCards = [...document.querySelectorAll("[data-service-prep-card]
 const closeoutButtons = [...document.querySelectorAll("[data-closeout-service]")];
 const closeoutForm = document.querySelector("[data-service-closeout-form]");
 const closeoutStatus = document.querySelector("[data-service-closeout-status]");
+const closeoutTitle = closeoutForm?.querySelector("[data-service-closeout-title]");
+const closeoutMileage = closeoutForm?.querySelector("[data-service-closeout-mileage]");
+const closeoutNote = closeoutForm?.querySelector("[data-service-closeout-note]");
 const followupForm = document.querySelector("[data-service-followup-form]");
 const followupButtons = [...document.querySelectorAll("[data-followup-service]")];
 const followupStatus = document.querySelector("[data-service-followup-status]");
@@ -25,7 +28,6 @@ const minderStatus = document.querySelector("[data-minder-plan-status]");
 const GARAGE_MAINTENANCE_STAGING_URL = "garage.html#maintenance-note-preview";
 const MAINTENANCE_STAGE_HANDOFF_KEY = "ridgeline-maintenance-stage-handoff";
 const SERVICE_RUN_PACK_DRAFT_KEY = "ridgeline-service-run-pack";
-const maintenanceParams = new URLSearchParams(window.location.search);
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -113,12 +115,18 @@ function normalizeServiceKey(value = "") {
   return serviceLabels[normalized] ? normalized : "";
 }
 
+function currentMaintenanceParams() {
+  return new URLSearchParams(window.location.search);
+}
+
 function requestedMaintenanceService() {
-  return normalizeServiceKey(maintenanceParams.get("service") || maintenanceParams.get("job"));
+  const params = currentMaintenanceParams();
+  return normalizeServiceKey(params.get("service") || params.get("job"));
 }
 
 function requestedMaintenanceAction() {
-  const action = `${maintenanceParams.get("action") || ""}`.trim().toLowerCase();
+  const params = currentMaintenanceParams();
+  const action = `${params.get("action") || ""}`.trim().toLowerCase();
   if (["closeout", "followup", "pack", "prep"].includes(action)) {
     return action;
   }
@@ -135,6 +143,35 @@ function requestedMaintenanceAction() {
     return "prep";
   }
   return "";
+}
+
+function updateMaintenanceRoute(service, action = "prep", options = {}) {
+  const normalizedService = normalizeServiceKey(service);
+  const normalizedAction = ["closeout", "followup", "pack", "prep"].includes(action) ? action : "prep";
+  if (!normalizedService || !window.history?.pushState) {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("service", normalizedService);
+  url.searchParams.set("action", normalizedAction);
+  if (options.hash) {
+    url.hash = options.hash.startsWith("#") ? options.hash : `#${options.hash}`;
+  }
+
+  if (url.href === window.location.href) {
+    return;
+  }
+
+  const state = {
+    maintenanceService: normalizedService,
+    maintenanceAction: normalizedAction
+  };
+  if (options.mode === "replace") {
+    window.history.replaceState(state, "", url);
+    return;
+  }
+  window.history.pushState(state, "", url);
 }
 
 function formatMileage(value) {
@@ -310,7 +347,7 @@ function renderUpdateReceipt(entry) {
   updateReceipt.querySelector("[data-maintenance-receipt-meta]").textContent = `${entry.date} / ${entry.mileageText} / Garage Notes updated`;
 }
 
-function selectFollowupService(service = "oil_change", { mileage = "", announce = false } = {}) {
+function selectFollowupService(service = "oil_change", { mileage = "", announce = false, updateRoute = false } = {}) {
   if (!followupForm || !followupButtons.length) {
     return;
   }
@@ -348,6 +385,9 @@ function selectFollowupService(service = "oil_change", { mileage = "", announce 
   if (announce && followupStatus) {
     followupStatus.textContent = `${preset.title} is ready. Adjust timing or notes, then save the follow-up.`;
   }
+  if (updateRoute) {
+    updateMaintenanceRoute(selectedFollowup, "followup", { hash: "service-followup" });
+  }
 }
 
 function setServiceRunPackService(service = "general_note") {
@@ -357,6 +397,60 @@ function setServiceRunPackService(service = "general_note") {
     renderServiceRunPackPreview();
     persistServiceRunPackDraft();
   }
+}
+
+function selectServiceCloseout(service = "general_note", options = {}) {
+  if (!updateForm || !closeoutButtons.length) {
+    return false;
+  }
+
+  const requestedButton = closeoutButtons.find((button) => button.dataset.closeoutService === service);
+  if (!requestedButton) {
+    return false;
+  }
+
+  const note = requestedButton.dataset.closeoutNote || "";
+  const serviceField = updateForm.elements.service;
+  const noteField = updateForm.elements.note;
+
+  if (serviceField) {
+    serviceField.value = service;
+  }
+  if (noteField && note) {
+    noteField.value = note;
+  }
+
+  selectedCloseout = { service, note };
+  setServiceRunPackService(service);
+  closeoutButtons.forEach((item) => {
+    const active = item === requestedButton;
+    item.classList.toggle("is-selected", active);
+    item.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+
+  const label = serviceLabels[service] || "Maintenance update";
+  if (closeoutForm) {
+    closeoutForm.hidden = false;
+  }
+  if (closeoutTitle) {
+    closeoutTitle.textContent = `${label} closeout`;
+  }
+  if (closeoutNote && note) {
+    closeoutNote.value = note;
+  }
+  if (options.focus) {
+    window.setTimeout(() => closeoutMileage?.focus(), 120);
+  }
+  if (options.announce && closeoutStatus) {
+    closeoutStatus.textContent = `${label} closeout is ready. Enter mileage here, edit the note if needed, then save.`;
+  }
+  if (options.announce && updateStatus) {
+    updateStatus.textContent = `${label} closeout selected from the Service Closeout panel. The full update form is also prefilled.`;
+  }
+  if (options.updateRoute) {
+    updateMaintenanceRoute(service, "closeout", { hash: options.hash || "service-closeout" });
+  }
+  return true;
 }
 
 function saveMaintenanceEntry(entry) {
@@ -543,7 +637,7 @@ function setServicePrepStatus(card, message) {
   }
 }
 
-function selectServicePrepCard(service) {
+function selectServicePrepCard(service, options = {}) {
   const requestedTitle = servicePrepCardTitles[service];
   servicePrepCards.forEach((card) => card.classList.remove("is-selected"));
   if (!requestedTitle) {
@@ -555,10 +649,13 @@ function selectServicePrepCard(service) {
   }
   requestedCard.classList.add("is-selected");
   setServicePrepStatus(requestedCard, `${requestedTitle} opened from the iPhone service launcher.`);
+  if (options.updateRoute) {
+    updateMaintenanceRoute(service, "prep", { hash: options.hash || "service-prep" });
+  }
   return true;
 }
 
-function applyMaintenanceLauncher(service, action = "prep") {
+function applyMaintenanceLauncher(service, action = "prep", options = {}) {
   const normalizedService = normalizeServiceKey(service);
   if (!normalizedService) {
     return;
@@ -569,13 +666,23 @@ function applyMaintenanceLauncher(service, action = "prep") {
   }
 
   if (action === "closeout" && updateForm?.elements.service) {
-    updateForm.elements.service.value = normalizedService;
-    if (updateStatus) {
-      updateStatus.textContent = `${serviceLabels[normalizedService]} selected from the iPhone service launcher. Add mileage and save when ready.`;
+    const selected = selectServiceCloseout(normalizedService, { announce: true, hash: options.hash });
+    if (!selected) {
+      updateForm.elements.service.value = normalizedService;
+      if (updateStatus) {
+        updateStatus.textContent = `${serviceLabels[normalizedService]} selected from the iPhone service launcher. Add mileage and save when ready.`;
+      }
     }
   }
 
+  if (action === "followup" && followupPresets[normalizedService]) {
+    selectFollowupService(normalizedService, { announce: true });
+  }
+
   setServiceRunPackService(normalizedService);
+  if (options.updateRoute) {
+    updateMaintenanceRoute(normalizedService, action, { hash: options.hash });
+  }
 }
 
 function initServicePrepCards() {
@@ -624,10 +731,6 @@ function initServiceCloseout() {
     return;
   }
 
-  const closeoutTitle = closeoutForm?.querySelector("[data-service-closeout-title]");
-  const closeoutMileage = closeoutForm?.querySelector("[data-service-closeout-mileage]");
-  const closeoutNote = closeoutForm?.querySelector("[data-service-closeout-note]");
-
   function closeoutText() {
     const label = serviceLabels[selectedCloseout?.service] || "Maintenance update";
     const mileage = formatMileage(closeoutMileage?.value);
@@ -643,42 +746,7 @@ function initServiceCloseout() {
     button.setAttribute("aria-pressed", "false");
     button.addEventListener("click", () => {
       const service = button.dataset.closeoutService || "general_note";
-      const note = button.dataset.closeoutNote || "";
-      const serviceField = updateForm.elements.service;
-      const noteField = updateForm.elements.note;
-
-      if (serviceField) {
-        serviceField.value = service;
-      }
-      if (noteField && note) {
-        noteField.value = note;
-      }
-
-      selectedCloseout = { service, note };
-      setServiceRunPackService(service);
-      closeoutButtons.forEach((item) => {
-        const active = item === button;
-        item.classList.toggle("is-selected", active);
-        item.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-
-      const label = serviceLabels[service] || "Maintenance update";
-      if (closeoutForm) {
-        closeoutForm.hidden = false;
-      }
-      if (closeoutTitle) {
-        closeoutTitle.textContent = `${label} closeout`;
-      }
-      if (closeoutNote && note) {
-        closeoutNote.value = note;
-      }
-      window.setTimeout(() => closeoutMileage?.focus(), 120);
-      if (closeoutStatus) {
-        closeoutStatus.textContent = `${label} closeout is ready. Enter mileage here, edit the note if needed, then save.`;
-      }
-      if (updateStatus) {
-        updateStatus.textContent = `${label} closeout selected from the Service Closeout panel. The full update form is also prefilled.`;
-      }
+      selectServiceCloseout(service, { announce: true, focus: true, updateRoute: true });
     });
   });
 
@@ -736,17 +804,17 @@ function initServiceCloseout() {
 
   const requestedService = requestedMaintenanceService();
   if (requestedMaintenanceAction() === "closeout" && requestedService) {
-    const requestedButton = closeoutButtons.find((button) => button.dataset.closeoutService === requestedService);
-    if (requestedButton) {
-      requestedButton.click();
-    }
+    selectServiceCloseout(requestedService, { announce: true });
   }
 }
 
 function initMaintenanceLauncherLinks() {
   document.querySelectorAll("[data-maintenance-launch-service]").forEach((link) => {
     link.addEventListener("click", () => {
-      applyMaintenanceLauncher(link.dataset.maintenanceLaunchService, link.dataset.maintenanceLaunchAction || "prep");
+      applyMaintenanceLauncher(link.dataset.maintenanceLaunchService, link.dataset.maintenanceLaunchAction || "prep", {
+        updateRoute: true,
+        hash: link.hash
+      });
     });
   });
 }
@@ -781,6 +849,9 @@ function initServiceRunPack() {
   serviceRunPackForm.addEventListener("change", () => {
     renderServiceRunPackPreview();
     persistServiceRunPackDraft();
+  });
+  serviceRunPackForm.elements.pack_service?.addEventListener("change", () => {
+    updateMaintenanceRoute(serviceRunPackForm.elements.pack_service.value || "general_note", "pack", { hash: "service-run-pack" });
   });
 
   serviceRunPackForm.querySelector("[data-copy-service-run-pack]")?.addEventListener("click", () => {
@@ -826,6 +897,38 @@ function initServiceRunPack() {
   renderServiceRunPackPreview();
 }
 
+function syncMaintenanceRouteFromLocation() {
+  const requestedService = requestedMaintenanceService();
+  const requestedAction = requestedMaintenanceAction();
+  if (!requestedService || !requestedAction) {
+    return;
+  }
+
+  if (requestedAction === "closeout") {
+    if (!selectServiceCloseout(requestedService, { announce: true })) {
+      applyMaintenanceLauncher(requestedService, requestedAction);
+    }
+    return;
+  }
+
+  if (requestedAction === "followup" && followupPresets[requestedService]) {
+    selectFollowupService(requestedService, { announce: true });
+    return;
+  }
+
+  if (requestedAction === "pack") {
+    setServiceRunPackService(requestedService);
+    if (serviceRunPackStatus) {
+      serviceRunPackStatus.textContent = `${serviceLabels[requestedService]} selected from the saved service route.`;
+    }
+    return;
+  }
+
+  if (requestedAction === "prep") {
+    selectServicePrepCard(requestedService);
+  }
+}
+
 function initServiceFollowup() {
   if (!followupForm || !followupButtons.length) {
     return;
@@ -834,7 +937,7 @@ function initServiceFollowup() {
   followupButtons.forEach((button) => {
     button.setAttribute("aria-pressed", "false");
     button.addEventListener("click", () => {
-      selectFollowupService(button.dataset.followupService || "oil_change", { announce: true });
+      selectFollowupService(button.dataset.followupService || "oil_change", { announce: true, updateRoute: true });
     });
   });
 
@@ -1027,6 +1130,7 @@ initServiceFollowup();
 initMinderPlanner();
 initServiceRunPack();
 
+window.addEventListener("popstate", syncMaintenanceRouteFromLocation);
 window.addEventListener("ridgeline:storage-hydrated", renderRecentUpdates);
 renderRecentUpdates();
 initGarageCloudSync();

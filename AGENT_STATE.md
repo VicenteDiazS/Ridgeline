@@ -23,11 +23,13 @@ Last updated: 2026-05-31
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is bumped to `ridgeline-console-v423` for the Home signal-loss prep strip and route-specific Global Search offline readiness updates.
+- The PWA cache is bumped to `ridgeline-console-v425` for Maintenance route persistence and Garage staging parser updates.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
 - Diagnostics and Quick Sheet generated handoffs now show an in-card manual copy fallback when iOS/browser clipboard or share APIs fail, and Quick Sheet contact/session/dispatch actions report status beside the tapped card.
+- Maintenance service/job context now persists in the URL for prep, closeout, follow-up, and run-pack paths, so iPhone reload/share/back restores the selected service workflow instead of dropping the user into a generic panel.
+- Garage maintenance staging now filters Maintenance Minder brake-fluid calendar cautions out of need-to-buy lines, preserving the caution in notes without sending it to parts-counter staging.
 
 ## Current Queue
 
@@ -71,6 +73,7 @@ Last updated: 2026-05-31
 - Added the Home signal-loss prep strip and made Global Search offline readiness check exact route targets such as Roadside Stack, Diagnostics Guide, Hood/Cabin Fuses, 7-Way Pinout, and Garage Backup, including auto-checks for `?search=offline`.
 - Added a Garage Recent Handoffs latest-review card, Share Latest/Open Latest actions, and an in-panel manual copy fallback for failed iOS clipboard/share paths; also fixed the maintenance staging run save path so it no longer registers owner-auth callbacks repeatedly.
 - Added stale-running detection to Anton status on Home and `anton.html`, using a 20-minute heartbeat threshold to show inspect-controls guidance instead of an indefinite running state.
+- Added Maintenance service route persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so brake-fluid calendar cautions are not treated as need-to-buy parts lines.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -90,10 +93,9 @@ Last updated: 2026-05-31
 
 ## Best Next Task
 
-Use the next Anton run to verify or improve a high-impact iPhone path without over-polishing Ask Anton. The best near-term bets are:
+Use the next Anton run to verify or improve a high-impact iPhone path outside Maintenance/Garage unless a regression appears. The best near-term bets are:
 
 - run a real iPhone/browser smoke of the Ask Anton local route-answer path, Maintenance service/action deep links, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
-- consider Maintenance launcher URL persistence so tapped service/action cards survive reload/share/back with the selected job context
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -113,7 +115,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run improved Garage Recent Handoffs with a latest-review card, Share Latest/Open Latest actions, and manual copy fallback; fixed repeated owner-auth listener registration when saving a maintenance staging run note; added stale-running detection to Home and `anton.html`; and bumped the PWA cache to `ridgeline-console-v424`. `Invoke-BrowserSmoke.ps1 -Pages @('garage.html')` and `Invoke-BrowserSmoke.ps1 -Pages @('anton.html')` passed, a targeted Playwright check passed for stale-running Home/Anton status, the internal-link/anchor audit passed for 17 HTML files, and `git diff --check` passed. The broader `Invoke-BrowserSmoke.ps1 -Pages @('garage.html','anton.html','index.html')` and single `index.html` wrapper runs timed out in this environment, consistent with the known index wrapper timeout behavior.
+- Anton's latest scheduled run added Maintenance service URL persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so Maintenance Minder brake-fluid calendar cautions do not become need-to-buy lines; and bumped the PWA cache to `ridgeline-console-v425`. A targeted Playwright check passed for Maintenance deep links, launcher URL updates, browser Back restoration, and Garage staging preview filtering. `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')`, `Test-InternalLinks.ps1`, and `git diff --check` passed.
 
 ## Archive
 

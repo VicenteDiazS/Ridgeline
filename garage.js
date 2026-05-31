@@ -707,6 +707,10 @@ function normalizeMaintenanceLine(value = "") {
     .trim();
 }
 
+function isMaintenanceCautionLine(line = "") {
+  return /\bbrake[-\s]?fluid\b.*\b(separate|calendar|sub-?codes?|maintenance minder)\b/i.test(line);
+}
+
 function maintenanceStagingItems(body = "") {
   const seen = new Set();
   const stagingPattern =
@@ -716,7 +720,7 @@ function maintenanceStagingItems(body = "") {
     .split(/\n+/)
     .map(normalizeMaintenanceLine)
     .filter((line) => line && !/:$/.test(line))
-    .filter((line) => !/\bbrake fluid\b.*\b(separate|calendar|sub-code|maintenance minder)\b/i.test(line))
+    .filter((line) => !isMaintenanceCautionLine(line))
     .filter((line) => line && stagingPattern.test(line))
     .filter((line) => {
       const key = line.toLowerCase();
