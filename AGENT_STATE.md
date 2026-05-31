@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-30
+Last updated: 2026-05-31
 
 ## Current Site Status
 
@@ -19,6 +19,8 @@ Last updated: 2026-05-30
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
 - The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
+- Ask Anton now has a no-API local route-answer mode, so the chat surface can route iPhone questions to the best local Ridgeline pages before model setup; the PWA cache is bumped to `ridgeline-console-v418`.
+- Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 
 ## Current Queue
 
@@ -52,6 +54,7 @@ Last updated: 2026-05-30
 - Added Quick Sheet roadside deep-link selection and visible Roadside Router `Use Stack` actions so Home, router cards, and future search/menu routes can open the action stack with the intended flat/no-start/warning/trailer plan selected.
 - Added Quick Sheet offline readiness receipts and Diagnostics symptom-aware deep-link selection for warning, power, audio, trailer, and no-start workflows.
 - Added the homepage iPhone Task Launcher and repaired shared site-menu current-page semantics for hash-focused homepage routes.
+- Added Ask Anton local route answers for no-key/offline first use and promoted Diagnostics/Quick Sheet page routes into the persistent iPhone action bar.
 - Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
@@ -74,7 +77,7 @@ Last updated: 2026-05-30
 
 Use the next Anton run to improve a high-impact iPhone path that builds on current work without over-polishing one page. The best near-term bets are:
 
-- verify/extend the new Ask Anton files if they are intended to ship, including owner/public boundaries and mobile navigation fit
+- run a real iPhone/browser smoke of the new Ask Anton local route-answer path and the Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -94,7 +97,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run verified the shared background intensity control, restored mobile Page Sections accordion, Diagnostics First Checks/Call routes, and Quick Sheet no-start/contact/live/dispatch routes with the full internal-link/anchor audit plus a targeted Playwright iPhone viewport smoke for `index.html`, `diagnostics.html`, and `quick-sheet.html`. The check confirmed no horizontal overflow, no browser console/page errors, compact header action stability, background intensity persistence, mobile section links for Diagnostics/Quick Sheet, and Quick Sheet `?roadside=start#roadside-action-stack` selection. The repo browser smoke wrapper still timed out with no useful output, so targeted Playwright smoke remains the practical fallback for shared UI runs.
+- Anton's latest scheduled run verified the Ask Anton no-key route-answer changes and Diagnostics/Quick Sheet bottom-bar route changes with the internal-link/anchor audit, which passed for 17 HTML files. `Invoke-BrowserSmoke.ps1` and `Invoke-SiteAudit.ps1` both timed out in this environment, and Node/browser automation was unavailable, so a real browser/iPhone smoke remains the next verification target for these UI paths.
 
 ## Archive
 

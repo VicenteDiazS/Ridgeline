@@ -2892,8 +2892,17 @@ function actionForPage(page) {
     ],
     "diagnostics.html": [
       { label: "Share", href: "#diagnostic-share-builder", icon: "note" },
+      { label: "Checks", href: "#first-check-tracker", icon: "check" },
       { label: "No-Start", href: "#no-start-workflow", icon: "diag", diagnosticContext: "primary" },
       { label: "Jump", href: "hood.html#wiring", icon: "bolt", diagnosticContext: "secondary" },
+      { label: "Call", href: "#diagnostic-call-summary", icon: "note" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "quick-sheet.html": [
+      { label: "Emergency", href: "#emergency-card", icon: "flash" },
+      { label: "Offline", href: "#print-offline-pack", icon: "save" },
+      { label: "Stack", href: "#roadside-action-stack", icon: "check" },
+      { label: "Dispatch", href: "#roadside-dispatch-pack", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "rear-hitch.html": [

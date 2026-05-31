@@ -168,7 +168,7 @@ function renderMessages() {
     els.transcript.innerHTML = `
       <article class="ask-message ask-message-assistant">
         <h3>Anton</h3>
-        <p>Enter your API key in Settings, ask a question, and I will ground the answer with this site plus optional web results.</p>
+        <p>Ask a question to get local Ridgeline routes now. Add an API key in Settings when you want model answers with optional web search.</p>
       </article>
     `;
     return;
@@ -233,17 +233,26 @@ async function handleAskSubmit(event) {
     return;
   }
 
-  if (!state.settings.apiKey) {
-    setStatus("Save an API key in Settings first.");
-    return;
-  }
-
   const localContext = await buildLocalContext(question, state.settings.localLimit);
   state.lastLocalContext = localContext.entries;
   renderSourcePanel(localContext.entries, state.settings.webEnabled);
 
   state.messages.push({ role: "user", text: question });
   renderMessages();
+
+  if (!state.settings.apiKey) {
+    const localAnswer = buildLocalRouteAnswer(question, localContext.entries);
+    state.messages.push({
+      role: "assistant",
+      text: localAnswer.text,
+      citations: localAnswer.citations
+    });
+    saveState();
+    renderMessages();
+    setStatus("Local route answer ready. Add an API key for model answers.");
+    return;
+  }
+
   setStatus("Asking Anton...");
   setBusy(true);
 
@@ -270,7 +279,7 @@ async function handleAskSubmit(event) {
 function setBusy(isBusy) {
   if (els.submit) {
     els.submit.disabled = isBusy;
-    els.submit.textContent = isBusy ? "Thinking..." : "Ask Anton";
+    els.submit.textContent = isBusy ? "Thinking..." : "Ask / Find Routes";
   }
   if (els.input) {
     els.input.disabled = isBusy;
@@ -414,6 +423,39 @@ function renderSourcePanel(entries = [], webEnabled = false) {
       `;
     })
     .join("");
+}
+
+function buildLocalRouteAnswer(question, entries = []) {
+  const picked = entries.slice(0, 4);
+  const routeLines = picked.length
+    ? picked.map((entry, index) => {
+        const title = entry.title || entry.url || "Ridgeline reference";
+        const url = entry.url || "";
+        const excerpt = entry.excerpt || "Open this route for the closest matching local reference.";
+        return `${index + 1}. ${title} - ${url}\n${excerpt}`;
+      })
+    : ["No exact local route matched. Start with diagnostics.html#workflow-index or quick-sheet.html#roadside-action-stack."];
+
+  const direct = picked[0]
+    ? `Best local route: ${picked[0].title || picked[0].url} (${picked[0].url}).`
+    : "Best local route: Diagnostics workflow index (diagnostics.html#workflow-index).";
+
+  return {
+    text: [
+      direct,
+      "",
+      "Open these Ridgeline pages first:",
+      routeLines.join("\n\n"),
+      "",
+      `Question kept local: ${question}`,
+      "",
+      "Caution: this local answer only routes you through saved site references. Truck labels, current warnings, and the owner manual stay final authority."
+    ].join("\n"),
+    citations: picked.map((entry) => ({
+      url: entry.url,
+      title: entry.title || entry.url
+    })).filter((citation) => citation.url)
+  };
 }
 
 function buildSystemPrompt(settings) {
