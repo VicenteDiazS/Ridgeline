@@ -4845,10 +4845,10 @@ function buildSearchModal() {
             <small data-search-route-summary>Check key routes before leaving signal.</small>
           </div>
           <ul data-search-route-list>
-            <li data-route-status="unknown">Quick Sheet</li>
-            <li data-route-status="unknown">Diagnostics</li>
-            <li data-route-status="unknown">Fuses</li>
-            <li data-route-status="unknown">Rear Hitch</li>
+            <li data-route-status="unknown">Roadside Stack</li>
+            <li data-route-status="unknown">Diagnostics Guide</li>
+            <li data-route-status="unknown">Hood Fuses</li>
+            <li data-route-status="unknown">Cabin Fuses</li>
             <li data-route-status="unknown">7-Way Pinout</li>
             <li data-route-status="unknown">Garage Backup</li>
           </ul>
@@ -4978,12 +4978,12 @@ const SEARCH_PAGE_URLS = [
 ];
 
 const SEARCH_OFFLINE_ROUTES = [
-  { label: "Quick Sheet", path: "quick-sheet.html" },
-  { label: "Diagnostics", path: "diagnostics.html" },
-  { label: "Fuses", path: "hood.html" },
-  { label: "Rear Hitch", path: "rear-hitch.html" },
-  { label: "7-Way Pinout", path: "rear-hitch.html#pinout" },
-  { label: "Garage Backup", path: "garage.html" }
+  { label: "Roadside Stack", path: "quick-sheet.html?roadside=flat#roadside-action-stack", cachePath: "quick-sheet.html" },
+  { label: "Diagnostics Guide", path: "diagnostics.html#diagnostic-decision-guide", cachePath: "diagnostics.html" },
+  { label: "Hood Fuses", path: "hood.html#fuses", cachePath: "hood.html" },
+  { label: "Cabin Fuses", path: "cabin.html#fuses", cachePath: "cabin.html" },
+  { label: "7-Way Pinout", path: "rear-hitch.html#pinout", cachePath: "rear-hitch.html" },
+  { label: "Garage Backup", path: "garage.html#diagnostic-activity", cachePath: "garage.html" }
 ];
 let lastSearchOfflineRouteResults = [];
 
@@ -5836,6 +5836,14 @@ function searchOfflineRouteRequest(path) {
   return new Request(url.href, { method: "GET" });
 }
 
+function searchOfflineRouteCacheRequest(route) {
+  return searchOfflineRouteRequest(route.cachePath || route.path);
+}
+
+function isOfflineSearchQuery(value = "") {
+  return /\b(offline|cache|cached|signal|no service|roadside|emergency|tow|trip|prep)\b/i.test(`${value}`);
+}
+
 async function searchOfflineCacheKey() {
   if (!("caches" in window)) {
     return "";
@@ -5851,7 +5859,7 @@ async function checkSearchOfflineRoutes() {
   }
 
   return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
-    const request = searchOfflineRouteRequest(route.path);
+    const request = searchOfflineRouteCacheRequest(route);
     try {
       const match = await caches.match(request, { ignoreSearch: true });
       return { ...route, ready: Boolean(match) };
@@ -5868,7 +5876,7 @@ async function primeSearchOfflineRoutes() {
 
   const cache = await caches.open(await searchOfflineCacheKey());
   return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
-    const request = searchOfflineRouteRequest(route.path);
+    const request = searchOfflineRouteCacheRequest(route);
     try {
       const response = await fetch(request, { cache: "reload" });
       if (response.ok) {
@@ -6765,6 +6773,16 @@ const initialSearchQuery = new URLSearchParams(location.search).get("search");
 if (initialSearchQuery) {
   searchInput.value = initialSearchQuery;
   openSearch();
+  if (isOfflineSearchQuery(initialSearchQuery)) {
+    updateSearchOfflineCard("Checking route readiness for this offline search...");
+    checkSearchOfflineRoutes()
+      .then((results) => {
+        renderSearchRouteReadiness(results);
+        const readyCount = results.filter((route) => route.ready).length;
+        updateSearchOfflineCard(`${readyCount}/${results.length} route targets checked for offline use.`);
+      })
+      .catch(() => updateSearchOfflineCard("Could not inspect cached routes for this offline search."));
+  }
 }
 
 document.addEventListener("keydown", (event) => {

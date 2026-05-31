@@ -48,10 +48,10 @@ export const searchIndex = [
   },
   {
     title: "Signal-Loss Prep",
-    url: "quick-sheet.html#emergency-card",
+    url: "index.html#viewer",
     category: "Navigation",
-    excerpt: "Global Search checklist for refreshing the offline pack, opening or printing the Quick Sheet, and saving a Garage backup before leaving signal.",
-    keywords: ["signal loss prep", "before signal drops", "leaving signal", "offline checklist", "print quick sheet", "save garage backup", "refresh offline pack", "no service prep", "iphone offline prep"]
+    excerpt: "Home first-screen prep strip for refreshing the offline pack, opening the Roadside Stack, downloading Garage Backup, and checking tow readiness before signal drops.",
+    keywords: ["signal loss prep", "before signal drops", "leaving signal", "offline checklist", "offline pack home", "roadside stack home", "save garage backup", "garage backup before service", "tow prep offline", "refresh offline pack", "no service prep", "iphone offline prep"]
   },
   {
     title: "Offline Route Check",

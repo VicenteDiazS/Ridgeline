@@ -18,10 +18,10 @@ Last updated: 2026-05-31
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
+- The most recent Anton-delivered feature is the Home signal-loss prep strip plus route-specific Global Search offline readiness: the truck-first home view now exposes offline pack, roadside stack, Garage backup, and tow prep shortcuts, and `?search=offline` checks the exact iPhone route targets automatically.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is bumped to `ridgeline-console-v421` for the Diagnostics decision guide and Quick Sheet roadside URL/history updates.
+- The PWA cache is bumped to `ridgeline-console-v423` for the Home signal-loss prep strip and route-specific Global Search offline readiness updates.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
@@ -30,7 +30,7 @@ Last updated: 2026-05-31
 ## Current Queue
 
 - `Now`: shared iPhone polish and regression review after the recent manual changes to homepage first view, header layout, theme toggle, and hotspot density.
-- `Next`: verify the Ask Anton and Maintenance deep-link flows in a real browser/iPhone path, then rotate toward Diagnostics, Quick Sheet, Garage clarity, or shared search/offline reliability.
+- `Next`: verify the Ask Anton and Maintenance deep-link flows in a real browser/iPhone path, then rotate toward Garage clarity, Anton status clarity, or a non-Diagnostics/Quick Sheet owner workflow.
 - `Fallback`: targeted reliability work on light-theme contrast, mobile scroll/anchor behavior, search/offline clarity, or Anton status clarity if larger feature work is risky.
 
 ## High-Impact Zones
@@ -66,6 +66,7 @@ Last updated: 2026-05-31
 - Added the Diagnostics Decision Guide and synchronized Diagnostics symptom pickers across the decision, handoff, first-check, and dock surfaces.
 - Added Quick Sheet roadside URL/history preservation so roadside stack selection survives reload, share, and back navigation.
 - Added manual copy fallback panels for Diagnostics handoffs/checks/call summaries and Quick Sheet prep/roadside/fuse/dispatch copy paths, with local roadside status feedback for contact, session, and dispatch cards.
+- Added the Home signal-loss prep strip and made Global Search offline readiness check exact route targets such as Roadside Stack, Diagnostics Guide, Hood/Cabin Fuses, 7-Way Pinout, and Garage Backup, including auto-checks for `?search=offline`.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -108,7 +109,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added in-card manual copy fallbacks for Diagnostics and Quick Sheet handoffs when clipboard/share APIs fail, added local Quick Sheet roadside status beside contact/session/dispatch actions, and bumped the PWA cache to `ridgeline-console-v422`. Targeted Playwright checks passed on iPhone-sized viewports for forced clipboard failure on `diagnostics.html` and `quick-sheet.html`, including one visible fallback panel, expected generated text, local dispatch status, and no horizontal overflow. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. The broad `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html','quick-sheet.html')` wrapper still timed out in this environment before returning assertions.
+- Anton's latest scheduled run added a Home signal-loss prep strip, changed Global Search offline route readiness from generic page checks to exact route targets, added Signal-Loss Prep to search results, auto-checks route readiness when opening `index.html?search=offline` or signal/offline-style queries, updated the browser-smoke assertions for the new exact routes, and bumped the PWA cache to `ridgeline-console-v423`. Targeted Playwright iPhone smokes passed for the Home signal-loss panel and Search offline/signal modal route labels, exact links, auto-readiness count, Signal-Loss Prep result, and no horizontal overflow. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. The broad `Invoke-BrowserSmoke.ps1 -Pages @('index.html')` wrapper timed out in this environment before returning output.
 
 ## Archive
 

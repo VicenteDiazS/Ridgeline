@@ -421,6 +421,26 @@ async def assert_home_anton_status(page, page_name):
     await page.set_viewport_size({"width": 1280, "height": 900})
     await page.wait_for_timeout(250)
 
+    signal_state = await page.evaluate(
+        """() => {
+            const panel = document.querySelector(".home-signal-prep");
+            const links = [...panel?.querySelectorAll("a") || []].map((link) => link.getAttribute("href"));
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasPanel: Boolean(panel),
+                text: panel?.textContent || "",
+                links,
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(signal_state["hasPanel"], "home page is missing the signal-loss prep strip")
+    for phrase in ["Before Signal Drops", "Offline Pack", "Roadside Stack", "Garage Backup", "Tow Prep"]:
+        assert_true(phrase in signal_state["text"], f"home signal-loss prep strip is missing {phrase}")
+    for href in ["quick-sheet.html#print-offline-pack", "quick-sheet.html?roadside=flat#roadside-action-stack", "garage.html#diagnostic-activity", "rear-hitch.html#tow-day-readiness"]:
+        assert_true(href in signal_state["links"], f"home signal-loss prep strip is missing route {href}")
+    assert_true(not signal_state["overflow"], "home signal-loss prep strip introduced desktop horizontal overflow")
+
     await page.evaluate(
         """() => {
             localStorage.setItem("ridgeline-notes", JSON.stringify({
@@ -4920,7 +4940,8 @@ async def run_overlay_checks(page, page_name):
     assert_true("/6" in route_state["status"], "search check-routes action did not report route count")
     assert_true("cache" in route_state["summary"].lower() or "open key routes" in route_state["summary"].lower(), "search route readiness summary did not update")
     assert_true(len(route_state["statuses"]) == 6, "search route readiness list lost route rows after check")
-    assert_true("quick-sheet.html" in route_state["links"], "search route readiness should make checked routes tappable")
+    assert_true("quick-sheet.html?roadside=flat#roadside-action-stack" in route_state["links"], "search route readiness should preserve the exact Roadside Stack route")
+    assert_true("diagnostics.html#diagnostic-decision-guide" in route_state["links"], "search route readiness should preserve the exact Diagnostics Guide route")
     await page.locator("[data-search-copy-route-plan]").click()
     await page.wait_for_timeout(200)
     route_plan_status = await page.locator("[data-search-refresh-status]").inner_text()
