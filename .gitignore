@@ -1,2 +1,6 @@
 agent-runs/
 *.tmp
+.env
+.env.*
+!.env.example
+tools/ask-anton-proxy/.env

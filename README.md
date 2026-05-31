@@ -40,3 +40,13 @@ If you want, different tags can later point to section anchors like:
 
 - The site currently links to owner-manual resources and keeps fuse guidance conservative.
 - Exact fuse assignments should always be cross-checked against the fuse box cover and the 2019 owner's manual before replacing a fuse.
+
+## Ask Anton Secure Model Setup
+
+Ask Anton now supports a safer proxy flow so model keys are never stored in the browser or committed to Git.
+
+1. Run the proxy in `tools/ask-anton-proxy` with environment variables.
+2. Keep the model key only in `.env` or your host secret manager.
+3. In Ask Anton Settings, set `Proxy Endpoint` to your proxy URL (for local: `http://localhost:8787/api/ask-anton`).
+
+See `tools/ask-anton-proxy/README.md` for setup details.

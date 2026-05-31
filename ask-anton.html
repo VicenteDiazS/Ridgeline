@@ -92,7 +92,7 @@
 						<div class="ask-anton-transcript" data-ask-transcript aria-live="polite">
 							<article class="ask-message ask-message-assistant">
 								<h3>Anton</h3>
-								<p>Ask a question to get local Ridgeline routes now. Add an API key in Settings when you want model answers with optional web search.</p>
+								<p>Ask a question to get local Ridgeline routes now. Add a secure proxy endpoint in Settings when you want model answers with optional web search.</p>
 							</article>
 						</div>
 
@@ -113,7 +113,7 @@
 								<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-copy-last>Copy Last Answer</button>
 								<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-save-last-garage>Save Last Handoff To Garage</button>
 							</div>
-							<p class="small-note ask-anton-local-note">No API key needed for local site route answers.</p>
+							<p class="small-note ask-anton-local-note">No browser API key field. Use a secure server proxy endpoint for model mode.</p>
 							<p class="small-note" data-ask-status aria-live="polite"></p>
 						</form>
 					</article>
@@ -128,12 +128,8 @@
 
 						<form class="ask-anton-settings" data-ask-settings-form>
 							<label>
-								API Endpoint
-								<input type="url" data-ask-endpoint placeholder="https://api.openai.com/v1/responses" />
-							</label>
-							<label>
-								API Key
-								<input type="password" data-ask-key placeholder="Paste your API key" autocomplete="off" />
+								Proxy Endpoint
+								<input type="url" data-ask-endpoint placeholder="https://your-proxy.example.com/api/ask-anton" />
 							</label>
 							<label>
 								Model
@@ -164,7 +160,7 @@
 							<div class="ask-anton-form-actions">
 								<button class="agent-control-button" type="submit">Save Settings</button>
 							</div>
-							<p class="small-note">Settings are stored only in this browser on this device.</p>
+							<p class="small-note">Use a server proxy that stores your provider key in environment variables, not in this browser.</p>
 							<p class="small-note" data-ask-settings-status aria-live="polite"></p>
 						</form>
 					</article>

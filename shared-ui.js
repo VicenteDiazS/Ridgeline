@@ -2,6 +2,12 @@ import { searchIndex } from "./search-data.js";
 import { nfcTargets } from "./nfc-data.js";
 import * as ownerAuth from "./owner-auth.js";
 import * as visitorLog from "./visitor-log.js";
+import {
+  RIDGELINE_OFFLINE_ROUTES,
+  buildOfflineRoutePlan as buildSharedOfflineRoutePlan,
+  checkOfflineRoutes as checkSharedOfflineRoutes,
+  primeOfflineRoutes as primeSharedOfflineRoutes
+} from "./offline-routes.js";
 
 const searchButtons = document.querySelectorAll("[data-open-search]");
 const topbar = document.querySelector(".topbar");
@@ -1087,6 +1093,14 @@ function buildUniversalHeaderActions() {
       icon: "garage",
       aria: "Open garage page",
       title: "Garage"
+    },
+    {
+      key: "ask",
+      label: "Ask",
+      href: "ask-anton.html#ask-anton-chat",
+      icon: "ask",
+      aria: "Open Ask Anton assistant",
+      title: "Ask Anton"
     }
   ];
 
@@ -1103,6 +1117,9 @@ function buildUniversalHeaderActions() {
       existingLink.classList.add("header-nav-button");
       existingLink.dataset.headerAction = action.key;
       existingLink.dataset.navIcon = existingLink.dataset.navIcon || action.icon;
+      if (action.key === "ask") {
+        existingLink.classList.add("header-nav-button-ask");
+      }
       existingLink.setAttribute("aria-label", existingLink.getAttribute("aria-label") || action.aria);
       existingLink.title = existingLink.title || action.title;
       return;
@@ -1110,6 +1127,9 @@ function buildUniversalHeaderActions() {
 
     const link = document.createElement("a");
     link.className = "header-nav-button";
+    if (action.key === "ask") {
+      link.classList.add("header-nav-button-ask");
+    }
     link.href = action.href;
     link.dataset.headerAction = action.key;
     link.dataset.navIcon = action.icon;
@@ -4977,14 +4997,7 @@ const SEARCH_PAGE_URLS = [
   "quick-sheet.html"
 ];
 
-const SEARCH_OFFLINE_ROUTES = [
-  { label: "Roadside Stack", path: "quick-sheet.html?roadside=flat#roadside-action-stack", cachePath: "quick-sheet.html" },
-  { label: "Diagnostics Guide", path: "diagnostics.html#diagnostic-decision-guide", cachePath: "diagnostics.html" },
-  { label: "Hood Fuses", path: "hood.html#fuses", cachePath: "hood.html" },
-  { label: "Cabin Fuses", path: "cabin.html#fuses", cachePath: "cabin.html" },
-  { label: "7-Way Pinout", path: "rear-hitch.html#pinout", cachePath: "rear-hitch.html" },
-  { label: "Garage Backup", path: "garage.html#diagnostic-activity", cachePath: "garage.html" }
-];
+const SEARCH_OFFLINE_ROUTES = RIDGELINE_OFFLINE_ROUTES;
 let lastSearchOfflineRouteResults = [];
 
 const SEARCH_SYNONYMS = new Map([
@@ -5830,65 +5843,16 @@ function renderResults(query = "") {
     });
 }
 
-function searchOfflineRouteRequest(path) {
-  const url = new URL(path, window.location.href);
-  url.hash = "";
-  return new Request(url.href, { method: "GET" });
-}
-
-function searchOfflineRouteCacheRequest(route) {
-  return searchOfflineRouteRequest(route.cachePath || route.path);
-}
-
 function isOfflineSearchQuery(value = "") {
   return /\b(offline|cache|cached|signal|no service|roadside|emergency|tow|trip|prep)\b/i.test(`${value}`);
 }
 
-async function searchOfflineCacheKey() {
-  if (!("caches" in window)) {
-    return "";
-  }
-  const keys = await caches.keys();
-  const ridgelineKeys = keys.filter((key) => key.startsWith("ridgeline-console-"));
-  return ridgelineKeys.at(-1) || "ridgeline-console-manual";
-}
-
 async function checkSearchOfflineRoutes() {
-  if (!("caches" in window)) {
-    return SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, ready: false, unavailable: true }));
-  }
-
-  return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
-    const request = searchOfflineRouteCacheRequest(route);
-    try {
-      const match = await caches.match(request, { ignoreSearch: true });
-      return { ...route, ready: Boolean(match) };
-    } catch {
-      return { ...route, ready: false, unavailable: true };
-    }
-  }));
+  return checkSharedOfflineRoutes(SEARCH_OFFLINE_ROUTES);
 }
 
 async function primeSearchOfflineRoutes() {
-  if (!("caches" in window)) {
-    return SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, primed: false, ready: false, unavailable: true }));
-  }
-
-  const cache = await caches.open(await searchOfflineCacheKey());
-  return Promise.all(SEARCH_OFFLINE_ROUTES.map(async (route) => {
-    const request = searchOfflineRouteCacheRequest(route);
-    try {
-      const response = await fetch(request, { cache: "reload" });
-      if (response.ok) {
-        await cache.put(request, response.clone());
-      }
-      const match = await caches.match(request, { ignoreSearch: true });
-      return { ...route, primed: true, ready: Boolean(match) };
-    } catch {
-      const match = await caches.match(request, { ignoreSearch: true });
-      return { ...route, primed: false, ready: Boolean(match), unavailable: !match };
-    }
-  }));
+  return primeSharedOfflineRoutes(SEARCH_OFFLINE_ROUTES);
 }
 
 function renderSearchRouteReadiness(results = []) {
@@ -5922,33 +5886,7 @@ function renderSearchRouteReadiness(results = []) {
 }
 
 function buildSearchOfflineRoutePlan() {
-  const results = lastSearchOfflineRouteResults.length
-    ? lastSearchOfflineRouteResults
-    : SEARCH_OFFLINE_ROUTES.map((route) => ({ ...route, ready: false, unchecked: true }));
-  const readyRoutes = results.filter((route) => route.ready);
-  const openRoutes = results.filter((route) => !route.ready);
-  const readyLines = readyRoutes.length
-    ? readyRoutes.map((route) => `- ${route.label}: cached`)
-    : ["- None confirmed yet"];
-  const openLines = openRoutes.length
-    ? openRoutes.map((route) => `- ${route.label}: ${route.path}`)
-    : ["- All key routes are currently found in cache"];
-  const intro = lastSearchOfflineRouteResults.length
-    ? `${readyRoutes.length}/${results.length} key routes found in the offline cache.`
-    : "Run Check Routes or Prime Routes while online to confirm cache state.";
-
-  return [
-    "Ridgeline offline route plan before signal drops",
-    intro,
-    "",
-    "Cached routes:",
-    ...readyLines,
-    "",
-    "Open while online if needed:",
-    ...openLines,
-    "",
-    "Keep a Garage backup and printed Quick Sheet if coverage may be weak."
-  ].join("\n");
+  return buildSharedOfflineRoutePlan(lastSearchOfflineRouteResults);
 }
 
 function updateSearchOfflineCard(message = "") {
@@ -6171,7 +6109,8 @@ function buildSearchRecentItems() {
     });
   }
 
-  if (roadside?.title || roadside?.summary) {
+  const hasSavedRoadsideNote = Boolean(roadside?.title || roadside?.summary);
+  if (hasSavedRoadsideNote) {
     items.push({
       label: "Roadside note",
       detail: shortSearchText(roadside.summary || roadside.title || "Last saved roadside handoff"),
@@ -6180,11 +6119,11 @@ function buildSearchRecentItems() {
     });
   }
 
-  if (roadsideSession?.startedAt || roadsideSession?.checkpoints?.length) {
+  if (!hasSavedRoadsideNote && (roadsideSession?.startedAt || roadsideSession?.checkpoints?.length)) {
     const checkpoints = Array.isArray(roadsideSession.checkpoints) ? roadsideSession.checkpoints : [];
     const planKey = `${roadsideSession.planKey || "flat"}`.trim().toLowerCase();
     const routeKey = ["flat", "start", "warning", "trailer"].includes(planKey) ? planKey : "flat";
-    items.unshift({
+    items.push({
       label: "Live roadside",
       detail: shortSearchText(`${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"} / ${routeKey}`),
       meta: formatSearchRecentDate(roadsideSession.startedAt),

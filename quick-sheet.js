@@ -4,63 +4,23 @@ import {
   saveJson,
   STORAGE
 } from "./garage-data.js";
+import {
+  RIDGELINE_OFFLINE_ROUTES,
+  buildOfflineRoutePlan as buildSharedOfflineRoutePlan,
+  checkOfflineRoutes as checkSharedOfflineRoutes,
+  formatOfflineRouteCheckTime,
+  loadOfflineRouteReceipt,
+  primeOfflineRoutes as primeSharedOfflineRoutes,
+  saveOfflineRouteReceipt
+} from "./offline-routes.js";
 
 const ROADSIDE_RECEIPT_KEY = "ridgeline-roadside-last-handoff";
 const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
 const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
-const OFFLINE_ROUTE_RECEIPT_KEY = "ridgeline-offline-route-last-check";
-const offlineRouteChecks = [
-  { label: "Quick Sheet", path: "quick-sheet.html" },
-  { label: "Diagnostics", path: "diagnostics.html" },
-  { label: "Fuses", path: "hood.html" },
-  { label: "Rear Hitch", path: "rear-hitch.html" },
-  { label: "7-Way Pinout", path: "rear-hitch.html#pinout" },
-  { label: "Garage Backup", path: "garage.html" }
-];
+const offlineRouteChecks = RIDGELINE_OFFLINE_ROUTES;
 let lastOfflineRouteResults = [];
 let lastOfflinePrimeSummary = "";
-
-function formatOfflineCheckTime(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "checked recently";
-  }
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
-
-function loadOfflineRouteReceipt() {
-  try {
-    const receipt = JSON.parse(localStorage.getItem(OFFLINE_ROUTE_RECEIPT_KEY) || "null");
-    return receipt && Array.isArray(receipt.results) ? receipt : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveOfflineRouteReceipt(results, action = "checked") {
-  const normalized = Array.isArray(results) ? results : [];
-  const readyCount = normalized.filter((route) => route.ready).length;
-  const receipt = {
-    action,
-    savedAt: new Date().toISOString(),
-    readyCount,
-    totalCount: normalized.length,
-    results: normalized.map((route) => ({
-      label: route.label,
-      path: route.path,
-      ready: Boolean(route.ready),
-      unavailable: Boolean(route.unavailable)
-    }))
-  };
-  localStorage.setItem(OFFLINE_ROUTE_RECEIPT_KEY, JSON.stringify(receipt));
-  return receipt;
-}
 
 const fuseNotePlans = {
   accessory: {
@@ -204,7 +164,7 @@ function buildPrintPackHandoff() {
     : ["- Route check: run Check Routes while online before leaving signal."];
   const primeLine = lastOfflinePrimeSummary ? [`Route prime: ${lastOfflinePrimeSummary}`] : [];
   const receiptLine = receipt
-    ? [`Last saved route check: ${receipt.readyCount}/${receipt.totalCount} ready at ${formatOfflineCheckTime(receipt.savedAt)}`]
+    ? [`Last saved route check: ${receipt.readyCount}/${receipt.totalCount} ready at ${formatOfflineRouteCheckTime(receipt.savedAt)}`]
     : [];
   return [
     "Ridgeline Quick Sheet prep before signal drops",
@@ -220,33 +180,10 @@ function buildPrintPackHandoff() {
 }
 
 function buildOfflineRoutePlan() {
-  const results = lastOfflineRouteResults.length
-    ? lastOfflineRouteResults
-    : offlineRouteChecks.map((route) => ({ ...route, ready: false, unchecked: true }));
-  const readyRoutes = results.filter((route) => route.ready);
-  const openRoutes = results.filter((route) => !route.ready);
-  const readyLines = readyRoutes.length
-    ? readyRoutes.map((route) => `- ${route.label}: cached`)
-    : ["- None confirmed yet"];
-  const openLines = openRoutes.length
-    ? openRoutes.map((route) => `- ${route.label}: ${route.path}`)
-    : ["- All key roadside routes are currently found in cache"];
-  const intro = lastOfflineRouteResults.length
-    ? `${readyRoutes.length}/${results.length} key routes found in the offline cache.`
-    : "Run Check Routes or Prime Routes while online to confirm cache state.";
-
-  return [
-    "Ridgeline roadside offline route plan",
-    intro,
-    "",
-    "Cached routes:",
-    ...readyLines,
-    "",
-    "Open while online if needed:",
-    ...openLines,
-    "",
-    "Keep the printed Quick Sheet and Garage backup ready before coverage drops."
-  ].join("\n");
+  return buildSharedOfflineRoutePlan(lastOfflineRouteResults, {
+    title: "Ridgeline roadside offline route plan",
+    closing: "Keep the printed Quick Sheet and Garage backup ready before coverage drops."
+  });
 }
 
 function buildFuseNoteText(root) {
@@ -741,55 +678,14 @@ function renderQuickOfflineStatus(root, message = "") {
   status.textContent = message || `${network}; ${ready ? "offline pack ready" : "offline pack loading"}`;
 }
 
-function offlineRouteRequest(path) {
-  const url = new URL(path, window.location.href);
-  url.hash = "";
-  return new Request(url.href, { method: "GET" });
-}
-
 async function checkOfflineRoutes() {
-  if (!("caches" in window)) {
-    return offlineRouteChecks.map((route) => ({ ...route, ready: false, unavailable: true }));
-  }
-
-  const results = await Promise.all(offlineRouteChecks.map(async (route) => {
-    try {
-      const match = await caches.match(offlineRouteRequest(route.path), { ignoreSearch: true });
-      return { ...route, ready: Boolean(match) };
-    } catch (error) {
-      return { ...route, ready: false, unavailable: true };
-    }
-  }));
+  const results = await checkSharedOfflineRoutes(offlineRouteChecks);
   lastOfflineRouteResults = results;
   return results;
 }
 
-async function cacheKeyForOfflinePrime() {
-  const keys = await caches.keys();
-  const ridgelineKeys = keys.filter((key) => key.startsWith("ridgeline-console-"));
-  return ridgelineKeys.at(-1) || "ridgeline-console-manual";
-}
-
 async function primeOfflineRoutes() {
-  if (!("caches" in window)) {
-    return offlineRouteChecks.map((route) => ({ ...route, primed: false, ready: false, unavailable: true }));
-  }
-
-  const cache = await caches.open(await cacheKeyForOfflinePrime());
-  const results = await Promise.all(offlineRouteChecks.map(async (route) => {
-    const request = offlineRouteRequest(route.path);
-    try {
-      const response = await fetch(request, { cache: "reload" });
-      if (response.ok) {
-        await cache.put(request, response.clone());
-      }
-      const match = await caches.match(request, { ignoreSearch: true });
-      return { ...route, primed: true, ready: Boolean(match) };
-    } catch (error) {
-      const match = await caches.match(request, { ignoreSearch: true });
-      return { ...route, primed: false, ready: Boolean(match), unavailable: !match };
-    }
-  }));
+  const results = await primeSharedOfflineRoutes(offlineRouteChecks);
   lastOfflineRouteResults = results;
   const readyCount = results.filter((route) => route.ready).length;
   lastOfflinePrimeSummary = `${readyCount}/${results.length} routes ready after prime`;
@@ -845,7 +741,7 @@ function renderOfflineRouteReceipt(root, receipt = loadOfflineRouteReceipt()) {
     title.textContent = `${readyText} after ${receipt.action === "primed" ? "prime" : "check"}`;
   }
   if (summary) {
-    summary.textContent = `${formatOfflineCheckTime(receipt.savedAt)}. ${missingRoutes.length ? "Open missing routes while online before coverage drops." : "All key routes were found in this browser cache."}`;
+    summary.textContent = `${formatOfflineRouteCheckTime(receipt.savedAt)}. ${missingRoutes.length ? "Open missing routes while online before coverage drops." : "All key routes were found in this browser cache."}`;
   }
   if (missing) {
     missing.replaceChildren();

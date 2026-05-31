@@ -6,7 +6,7 @@ const CHAT_KEY = `${STORAGE_PREFIX}chat`;
 const THREAD_KEY = `${STORAGE_PREFIX}thread`;
 const LEGACY_SETTINGS_KEY = "ridgeline-ask-anton-settings-v1";
 const LEGACY_CHAT_KEY = "ridgeline-ask-anton-chat-v1";
-const DEFAULT_ENDPOINT = "https://api.openai.com/v1/responses";
+const DEFAULT_ENDPOINT = "/api/ask-anton";
 const DEFAULT_MODEL = "gpt-4.1-mini";
 const DEFAULT_LOCAL_LIMIT = 6;
 const MAX_WEB_CITATIONS = 3;
@@ -20,7 +20,6 @@ const els = {
   clear: document.querySelector("[data-ask-clear]"),
   status: document.querySelector("[data-ask-status]"),
   endpoint: document.querySelector("[data-ask-endpoint]"),
-  key: document.querySelector("[data-ask-key]"),
   model: document.querySelector("[data-ask-model]"),
   webEnabled: document.querySelector("[data-ask-web-enabled]"),
   webThis: document.querySelector("[data-ask-web-this]"),
@@ -193,6 +192,24 @@ function clampLimit(value) {
   return Math.min(12, Math.max(3, Math.round(value || DEFAULT_LOCAL_LIMIT)));
 }
 
+function normalizeEndpoint(value = "") {
+  return `${value}`.trim();
+}
+
+function hasModelEndpointConfigured(endpoint = "") {
+  const normalized = normalizeEndpoint(endpoint);
+  if (!normalized) {
+    return false;
+  }
+  if (/^https?:\/\//i.test(normalized)) {
+    return true;
+  }
+  if (normalized.startsWith("/")) {
+    return window.location.protocol !== "file:";
+  }
+  return false;
+}
+
 function normalizeText(value = "") {
   return `${value}`.toLowerCase().replace(/[^a-z0-9/]+/g, " ").trim();
 }
@@ -251,9 +268,9 @@ function loadSettings() {
   const stored = readStoredJson(SETTINGS_KEY, null);
   const legacy = stored ? null : readStoredJson(LEGACY_SETTINGS_KEY, null);
   const source = stored || legacy || {};
+  const hadStoredApiKey = typeof source.apiKey === "string" && source.apiKey.trim().length > 0;
   const settings = {
     endpoint: typeof source.endpoint === "string" && source.endpoint.trim() ? source.endpoint.trim() : DEFAULT_ENDPOINT,
-    apiKey: typeof source.apiKey === "string" ? source.apiKey : "",
     model: typeof source.model === "string" && source.model.trim() ? source.model.trim() : DEFAULT_MODEL,
     webEnabled: source.webEnabled === true,
     localLimit: Number.isFinite(Number(source.localLimit)) ? clampLimit(Number(source.localLimit)) : DEFAULT_LOCAL_LIMIT,
@@ -261,6 +278,9 @@ function loadSettings() {
     citationQuality: source.citationQuality === "all" ? "all" : "high"
   };
   if (!stored && legacy) {
+    writeStoredJson(SETTINGS_KEY, settings);
+  } else if (stored && hadStoredApiKey) {
+    // Remove legacy browser-stored keys by rewriting settings without apiKey.
     writeStoredJson(SETTINGS_KEY, settings);
   }
   return settings;
@@ -615,8 +635,7 @@ function buildModelInput(query, localMatches, mode = "quick") {
 
 async function requestModelAnswer(query, localMatches, options) {
   const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${state.settings.apiKey}`
+    "Content-Type": "application/json"
   };
 
   const useWebSearch = shouldUseWebSearch(query, options.forceWeb) && (state.settings.webEnabled || options.forceWeb);
@@ -938,7 +957,7 @@ function renderTranscript() {
     const heading = document.createElement("h3");
     heading.textContent = "Anton";
     const body = document.createElement("p");
-    body.textContent = "Ask a question to get local Ridgeline routes now, or enable API mode for model answers. This assistant now supports intent routing, quick/deep mode, decision trees, handoff packs, voice input, and Garage saves.";
+    body.textContent = "Ask a question to get local Ridgeline routes now, or connect a secure server proxy endpoint for model answers. This assistant supports intent routing, quick/deep mode, decision trees, handoff packs, voice input, and Garage saves.";
     intro.append(heading, body);
     els.transcript.append(intro);
     return;
@@ -951,9 +970,6 @@ function renderTranscript() {
 function renderSettings() {
   if (els.endpoint) {
     els.endpoint.value = state.settings.endpoint;
-  }
-  if (els.key) {
-    els.key.value = state.settings.apiKey;
   }
   if (els.model) {
     els.model.value = state.settings.model;
@@ -977,8 +993,7 @@ function renderSettings() {
 
 function collectSettings() {
   return {
-    endpoint: els.endpoint?.value.trim() || DEFAULT_ENDPOINT,
-    apiKey: els.key?.value.trim() || "",
+    endpoint: normalizeEndpoint(els.endpoint?.value || DEFAULT_ENDPOINT) || DEFAULT_ENDPOINT,
     model: els.model?.value.trim() || DEFAULT_MODEL,
     webEnabled: Boolean(els.webEnabled?.checked),
     localLimit: clampLimit(Number(els.localLimit?.value || DEFAULT_LOCAL_LIMIT)),
@@ -1062,8 +1077,9 @@ async function handleQuestionSubmit(event) {
     let answerText = "";
     let citations = [];
     let usedWebSearch = false;
+    const canUseModel = hasModelEndpointConfigured(state.settings.endpoint);
 
-    if (state.settings.apiKey) {
+    if (canUseModel) {
       const answer = await requestModelAnswer(query, localMatches, {
         mode,
         forceWeb: forceWebForThisQuestion
@@ -1094,10 +1110,10 @@ async function handleQuestionSubmit(event) {
 
     if (usedWebSearch) {
       setStatus("Answered with local grounding plus internet references for this question.", "success");
-    } else if (state.settings.apiKey) {
+    } else if (canUseModel) {
       setStatus("Answered with model + local grounding.", "success");
     } else {
-      setStatus("Answered from local Ridgeline intelligence. Add API key for model/web results.", "info");
+      setStatus("Answered from local Ridgeline intelligence. Add a secure proxy endpoint in Settings for model/web results.", "info");
     }
   } catch (error) {
     const fallbackText = makeLocalAnswer(query, intent, localMatches, mode);
@@ -1118,7 +1134,7 @@ async function handleQuestionSubmit(event) {
       partsGuardrail: guardrail
     });
 
-    setStatus(`Model request failed. Fallback local answer shown: ${error.message}`, "warn");
+    setStatus(`Proxy/model request failed. Fallback local answer shown: ${error.message}`, "warn");
   } finally {
     state.busy = false;
     if (els.submit) {
@@ -1296,7 +1312,7 @@ function syncInitialUi() {
   renderTranscript();
   renderThreadMemory();
   formatSources([]);
-  setStatus("Ready. Ask Anton now includes intent routing, quick/deep modes, decision trees, action buttons, voice input, and shop/tow handoff packs.", "info");
+  setStatus("Ready. Ask Anton includes intent routing, quick/deep modes, decision trees, action buttons, voice input, and shop/tow handoff packs.", "info");
 }
 
 els.form?.addEventListener("submit", handleQuestionSubmit);
