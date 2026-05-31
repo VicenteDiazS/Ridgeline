@@ -73,6 +73,8 @@
                 </div>
                 <div class="inspector-actions">
                   <button class="utility-link" type="button" data-copy-recent-handoff>Copy Latest</button>
+                  <button class="utility-link" type="button" data-share-recent-handoff>Share Latest</button>
+                  <a class="utility-link" href="#notes" data-open-recent-handoff>Open Latest</a>
                   <a class="utility-link" href="#notes">Open Notes</a>
                 </div>
               </div>
@@ -88,6 +90,11 @@
                 <button class="recent-handoff-filter" type="button" data-recent-handoff-filter="tow" aria-pressed="false">Tire / Tow</button>
               </div>
               <p class="small-note roadside-note-status" data-recent-handoff-status aria-live="polite"></p>
+              <div class="manual-copy-fallback" data-recent-handoff-manual-copy hidden>
+                <span>Manual copy fallback</span>
+                <textarea data-recent-handoff-manual-copy-text readonly></textarea>
+                <button class="utility-link" type="button" data-close-recent-handoff-manual-copy>Hide Fallback</button>
+              </div>
               <div class="roadside-note-list" data-recent-handoffs></div>
             </div>
             <div class="diagnostic-activity-panel" id="diagnostic-activity">

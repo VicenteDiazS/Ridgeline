@@ -2,6 +2,7 @@ const statusRoot = document.querySelector("[data-agent-status]");
 const homeAgentCard = document.querySelector("[data-agent-home-card]");
 const homeResumePanel = document.querySelector("[data-home-resume-work]");
 const STALE_GRACE_MINUTES = 30;
+const STALE_RUNNING_MINUTES = 20;
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
@@ -468,8 +469,10 @@ function renderHomeAgentCard(data) {
   const detailNode = homeAgentCard.querySelector("[data-agent-home-detail]");
   const kickerNode = homeAgentCard.querySelector("[data-agent-home-kicker]");
   const score = Number.isFinite(Number(data.impactScore)) ? `${Number(data.impactScore)}/5` : "";
-  const running = data.status === "running";
-  const rawTitle = running
+  const running = data.status === "running" && health.state !== "stale";
+  const rawTitle = health.state === "stale"
+    ? health.label
+    : running
     ? (data.statusTitle || "Anton is working")
     : (impact.visibleChange || data.statusTitle || health.label || "Anton status");
   const title = compactNoteBody(rawTitle, running ? 54 : 60);
@@ -514,6 +517,13 @@ function getLoopHealth(data) {
   const status = data.status || "unknown";
 
   if (status === "running") {
+    if (heartbeatAgeMinutes !== null && heartbeatAgeMinutes > STALE_RUNNING_MINUTES) {
+      return {
+        state: "stale",
+        label: "Running status may be stale",
+        copy: `Anton still says running, but the last heartbeat was ${Math.round(heartbeatAgeMinutes)} minutes ago. Refresh once, then check Anton controls or the run log.`
+      };
+    }
     return {
       state: "running",
       label: "Running now",

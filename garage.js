@@ -27,7 +27,12 @@ const dashboardGrid = document.querySelector("[data-garage-dashboard]");
 const garageSetupChecklist = document.querySelector("[data-garage-setup-checklist]");
 const recentHandoffList = document.querySelector("[data-recent-handoffs]");
 const recentHandoffCopyButton = document.querySelector("[data-copy-recent-handoff]");
+const recentHandoffShareButton = document.querySelector("[data-share-recent-handoff]");
+const recentHandoffOpenLink = document.querySelector("[data-open-recent-handoff]");
 const recentHandoffStatus = document.querySelector("[data-recent-handoff-status]");
+const recentHandoffManualCopy = document.querySelector("[data-recent-handoff-manual-copy]");
+const recentHandoffManualCopyText = document.querySelector("[data-recent-handoff-manual-copy-text]");
+const recentHandoffManualCopyClose = document.querySelector("[data-close-recent-handoff-manual-copy]");
 const recentHandoffFilterButtons = [...document.querySelectorAll("[data-recent-handoff-filter]")];
 const diagnosticActivityList = document.querySelector("[data-diagnostic-activity]");
 const maintenanceNotePreview = document.querySelector("[data-maintenance-note-preview]");
@@ -270,6 +275,8 @@ jobNoteCopyButton?.addEventListener("click", () => {
 
 jobNoteAppendButton?.addEventListener("click", appendJobNoteToGeneralNotes);
 recentHandoffCopyButton?.addEventListener("click", () => copyRecentHandoff());
+recentHandoffShareButton?.addEventListener("click", () => shareRecentHandoff());
+recentHandoffManualCopyClose?.addEventListener("click", hideRecentHandoffManualCopy);
 recentHandoffFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     currentRecentHandoffFilter = button.dataset.recentHandoffFilter || "all";
@@ -2691,12 +2698,32 @@ function setRecentHandoffStatus(message = "") {
   }
 }
 
+function showRecentHandoffManualCopy(text = "") {
+  if (!recentHandoffManualCopy || !recentHandoffManualCopyText) {
+    return;
+  }
+
+  recentHandoffManualCopyText.value = text;
+  recentHandoffManualCopy.hidden = false;
+  window.requestAnimationFrame(() => {
+    recentHandoffManualCopyText.focus({ preventScroll: true });
+    recentHandoffManualCopyText.select();
+  });
+}
+
+function hideRecentHandoffManualCopy() {
+  if (recentHandoffManualCopy) {
+    recentHandoffManualCopy.hidden = true;
+  }
+}
+
 function renderRecentHandoffs(items = getRecentHandoffItems()) {
   if (!recentHandoffList) {
     return;
   }
 
   const filteredItems = filterRecentHandoffs(items).slice(0, 6);
+  const latest = filteredItems[0] || null;
   currentRecentHandoffItems = filteredItems;
   recentHandoffFilterButtons.forEach((button) => {
     const type = button.dataset.recentHandoffFilter || "all";
@@ -2715,6 +2742,14 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
   );
   if (recentHandoffCopyButton) {
     recentHandoffCopyButton.disabled = !filteredItems.length;
+  }
+  if (recentHandoffShareButton) {
+    recentHandoffShareButton.disabled = !filteredItems.length;
+  }
+  if (recentHandoffOpenLink) {
+    recentHandoffOpenLink.href = latest?.href || "#notes";
+    recentHandoffOpenLink.textContent = latest ? "Open Latest" : "Open Notes";
+    recentHandoffOpenLink.toggleAttribute("aria-disabled", !latest);
   }
 
   if (!items.length) {
@@ -2743,7 +2778,21 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
     return;
   }
 
-  recentHandoffList.innerHTML = filteredItems
+  recentHandoffList.innerHTML = `
+    <article class="recent-handoff-review">
+      <div>
+        <span>Latest ${escapeHtml(recentHandoffFilterLabel().toLowerCase())} handoff</span>
+        <strong>${escapeHtml(latest.title)}</strong>
+        <p>${escapeHtml(latest.source)} / ${escapeHtml(latest.meta)} - ${escapeHtml(latest.detail)}</p>
+      </div>
+      <div class="maintenance-note-actions">
+        <button class="utility-link" type="button" data-copy-recent-handoff-review>Copy Handoff</button>
+        <button class="utility-link" type="button" data-share-recent-handoff-review>Share</button>
+        <a class="utility-link" href="${escapeHtml(latest.href)}">Open Source</a>
+        <a class="utility-link" href="#notes">Open Full Note</a>
+      </div>
+    </article>
+    ${filteredItems
     .map(
       (item, index) => `
         <article class="roadside-note-item">
@@ -2752,13 +2801,15 @@ function renderRecentHandoffs(items = getRecentHandoffItems()) {
           <p>${escapeHtml(item.detail)}</p>
           <div class="maintenance-note-actions">
             <button class="utility-link" type="button" data-copy-recent-handoff-index="${index}">Copy Handoff</button>
+            <button class="utility-link" type="button" data-share-recent-handoff-index="${index}">Share</button>
             <a class="utility-link" href="${escapeHtml(item.href)}">Open Source</a>
             <a class="utility-link" href="#notes">Open Full Note</a>
           </div>
         </article>
       `
     )
-    .join("");
+    .join("")}
+  `;
 }
 
 function copyRecentHandoff(index = 0) {
@@ -2770,7 +2821,48 @@ function copyRecentHandoff(index = 0) {
 
   copyText(item.copyText)
     .then(() => setRecentHandoffStatus(`Copied ${recentHandoffFilterLabel().toLowerCase()} handoff: ${item.title}.`))
-    .catch(() => setRecentHandoffStatus("Could not copy automatically. Open the full note and copy it manually."));
+    .catch(() => {
+      showRecentHandoffManualCopy(item.copyText);
+      setRecentHandoffStatus("Copy failed, so the handoff is selected below for manual copy.");
+    });
+}
+
+function shareRecentHandoff(index = 0) {
+  const item = currentRecentHandoffItems[index] || filterRecentHandoffs(getRecentHandoffItems())[index];
+  if (!item) {
+    setRecentHandoffStatus("No saved handoff is ready to share yet.");
+    return;
+  }
+
+  const title = `Ridgeline ${item.title}`;
+  if (navigator.share) {
+    navigator
+      .share({
+        title,
+        text: item.copyText
+      })
+      .then(() => setRecentHandoffStatus(`Shared ${recentHandoffFilterLabel().toLowerCase()} handoff: ${item.title}.`))
+      .catch((error) => {
+        if (error?.name === "AbortError") {
+          setRecentHandoffStatus("Share canceled.");
+          return;
+        }
+        copyText(item.copyText)
+          .then(() => setRecentHandoffStatus("Share was unavailable, so the handoff was copied."))
+          .catch(() => {
+            showRecentHandoffManualCopy(item.copyText);
+            setRecentHandoffStatus("Share and copy failed, so the handoff is selected below for manual copy.");
+          });
+      });
+    return;
+  }
+
+  copyText(item.copyText)
+    .then(() => setRecentHandoffStatus("Share is unavailable here, so the handoff was copied."))
+    .catch(() => {
+      showRecentHandoffManualCopy(item.copyText);
+      setRecentHandoffStatus("Copy failed, so the handoff is selected below for manual copy.");
+    });
 }
 
 function renderDiagnosticActivity() {
@@ -2976,14 +3068,7 @@ function saveMaintenanceRunNote() {
     ...notes,
     general_notes: existing ? `${savedNote}\n\n${existing}` : savedNote
   });
-hydrateGarageForms();
-onOwnerAuthChange(() => {
-  if (profileForm) {
-    hydrateForm(profileForm, redactedProfile(loadJson(STORAGE.profile, defaultProfile)));
-  }
-  renderProfileSummary();
-  renderDashboard();
-});
+  hydrateGarageForms();
   renderDashboard();
   setMaintenanceNoteStatus(`Saved staging run note with ${count} item${count === 1 ? "" : "s"} into Garage Notes.`);
 }
@@ -3490,12 +3575,34 @@ maintenanceNotePreview?.addEventListener("click", (event) => {
   copyMaintenanceStaging(Number(button.dataset.copyMaintenancePartsIndex || 0));
 });
 recentHandoffList?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-copy-recent-handoff-index]");
-  if (!button) {
+  if (event.target.closest("[data-copy-recent-handoff-review]")) {
+    copyRecentHandoff(0);
     return;
   }
 
-  copyRecentHandoff(Number(button.dataset.copyRecentHandoffIndex || 0));
+  if (event.target.closest("[data-share-recent-handoff-review]")) {
+    shareRecentHandoff(0);
+    return;
+  }
+
+  const copyButton = event.target.closest("[data-copy-recent-handoff-index]");
+  if (copyButton) {
+    copyRecentHandoff(Number(copyButton.dataset.copyRecentHandoffIndex || 0));
+    return;
+  }
+
+  const shareButton = event.target.closest("[data-share-recent-handoff-index]");
+  if (shareButton) {
+    shareRecentHandoff(Number(shareButton.dataset.shareRecentHandoffIndex || 0));
+  }
+});
+
+onOwnerAuthChange(() => {
+  if (profileForm) {
+    hydrateForm(profileForm, redactedProfile(loadJson(STORAGE.profile, defaultProfile)));
+  }
+  renderProfileSummary();
+  renderDashboard();
 });
 
 async function renderGaragePage() {

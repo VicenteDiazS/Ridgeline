@@ -8840,6 +8840,43 @@ body[data-site-theme="light"] .manual-copy-fallback textarea {
   cursor: not-allowed;
 }
 
+.recent-handoff-review {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(97, 223, 255, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(97, 223, 255, 0.12), rgba(255, 210, 122, 0.07)),
+    rgba(8, 16, 28, 0.76);
+}
+
+.recent-handoff-review span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recent-handoff-review strong {
+  display: block;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.recent-handoff-review p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .maintenance-note-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -14897,6 +14934,12 @@ body[data-site-theme="light"] .manual-copy-fallback textarea {
     padding-inline: 7px;
   }
 
+  .recent-handoff-review {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    padding: 12px;
+  }
+
   .garage-setup-card {
     min-height: 0;
   }
@@ -18683,6 +18726,13 @@ select:focus {
   border-color: rgba(255, 207, 104, 0.34);
 }
 
+.anton-live-card[data-anton-server="stale-running"] {
+  border-color: rgba(255, 207, 104, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 207, 104, 0.09), rgba(255, 207, 104, 0.024)),
+    rgba(18, 15, 5, 0.74);
+}
+
 .anton-live-card span,
 .anton-file-meta span {
   color: var(--muted);
@@ -18915,7 +18965,8 @@ select:focus {
 .anton-run-snapshot[data-anton-run-state="error"] article,
 .anton-run-snapshot[data-anton-run-state="blocked-dirty-worktree"] article,
 .anton-run-snapshot[data-anton-run-state="waiting-for-tokens-or-auth"] article,
-.anton-run-snapshot[data-anton-run-state="command-error"] article {
+.anton-run-snapshot[data-anton-run-state="command-error"] article,
+.anton-run-snapshot[data-anton-run-state="stale-running"] article {
   border-color: rgba(255, 207, 104, 0.3);
 }
 

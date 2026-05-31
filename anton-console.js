@@ -5,6 +5,7 @@ const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
 const SIGNOFF_KEY = "ridgeline-anton-iphone-signoff";
+const STALE_RUNNING_MINUTES = 20;
 const FALLBACK_FILES = [
   { name: "ANTON.md", label: "Anton Instructions" },
   { name: "AGENT_STATE.md", label: "Agent State" },
@@ -162,6 +163,14 @@ function compactAge(value, fallback = "Not recorded") {
   return `${minutes} min ago`;
 }
 
+function isStaleRunning(status = {}) {
+  return status.status === "running" && minutesSince(status.lastHeartbeatAt || status.startedAt) > STALE_RUNNING_MINUTES;
+}
+
+function displayRunState(status = {}) {
+  return isStaleRunning(status) ? "stale-running" : (status.status || "unknown");
+}
+
 function requestHeaders() {
   const token = getControlToken();
   return token ? { "X-Anton-Token": token } : {};
@@ -253,19 +262,22 @@ function renderOwnerCheck(status) {
   const files = Array.isArray(status.changedFiles) ? status.changedFiles.filter(Boolean) : [];
   const changedPage = changedPageFromFiles(files);
   const changedLabel = shortFileLabel(changedPage);
-  const isRunning = status.status === "running";
+  const staleRunning = isStaleRunning(status);
+  const isRunning = status.status === "running" && !staleRunning;
   const actionRequired = summarizeText(status.actionRequired || "");
   const next = describeNextRun(status.nextExpectedRunAt);
   const visibleChange = status.visibleChange || firstSummaryLine(status.summary);
   const score = Number.isFinite(Number(status.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored";
 
   if (els.ownerCheckTitle) {
-    els.ownerCheckTitle.textContent = isRunning ? "Wait for finish" : `Review ${changedLabel}`;
+    els.ownerCheckTitle.textContent = staleRunning ? "Inspect controls" : isRunning ? "Wait for finish" : `Review ${changedLabel}`;
   }
   if (els.ownerCheckDetail) {
-    els.ownerCheckDetail.textContent = isRunning
-      ? "Anton is still working; refresh after it finishes before judging the visible change."
-      : `${score}: ${visibleChange}`;
+    els.ownerCheckDetail.textContent = staleRunning
+      ? `Anton still says running, but the heartbeat is ${compactAge(status.lastHeartbeatAt || status.startedAt)}. Open controls or check the run log before waiting longer.`
+      : isRunning
+        ? "Anton is still working; refresh after it finishes before judging the visible change."
+        : `${score}: ${visibleChange}`;
   }
   if (els.ownerCheckLink) {
     els.ownerCheckLink.href = changedPage;
@@ -431,23 +443,29 @@ function renderRunSnapshot(status) {
     return;
   }
 
-  const state = status.status || "unknown";
+  const state = displayRunState(status);
+  const rawState = status.status || "unknown";
   const phase = status.phase || state || "Unknown";
   const startedAge = compactAge(status.startedAt, "Start not recorded");
   const heartbeatAge = compactAge(status.lastHeartbeatAt, "Heartbeat not recorded");
-  const isRunning = state === "running";
-  const needsFix = ["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth", "command-error"].includes(state);
+  const staleRunning = state === "stale-running";
+  const isRunning = rawState === "running" && !staleRunning;
+  const needsFix = staleRunning || ["error", "blocked-dirty-worktree", "waiting-for-tokens-or-auth", "command-error"].includes(state);
   const score = Number.isFinite(Number(status.impactScore)) ? `${Number(status.impactScore)}/5` : "Not scored";
   const visibleChange = status.visibleChange || firstSummaryLine(status.summary);
-  const ownerTitle = isRunning ? "Wait for finish" : needsFix ? "Fix before next run" : "Review on iPhone";
-  const ownerDetail = isRunning
-    ? "Refresh this page after the run finishes before judging the site change."
-    : needsFix
-      ? summarizeText(status.actionRequired || status.diagnostic || "Check the run log before starting another slice.")
-      : `${score}: ${visibleChange}`;
-  const heartbeatDetail = isRunning
-    ? `Started ${startedAge}; latest heartbeat ${heartbeatAge}.`
-    : `Finished ${compactAge(status.finishedAt || status.lastHeartbeatAt, "finish not recorded")}; next check ${describeNextRun(status.nextExpectedRunAt)}.`;
+  const ownerTitle = staleRunning ? "Inspect controls" : isRunning ? "Wait for finish" : needsFix ? "Fix before next run" : "Review on iPhone";
+  const ownerDetail = staleRunning
+    ? "The run still reports active, but the heartbeat is stale. Refresh once, then open controls or the run log instead of waiting."
+    : isRunning
+      ? "Refresh this page after the run finishes before judging the site change."
+      : needsFix
+        ? summarizeText(status.actionRequired || status.diagnostic || "Check the run log before starting another slice.")
+        : `${score}: ${visibleChange}`;
+  const heartbeatDetail = staleRunning
+    ? `Started ${startedAge}; latest heartbeat ${heartbeatAge}, which is over the ${STALE_RUNNING_MINUTES}-minute stale threshold.`
+    : isRunning
+      ? `Started ${startedAge}; latest heartbeat ${heartbeatAge}.`
+      : `Finished ${compactAge(status.finishedAt || status.lastHeartbeatAt, "finish not recorded")}; next check ${describeNextRun(status.nextExpectedRunAt)}.`;
 
   els.runSnapshot.dataset.antonRunState = state;
   els.runSnapshot.innerHTML = `
@@ -470,7 +488,14 @@ function renderRunSnapshot(status) {
 }
 
 function reviewToneForStatus(status) {
-  const state = status.status || "unknown";
+  const state = displayRunState(status);
+  if (state === "stale-running") {
+    return {
+      label: "Check",
+      title: "Running status may be stale",
+      detail: "Refresh once, then open Anton controls or inspect the run log before assuming the loop is still working."
+    };
+  }
   if (state === "running") {
     return {
       label: "Wait",
@@ -817,8 +842,10 @@ async function loadAgentRunStatus() {
       throw new Error(`Status request failed: ${response.status}`);
     }
     const status = await response.json();
-    const state = status.status || "unknown";
-    const title = status.statusTitle || (state === "completed" ? "Anton Finished" : state);
+    const state = displayRunState(status);
+    const title = state === "stale-running"
+      ? "Anton May Be Stale"
+      : status.statusTitle || (state === "completed" ? "Anton Finished" : state);
     const detail = status.statusDetail || status.summary || "No Anton run summary has been recorded yet.";
     const next = describeNextRun(status.nextExpectedRunAt);
     els.agentCard?.setAttribute("data-anton-server", state === "completed" ? "online" : state);
