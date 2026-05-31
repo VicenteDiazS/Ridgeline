@@ -16,6 +16,7 @@ const WORK_AREA_STORAGE_KEY = "ridgeline-work-area";
 const FAVORITE_PINS_STORAGE_KEY = "ridgeline-favorite-pins";
 const LAST_TASK_STORAGE_KEY = "ridgeline-last-task";
 const SITE_THEME_STORAGE_KEY = "ridgeline-site-theme";
+const BG_INTENSITY_STORAGE_KEY = "ridgeline-bg-intensity";
 const RECENT_SEARCH_STORAGE_KEY = "ridgeline-recent-searches";
 const MOTION_MODE_CLASSES = ["motion-rich", "motion-standard", "motion-economy", "motion-off"];
 const prefersCompactDefault =
@@ -31,6 +32,9 @@ let fullSearchIndexPromise = null;
 let fullSearchIndexCache = null;
 let memoryWriteObserver = null;
 let currentSiteTheme = localStorage.getItem(SITE_THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+let currentBackgroundIntensity = ["subtle", "balanced", "cinematic"].includes(localStorage.getItem(BG_INTENSITY_STORAGE_KEY))
+  ? localStorage.getItem(BG_INTENSITY_STORAGE_KEY)
+  : "balanced";
 let lastRenderedSearchResults = [];
 let deferredInstallPrompt = null;
 let liveActiveSectionId = location.hash.replace(/^#/, "");
@@ -239,6 +243,32 @@ function commitSiteTheme(theme) {
   showToast(theme === "light" ? "Light theme on." : "Dark theme on.");
 }
 
+function applyBackgroundIntensity(level = "balanced") {
+  currentBackgroundIntensity = ["subtle", "balanced", "cinematic"].includes(level)
+    ? level
+    : "balanced";
+  document.body?.setAttribute("data-bg-intensity", currentBackgroundIntensity);
+  document.documentElement?.setAttribute("data-bg-intensity", currentBackgroundIntensity);
+}
+
+function commitBackgroundIntensity(level) {
+  localStorage.setItem(BG_INTENSITY_STORAGE_KEY, level);
+  applyBackgroundIntensity(level);
+  window.dispatchEvent(
+    new CustomEvent("ridgeline:bg-intensity-change", {
+      detail: { level }
+    })
+  );
+  showToast(`Background ${level}.`);
+}
+
+function cycleBackgroundIntensity() {
+  const levels = ["subtle", "balanced", "cinematic"];
+  const currentIndex = levels.indexOf(currentBackgroundIntensity);
+  const nextLevel = levels[(currentIndex + 1 + levels.length) % levels.length];
+  commitBackgroundIntensity(nextLevel);
+}
+
 function toggleSiteTheme() {
   const nextTheme = currentSiteTheme === "light" ? "dark" : "light";
   const supportsViewTransitions =
@@ -256,6 +286,7 @@ function toggleSiteTheme() {
 }
 
 applySiteTheme(currentSiteTheme);
+applyBackgroundIntensity(currentBackgroundIntensity);
 
 function bindPress(target, handler) {
   if (!target || typeof handler !== "function") {
@@ -683,6 +714,7 @@ stripLiveRefreshParam();
 
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
+  { label: "Ask Anton AI", href: "ask-anton.html", match: "ask-anton.html", note: "Ask questions with local site grounding and optional web search" },
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
   { label: "Tire And Wheel Lab", href: "tires.html", match: "tires.html", note: "3D tire model, wheel specs, and fitment guidance" },
   { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
@@ -1188,6 +1220,55 @@ function buildThemeToggleButton() {
 
   const searchButton = topbarActions.querySelector("[data-open-search]");
   if (searchButton) {
+    topbarActions.insertBefore(button, searchButton);
+  } else {
+    topbarActions.appendChild(button);
+  }
+}
+
+function buildBackgroundIntensityButton() {
+  if (!topbarActions || topbarActions.querySelector("[data-bg-intensity-toggle]")) {
+    return;
+  }
+
+  const button = document.createElement("button");
+  button.className = "header-nav-button background-intensity-button";
+  button.type = "button";
+  button.dataset.bgIntensityToggle = "true";
+  button.dataset.navIcon = "background";
+
+  const labelByLevel = {
+    subtle: "Soft",
+    balanced: "Balanced",
+    cinematic: "Bold"
+  };
+
+  const nextLevelByLevel = {
+    subtle: "balanced",
+    balanced: "cinematic",
+    cinematic: "subtle"
+  };
+
+  const render = () => {
+    const level = ["subtle", "balanced", "cinematic"].includes(currentBackgroundIntensity)
+      ? currentBackgroundIntensity
+      : "balanced";
+    const nextLevel = nextLevelByLevel[level];
+    button.textContent = labelByLevel[level];
+    button.dataset.bgIntensityState = level;
+    button.title = `Switch background intensity to ${nextLevel}`;
+    button.setAttribute("aria-label", `Switch background intensity to ${nextLevel}`);
+  };
+
+  button.addEventListener("click", cycleBackgroundIntensity);
+  window.addEventListener("ridgeline:bg-intensity-change", render);
+  render();
+
+  const themeButton = topbarActions.querySelector("[data-theme-toggle]");
+  const searchButton = topbarActions.querySelector("[data-open-search]");
+  if (themeButton) {
+    topbarActions.insertBefore(button, themeButton);
+  } else if (searchButton) {
     topbarActions.insertBefore(button, searchButton);
   } else {
     topbarActions.appendChild(button);
@@ -1724,7 +1805,7 @@ function buildMobileNavAccordion(sections) {
   const sectionLinks = uniqueNavEntries(
     (sections || []).map((section) => ({ label: section.label, href: `#${section.id}` }))
   );
-  const hasSectionDock = Boolean(document.querySelector(".section-dock"));
+  const hasSectionDock = !isMobileNavMode && Boolean(document.querySelector(".section-dock"));
 
   const container = document.createElement("nav");
   container.className = "mobile-nav-accordion";
@@ -2833,6 +2914,13 @@ function actionForPage(page) {
       { label: "Sign", href: "#anton-signoff", icon: "note" },
       { label: "Home", href: "index.html#agent-status", icon: "home" },
       { label: "Controls", href: "#anton-controls", icon: "wrench" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "ask-anton.html": [
+      { label: "Chat", href: "#ask-anton-chat", icon: "note" },
+      { label: "Settings", href: "#ask-anton-settings", icon: "wrench" },
+      { label: "Sources", href: "#ask-anton-sources", icon: "map" },
+      { label: "Search", action: "search", icon: "search" },
       { label: "More", action: "tools", icon: "menu" }
     ]
   };
@@ -5533,6 +5621,7 @@ document.body.classList.add(`page-${currentPageName().replace(/[^a-z0-9]+/gi, "-
 setWorkArea(getSavedWorkArea());
 buildUniversalHeaderActions();
 buildThemeToggleButton();
+buildBackgroundIntensityButton();
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
 buildHomeCommandCenter();

@@ -160,6 +160,11 @@
               <strong>+ / ground</strong>
               <em>Open notes</em>
             </a>
+            <a class="quick-critical-card" href="quick-sheet.html?roadside=start#roadside-action-stack">
+              <span>No Start</span>
+              <strong>Use stack</strong>
+              <em>Battery first</em>
+            </a>
             <a class="quick-critical-card" href="#fuse-triage">
               <span>Fuse Start</span>
               <strong>Symptom first</strong>
@@ -250,6 +255,11 @@
             <button class="utility-link" type="button" data-roadside-plan="warning" aria-pressed="false">Warning Light</button>
             <button class="utility-link" type="button" data-roadside-plan="trailer" aria-pressed="false">Trailer Lights</button>
           </div>
+          <div class="inspector-actions roadside-stack-jump-row" aria-label="Roadside stack quick jumps">
+            <a class="utility-link utility-link-strong" href="#roadside-contact-card">Contact</a>
+            <a class="utility-link" href="#roadside-live-session">Live Session</a>
+            <a class="utility-link" href="#roadside-dispatch-pack">Dispatch Pack</a>
+          </div>
           <article class="dashboard-card roadside-stack-card" aria-live="polite">
             <div>
               <span data-roadside-kicker>Flat tire or wheel work</span>
@@ -286,7 +296,7 @@
               <a class="utility-link" href="garage.html#notes">Open Garage Notes</a>
             </div>
           </article>
-          <article class="dashboard-card roadside-contact-card" data-roadside-contact-card>
+          <article class="dashboard-card roadside-contact-card" id="roadside-contact-card" data-roadside-contact-card>
             <div>
               <span>Roadside Contact Card</span>
               <strong>Keep location and callback ready</strong>
@@ -320,7 +330,7 @@
             </div>
             <p class="small-note">Contact details stay on this iPhone unless copied or saved into Garage Notes.</p>
           </article>
-          <article class="dashboard-card roadside-live-card" data-roadside-live-session>
+          <article class="dashboard-card roadside-live-card" id="roadside-live-session" data-roadside-live-session>
             <div>
               <span>Live Roadside Session</span>
               <strong data-roadside-live-title>No session running</strong>
@@ -622,6 +632,7 @@
         <a href="#print-offline-pack">Print</a>
         <a href="#roadside-router">Roadside</a>
         <a href="#roadside-action-stack">Stack</a>
+        <a href="#roadside-dispatch-pack">Dispatch</a>
         <a href="#oil">Oil</a>
         <a href="#battery">Battery</a>
         <a href="#fuse-triage">Fuses</a>

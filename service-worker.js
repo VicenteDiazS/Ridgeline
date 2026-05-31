@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v415";
+const CACHE_NAME = "ridgeline-console-v417";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -18,6 +18,7 @@ const CORE_ASSETS = [
   "./photo-atlas.html",
   "./quick-sheet.html",
   "./anton.html",
+  "./ask-anton.html",
   "./styles.css",
   "./script.js",
   "./engine-viewer.js",
@@ -41,6 +42,7 @@ const CORE_ASSETS = [
   "./section-tools.js",
   "./agent-status.js",
   "./anton-console.js",
+  "./ask-anton.js",
   "./manifest.json",
   "./favicon.svg",
   "./favicon-32x32.png",

@@ -138,6 +138,13 @@ export const searchIndex = [
     keywords: ["roadside contact card", "roadside location", "copy roadside contact", "save roadside contact", "tow eta", "callback roadside", "roadside landmark", "roadside helper", "roadside eta", "iphone roadside contact"]
   },
   {
+    title: "Ask Anton AI Assistant",
+    url: "ask-anton.html#ask-anton-chat",
+    category: "Navigation",
+    excerpt: "On-site AI chat that grounds answers in Ridgeline pages and can optionally use live web search for added context.",
+    keywords: ["ask anton", "ai chat", "language model", "ridgeline assistant", "site grounded answers", "web search answers", "chat with anton", "owner questions"]
+  },
+  {
     title: "Fuse Check Note",
     url: "quick-sheet.html#fuse-triage",
     category: "Quick Sheet",

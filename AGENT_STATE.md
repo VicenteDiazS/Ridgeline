@@ -7,6 +7,7 @@ Last updated: 2026-05-30
 - The site is a static iPhone-first Ridgeline reference and workflow app with shared UI, search, offline/PWA behavior, owner-auth-protected writes, and owner-only Anton/visitor controls.
 - Public visitors can browse and read site memory content; only the configured owner account should be able to write, delete, upload, restore, or use protected Anton controls.
 - The shared header has recent iPhone-focused changes: compact mobile layout, clearer Sign In button behavior, theme toggle, and a homepage order fix so the truck viewer should be the first major content on phone.
+- The shared header now includes a background intensity control for Soft/Balanced/Bold page chrome; it uses a real icon and hides alongside the theme toggle in compact sticky mode so the core iPhone actions stay stable.
 - The homepage truck map now defaults to a calmer hotspot focus mode so the 3D model is less cluttered.
 - Light theme exists and recently needed contrast fixes on specialty buttons; future theme work should assume stragglers may still exist.
 - Anton/Home status is visible on the homepage and on `anton.html`, with impact score, visible change, sign-off, visitor log, and owner-only internals.
@@ -51,6 +52,8 @@ Last updated: 2026-05-30
 - Added Quick Sheet roadside deep-link selection and visible Roadside Router `Use Stack` actions so Home, router cards, and future search/menu routes can open the action stack with the intended flat/no-start/warning/trailer plan selected.
 - Added Quick Sheet offline readiness receipts and Diagnostics symptom-aware deep-link selection for warning, power, audio, trailer, and no-start workflows.
 - Added the homepage iPhone Task Launcher and repaired shared site-menu current-page semantics for hash-focused homepage routes.
+- Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
+- Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
 - Added Garage Recent Handoffs type filters for faster iPhone review of saved handoffs.
@@ -71,7 +74,7 @@ Last updated: 2026-05-30
 
 Use the next Anton run to improve a high-impact iPhone path that builds on current work without over-polishing one page. The best near-term bets are:
 
-- shared iPhone polish after the recent manual homepage/header/theme/hotspot changes
+- verify/extend the new Ask Anton files if they are intended to ship, including owner/public boundaries and mobile navigation fit
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -91,7 +94,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run verified the homepage iPhone Task Launcher and shared current-page menu fix with the full internal-link/anchor audit plus a local-server Playwright iPhone viewport check for `index.html`. The check confirmed six task cards, horizontal mobile scrolling, no horizontal overflow, no browser console/page errors, and a page-level site-menu current badge. The repo browser smoke wrapper still timed out after the local-server check passed, so future shared-navigation work should continue preferring local-server or real-device smoke over the file-mode wrapper when module loading matters.
+- Anton's latest scheduled run verified the shared background intensity control, restored mobile Page Sections accordion, Diagnostics First Checks/Call routes, and Quick Sheet no-start/contact/live/dispatch routes with the full internal-link/anchor audit plus a targeted Playwright iPhone viewport smoke for `index.html`, `diagnostics.html`, and `quick-sheet.html`. The check confirmed no horizontal overflow, no browser console/page errors, compact header action stability, background intensity persistence, mobile section links for Diagnostics/Quick Sheet, and Quick Sheet `?roadside=start#roadside-action-stack` selection. The repo browser smoke wrapper still timed out with no useful output, so targeted Playwright smoke remains the practical fallback for shared UI runs.
 
 ## Archive
 

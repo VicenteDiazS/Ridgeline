@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#071019" />
+    <meta
+      name="description"
+      content="Ask Anton AI assistant for Ridgeline questions with local site grounding and optional web search."
+    />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <title>Ask Anton AI | Ridgeline</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="is-subpage ask-anton-page">
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="diagnostics.html">Diagnostics</a>
+          <a href="garage.html">Garage Log</a>
+          <a href="ask-anton.html#ask-anton-chat">Ask Anton</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search>Search</button>
+        </div>
+      </header>
+
+      <nav class="route-strip" aria-label="Fast sections">
+        <a href="index.html">Home</a>
+        <a href="#ask-anton-chat">Chat</a>
+        <a href="#ask-anton-settings">Settings</a>
+        <a href="#ask-anton-sources">Sources</a>
+        <a href="quick-sheet.html#emergency-card">Emergency</a>
+      </nav>
+
+      <main id="top">
+        <section class="section-page-hero">
+          <p class="eyebrow">AI Assistant</p>
+          <h1>Ask Anton</h1>
+          <p class="section-copy">
+            Ask questions in plain language. Anton uses this site's Ridgeline references first, and can also use live web search when you enable it.
+          </p>
+          <div class="section-utility-nav" aria-label="Section shortcuts">
+            <a class="utility-link utility-link-strong" href="#ask-anton-chat">Start Chat</a>
+            <a class="utility-link" href="#ask-anton-settings">API Setup</a>
+            <a class="utility-link" href="#ask-anton-sources">Local Sources</a>
+            <a class="utility-link" href="quick-sheet.html#roadside-action-stack">Roadside</a>
+            <a class="utility-link" href="diagnostics.html#first-minute-triage">First Minute Triage</a>
+          </div>
+        </section>
+
+        <section class="section-page-grid ask-anton-grid">
+          <article class="dashboard-card ask-anton-card ask-anton-chat" id="ask-anton-chat" aria-labelledby="ask-anton-chat-title">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">Chat</p>
+                <h2 id="ask-anton-chat-title">Ridgeline + Internet Q&A</h2>
+              </div>
+            </div>
+
+            <div class="ask-anton-quick-prompts" role="group" aria-label="Suggested prompts">
+              <button class="utility-link" type="button" data-ask-prompt="What is the stock tire size and what bigger sizes usually fit without rubbing?">Tire fitment quick check</button>
+              <button class="utility-link" type="button" data-ask-prompt="My Ridgeline will not start after sitting overnight. Give me a fast first-minute checklist.">No-start first minute</button>
+              <button class="utility-link" type="button" data-ask-prompt="What should I check first if trailer brake lights fail on a 2019 Ridgeline?">Trailer lights troubleshooting</button>
+            </div>
+
+            <div class="ask-anton-transcript" data-ask-transcript aria-live="polite">
+              <article class="ask-message ask-message-assistant">
+                <h3>Anton</h3>
+                <p>Enter your API key in Settings, ask a question, and I will ground the answer with this site plus optional web results.</p>
+              </article>
+            </div>
+
+            <form class="ask-anton-form" data-ask-form>
+              <label class="visually-hidden" for="ask-anton-question">Ask a question</label>
+              <textarea
+                id="ask-anton-question"
+                data-ask-input
+                rows="3"
+                placeholder="Example: What fuses should I check first if my interior 12V outlet stopped working?"
+                required
+              ></textarea>
+              <div class="ask-anton-form-actions">
+                <button class="agent-control-button" type="submit" data-ask-submit>Ask Anton</button>
+                <button class="agent-control-button agent-control-button-secondary" type="button" data-ask-clear>Clear Chat</button>
+              </div>
+              <p class="small-note" data-ask-status aria-live="polite"></p>
+            </form>
+          </article>
+
+          <article class="dashboard-card ask-anton-card" id="ask-anton-settings" aria-labelledby="ask-anton-settings-title">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">Settings</p>
+                <h2 id="ask-anton-settings-title">Model Connection</h2>
+              </div>
+            </div>
+
+            <form class="ask-anton-settings" data-ask-settings-form>
+              <label>
+                API Endpoint
+                <input type="url" data-ask-endpoint placeholder="https://api.openai.com/v1/responses" />
+              </label>
+              <label>
+                API Key
+                <input type="password" data-ask-key placeholder="Paste your API key" autocomplete="off" />
+              </label>
+              <label>
+                Model
+                <input type="text" data-ask-model placeholder="gpt-4.1" />
+              </label>
+              <label class="ask-anton-checkbox">
+                <input type="checkbox" data-ask-web-enabled />
+                Enable live web search tool (internet)
+              </label>
+              <label>
+                Local context snippets
+                <input type="number" min="3" max="12" step="1" data-ask-local-limit />
+              </label>
+              <div class="ask-anton-form-actions">
+                <button class="agent-control-button" type="submit">Save Settings</button>
+              </div>
+              <p class="small-note">Settings are stored only in this browser on this device.</p>
+              <p class="small-note" data-ask-settings-status aria-live="polite"></p>
+            </form>
+          </article>
+
+          <article class="dashboard-card ask-anton-card" id="ask-anton-sources" aria-labelledby="ask-anton-sources-title">
+            <div class="compact-section-head">
+              <div>
+                <p class="eyebrow">Grounding</p>
+                <h2 id="ask-anton-sources-title">Local Sources Used</h2>
+              </div>
+            </div>
+            <p class="section-copy ask-anton-source-copy" data-ask-source-copy>
+              Ask a question to see which local site entries were used as grounding context.
+            </p>
+            <ul class="ask-anton-sources" data-ask-sources-list>
+              <li>No local context selected yet.</li>
+            </ul>
+            <p class="source-note">
+              Safety note: treat truck labels, current warning states, and the official owner manual as final authority for any safety-critical decision.
+            </p>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="ask-anton.js"></script>
+  </body>
+</html>
