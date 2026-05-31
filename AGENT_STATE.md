@@ -19,13 +19,15 @@ Last updated: 2026-05-31
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
 - The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
-- Ask Anton now has a no-API local route-answer mode, so the chat surface can route iPhone questions to the best local Ridgeline pages before model setup; legacy saved settings/chats migrate into the new storage key, local route answers survive Safari restarts, and the PWA cache is bumped to `ridgeline-console-v419`.
+- Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
+- Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
+- The PWA cache is bumped to `ridgeline-console-v420` for the Ask Anton and Maintenance updates.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 
 ## Current Queue
 
 - `Now`: shared iPhone polish and regression review after the recent manual changes to homepage first view, header layout, theme toggle, and hotspot density.
-- `Next`: high-value cross-page improvements that make existing tools easier to reach from the truck/home experience without adding clutter.
+- `Next`: verify the Ask Anton and Maintenance deep-link flows in a real browser/iPhone path, then rotate toward Diagnostics, Quick Sheet, Garage clarity, or shared search/offline reliability.
 - `Fallback`: targeted reliability work on light-theme contrast, mobile scroll/anchor behavior, search/offline clarity, or Anton status clarity if larger feature work is risky.
 
 ## High-Impact Zones
@@ -54,6 +56,7 @@ Last updated: 2026-05-31
 - Added Quick Sheet roadside deep-link selection and visible Roadside Router `Use Stack` actions so Home, router cards, and future search/menu routes can open the action stack with the intended flat/no-start/warning/trailer plan selected.
 - Added Quick Sheet offline readiness receipts and Diagnostics symptom-aware deep-link selection for warning, power, audio, trailer, and no-start workflows.
 - Added the homepage iPhone Task Launcher and repaired shared site-menu current-page semantics for hash-focused homepage routes.
+- Added Ask Anton answer controls and Maintenance service/action launcher selection so iPhone taps can produce structured route answers, Garage handoff notes, and job-specific service prep/log context with fewer steps.
 - Added Ask Anton local route answers for no-key/offline first use and promoted Diagnostics/Quick Sheet page routes into the persistent iPhone action bar.
 - Repaired Ask Anton/home discoverability and storage migration after the route-answer rewrite: home links again expose Ask Anton, local mode copy is explicit, old API settings/chats migrate, storage failures no longer block a local answer, mobile Page Sections remain available, and Diagnostics/Quick Sheet direct bottom actions are restored.
 - Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
@@ -76,9 +79,9 @@ Last updated: 2026-05-31
 
 ## Best Next Task
 
-Use the next Anton run to improve a high-impact iPhone path that builds on current work without over-polishing one page. The best near-term bets are:
+Use the next Anton run to verify or improve a high-impact iPhone path without over-polishing Ask Anton. The best near-term bets are:
 
-- run a real iPhone/browser smoke of the Ask Anton local route-answer path, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
+- run a real iPhone/browser smoke of the Ask Anton local route-answer path, Maintenance service/action deep links, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -98,7 +101,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run repaired Ask Anton local-mode discoverability/storage migration, restored homepage Ask Anton links, kept mobile Page Sections available, restored Diagnostics/Quick Sheet bottom actions, and bumped the PWA cache to `ridgeline-console-v419`. The internal-link/anchor audit passed for 17 HTML files. `Invoke-BrowserSmoke.ps1` and `Invoke-SiteAudit.ps1` timed out in this environment, and Node/Browser automation was unavailable, so a real browser/iPhone smoke remains the next verification target for these UI paths.
+- Anton's latest scheduled run added Ask Anton structured answer controls and Maintenance service/action launcher selection, fixed the per-question internet toggle so it can force web search when an API key is present, and bumped the PWA cache to `ridgeline-console-v420`. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')` no longer failed on the service launcher route assertion after repair, but the wrapper still timed out in this environment, so a real browser/iPhone smoke remains the next verification target.
 
 ## Archive
 

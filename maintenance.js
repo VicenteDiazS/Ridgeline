@@ -25,6 +25,7 @@ const minderStatus = document.querySelector("[data-minder-plan-status]");
 const GARAGE_MAINTENANCE_STAGING_URL = "garage.html#maintenance-note-preview";
 const MAINTENANCE_STAGE_HANDOFF_KEY = "ridgeline-maintenance-stage-handoff";
 const SERVICE_RUN_PACK_DRAFT_KEY = "ridgeline-service-run-pack";
+const maintenanceParams = new URLSearchParams(window.location.search);
 
 const serviceLabels = {
   oil_change: "Oil change",
@@ -88,6 +89,53 @@ const servicePrepCardTitles = {
   battery_install: "Battery Service Prep",
   filters: "Filter Service Prep"
 };
+
+const serviceAliases = {
+  oil: "oil_change",
+  wheel: "tire_rotation",
+  tire: "tire_rotation",
+  tires: "tire_rotation",
+  battery: "battery_install",
+  filter: "filters",
+  filters: "filters",
+  brake: "brake_service",
+  brakes: "brake_service",
+  transmission: "trans_service",
+  trans: "trans_service",
+  timing: "timing_belt_service",
+  trailer: "trailer_wiring",
+  general: "general_note"
+};
+
+function normalizeServiceKey(value = "") {
+  const key = `${value}`.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  const normalized = serviceAliases[key] || key;
+  return serviceLabels[normalized] ? normalized : "";
+}
+
+function requestedMaintenanceService() {
+  return normalizeServiceKey(maintenanceParams.get("service") || maintenanceParams.get("job"));
+}
+
+function requestedMaintenanceAction() {
+  const action = `${maintenanceParams.get("action") || ""}`.trim().toLowerCase();
+  if (["closeout", "followup", "pack", "prep"].includes(action)) {
+    return action;
+  }
+  if (window.location.hash === "#service-closeout") {
+    return "closeout";
+  }
+  if (window.location.hash === "#service-followup") {
+    return "followup";
+  }
+  if (window.location.hash === "#service-run-pack") {
+    return "pack";
+  }
+  if (window.location.hash === "#service-prep") {
+    return "prep";
+  }
+  return "";
+}
 
 function formatMileage(value) {
   const mileage = Number(value);
@@ -495,6 +543,41 @@ function setServicePrepStatus(card, message) {
   }
 }
 
+function selectServicePrepCard(service) {
+  const requestedTitle = servicePrepCardTitles[service];
+  servicePrepCards.forEach((card) => card.classList.remove("is-selected"));
+  if (!requestedTitle) {
+    return false;
+  }
+  const requestedCard = servicePrepCards.find((card) => card.dataset.servicePrepTitle === requestedTitle);
+  if (!requestedCard) {
+    return false;
+  }
+  requestedCard.classList.add("is-selected");
+  setServicePrepStatus(requestedCard, `${requestedTitle} opened from the iPhone service launcher.`);
+  return true;
+}
+
+function applyMaintenanceLauncher(service, action = "prep") {
+  const normalizedService = normalizeServiceKey(service);
+  if (!normalizedService) {
+    return;
+  }
+
+  if (action === "prep") {
+    selectServicePrepCard(normalizedService);
+  }
+
+  if (action === "closeout" && updateForm?.elements.service) {
+    updateForm.elements.service.value = normalizedService;
+    if (updateStatus) {
+      updateStatus.textContent = `${serviceLabels[normalizedService]} selected from the iPhone service launcher. Add mileage and save when ready.`;
+    }
+  }
+
+  setServiceRunPackService(normalizedService);
+}
+
 function initServicePrepCards() {
   servicePrepCards.forEach((card) => {
     card.querySelector("[data-copy-service-prep]")?.addEventListener("click", () => {
@@ -529,6 +612,11 @@ function initServicePrepCards() {
       item.addEventListener("change", renderServiceRunPackPreview);
     });
   });
+
+  const requestedService = requestedMaintenanceService();
+  if (requestedMaintenanceAction() === "prep" && servicePrepCardTitles[requestedService]) {
+    selectServicePrepCard(requestedService);
+  }
 }
 
 function initServiceCloseout() {
@@ -645,6 +733,22 @@ function initServiceCloseout() {
       closeoutStatus.textContent = "Share canceled or unavailable.";
     }
   });
+
+  const requestedService = requestedMaintenanceService();
+  if (requestedMaintenanceAction() === "closeout" && requestedService) {
+    const requestedButton = closeoutButtons.find((button) => button.dataset.closeoutService === requestedService);
+    if (requestedButton) {
+      requestedButton.click();
+    }
+  }
+}
+
+function initMaintenanceLauncherLinks() {
+  document.querySelectorAll("[data-maintenance-launch-service]").forEach((link) => {
+    link.addEventListener("click", () => {
+      applyMaintenanceLauncher(link.dataset.maintenanceLaunchService, link.dataset.maintenanceLaunchAction || "prep");
+    });
+  });
 }
 
 function initServiceRunPack() {
@@ -663,6 +767,11 @@ function initServiceRunPack() {
         field.value = draft[key];
       }
     });
+  }
+
+  const requestedService = requestedMaintenanceService();
+  if ((requestedMaintenanceAction() === "pack" || window.location.hash === "#service-run-pack") && requestedService) {
+    setServiceRunPackService(requestedService);
   }
 
   serviceRunPackForm.addEventListener("input", () => {
@@ -775,7 +884,9 @@ function initServiceFollowup() {
     }
   });
 
-  selectFollowupService("oil_change");
+  const requestedService = requestedMaintenanceService();
+  const shouldUseRequest = requestedMaintenanceAction() === "followup" && followupPresets[requestedService];
+  selectFollowupService(shouldUseRequest ? requestedService : "oil_change", { announce: shouldUseRequest });
 }
 
 function initMinderPlanner() {
@@ -910,6 +1021,7 @@ updateReceipt?.querySelector("[data-share-maintenance-receipt]")?.addEventListen
   }
 });
 initServiceCloseout();
+initMaintenanceLauncherLinks();
 initServicePrepCards();
 initServiceFollowup();
 initMinderPlanner();

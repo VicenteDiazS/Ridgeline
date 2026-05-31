@@ -34,6 +34,7 @@
 				<a href="index.html">Home</a>
 				<a href="#ask-anton-chat">Chat</a>
 				<a href="#ask-anton-settings">Settings</a>
+				<a href="#ask-anton-memory">Memory</a>
 				<a href="#ask-anton-sources">Sources</a>
 				<a href="quick-sheet.html#emergency-card">Emergency</a>
 			</nav>
@@ -68,6 +69,24 @@
 							<button class="utility-link" type="button" data-ask-prompt="My Ridgeline will not start after sitting overnight. Give me a fast first-minute checklist.">No-start first minute</button>
 							<button class="utility-link" type="button" data-ask-prompt="Which Ridgeline page should I open first for a warning light and what should I capture?">Warning light route</button>
 							<button class="utility-link" type="button" data-ask-prompt="What should I check first if trailer brake lights fail on a 2019 Ridgeline?">Trailer lights troubleshooting</button>
+							<button class="utility-link" type="button" data-ask-prompt="Build me a shop handoff note for a no-start issue I can copy and save.">Shop handoff pack</button>
+						</div>
+
+						<div class="ask-anton-control-row" role="group" aria-label="Assistant controls">
+							<label>
+								Answer mode
+								<select data-ask-inline-mode>
+									<option value="quick">Quick</option>
+									<option value="deep">Deep</option>
+								</select>
+							</label>
+							<label class="ask-anton-checkbox">
+								<input type="checkbox" data-ask-web-this />
+								Use internet for this question
+							</label>
+							<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-voice>
+								Voice Input
+							</button>
 						</div>
 
 						<div class="ask-anton-transcript" data-ask-transcript aria-live="polite">
@@ -89,6 +108,10 @@
 							<div class="ask-anton-form-actions">
 								<button class="agent-control-button" type="submit" data-ask-submit>Ask / Find Routes</button>
 								<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-clear>Clear Chat</button>
+							</div>
+							<div class="ask-anton-form-actions">
+								<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-copy-last>Copy Last Answer</button>
+								<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-save-last-garage>Save Last Handoff To Garage</button>
 							</div>
 							<p class="small-note ask-anton-local-note">No API key needed for local site route answers.</p>
 							<p class="small-note" data-ask-status aria-live="polite"></p>
@@ -124,12 +147,46 @@
 								Local context snippets
 								<input type="number" min="3" max="12" step="1" data-ask-local-limit />
 							</label>
+							<label>
+								Default answer mode
+								<select data-ask-default-mode>
+									<option value="quick">Quick</option>
+									<option value="deep">Deep</option>
+								</select>
+							</label>
+							<label>
+								Citation quality filter
+								<select data-ask-citation-quality>
+									<option value="high">High quality only</option>
+									<option value="all">All sources</option>
+								</select>
+							</label>
 							<div class="ask-anton-form-actions">
 								<button class="agent-control-button" type="submit">Save Settings</button>
 							</div>
 							<p class="small-note">Settings are stored only in this browser on this device.</p>
 							<p class="small-note" data-ask-settings-status aria-live="polite"></p>
 						</form>
+					</article>
+
+					<article class="dashboard-card ask-anton-card" id="ask-anton-memory" aria-labelledby="ask-anton-memory-title">
+						<div class="compact-section-head">
+							<div>
+								<p class="eyebrow">Conversation Thread</p>
+								<h2 id="ask-anton-memory-title">Follow-Up Memory</h2>
+							</div>
+						</div>
+						<p class="section-copy" data-ask-thread-summary>
+							No follow-up context yet. Ask a question and Anton will keep a short memory thread for next steps.
+						</p>
+						<ul class="ask-anton-thread" data-ask-thread-list>
+							<li>No follow-up turns yet.</li>
+						</ul>
+						<div class="ask-anton-form-actions">
+							<button class="agent-control-button agent-control-button-secondary" type="button" data-ask-clear-thread>
+								Clear Thread Memory
+							</button>
+						</div>
 					</article>
 
 					<article class="dashboard-card ask-anton-card" id="ask-anton-sources" aria-labelledby="ask-anton-sources-title">
