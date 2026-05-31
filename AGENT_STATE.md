@@ -21,8 +21,10 @@ Last updated: 2026-05-31
 - The most recent Anton-delivered feature is the homepage iPhone Task Launcher: the truck-first home view now exposes situation-first routes for flat tire, no-start, warning light, dead outlet/radio, tow setup, service logging, and offline prep, and the shared site menu preserves a page-level current badge even when the homepage is focused on `#viewer`.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is bumped to `ridgeline-console-v420` for the Ask Anton and Maintenance updates.
+- The PWA cache is bumped to `ridgeline-console-v421` for the Diagnostics decision guide and Quick Sheet roadside URL/history updates.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
+- Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
+- Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
 
 ## Current Queue
 
@@ -60,6 +62,8 @@ Last updated: 2026-05-31
 - Added Ask Anton local route answers for no-key/offline first use and promoted Diagnostics/Quick Sheet page routes into the persistent iPhone action bar.
 - Repaired Ask Anton/home discoverability and storage migration after the route-answer rewrite: home links again expose Ask Anton, local mode copy is explicit, old API settings/chats migrate, storage failures no longer block a local answer, mobile Page Sections remain available, and Diagnostics/Quick Sheet direct bottom actions are restored.
 - Restored mobile Page Sections navigation after shared dock cleanup, so iPhone users can expand section links instead of losing section navigation when `.section-dock` is removed.
+- Added the Diagnostics Decision Guide and synchronized Diagnostics symptom pickers across the decision, handoff, first-check, and dock surfaces.
+- Added Quick Sheet roadside URL/history preservation so roadside stack selection survives reload, share, and back navigation.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -82,6 +86,7 @@ Last updated: 2026-05-31
 Use the next Anton run to verify or improve a high-impact iPhone path without over-polishing Ask Anton. The best near-term bets are:
 
 - run a real iPhone/browser smoke of the Ask Anton local route-answer path, Maintenance service/action deep links, migrated settings/chats, home Ask Anton links, and Diagnostics/Quick Sheet bottom action bars once the browser audit wrapper is healthy
+- consider a copy/share fallback preview for generated Diagnostics and Quick Sheet handoffs, because iOS clipboard/share can fail in private, PWA, or non-secure contexts
 - Diagnostics or Quick Sheet workflow depth that makes a real roadside or service task easier
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -101,7 +106,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added Ask Anton structured answer controls and Maintenance service/action launcher selection, fixed the per-question internet toggle so it can force web search when an API key is present, and bumped the PWA cache to `ridgeline-console-v420`. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. `Invoke-BrowserSmoke.ps1 -Pages @('maintenance.html')` no longer failed on the service launcher route assertion after repair, but the wrapper still timed out in this environment, so a real browser/iPhone smoke remains the next verification target.
+- Anton's latest scheduled run added the Diagnostics Decision Guide, synchronized Diagnostics symptom picker state, preserved Quick Sheet roadside selection in URL/history, and bumped the PWA cache to `ridgeline-console-v421`. The internal-link/anchor audit passed for 17 HTML files and `git diff --check` passed. Targeted mobile Playwright checks passed for `diagnostics.html?diagnostic=warning#diagnostic-decision-guide` and `quick-sheet.html?roadside=start#roadside-action-stack`, including no horizontal overflow, correct deep-link selection, synchronized symptom state, source-link presence, and Quick Sheet back/history restoration. `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html')` first caught removed legacy first-minute links, which were restored, then timed out in this environment without returning a new assertion.
 
 ## Archive
 

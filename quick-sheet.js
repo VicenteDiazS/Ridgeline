@@ -10,7 +10,6 @@ const ROADSIDE_SESSION_KEY = "ridgeline-roadside-live-session";
 const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const FUSE_NOTE_LAST_KEY = "ridgeline-fuse-check-last-note";
 const OFFLINE_ROUTE_RECEIPT_KEY = "ridgeline-offline-route-last-check";
-const requestedRoadsidePlan = new URLSearchParams(window.location.search).get("roadside");
 const offlineRouteChecks = [
   { label: "Quick Sheet", path: "quick-sheet.html" },
   { label: "Diagnostics", path: "diagnostics.html" },
@@ -140,6 +139,33 @@ const roadsidePlans = {
     secondary: { label: "Trailer Flow", href: "diagnostics.html#trailer-light-workflow" }
   }
 };
+
+function requestedRoadsidePlanKey() {
+  const key = `${new URLSearchParams(window.location.search).get("roadside") || ""}`.trim().toLowerCase();
+  return roadsidePlans[key] ? key : null;
+}
+
+function updateRoadsidePlanUrl(key, mode = "push") {
+  if (!roadsidePlans[key] || !window.history?.pushState) {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("roadside", key);
+  if (!url.hash) {
+    url.hash = "roadside-action-stack";
+  }
+  if (url.href === window.location.href) {
+    return;
+  }
+
+  const state = { roadsidePlan: key };
+  if (mode === "replace") {
+    window.history.replaceState(state, "", url);
+    return;
+  }
+  window.history.pushState(state, "", url);
+}
 
 function buildHandoff(plan) {
   return [
@@ -540,9 +566,10 @@ function renderFuseNote(root) {
   }
 }
 
-function updateRoadsidePlan(root, key) {
-  const plan = roadsidePlans[key] || roadsidePlans.flat;
-  root.dataset.currentRoadsidePlan = key;
+function updateRoadsidePlan(root, key, options = {}) {
+  const planKey = roadsidePlans[key] ? key : "flat";
+  const plan = roadsidePlans[planKey];
+  root.dataset.currentRoadsidePlan = planKey;
   root.querySelector("[data-roadside-kicker]").textContent = plan.kicker;
   root.querySelector("[data-roadside-title]").textContent = plan.title;
   root.querySelector("[data-roadside-summary]").textContent = plan.summary;
@@ -559,11 +586,14 @@ function updateRoadsidePlan(root, key) {
   secondary.setAttribute("href", plan.secondary.href);
 
   root.querySelectorAll("[data-roadside-plan]").forEach((button) => {
-    const isActive = button.dataset.roadsidePlan === key;
+    const isActive = button.dataset.roadsidePlan === planKey;
     button.classList.toggle("utility-link-strong", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
 
+  if (options.updateUrl) {
+    updateRoadsidePlanUrl(planKey, options.urlMode);
+  }
   setStatus(root, `${plan.kicker} handoff ready.`);
   renderRoadsideSession(root);
   renderRoadsideDispatch(root);
@@ -900,7 +930,7 @@ function initRoadsideStack() {
   }
 
   root.querySelectorAll("[data-roadside-plan]").forEach((button) => {
-    button.addEventListener("click", () => updateRoadsidePlan(root, button.dataset.roadsidePlan));
+    button.addEventListener("click", () => updateRoadsidePlan(root, button.dataset.roadsidePlan, { updateUrl: true }));
   });
 
   root.querySelector("[data-copy-roadside-stack]")?.addEventListener("click", async () => {
@@ -1128,7 +1158,8 @@ function initRoadsideStack() {
     }
   });
 
-  updateRoadsidePlan(root, roadsidePlans[requestedRoadsidePlan] ? requestedRoadsidePlan : "flat");
+  const initialRoadsidePlan = requestedRoadsidePlanKey();
+  updateRoadsidePlan(root, initialRoadsidePlan || "flat", { updateUrl: Boolean(initialRoadsidePlan), urlMode: "replace" });
   renderRoadsideReceipt(root);
   renderRoadsideContact(root);
   renderRoadsideSession(root);
@@ -1137,6 +1168,9 @@ function initRoadsideStack() {
     renderRoadsideSession(root);
     renderRoadsideDispatch(root);
   }, 60000);
+  window.addEventListener("popstate", () => {
+    updateRoadsidePlan(root, requestedRoadsidePlanKey() || "flat");
+  });
 }
 
 initQuickPrintPack();

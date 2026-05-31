@@ -193,6 +193,79 @@ const diagnosticCheckPlans = {
   }
 };
 
+const diagnosticDecisionPlans = {
+  start: {
+    priority: "Parked check first",
+    kicker: "No start or weak battery",
+    title: "Preserve behavior before repeating start attempts",
+    summary: "Separate starter behavior, dash behavior, battery context, and whether help is already needed.",
+    steps: [
+      "Stop repeating attempts if the starter, battery, or warning state changes.",
+      "Mark starter and dash behavior in First Checks.",
+      "Open the no-start flow or roadside stack with context preserved."
+    ],
+    primary: { label: "First Checks", href: "#first-check-tracker" },
+    secondary: { label: "No-Start Flow", href: "#no-start-workflow" },
+    tertiary: { label: "Roadside Stack", href: "quick-sheet.html?roadside=start#roadside-action-stack" }
+  },
+  warning: {
+    priority: "Stop safely for red or flashing",
+    kicker: "Warning light or MID message",
+    title: "Record exact wording before the light disappears",
+    summary: "Color, flashing state, message text, and recent work decide whether this becomes roadside help or a saved diagnostic note.",
+    steps: [
+      "If the warning is red, flashing, or affects steering, braking, temperature, oil, or charging, stop safely and check the manual entry before continuing.",
+      "Write the exact indicator or MID wording before cycling the ignition.",
+      "Open the warning flow or roadside stack with the message preserved."
+    ],
+    primary: { label: "Warning Flow", href: "#warning-light-workflow" },
+    secondary: { label: "Save Note", href: "garage.html#warning-light-template" },
+    tertiary: { label: "Roadside Stack", href: "quick-sheet.html?roadside=warning#roadside-action-stack" }
+  },
+  power: {
+    priority: "Low-load retest first",
+    kicker: "12V socket or accessory power",
+    title: "Name the outlet and device before opening fuse tables",
+    summary: "A socket, adapter, inverter, or power-mode mismatch can look like a fuse problem on an iPhone-sized screen.",
+    steps: [
+      "Identify the exact outlet, adapter, and truck power mode.",
+      "Retest with a known-good low-load device if it is safe to do so.",
+      "Open the 12V flow, then Cabin or Hood fuses only after basics are captured."
+    ],
+    primary: { label: "12V Flow", href: "#accessory-power-workflow" },
+    secondary: { label: "Cabin Fuses", href: "cabin.html#fuses" },
+    tertiary: { label: "Fuse Note", href: "quick-sheet.html#fuse-triage" }
+  },
+  audio: {
+    priority: "Separate screen from sound",
+    kicker: "Audio, radio, or display issue",
+    title: "Sort power, source, speaker, and recent-work clues",
+    summary: "Screen-only, no-sound, Bluetooth-only, and full-power issues need different reference paths.",
+    steps: [
+      "Record whether the screen, sound, source, Bluetooth, or camera/display path changed.",
+      "Check power mode, volume, mute, and source state before assuming a part failure.",
+      "Open the audio flow and save the clue if the issue follows a jump, battery, or accessory change."
+    ],
+    primary: { label: "Audio Flow", href: "#audio-display-workflow" },
+    secondary: { label: "Cabin Audio", href: "cabin.html#cabin-fuse-box-b" },
+    tertiary: { label: "Save Handoff", href: "#diagnostic-share-builder" }
+  },
+  trailer: {
+    priority: "Do not move until lights are checked",
+    kicker: "Trailer light or connector issue",
+    title: "Confirm hookup, failed function, and truck-side lights",
+    summary: "The useful split is truck, adapter, connector, or trailer side before chasing fuses.",
+    steps: [
+      "Check coupler, chains, hitch pin, and wiring before moving.",
+      "Name the failed function: running, brake, left turn, right turn, or reverse.",
+      "Open the trailer flow, pinout, or roadside stack with the failed function saved."
+    ],
+    primary: { label: "Trailer Flow", href: "#trailer-light-workflow" },
+    secondary: { label: "7-Way Pinout", href: "rear-hitch.html#pinout" },
+    tertiary: { label: "Roadside Stack", href: "quick-sheet.html?roadside=trailer#roadside-action-stack" }
+  }
+};
+
 function normalizeDiagnosticPlanKey(value) {
   const key = `${value || ""}`.trim().toLowerCase();
   return diagnosticRouteAliases[key] || null;
@@ -212,6 +285,9 @@ function syncDiagnosticToolsToLocation() {
   if (!key) {
     return;
   }
+  document.querySelectorAll("[data-diagnostic-decision-guide]").forEach((root) => {
+    updateDiagnosticDecisionPlan(root, key);
+  });
   document.querySelectorAll("[data-diagnostic-share-builder]").forEach((root) => {
     updateDiagnosticSharePlan(root, key);
   });
@@ -500,6 +576,59 @@ function updateDiagnosticDock(plan) {
   contextBar?.setAttribute("aria-label", `Context actions for ${plan.kicker}`);
 }
 
+function updateDiagnosticDecisionPlan(root, key) {
+  const plan = diagnosticDecisionPlans[key] || diagnosticDecisionPlans.start;
+  const sharePlan = diagnosticSharePlans[key] || diagnosticSharePlans.start;
+  root.dataset.currentDiagnosticDecisionPlan = key;
+  root.querySelector("[data-diagnostic-decision-priority]").textContent = plan.priority;
+  root.querySelector("[data-diagnostic-decision-kicker]").textContent = plan.kicker;
+  root.querySelector("[data-diagnostic-decision-title]").textContent = plan.title;
+  root.querySelector("[data-diagnostic-decision-summary]").textContent = plan.summary;
+
+  const steps = root.querySelector("[data-diagnostic-decision-steps]");
+  if (steps) {
+    steps.innerHTML = "";
+    plan.steps.forEach((step) => {
+      const item = document.createElement("li");
+      item.textContent = step;
+      steps.append(item);
+    });
+  }
+
+  [
+    ["[data-diagnostic-decision-primary]", plan.primary],
+    ["[data-diagnostic-decision-secondary]", plan.secondary],
+    ["[data-diagnostic-decision-tertiary]", plan.tertiary]
+  ].forEach(([selector, link]) => {
+    const anchor = root.querySelector(selector);
+    if (anchor && link) {
+      anchor.textContent = link.label;
+      anchor.setAttribute("href", link.href);
+    }
+  });
+
+  root.querySelectorAll("[data-diagnostic-decision-plan]").forEach((button) => {
+    const isActive = button.dataset.diagnosticDecisionPlan === key;
+    button.classList.toggle("utility-link-strong", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  updateDiagnosticDock(sharePlan);
+}
+
+function setDiagnosticPlanEverywhere(key) {
+  const planKey = diagnosticSharePlans[key] ? key : "start";
+  document.querySelectorAll("[data-diagnostic-decision-guide]").forEach((root) => {
+    updateDiagnosticDecisionPlan(root, planKey);
+  });
+  document.querySelectorAll("[data-diagnostic-share-builder]").forEach((root) => {
+    updateDiagnosticSharePlan(root, planKey);
+  });
+  document.querySelectorAll("[data-diagnostic-check-tracker]").forEach((root) => {
+    renderDiagnosticCheckPlan(root, planKey);
+  });
+}
+
 function updateDiagnosticSharePlan(root, key) {
   const plan = diagnosticSharePlans[key] || diagnosticSharePlans.start;
   root.dataset.currentDiagnosticSharePlan = key;
@@ -537,6 +666,19 @@ function updateDiagnosticSharePlan(root, key) {
   updateDiagnosticDock(plan);
 }
 
+function initDiagnosticDecisionGuide() {
+  const root = document.querySelector("[data-diagnostic-decision-guide]");
+  if (!root) {
+    return;
+  }
+
+  root.querySelectorAll("[data-diagnostic-decision-plan]").forEach((button) => {
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticDecisionPlan));
+  });
+
+  updateDiagnosticDecisionPlan(root, requestedDiagnosticPlanKey() || "start");
+}
+
 async function copyText(text) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -552,7 +694,7 @@ function initDiagnosticShareBuilder() {
   }
 
   root.querySelectorAll("[data-diagnostic-share-plan]").forEach((button) => {
-    button.addEventListener("click", () => updateDiagnosticSharePlan(root, button.dataset.diagnosticSharePlan));
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticSharePlan));
   });
 
   root.querySelector("[data-copy-diagnostic-share]")?.addEventListener("click", async () => {
@@ -738,7 +880,7 @@ function initDiagnosticCheckTracker() {
   }
 
   root.querySelectorAll("[data-diagnostic-check-plan]").forEach((button) => {
-    button.addEventListener("click", () => renderDiagnosticCheckPlan(root, button.dataset.diagnosticCheckPlan));
+    button.addEventListener("click", () => setDiagnosticPlanEverywhere(button.dataset.diagnosticCheckPlan));
   });
 
   root.addEventListener("change", (event) => {
@@ -865,6 +1007,7 @@ function initDiagnosticCallSummary() {
   setDiagnosticCallStatus(root, "Call summary ready on this iPhone.");
 }
 
+initDiagnosticDecisionGuide();
 initDiagnosticShareBuilder();
 initDiagnosticCheckTracker();
 initDiagnosticCallSummary();

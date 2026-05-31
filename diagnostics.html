@@ -36,6 +36,7 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#diag-map">Open Diagnostic Map</a>
             <a class="utility-link utility-link-strong" href="#first-minute-triage">First Minute</a>
+            <a class="utility-link utility-link-strong" href="#diagnostic-decision-guide">Decision Guide</a>
             <a class="utility-link utility-link-strong" href="#first-check-tracker">First Checks</a>
             <a class="utility-link" href="#workflow-index">Workflow Index</a>
             <a class="utility-link" href="#diagnostic-handoff">Capture Clues</a>
@@ -112,6 +113,44 @@
             </div>
             <p class="source-note">
               These cards route to existing site references only. Use current roadside conditions, truck labels, and the owner's manual as final authority.
+            </p>
+          </section>
+          <section class="diagnostic-decision-guide" id="diagnostic-decision-guide" aria-labelledby="diagnostic-decision-title" data-diagnostic-decision-guide>
+            <div class="compact-section-head">
+              <p class="eyebrow">Decision guide</p>
+              <h2 id="diagnostic-decision-title">Choose The Safest Next Screen</h2>
+              <p>
+                Tap the symptom, then keep the stop/record/route decision visible before opening a longer workflow.
+              </p>
+            </div>
+            <div class="diagnostic-decision-picker" role="group" aria-label="Choose diagnostic decision path">
+              <button class="utility-link utility-link-strong" type="button" data-diagnostic-decision-plan="start" aria-pressed="true">No Start</button>
+              <button class="utility-link" type="button" data-diagnostic-decision-plan="warning" aria-pressed="false">Warning</button>
+              <button class="utility-link" type="button" data-diagnostic-decision-plan="power" aria-pressed="false">12V Power</button>
+              <button class="utility-link" type="button" data-diagnostic-decision-plan="audio" aria-pressed="false">Audio</button>
+              <button class="utility-link" type="button" data-diagnostic-decision-plan="trailer" aria-pressed="false">Trailer</button>
+            </div>
+            <article class="diagnostic-decision-card" aria-live="polite">
+              <div class="diagnostic-decision-priority" data-diagnostic-decision-priority>Parked check first</div>
+              <div>
+                <span data-diagnostic-decision-kicker>No start or weak battery</span>
+                <strong data-diagnostic-decision-title>Preserve behavior before repeating start attempts</strong>
+                <p data-diagnostic-decision-summary>Separate starter behavior, dash behavior, battery context, and whether help is already needed.</p>
+              </div>
+              <ol class="diagnostic-decision-steps" data-diagnostic-decision-steps>
+                <li>Stop repeating attempts if the starter, battery, or warning state changes.</li>
+                <li>Mark starter and dash behavior in First Checks.</li>
+                <li>Open the no-start flow or roadside stack with context preserved.</li>
+              </ol>
+              <div class="inspector-actions">
+                <a class="utility-link utility-link-strong" href="#first-check-tracker" data-diagnostic-decision-primary>First Checks</a>
+                <a class="utility-link" href="#no-start-workflow" data-diagnostic-decision-secondary>No-Start Flow</a>
+                <a class="utility-link" href="quick-sheet.html?roadside=start#roadside-action-stack" data-diagnostic-decision-tertiary>Roadside Stack</a>
+              </div>
+            </article>
+            <p class="source-note">
+              Warning-light routing follows the conservative owner-manual pattern: record exact indicator/message details, treat red or flashing warnings as stop-safely events, and use the truck display and manual as final authority.
+              Source: <a href="https://owners.honda.com/utility/download?path=%2Fstatic%2Fpdfs%2F2019%2FRidgeline%2FMY19_Ridgeline_Dashboard_Details.pdf" target="_blank" rel="noreferrer">Honda 2019 Ridgeline dashboard details guide</a>.
             </p>
           </section>
           <section class="diagnostic-share-builder" id="diagnostic-share-builder" aria-labelledby="diagnostic-share-builder-title" data-diagnostic-share-builder>
