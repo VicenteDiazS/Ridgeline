@@ -41,6 +41,8 @@
           <div class="section-utility-nav" aria-label="Section shortcuts">
             <a class="utility-link utility-link-strong" href="#fuses">Open Fuse Tables</a>
             <a class="utility-link" href="#hood-fuse-quick-finder">Fuse Quick Finder</a>
+            <a class="utility-link" href="#hood-sensor-scan">iPhone Sensor Scan</a>
+            <a class="utility-link" href="#hood-fuse-camera-assistant">Fuse Camera Assist</a>
             <a class="utility-link" href="#battery-service">Battery Info</a>
             <a class="utility-link" href="index.html#viewer">Back To Vehicle Map</a>
             <a class="utility-link" href="index.html#systems">All Zones</a>
@@ -57,6 +59,122 @@
             interior jump-start negative point is not the buried negative
             battery post.
           </div>
+          <section class="sensor-scan-lab" id="hood-sensor-scan" data-camera-ocr-lab aria-labelledby="hood-sensor-scan-title">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">iPhone 16 Pro Max Sensor Tools</p>
+                <h2 id="hood-sensor-scan-title">VIN, Tire, And Battery Camera Scanner</h2>
+                <p class="section-copy">
+                  Use the rear camera to capture a plate or sidewall, then extract structured text for Garage notes.
+                  If OCR support is limited in your browser, capture still works and you can paste Live Text output.
+                </p>
+              </div>
+              <a class="utility-link" href="garage.html#notes">Garage Notes</a>
+            </div>
+            <div class="sensor-scan-grid">
+              <article class="sensor-scan-card">
+                <div class="sensor-scan-controls">
+                  <label>
+                    <span>Scan profile</span>
+                    <select data-scan-profile>
+                      <option value="vin">VIN plate</option>
+                      <option value="tire">Tire size sidewall</option>
+                      <option value="battery">Battery label</option>
+                    </select>
+                  </label>
+                  <div class="inspector-actions">
+                    <button class="utility-link utility-link-strong" type="button" data-scan-start-camera>Start Camera</button>
+                    <button class="utility-link" type="button" data-scan-stop-camera>Stop</button>
+                    <button class="utility-link" type="button" data-scan-capture>Capture</button>
+                    <button class="utility-link" type="button" data-scan-run-ocr>Run OCR</button>
+                  </div>
+                </div>
+                <div class="sensor-camera-frame">
+                  <video data-scan-video autoplay muted playsinline></video>
+                  <img data-scan-preview alt="Camera capture preview" hidden />
+                  <canvas data-scan-canvas hidden></canvas>
+                </div>
+                <label class="sensor-manual-input">
+                  <span>Raw text (auto-filled from OCR when available)</span>
+                  <textarea rows="4" data-scan-raw-text placeholder="Paste or review captured text here."></textarea>
+                </label>
+                <div class="inspector-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-scan-parse>Parse Result</button>
+                  <button class="utility-link" type="button" data-scan-copy>Copy</button>
+                  <button class="utility-link" type="button" data-scan-share>Share</button>
+                  <button class="utility-link" type="button" data-scan-save>Save Garage Note</button>
+                </div>
+                <p class="small-note" data-scan-status aria-live="polite">Start camera to capture a VIN, tire, or battery label.</p>
+              </article>
+              <article class="sensor-scan-card sensor-scan-result-card">
+                <span>Parsed scan output</span>
+                <pre data-scan-result>Run Parse Result after capture to build a structured handoff.</pre>
+              </article>
+            </div>
+            <p class="source-note">
+              Camera scan helper only. Verify with the physical plate/label, truck cover labels, and owner documentation before acting.
+            </p>
+          </section>
+          <section class="sensor-scan-lab" id="hood-fuse-camera-assistant" data-fuse-camera-assistant aria-labelledby="hood-fuse-camera-assistant-title">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Fuse And Relay Camera Assistant</p>
+                <h2 id="hood-fuse-camera-assistant-title">Guide The Shot, Then Confirm The Circuit</h2>
+                <p class="section-copy">
+                  Choose the target, center the overlay, capture, and generate a quick handoff that links to the right fuse map.
+                </p>
+              </div>
+              <a class="utility-link" href="#fuses">Open Hood Fuse Tables</a>
+            </div>
+            <div class="sensor-scan-grid">
+              <article class="sensor-scan-card">
+                <div class="fuse-camera-targets" role="group" aria-label="Fuse camera target">
+                  <button class="utility-link utility-link-strong" type="button" data-fuse-camera-target="hood-a" aria-pressed="true">Fuse Box A</button>
+                  <button class="utility-link" type="button" data-fuse-camera-target="hood-b" aria-pressed="false">Fuse Box B</button>
+                  <button class="utility-link" type="button" data-fuse-camera-target="relay-bank" aria-pressed="false">Relay Bank</button>
+                  <button class="utility-link" type="button" data-fuse-camera-target="cover-label" aria-pressed="false">Cover Label</button>
+                </div>
+                <div class="sensor-camera-frame sensor-camera-frame-guide">
+                  <video data-fuse-camera-video autoplay muted playsinline></video>
+                  <img data-fuse-camera-preview alt="Fuse camera capture preview" hidden />
+                  <canvas data-fuse-camera-canvas hidden></canvas>
+                  <div class="fuse-camera-overlay" aria-hidden="true">
+                    <div class="fuse-camera-target-box" data-fuse-target-box></div>
+                    <span class="fuse-camera-target-label" data-fuse-target-label>Fuse Box A target</span>
+                  </div>
+                </div>
+                <label class="sensor-manual-input">
+                  <span>Observed clue</span>
+                  <textarea rows="3" data-fuse-camera-clue placeholder="Example: trailer small label present, fuse 20 looked dark."></textarea>
+                </label>
+                <div class="inspector-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-fuse-camera-start>Start Camera</button>
+                  <button class="utility-link" type="button" data-fuse-camera-stop>Stop</button>
+                  <button class="utility-link" type="button" data-fuse-camera-capture>Capture</button>
+                  <button class="utility-link" type="button" data-fuse-camera-analyze>Analyze</button>
+                </div>
+                <div class="inspector-actions">
+                  <button class="utility-link utility-link-strong" type="button" data-fuse-camera-copy>Copy Handoff</button>
+                  <button class="utility-link" type="button" data-fuse-camera-share>Share</button>
+                  <button class="utility-link" type="button" data-fuse-camera-save>Save Garage Note</button>
+                </div>
+                <p class="small-note" data-fuse-camera-status aria-live="polite">Pick a target and start camera for guided framing.</p>
+              </article>
+              <article class="sensor-scan-card sensor-scan-result-card">
+                <span>Fuse assistant output</span>
+                <div class="fuse-confidence-badge is-pending" data-fuse-confidence-badge>Confidence: waiting for analysis</div>
+                <pre data-fuse-camera-result>Capture and Analyze to generate a fuse or relay handoff summary.</pre>
+                <div class="inspector-actions">
+                  <a class="utility-link" href="#hood-fuse-box-a">Fuse Box A Layout</a>
+                  <a class="utility-link" href="#hood-fuse-box-b">Fuse Box B Layout</a>
+                  <a class="utility-link" href="#hood-fuse-glossary">Label Decoder</a>
+                </div>
+              </article>
+            </div>
+            <p class="source-note">
+              Camera assistant only; do not replace fuses or relays until the truck cover label and owner references agree with the captured clue.
+            </p>
+          </section>
           <section class="fuse-quick-finder" id="hood-fuse-quick-finder" aria-labelledby="hood-fuse-quick-finder-title">
             <div>
               <p class="eyebrow">Fuse Quick Finder</p>

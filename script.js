@@ -1154,9 +1154,6 @@ const viewerQuickMenuButtons = [...document.querySelectorAll(".viewer-quick-menu
 const explodedToggle = document.getElementById("exploded-toggle");
 const cinematicToggle = document.getElementById("cinematic-toggle");
 const viewerStage = document.querySelector(".viewer-stage");
-const viewerStartup = document.getElementById("viewer-startup");
-const startupBarFill = document.getElementById("startup-bar-fill");
-const startupCopy = document.getElementById("startup-copy");
 const hudButtons = [...document.querySelectorAll("[data-hud-action]")];
 const requestedSystemId = new URLSearchParams(window.location.search).get("system");
 const MAP_LABEL_MODE_KEY = "ridgeline-map-label-mode-v2";
@@ -1208,14 +1205,7 @@ if (!renderer) {
     ? new THREE.Vector3(-9.35, 3.58, 8.6)
     : new THREE.Vector3(-5.85, 2.82, 3.46);
   const defaultCameraTarget = new THREE.Vector3(0, isPhoneViewer ? 0.9 : 1, 0);
-  const startupStart = performance.now();
-  const startupDuration = isPhoneViewer ? 1600 : 2200;
   const autoRotateResumeDelay = 3200;
-  const startupMessages = [
-    "Initializing truck model, overlays, and service zones.",
-    "Bringing lighting, callouts, and diagnostic HUD online.",
-    "Vehicle map synchronized. Ready for interaction."
-  ];
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = !isPhoneViewer;
@@ -3139,36 +3129,17 @@ if (!renderer) {
   }
 
   function tick(now) {
-    const startupElapsed = now - startupStart;
-    const startupT = Math.min(startupElapsed / startupDuration, 1);
-    const startupEase = 1 - Math.pow(1 - startupT, 3);
-    const startupGlow = 0.72 + startupEase * 0.28;
+    truck.scale.setScalar(1);
+    truck.position.y = sceneFrameOffset.y;
 
-    truck.scale.setScalar(0.96 + startupEase * 0.04);
-    truck.position.y = sceneFrameOffset.y + (1 - startupEase) * 0.18;
-
-    keyLight.intensity = 1.28 + startupEase * 1.17;
-    rimLight.intensity = 0.82 + startupEase * 0.58;
-    warmLight.intensity = 0.48 + startupEase * 0.57;
-    stageGlow.intensity = (4.2 + Math.sin(now * 0.0024) * 0.72) * startupGlow;
-    warmUnderglow.intensity = (2.9 + Math.cos(now * 0.0021) * 0.45) * startupGlow;
-    floor.material.opacity = 0.16 + startupEase * 0.2;
-    floorHalo.material.opacity = 0.06 + startupEase * 0.12 + Math.sin(now * 0.002) * 0.01;
-    floorInnerHalo.material.opacity = 0.035 + startupEase * 0.08 + Math.cos(now * 0.0026) * 0.008;
-
-    if (startupBarFill) {
-      startupBarFill.style.width = `${startupT * 100}%`;
-    }
-
-    if (startupCopy) {
-      const messageIndex =
-        startupT < 0.34 ? 0 : startupT < 0.72 ? 1 : 2;
-      startupCopy.textContent = startupMessages[messageIndex];
-    }
-
-    if (viewerStage) {
-      viewerStage.classList.toggle("is-booted", startupT >= 0.995);
-    }
+    keyLight.intensity = 2.45;
+    rimLight.intensity = 1.4;
+    warmLight.intensity = 1.05;
+    stageGlow.intensity = 4.2 + Math.sin(now * 0.0024) * 0.72;
+    warmUnderglow.intensity = 2.9 + Math.cos(now * 0.0021) * 0.45;
+    floor.material.opacity = 0.36;
+    floorHalo.material.opacity = 0.18 + Math.sin(now * 0.002) * 0.01;
+    floorInnerHalo.material.opacity = 0.115 + Math.cos(now * 0.0026) * 0.008;
 
     if (cameraTween) {
       const t = Math.min((now - cameraTween.start) / cameraTween.duration, 1);

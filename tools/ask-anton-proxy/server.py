@@ -28,6 +28,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/responses")
 ALLOWED_ORIGIN = os.getenv("ALLOWED_ORIGIN", "*")
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4.1-mini")
+ALLOWED_ORIGIN_LIST = [value.strip() for value in ALLOWED_ORIGIN.split(",") if value.strip()]
 
 if not OPENAI_API_KEY or OPENAI_API_KEY.startswith("sk-PASTE-"):
     print("[ask-anton-proxy] OPENAI_API_KEY is not configured. Model requests will fail until it is set.")
@@ -37,15 +38,17 @@ class AskAntonProxyHandler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def _is_allowed_origin(self, req_origin: str) -> bool:
-        if ALLOWED_ORIGIN == "*":
+        if ALLOWED_ORIGIN == "*" or "*" in ALLOWED_ORIGIN_LIST:
             return True
-        return req_origin == ALLOWED_ORIGIN
+        if not req_origin and "null" in ALLOWED_ORIGIN_LIST:
+            return True
+        return req_origin in ALLOWED_ORIGIN_LIST
 
     def _set_cors_headers(self, req_origin: str) -> None:
-        allow_origin = "*" if ALLOWED_ORIGIN == "*" else req_origin
+        allow_origin = "*" if (ALLOWED_ORIGIN == "*" or "*" in ALLOWED_ORIGIN_LIST) else req_origin
         self.send_header("Access-Control-Allow-Origin", allow_origin or "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     def _send_json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")

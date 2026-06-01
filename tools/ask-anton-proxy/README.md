@@ -12,7 +12,7 @@ Required:
 
 Recommended:
 
-- `ALLOWED_ORIGIN` (your deployed site origin)
+- `ALLOWED_ORIGIN` (for local use `*`; for production use your deployed site origin)
 - `PORT`
 - `DEFAULT_MODEL`
 
@@ -34,22 +34,22 @@ python server.py
 
 The proxy endpoint is:
 
-- `http://localhost:8787/api/ask-anton`
+- `http://127.0.0.1:8787/api/ask-anton`
 
 Health check:
 
-- `http://localhost:8787/health`
+- `http://127.0.0.1:8787/health`
 
 ## 3) Point Ask Anton to your proxy
 
 On Ask Anton Settings, set `Proxy Endpoint` to:
 
-- `http://localhost:8787/api/ask-anton` (local)
+- `http://127.0.0.1:8787/api/ask-anton` (local)
 - or your deployed proxy URL.
 
 ## 4) Deployment notes
 
 - Do not commit `.env`.
 - Store `OPENAI_API_KEY` in host secrets (Vercel/Netlify/Render/etc.).
-- Restrict `ALLOWED_ORIGIN` to your site origin.
+- Restrict `ALLOWED_ORIGIN` to your site origin in production (comma-separated values are supported).
 - Add rate limits and auth in front of this endpoint for production.

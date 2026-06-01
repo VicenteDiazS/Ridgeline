@@ -623,6 +623,713 @@ function initFuseCounterPacks() {
   });
 }
 
+const SENSOR_SCAN_STORAGE_KEY = "ridgeline-sensor-scan-latest";
+const FUSE_CAMERA_ASSIST_STORAGE_KEY = "ridgeline-fuse-camera-assist-latest";
+
+const fuseCameraTargetConfig = {
+  "hood-a": {
+    label: "Fuse Box A target",
+    hint: "Passenger-side damper-house box. Capture cover label and nearby rows.",
+    left: "15%",
+    top: "20%",
+    width: "68%",
+    height: "56%",
+    route: "hood.html#hood-fuse-box-a"
+  },
+  "hood-b": {
+    label: "Fuse Box B target",
+    hint: "Brake-fluid side box. Keep the full lid and connector side visible.",
+    left: "18%",
+    top: "22%",
+    width: "62%",
+    height: "52%",
+    route: "hood.html#hood-fuse-box-b"
+  },
+  "relay-bank": {
+    label: "Relay bank target",
+    hint: "Move closer and keep relay markings sharp before capture.",
+    left: "24%",
+    top: "26%",
+    width: "52%",
+    height: "44%",
+    route: "hood.html#fuses"
+  },
+  "cover-label": {
+    label: "Cover label target",
+    hint: "Fill the frame with the label text so OCR can recover fuse naming.",
+    left: "10%",
+    top: "12%",
+    width: "80%",
+    height: "64%",
+    route: "hood.html#hood-fuse-glossary"
+  }
+};
+
+let latestFuseSelection = null;
+window.addEventListener("ridgeline:fuse-selected", (event) => {
+  latestFuseSelection = event.detail || null;
+});
+
+function nowStamp() {
+  return new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+async function requestRearCamera(videoEl) {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("camera-unavailable");
+  }
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+      facingMode: { ideal: "environment" },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 }
+    }
+  });
+
+  videoEl.srcObject = stream;
+  await videoEl.play();
+  return stream;
+}
+
+function stopCameraStream(root, key) {
+  const stream = root[key];
+  if (!stream) {
+    return;
+  }
+
+  stream.getTracks().forEach((track) => track.stop());
+  root[key] = null;
+}
+
+function captureFrameToCanvas(videoEl, canvasEl) {
+  if (!videoEl?.videoWidth || !videoEl?.videoHeight || !canvasEl) {
+    return null;
+  }
+
+  canvasEl.width = videoEl.videoWidth;
+  canvasEl.height = videoEl.videoHeight;
+  const ctx = canvasEl.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return null;
+  }
+
+  ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+  return canvasEl.toDataURL("image/jpeg", 0.92);
+}
+
+async function detectTextFromCanvas(canvasEl) {
+  if (!canvasEl || typeof window.TextDetector !== "function") {
+    return "";
+  }
+
+  try {
+    const detector = new window.TextDetector();
+    const blocks = await detector.detect(canvasEl);
+    return blocks
+      .map((block) => `${block.rawValue || ""}`.trim())
+      .filter(Boolean)
+      .join("\n");
+  } catch (error) {
+    return "";
+  }
+}
+
+function cleanScanText(raw) {
+  return `${raw || ""}`.replace(/[\r\t]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function detectVin(raw) {
+  const matches = `${raw || ""}`.toUpperCase().match(/[A-HJ-NPR-Z0-9]{17}/g) || [];
+  return [...new Set(matches)];
+}
+
+function detectTireSize(raw) {
+  const match = `${raw || ""}`.toUpperCase().match(/(\d{3})\s*\/?\s*(\d{2})\s*R\s*(\d{2})/);
+  if (!match) {
+    return "";
+  }
+  return `${match[1]}/${match[2]}R${match[3]}`;
+}
+
+const tireSpeedRatings = {
+  Q: "99 mph",
+  R: "106 mph",
+  S: "112 mph",
+  T: "118 mph",
+  U: "124 mph",
+  H: "130 mph",
+  V: "149 mph",
+  W: "168 mph",
+  Y: "186 mph"
+};
+
+const tireLoadIndexApprox = {
+  95: "1521 lb",
+  96: "1565 lb",
+  97: "1609 lb",
+  98: "1653 lb",
+  99: "1709 lb",
+  100: "1764 lb",
+  101: "1819 lb",
+  102: "1874 lb",
+  103: "1929 lb",
+  104: "1984 lb",
+  105: "2039 lb",
+  106: "2094 lb",
+  107: "2149 lb",
+  108: "2205 lb",
+  109: "2271 lb",
+  110: "2337 lb",
+  111: "2403 lb",
+  112: "2469 lb",
+  113: "2535 lb",
+  114: "2601 lb",
+  115: "2679 lb",
+  116: "2756 lb",
+  117: "2833 lb",
+  118: "2910 lb",
+  119: "2998 lb",
+  120: "3086 lb"
+};
+
+function detectTireLoadSpeed(raw) {
+  const normalized = `${raw || ""}`.toUpperCase();
+  const match = normalized.match(/\b(\d{2,3})\s*([A-Z])\b/);
+  if (!match) {
+    return null;
+  }
+
+  const loadIndex = Number(match[1]);
+  const speedSymbol = match[2];
+  const speedApprox = tireSpeedRatings[speedSymbol] || "Unknown";
+  const loadApprox = tireLoadIndexApprox[loadIndex] || "Unknown";
+  return {
+    label: `${loadIndex}${speedSymbol}`,
+    loadIndex,
+    speedSymbol,
+    speedApprox,
+    loadApprox
+  };
+}
+
+function detectBatterySpecs(raw) {
+  const normalized = `${raw || ""}`.toUpperCase();
+  const cca = normalized.match(/(\d{3,4})\s*CCA/);
+  const voltage = normalized.match(/(\d{1,2}(?:\.\d)?)\s*V\b/);
+  const group = normalized.match(/(?:GROUP|GRP)\s*([0-9A-Z]+)/);
+  const coldCrank = cca ? `${cca[1]} CCA` : "Not detected";
+  const volts = voltage ? `${voltage[1]} V` : "Not detected";
+  const size = group ? `Group ${group[1]}` : "Not detected";
+  return { coldCrank, volts, size };
+}
+
+function parseSensorScan(profile, rawText) {
+  const cleaned = cleanScanText(rawText);
+  const lines = [];
+
+  if (!cleaned) {
+    return {
+      title: "No scan text found",
+      lines: ["Capture a clearer frame or paste Live Text output to parse."],
+      cleaned
+    };
+  }
+
+  if (profile === "vin") {
+    const vins = detectVin(cleaned);
+    lines.push(`VIN matches: ${vins.length ? vins.join(", ") : "None detected"}`);
+    lines.push("Recommended: compare VIN against door label and title before parts lookup.");
+    return { title: "VIN scan", lines, cleaned };
+  }
+
+  if (profile === "tire") {
+    const tireSize = detectTireSize(cleaned);
+    const loadSpeed = detectTireLoadSpeed(cleaned);
+    const serviceType = cleaned.toUpperCase().match(/\b(XL|REINFORCED|SL|LT)\b/);
+    lines.push(`Tire size: ${tireSize || "Not detected"}`);
+    lines.push(`Load/speed index: ${loadSpeed ? loadSpeed.label : "Not detected"}`);
+    lines.push(
+      `Decoded load/speed: ${loadSpeed ? `${loadSpeed.loadApprox} max load (index ${loadSpeed.loadIndex}), ${loadSpeed.speedApprox} speed class (${loadSpeed.speedSymbol})` : "Not detected"}`
+    );
+    lines.push(`Service type marker: ${serviceType ? serviceType[1] : "Not detected"}`);
+    lines.push("Recommended: confirm all four sidewalls and cold PSI sticker before ordering.");
+    return { title: "Tire scan", lines, cleaned };
+  }
+
+  const battery = detectBatterySpecs(cleaned);
+  lines.push(`Battery CCA: ${battery.coldCrank}`);
+  lines.push(`Battery voltage label: ${battery.volts}`);
+  lines.push(`Battery group size: ${battery.size}`);
+  lines.push("Recommended: verify polarity and tray fitment before purchasing replacement battery.");
+  return { title: "Battery scan", lines, cleaned };
+}
+
+function buildSensorScanReport(profile, parsed) {
+  const profileLabel = profile === "vin" ? "VIN plate" : profile === "tire" ? "Tire sidewall" : "Battery label";
+  return [
+    `iPhone camera scan report (${profileLabel})`,
+    parsed.title,
+    ...parsed.lines,
+    `Raw text: ${parsed.cleaned || "No raw text"}`,
+    "Verify the physical plate/label and owner documentation before acting.",
+    `${location.origin}${location.pathname}#hood-sensor-scan`
+  ].join("\n");
+}
+
+function setStatus(el, message) {
+  if (el) {
+    el.textContent = message;
+  }
+}
+
+function initCameraOcrLabs() {
+  const roots = [...document.querySelectorAll("[data-camera-ocr-lab]")];
+  if (!roots.length) {
+    return;
+  }
+
+  roots.forEach((root) => {
+    const profileEl = root.querySelector("[data-scan-profile]");
+    const videoEl = root.querySelector("[data-scan-video]");
+    const previewEl = root.querySelector("[data-scan-preview]");
+    const canvasEl = root.querySelector("[data-scan-canvas]");
+    const rawTextEl = root.querySelector("[data-scan-raw-text]");
+    const resultEl = root.querySelector("[data-scan-result]");
+    const statusEl = root.querySelector("[data-scan-status]");
+    let lastReport = "";
+
+    const savedState = loadJson(SENSOR_SCAN_STORAGE_KEY, {});
+    if (savedState.rawText && rawTextEl) {
+      rawTextEl.value = savedState.rawText;
+    }
+    if (savedState.profile && profileEl && ["vin", "tire", "battery"].includes(savedState.profile)) {
+      profileEl.value = savedState.profile;
+    }
+
+    root.querySelector("[data-scan-start-camera]")?.addEventListener("click", async () => {
+      try {
+        stopCameraStream(root, "_scanStream");
+        root._scanStream = await requestRearCamera(videoEl);
+        previewEl.hidden = true;
+        setStatus(statusEl, "Camera live. Align label and tap Capture.");
+      } catch (error) {
+        setStatus(statusEl, "Camera access failed. Check permissions and try again.");
+      }
+    });
+
+    root.querySelector("[data-scan-stop-camera]")?.addEventListener("click", () => {
+      stopCameraStream(root, "_scanStream");
+      setStatus(statusEl, "Camera stopped.");
+    });
+
+    root.querySelector("[data-scan-capture]")?.addEventListener("click", () => {
+      const dataUrl = captureFrameToCanvas(videoEl, canvasEl);
+      if (!dataUrl) {
+        setStatus(statusEl, "Capture failed. Start camera and retry.");
+        return;
+      }
+
+      previewEl.src = dataUrl;
+      previewEl.hidden = false;
+      setStatus(statusEl, "Frame captured. Run OCR or paste Live Text output.");
+    });
+
+    root.querySelector("[data-scan-run-ocr]")?.addEventListener("click", async () => {
+      if (!canvasEl?.width) {
+        const dataUrl = captureFrameToCanvas(videoEl, canvasEl);
+        if (dataUrl) {
+          previewEl.src = dataUrl;
+          previewEl.hidden = false;
+        }
+      }
+
+      const text = await detectTextFromCanvas(canvasEl);
+      if (!text) {
+        setStatus(statusEl, "OCR text not available in this browser. Use iPhone Live Text and paste into Raw text.");
+        return;
+      }
+
+      rawTextEl.value = text;
+      setStatus(statusEl, "OCR text captured. Tap Parse Result.");
+    });
+
+    root.querySelector("[data-scan-parse]")?.addEventListener("click", () => {
+      const profile = profileEl?.value || "vin";
+      const parsed = parseSensorScan(profile, rawTextEl?.value || "");
+      lastReport = buildSensorScanReport(profile, parsed);
+      resultEl.textContent = lastReport;
+      localStorage.setItem(
+        SENSOR_SCAN_STORAGE_KEY,
+        JSON.stringify({ profile, rawText: rawTextEl?.value || "", report: lastReport, timestamp: nowStamp() })
+      );
+      setStatus(statusEl, "Parsed scan ready. Copy, share, or save.");
+    });
+
+    root.querySelector("[data-scan-copy]")?.addEventListener("click", async () => {
+      if (!lastReport) {
+        root.querySelector("[data-scan-parse]")?.click();
+      }
+      const copied = await copyText(lastReport || resultEl.textContent || "");
+      setStatus(statusEl, copied ? "Scan report copied." : "Copy failed in this browser.");
+    });
+
+    root.querySelector("[data-scan-share]")?.addEventListener("click", async () => {
+      if (!lastReport) {
+        root.querySelector("[data-scan-parse]")?.click();
+      }
+
+      const text = lastReport || resultEl.textContent || "";
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Ridgeline camera scan", text });
+          setStatus(statusEl, "Scan report shared.");
+          return;
+        }
+
+        const copied = await copyText(text);
+        setStatus(statusEl, copied ? "Share unavailable; copied instead." : "Share unavailable in this browser.");
+      } catch (error) {
+        setStatus(statusEl, "Share canceled or unavailable.");
+      }
+    });
+
+    root.querySelector("[data-scan-save]")?.addEventListener("click", () => {
+      if (!lastReport) {
+        root.querySelector("[data-scan-parse]")?.click();
+      }
+
+      try {
+        prependGarageGeneralNote(`[${nowStamp()} - Camera Scan]\n${lastReport || resultEl.textContent || ""}`);
+        setStatus(statusEl, "Scan report saved to Garage Notes.");
+      } catch (error) {
+        setStatus(statusEl, "Could not save scan report in this browser session.");
+      }
+    });
+
+    if (savedState.report) {
+      resultEl.textContent = savedState.report;
+      lastReport = savedState.report;
+    }
+  });
+}
+
+function detectFuseKeywords(rawText) {
+  const normalized = `${rawText || ""}`.toUpperCase();
+  const keywordSet = new Set();
+  const candidateKeywords = [
+    ...Object.keys(acronymDefinitions),
+    ...phraseDefinitions.map(([key]) => key),
+    "TRAILER",
+    "SMALL",
+    "STOP",
+    "AUDIO",
+    "ABS",
+    "VSA",
+    "ACC"
+  ];
+
+  candidateKeywords.forEach((keyword) => {
+    if (keywordSet.size >= 8) {
+      return;
+    }
+    if (normalized.includes(keyword.toUpperCase())) {
+      keywordSet.add(keyword);
+    }
+  });
+
+  return [...keywordSet];
+}
+
+function fuseConfidenceBand(score) {
+  if (score >= 80) {
+    return "high";
+  }
+  if (score >= 58) {
+    return "medium";
+  }
+  return "low";
+}
+
+function computeFuseAssistConfidence({ targetKey, clueText, ocrText, keywords, selectedFuse }) {
+  const reasons = [];
+  let score = 18;
+
+  const clueLength = `${clueText || ""}`.trim().length;
+  if (clueLength >= 20) {
+    score += 22;
+    reasons.push("detailed observed clue");
+  } else if (clueLength >= 8) {
+    score += 14;
+    reasons.push("basic observed clue");
+  }
+
+  if (selectedFuse) {
+    score += 20;
+    reasons.push("fuse map selection linked");
+  }
+
+  const normalizedOcr = cleanScanText(ocrText);
+  if (normalizedOcr.length >= 20) {
+    score += 20;
+    reasons.push("OCR text captured");
+  } else if (normalizedOcr.length > 0) {
+    score += 10;
+    reasons.push("partial OCR text");
+  }
+
+  if (keywords.length) {
+    const keywordBoost = Math.min(20, keywords.length * 4);
+    score += keywordBoost;
+    reasons.push(`${keywords.length} keyword match${keywords.length === 1 ? "" : "es"}`);
+  }
+
+  if (targetKey === "cover-label" && normalizedOcr.length >= 20) {
+    score += 8;
+    reasons.push("cover label target + OCR");
+  }
+
+  score = Math.max(12, Math.min(96, score));
+  return {
+    score,
+    band: fuseConfidenceBand(score),
+    reasons: reasons.length ? reasons : ["limited scan context"]
+  };
+}
+
+function parseConfidenceFromReport(reportText = "") {
+  const match = `${reportText}`.match(/Confidence score:\s*(\d{1,3})\/100\s*\((low|medium|high)\)/i);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    score: Math.max(0, Math.min(100, Number(match[1]))),
+    band: `${match[2]}`.toLowerCase()
+  };
+}
+
+function setFuseConfidenceBadge(badgeEl, confidence = null) {
+  if (!badgeEl) {
+    return;
+  }
+
+  badgeEl.classList.remove("is-high", "is-medium", "is-low", "is-pending");
+
+  if (!confidence || !Number.isFinite(confidence.score)) {
+    badgeEl.classList.add("is-pending");
+    badgeEl.textContent = "Confidence: waiting for analysis";
+    return;
+  }
+
+  const band = ["low", "medium", "high"].includes(confidence.band) ? confidence.band : fuseConfidenceBand(confidence.score);
+  badgeEl.classList.add(`is-${band}`);
+  badgeEl.textContent = `Confidence: ${confidence.score}/100 (${band})`;
+}
+
+function applyFuseCameraTarget(root, key) {
+  const target = fuseCameraTargetConfig[key] || fuseCameraTargetConfig["hood-a"];
+  root.dataset.fuseCameraTarget = key;
+  root.style.setProperty("--fuse-target-left", target.left);
+  root.style.setProperty("--fuse-target-top", target.top);
+  root.style.setProperty("--fuse-target-width", target.width);
+  root.style.setProperty("--fuse-target-height", target.height);
+  const labelEl = root.querySelector("[data-fuse-target-label]");
+  if (labelEl) {
+    labelEl.textContent = target.label;
+  }
+
+  root.querySelectorAll("[data-fuse-camera-target]").forEach((button) => {
+    const active = button.dataset.fuseCameraTarget === key;
+    button.classList.toggle("utility-link-strong", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function buildFuseCameraReport(root, ocrText = "") {
+  const targetKey = root.dataset.fuseCameraTarget || "hood-a";
+  const target = fuseCameraTargetConfig[targetKey] || fuseCameraTargetConfig["hood-a"];
+  const clueText = root.querySelector("[data-fuse-camera-clue]")?.value.trim() || "Not entered";
+  const keywords = detectFuseKeywords(`${ocrText}\n${clueText}`);
+  const confidence = computeFuseAssistConfidence({
+    targetKey,
+    clueText,
+    ocrText,
+    keywords,
+    selectedFuse: latestFuseSelection
+  });
+  const selectedFuseLine = latestFuseSelection
+    ? `Selected fuse from map: ${latestFuseSelection.panelLabel} ${latestFuseSelection.position} / ${latestFuseSelection.rating} / ${latestFuseSelection.circuit}`
+    : "Selected fuse from map: none currently selected";
+
+  const routeHref = new URL(target.route, location.href).href;
+
+  const text = [
+    `iPhone fuse camera assistant (${target.label})`,
+    `Target hint: ${target.hint}`,
+    selectedFuseLine,
+    `Observed clue: ${clueText}`,
+    `Detected keywords: ${keywords.length ? keywords.join(", ") : "None detected"}`,
+    `Confidence score: ${confidence.score}/100 (${confidence.band})`,
+    `Confidence drivers: ${confidence.reasons.join(", ")}`,
+    ocrText ? `OCR text: ${cleanScanText(ocrText)}` : "OCR text: not available",
+    "Open route:",
+    routeHref,
+    "Verify against the truck cover label and owner references before replacing anything."
+  ].join("\n");
+
+  return {
+    text,
+    confidence
+  };
+}
+
+function initFuseCameraAssistants() {
+  const roots = [...document.querySelectorAll("[data-fuse-camera-assistant]")];
+  if (!roots.length) {
+    return;
+  }
+
+  roots.forEach((root) => {
+    const videoEl = root.querySelector("[data-fuse-camera-video]");
+    const previewEl = root.querySelector("[data-fuse-camera-preview]");
+    const canvasEl = root.querySelector("[data-fuse-camera-canvas]");
+    const resultEl = root.querySelector("[data-fuse-camera-result]");
+    const confidenceBadgeEl = root.querySelector("[data-fuse-confidence-badge]");
+    const statusEl = root.querySelector("[data-fuse-camera-status]");
+    const clueEl = root.querySelector("[data-fuse-camera-clue]");
+    let lastReport = "";
+    let lastOcrText = "";
+
+    const savedState = loadJson(FUSE_CAMERA_ASSIST_STORAGE_KEY, {});
+    const defaultTarget = savedState.target && fuseCameraTargetConfig[savedState.target] ? savedState.target : "hood-a";
+    applyFuseCameraTarget(root, defaultTarget);
+    if (savedState.clue && clueEl) {
+      clueEl.value = savedState.clue;
+    }
+    if (savedState.report) {
+      resultEl.textContent = savedState.report;
+      lastReport = savedState.report;
+      setFuseConfidenceBadge(confidenceBadgeEl, parseConfidenceFromReport(savedState.report));
+    } else {
+      setFuseConfidenceBadge(confidenceBadgeEl, null);
+    }
+
+    root.querySelectorAll("[data-fuse-camera-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        applyFuseCameraTarget(root, button.dataset.fuseCameraTarget || "hood-a");
+        setStatus(statusEl, `${(fuseCameraTargetConfig[button.dataset.fuseCameraTarget] || fuseCameraTargetConfig["hood-a"]).hint}`);
+      });
+    });
+
+    root.querySelector("[data-fuse-camera-start]")?.addEventListener("click", async () => {
+      try {
+        stopCameraStream(root, "_fuseCameraStream");
+        root._fuseCameraStream = await requestRearCamera(videoEl);
+        previewEl.hidden = true;
+        setStatus(statusEl, "Camera live. Align the overlay target and capture.");
+      } catch (error) {
+        setStatus(statusEl, "Camera access failed. Check permissions and retry.");
+      }
+    });
+
+    root.querySelector("[data-fuse-camera-stop]")?.addEventListener("click", () => {
+      stopCameraStream(root, "_fuseCameraStream");
+      setStatus(statusEl, "Camera stopped.");
+    });
+
+    root.querySelector("[data-fuse-camera-capture]")?.addEventListener("click", () => {
+      const dataUrl = captureFrameToCanvas(videoEl, canvasEl);
+      if (!dataUrl) {
+        setStatus(statusEl, "Capture failed. Start camera and retry.");
+        return;
+      }
+
+      previewEl.src = dataUrl;
+      previewEl.hidden = false;
+      setStatus(statusEl, "Frame captured. Run Analyze for a handoff summary.");
+    });
+
+    root.querySelector("[data-fuse-camera-analyze]")?.addEventListener("click", async () => {
+      if (!canvasEl?.width) {
+        const dataUrl = captureFrameToCanvas(videoEl, canvasEl);
+        if (dataUrl) {
+          previewEl.src = dataUrl;
+          previewEl.hidden = false;
+        }
+      }
+
+      lastOcrText = await detectTextFromCanvas(canvasEl);
+      const report = buildFuseCameraReport(root, lastOcrText);
+      lastReport = report.text;
+      resultEl.textContent = report.text;
+      setFuseConfidenceBadge(confidenceBadgeEl, report.confidence);
+      localStorage.setItem(
+        FUSE_CAMERA_ASSIST_STORAGE_KEY,
+        JSON.stringify({
+          target: root.dataset.fuseCameraTarget || "hood-a",
+          clue: clueEl?.value.trim() || "",
+          report: lastReport,
+          timestamp: nowStamp()
+        })
+      );
+
+      if (!lastOcrText) {
+        setStatus(statusEl, "Analysis ready. OCR text was limited; rely on observed clue + fuse map selection.");
+        return;
+      }
+      setStatus(statusEl, "Analysis ready with OCR keywords. Copy, share, or save.");
+    });
+
+    root.querySelector("[data-fuse-camera-copy]")?.addEventListener("click", async () => {
+      if (!lastReport) {
+        root.querySelector("[data-fuse-camera-analyze]")?.click();
+      }
+      const copied = await copyText(lastReport || resultEl.textContent || "");
+      setStatus(statusEl, copied ? "Fuse assistant handoff copied." : "Copy failed in this browser.");
+    });
+
+    root.querySelector("[data-fuse-camera-share]")?.addEventListener("click", async () => {
+      if (!lastReport) {
+        root.querySelector("[data-fuse-camera-analyze]")?.click();
+      }
+
+      const text = lastReport || resultEl.textContent || "";
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Ridgeline fuse camera handoff", text });
+          setStatus(statusEl, "Fuse assistant handoff shared.");
+          return;
+        }
+        const copied = await copyText(text);
+        setStatus(statusEl, copied ? "Share unavailable; handoff copied instead." : "Share unavailable in this browser.");
+      } catch (error) {
+        setStatus(statusEl, "Share canceled or unavailable.");
+      }
+    });
+
+    root.querySelector("[data-fuse-camera-save]")?.addEventListener("click", () => {
+      if (!lastReport) {
+        root.querySelector("[data-fuse-camera-analyze]")?.click();
+      }
+
+      try {
+        prependGarageGeneralNote(`[${nowStamp()} - Fuse Camera Assistant]\n${lastReport || resultEl.textContent || ""}`);
+        setStatus(statusEl, "Fuse assistant handoff saved to Garage Notes.");
+      } catch (error) {
+        setStatus(statusEl, "Could not save handoff in this browser session.");
+      }
+    });
+  });
+}
+
 function setSavedFuseStatus(root, message) {
   const statusEl = root.querySelector("[data-saved-fuse-status]");
   if (statusEl) {
@@ -1183,4 +1890,6 @@ document.querySelectorAll("[data-fuse-glossary]").forEach((glossaryEl) => {
 initFusePullChecklists();
 initSavedFuseReviews();
 initFuseCounterPacks();
+initCameraOcrLabs();
+initFuseCameraAssistants();
 initGarageCloudSync();

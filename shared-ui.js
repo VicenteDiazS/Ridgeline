@@ -23,6 +23,7 @@ const FAVORITE_PINS_STORAGE_KEY = "ridgeline-favorite-pins";
 const LAST_TASK_STORAGE_KEY = "ridgeline-last-task";
 const SITE_THEME_STORAGE_KEY = "ridgeline-site-theme";
 const BG_INTENSITY_STORAGE_KEY = "ridgeline-bg-intensity";
+const HOME_COCKPIT_LAYOUT_STORAGE_KEY = "ridgeline-home-cockpit-layout";
 const RECENT_SEARCH_STORAGE_KEY = "ridgeline-recent-searches";
 const MOTION_MODE_CLASSES = ["motion-rich", "motion-standard", "motion-economy", "motion-off"];
 const prefersCompactDefault =
@@ -769,6 +770,47 @@ function ensureIndexViewerFirst() {
   }
 }
 
+function getSavedHomeCockpitLayout() {
+  const savedLayout = localStorage.getItem(HOME_COCKPIT_LAYOUT_STORAGE_KEY);
+  return ["dashboard", "shortcuts", "logbook"].includes(savedLayout) ? savedLayout : "dashboard";
+}
+
+function applyHomeCockpitLayout(layout, persist = true) {
+  if (currentPageName() !== "index.html" || !document.body) {
+    return;
+  }
+
+  const nextLayout = ["dashboard", "shortcuts", "logbook"].includes(layout) ? layout : "dashboard";
+  document.body.dataset.homeCockpitLayout = nextLayout;
+  if (persist) {
+    localStorage.setItem(HOME_COCKPIT_LAYOUT_STORAGE_KEY, nextLayout);
+  }
+
+  document.querySelectorAll("[data-home-layout]").forEach((button) => {
+    const isActive = button.dataset.homeLayout === nextLayout;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function bindHomeCockpitLayoutControls() {
+  if (currentPageName() !== "index.html") {
+    return;
+  }
+
+  const cockpitPanel = document.querySelector("[data-home-cockpit-panel]");
+  if (!cockpitPanel || cockpitPanel.dataset.homeCockpitBound === "true") {
+    return;
+  }
+
+  cockpitPanel.dataset.homeCockpitBound = "true";
+  cockpitPanel.querySelectorAll("[data-home-layout]").forEach((button) => {
+    button.addEventListener("click", () => applyHomeCockpitLayout(button.dataset.homeLayout));
+  });
+
+  applyHomeCockpitLayout(getSavedHomeCockpitLayout(), false);
+}
+
 function isStandaloneLaunch() {
   const displayStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches;
   const iosStandalone = window.navigator.standalone === true;
@@ -1071,6 +1113,14 @@ function buildUniversalHeaderActions() {
 
   const actions = [
     {
+      key: "ask",
+      label: "Ask Anton",
+      href: "ask-anton.html#ask-anton-chat",
+      icon: "ask",
+      aria: "Open Ask Anton assistant",
+      title: "Ask Anton"
+    },
+    {
       key: "map",
       label: "Map",
       href: "index.html#viewer",
@@ -1093,14 +1143,6 @@ function buildUniversalHeaderActions() {
       icon: "garage",
       aria: "Open garage page",
       title: "Garage"
-    },
-    {
-      key: "ask",
-      label: "Ask",
-      href: "ask-anton.html#ask-anton-chat",
-      icon: "ask",
-      aria: "Open Ask Anton assistant",
-      title: "Ask Anton"
     }
   ];
 
@@ -1119,6 +1161,7 @@ function buildUniversalHeaderActions() {
       existingLink.dataset.navIcon = existingLink.dataset.navIcon || action.icon;
       if (action.key === "ask") {
         existingLink.classList.add("header-nav-button-ask");
+        existingLink.textContent = action.label;
       }
       existingLink.setAttribute("aria-label", existingLink.getAttribute("aria-label") || action.aria);
       existingLink.title = existingLink.title || action.title;
@@ -5669,7 +5712,15 @@ buildThemeToggleButton();
 buildBackgroundIntensityButton();
 const siteMenu = buildSiteMenu();
 const brandLink = document.querySelector(".brand");
+const homeEntryHref = "index.html?ask-prominence=2";
+
+if (brandLink) {
+  brandLink.href = homeEntryHref;
+  brandLink.setAttribute("aria-label", "Return to the Ridgeline Service Console home page");
+  brandLink.title = "Return to home";
+}
 buildHomeCommandCenter();
+bindHomeCockpitLayoutControls();
 buildMaintenanceJobMode();
 buildMaintenanceTimeline();
 improveModelLoadingSurfaces();

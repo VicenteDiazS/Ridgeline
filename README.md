@@ -50,3 +50,19 @@ Ask Anton now supports a safer proxy flow so model keys are never stored in the 
 3. In Ask Anton Settings, set `Proxy Endpoint` to your proxy URL (for local: `http://localhost:8787/api/ask-anton`).
 
 See `tools/ask-anton-proxy/README.md` for setup details.
+
+### Quick Local Fix (If Anton Falls Back To Local Answers)
+
+If Ask Anton shows proxy/auth errors, do this exact flow:
+
+1. Open `tools/ask-anton-proxy/.env` and set `OPENAI_API_KEY`.
+2. Keep `ALLOWED_ORIGIN=*` for local file testing.
+3. Start proxy:
+   - `cd tools/ask-anton-proxy`
+   - `node --env-file=.env server.mjs`
+4. Confirm health endpoint:
+   - `http://127.0.0.1:8787/health`
+5. In Ask Anton Settings, use endpoint:
+   - `http://127.0.0.1:8787/api/ask-anton`
+
+If you still see `Missing bearer or basic authentication in header`, your browser is likely calling the provider directly instead of this proxy endpoint.

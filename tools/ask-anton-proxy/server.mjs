@@ -6,15 +6,21 @@ const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
 const DEFAULT_MODEL = process.env.DEFAULT_MODEL || "gpt-4.1-mini";
 
+const allowedOriginList = ALLOWED_ORIGIN
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+
 if (!OPENAI_API_KEY) {
   console.warn("[ask-anton-proxy] OPENAI_API_KEY is missing. Requests will fail until it is set.");
 }
 
 function setCors(res, reqOrigin = "") {
-  const allowOrigin = ALLOWED_ORIGIN === "*" ? "*" : reqOrigin;
+  const allowAll = allowedOriginList.includes("*") || ALLOWED_ORIGIN === "*";
+  const allowOrigin = allowAll ? "*" : reqOrigin;
   res.setHeader("Access-Control-Allow-Origin", allowOrigin || "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
 
 function sendJson(res, status, data, reqOrigin = "") {
@@ -25,10 +31,13 @@ function sendJson(res, status, data, reqOrigin = "") {
 }
 
 function isAllowedOrigin(reqOrigin = "") {
-  if (ALLOWED_ORIGIN === "*") {
+  if (allowedOriginList.includes("*") || ALLOWED_ORIGIN === "*") {
     return true;
   }
-  return reqOrigin === ALLOWED_ORIGIN;
+  if (!reqOrigin && allowedOriginList.includes("null")) {
+    return true;
+  }
+  return allowedOriginList.includes(reqOrigin);
 }
 
 function readBody(req) {

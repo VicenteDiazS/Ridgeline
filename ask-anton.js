@@ -6,7 +6,7 @@ const CHAT_KEY = `${STORAGE_PREFIX}chat`;
 const THREAD_KEY = `${STORAGE_PREFIX}thread`;
 const LEGACY_SETTINGS_KEY = "ridgeline-ask-anton-settings-v1";
 const LEGACY_CHAT_KEY = "ridgeline-ask-anton-chat-v1";
-const DEFAULT_ENDPOINT = "/api/ask-anton";
+const DEFAULT_ENDPOINT = defaultProxyEndpoint();
 const DEFAULT_MODEL = "gpt-4.1-mini";
 const DEFAULT_LOCAL_LIMIT = 6;
 const MAX_WEB_CITATIONS = 3;
@@ -55,6 +55,105 @@ const defaultIntent = {
     stop: ["For safety-critical choices, verify with truck labels/manual."]
   }
 };
+
+const fuseAssociationMap = [
+  {
+    id: "headlights",
+    label: "Headlights",
+    keywords: ["headlight", "head light", "low beam", "high beam", "hl", "drl", "daytime running"],
+    likely: ["H/L LO", "H/L HI", "DRL"],
+    routes: [
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" },
+      { title: "Fuse Label Decoder", url: "hood.html#hood-fuse-glossary" },
+      { title: "Diagnostic Fuse Symptom Finder", url: "diagnostics.html#fuse-symptom-finder" }
+    ],
+    note: "Confirm left/right side behavior and compare with cover label before pulling any fuse."
+  },
+  {
+    id: "brake-lights",
+    label: "Brake Lights",
+    keywords: ["brake light", "stop light", "stop lamp", "tail lamp", "rear light"],
+    likely: ["STOP", "SMALL", "TRAILER SMALL"],
+    routes: [
+      { title: "Trailer-Light Workflow", url: "diagnostics.html#trailer-light-workflow" },
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" },
+      { title: "Rear Hitch Pinout", url: "rear-hitch.html#pinout" }
+    ],
+    note: "Name which function failed first: brake, running, turn, or reverse; they can route to different fuse rows."
+  },
+  {
+    id: "reverse-lights",
+    label: "Reverse Lights",
+    keywords: ["reverse light", "backup light", "back up light", "back-up"],
+    likely: ["BACK UP", "SMALL", "TRAILER SMALL"],
+    routes: [
+      { title: "Trailer-Light Workflow", url: "diagnostics.html#trailer-light-workflow" },
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" },
+      { title: "Cabin Fuse Tables", url: "cabin.html#fuses" }
+    ],
+    note: "Verify whether both truck reverse lights and trailer reverse function fail together."
+  },
+  {
+    id: "signals",
+    label: "Turn Signals / Hazards",
+    keywords: ["turn signal", "indicator", "blinker", "hazard", "flasher"],
+    likely: ["SMALL", "METER", "TRAILER SMALL"],
+    routes: [
+      { title: "Trailer-Light Workflow", url: "diagnostics.html#trailer-light-workflow" },
+      { title: "Cabin Fuse Tables", url: "cabin.html#fuses" },
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" }
+    ],
+    note: "Check if dash indicator behavior matches exterior lights before changing any fuse."
+  },
+  {
+    id: "wipers",
+    label: "Wipers / Washer",
+    keywords: ["wiper", "washer", "wiper motor", "front de-icer", "de-icer"],
+    likely: ["WIP", "FRONT DE-ICER", "IG MAIN"],
+    routes: [
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" },
+      { title: "Cabin Fuse Tables", url: "cabin.html#fuses" },
+      { title: "Diagnostic Workflow Index", url: "diagnostics.html#workflow-index" }
+    ],
+    note: "If only one speed or one mode fails, record exact behavior before fuse checks."
+  },
+  {
+    id: "audio-display",
+    label: "Audio / Display",
+    keywords: ["radio", "audio", "display", "screen", "carplay", "android auto", "speaker"],
+    likely: ["AUDIO", "AUDIO AMP", "ACC", "METER"],
+    routes: [
+      { title: "Audio-Display Workflow", url: "diagnostics.html#audio-display-workflow" },
+      { title: "Cabin Fuse Tables", url: "cabin.html#fuses" },
+      { title: "Fuse Symptom Finder", url: "diagnostics.html#fuse-symptom-finder" }
+    ],
+    note: "Separate no-power screen issues from no-sound source issues before selecting fuse paths."
+  },
+  {
+    id: "outlets-12v",
+    label: "12V Outlets / ACC Power",
+    keywords: ["12v", "12 volt", "outlet", "socket", "charger", "usb", "acc"],
+    likely: ["ACC", "OPTION", "IG1A", "IG1B"],
+    routes: [
+      { title: "Accessory-Power Workflow", url: "diagnostics.html#accessory-power-workflow" },
+      { title: "Cabin Fuse Tables", url: "cabin.html#fuses" },
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" }
+    ],
+    note: "Test with a known-good low-load device first; outlet behavior can vary by power mode."
+  },
+  {
+    id: "trailer-power",
+    label: "Trailer Power / Lights",
+    keywords: ["trailer", "7 way", "7-way", "4 pin", "tow lights", "hitch wiring"],
+    likely: ["TRAILER SMALL", "TRAILER CHARGE", "E-BRAKE", "BACK UP"],
+    routes: [
+      { title: "Trailer-Light Workflow", url: "diagnostics.html#trailer-light-workflow" },
+      { title: "Rear Hitch Pinout", url: "rear-hitch.html#pinout" },
+      { title: "Hood Fuse Tables", url: "hood.html#fuses" }
+    ],
+    note: "Capture connector type and failed function before selecting trailer fuse rows."
+  }
+];
 
 const state = {
   messages: loadConversation(),
@@ -126,7 +225,7 @@ const intentMap = {
   },
   electrical: {
     label: "Electrical",
-    patterns: [/fuse|outlet|radio|screen|12v|power/i],
+    patterns: [/fuse|outlet|radio|screen|12v|power|light|lamp|headlight|tail|reverse|wiper|washer/i],
     actions: [
       { label: "Fuse Symptom Finder", href: "diagnostics.html#fuse-symptom-finder" },
       { label: "Hood Fuses", href: "hood.html#fuses" },
@@ -208,8 +307,92 @@ function clampLimit(value) {
   return Math.min(12, Math.max(3, Math.round(value || DEFAULT_LOCAL_LIMIT)));
 }
 
+function defaultProxyEndpoint() {
+  if (window.location.protocol === "file:") {
+    return "http://127.0.0.1:8787/api/ask-anton";
+  }
+  return `${window.location.origin}/api/ask-anton`;
+}
+
+function endpointHealthUrl(endpoint = "") {
+  const normalized = normalizeEndpoint(endpoint);
+  if (!normalized) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(normalized)) {
+    try {
+      const url = new URL(normalized);
+      url.pathname = "/health";
+      url.search = "";
+      url.hash = "";
+      return url.toString();
+    } catch {
+      return "";
+    }
+  }
+
+  if (normalized.startsWith("/") && window.location.protocol !== "file:") {
+    return `${window.location.origin}/health`;
+  }
+
+  return "";
+}
+
 function normalizeEndpoint(value = "") {
   return `${value}`.trim();
+}
+
+function normalizeErrorMessage(raw = "") {
+  const text = `${raw || ""}`.trim();
+  if (!text) {
+    return "Unknown error";
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed?.error === "string") {
+      return parsed.error;
+    }
+    if (typeof parsed?.error?.message === "string") {
+      return parsed.error.message;
+    }
+    if (typeof parsed?.details?.error?.message === "string") {
+      return parsed.details.error.message;
+    }
+    if (typeof parsed?.message === "string") {
+      return parsed.message;
+    }
+  } catch {
+    // Keep raw text fallback.
+  }
+
+  return text.length > 240 ? `${text.slice(0, 240)}...` : text;
+}
+
+function explainProxyError(statusCode = 0, rawMessage = "") {
+  const normalized = normalizeText(normalizeErrorMessage(rawMessage));
+  if (!normalized) {
+    return "Proxy/model request failed. Fallback local answer shown.";
+  }
+
+  if (normalized.includes("missing bearer") || normalized.includes("authentication in header")) {
+    return "Proxy auth missing: start tools/ask-anton-proxy and set OPENAI_API_KEY in tools/ask-anton-proxy/.env. Fallback local answer shown.";
+  }
+
+  if (normalized.includes("failed to fetch") || normalized.includes("networkerror") || statusCode === 0) {
+    return "Cannot reach proxy endpoint. Start local proxy at http://127.0.0.1:8787 or update Settings -> Proxy Endpoint. Fallback local answer shown.";
+  }
+
+  if (normalized.includes("origin not allowed") || statusCode === 403) {
+    return "Proxy blocked this origin. Update ALLOWED_ORIGIN (or use *) in tools/ask-anton-proxy/.env. Fallback local answer shown.";
+  }
+
+  if (normalized.includes("missing openai_api_key") || normalized.includes("server is missing openai api key") || statusCode === 500) {
+    return "Proxy is running but OPENAI_API_KEY is missing. Add it to tools/ask-anton-proxy/.env and restart. Fallback local answer shown.";
+  }
+
+  return `Proxy/model request failed. ${normalizeErrorMessage(rawMessage)}. Fallback local answer shown.`;
 }
 
 function hasModelEndpointConfigured(endpoint = "") {
@@ -314,14 +497,19 @@ function loadSettings() {
   const legacy = stored ? null : readStoredJson(LEGACY_SETTINGS_KEY, null);
   const source = stored || legacy || {};
   const hadStoredApiKey = typeof source.apiKey === "string" && source.apiKey.trim().length > 0;
+  const sourceEndpoint = typeof source.endpoint === "string" && source.endpoint.trim() ? source.endpoint.trim() : "";
   const settings = {
-    endpoint: typeof source.endpoint === "string" && source.endpoint.trim() ? source.endpoint.trim() : DEFAULT_ENDPOINT,
+    endpoint: sourceEndpoint || DEFAULT_ENDPOINT,
     model: typeof source.model === "string" && source.model.trim() ? source.model.trim() : DEFAULT_MODEL,
     webEnabled: source.webEnabled === true,
     localLimit: Number.isFinite(Number(source.localLimit)) ? clampLimit(Number(source.localLimit)) : DEFAULT_LOCAL_LIMIT,
     defaultMode: source.defaultMode === "deep" ? "deep" : "quick",
     citationQuality: source.citationQuality === "all" ? "all" : "high"
   };
+
+  if (window.location.protocol === "file:" && settings.endpoint === "/api/ask-anton") {
+    settings.endpoint = DEFAULT_ENDPOINT;
+  }
   if (!stored && legacy) {
     writeStoredJson(SETTINGS_KEY, settings);
   } else if (stored && hadStoredApiKey) {
@@ -429,6 +617,139 @@ function buildLocalMatches(query, limit = DEFAULT_LOCAL_LIMIT) {
     .slice(0, limit);
 }
 
+function findFuseAssociations(query = "") {
+  const normalized = normalizeText(query);
+  if (!normalized) {
+    return [];
+  }
+
+  const scored = fuseAssociationMap
+    .map((entry) => {
+      const matchCount = (entry.keywords || []).reduce((count, keyword) => {
+        const normalizedKeyword = normalizeText(keyword);
+        if (!normalizedKeyword) {
+          return count;
+        }
+        if (normalized.includes(normalizedKeyword)) {
+          return count + 3;
+        }
+        return count;
+      }, 0);
+      return {
+        entry,
+        score: matchCount
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((left, right) => right.score - left.score || left.entry.label.localeCompare(right.entry.label))
+    .slice(0, 3)
+    .map((item) => item.entry);
+
+  return scored;
+}
+
+function buildFuseAssociationContext(query = "") {
+  const matches = findFuseAssociations(query);
+  if (!matches.length) {
+    return "";
+  }
+
+  return matches
+    .map((item, index) => {
+      const labels = item.likely?.length ? item.likely.join(", ") : "No label hints";
+      const routes = (item.routes || []).slice(0, 3).map((route) => `[${route.title}](${route.url})`).join(", ");
+      return `${index + 1}. ${item.label} -> likely labels: ${labels}. Routes: ${routes}. Note: ${item.note}`;
+    })
+    .join("\n");
+}
+
+function buildFuseAssociationRoutes(query = "") {
+  const seen = new Set();
+  const lines = [];
+  findFuseAssociations(query).forEach((item) => {
+    (item.routes || []).forEach((route) => {
+      if (!route?.title || !route?.url || seen.has(route.url)) {
+        return;
+      }
+      seen.add(route.url);
+      lines.push(`- [${route.title}](${route.url})`);
+    });
+  });
+  return lines.slice(0, 4).join("\n");
+}
+
+function pickPrimaryRoute(intent = null, localMatches = [], fuseAssociations = []) {
+  const fuseRoute = fuseAssociations
+    .flatMap((entry) => entry.routes || [])
+    .find((route) => route?.url && route?.title);
+
+  if (fuseRoute) {
+    return {
+      title: fuseRoute.title,
+      url: fuseRoute.url,
+      excerpt: "Use this route first for the symptom before branching out."
+    };
+  }
+
+  const actionRoute = (intent?.actions || []).find((action) => isLocalSiteRoute(action?.href || ""));
+  if (actionRoute) {
+    return {
+      title: actionRoute.label || routeTitleFor(actionRoute.href),
+      url: normalizeLocalRoute(actionRoute.href),
+      excerpt: "Use this route first for your current symptom."
+    };
+  }
+
+  return localMatches[0] || null;
+}
+
+function buildBeginnerSteps(query = "", intent = null, localMatches = [], fuseAssociations = []) {
+  const normalizedQuery = normalizeText(query);
+  const firstMatch = localMatches[0] || null;
+  const firstAssociation = fuseAssociations[0] || null;
+
+  const candidateRoutes = [
+    ...(localMatches || []).map((entry) => normalizeLocalRoute(entry?.url || "")),
+    ...fuseAssociations.flatMap((entry) => (entry.routes || []).map((route) => normalizeLocalRoute(route?.url || "")))
+  ].filter(Boolean);
+
+  const hasHoodFuseRoute = candidateRoutes.some((route) => route.startsWith("hood.html#fuses"));
+  const hasCabinFuseRoute = candidateRoutes.some((route) => route.startsWith("cabin.html#fuses"));
+  const firstRoute = hasHoodFuseRoute
+    ? "[Hood Fuse Tables](hood.html#fuses)"
+    : hasCabinFuseRoute
+      ? "[Cabin Fuse Tables](cabin.html#fuses)"
+      : firstMatch
+        ? `[${firstMatch.title}](${firstMatch.url})`
+        : "[Diagnostics](diagnostics.html#workflow-index)";
+
+  const steps = [
+    "1. Park safely and keep the truck off before touching a fuse or connector.",
+    `2. Say exactly what failed in simple words (example: ${firstAssociation ? `\"${firstAssociation.label.toLowerCase()} not working\"` : "\"left brake light not working\""}).`,
+    `3. Open ${firstRoute} and follow only one path at a time.`,
+    firstAssociation?.likely?.length
+      ? `4. In the table or cover, match label words first: ${firstAssociation.likely.join(", ")} (do not guess by location alone).`
+      : "4. Match the exact function name in the table before removing anything.",
+    "5. If the first route does not match your symptom, use Next Routes and continue step-by-step."
+  ];
+
+  if (intent?.id === "trailer" || normalizedQuery.includes("trailer") || normalizedQuery.includes("hitch")) {
+    steps[4] = "5. If trailer lights are involved, also open [Rear Hitch Pinout](rear-hitch.html#pinout) to match the exact pin function.";
+  }
+
+  return steps.join("\n");
+}
+
+function buildDoThisNowLine(intent = null, fuseAssociations = [], fallback = "") {
+  if (fuseAssociations.length) {
+    if (intent?.id === "trailer") {
+      return "Name one failed part or feature first (example: left brake light, right turn signal, or trailer running lights), then match label words on the truck cover.";
+    }
+    return "Name one failed part or feature first (example: front outlet, radio screen, or headlights), then match label words on the truck cover.";
+  }
+  return fallback || "Describe the exact symptom in one short sentence before opening routes.";
+}
+
 function formatSources(matches) {
   if (!els.sourcesList) {
     return;
@@ -506,13 +827,29 @@ function confidenceForResponse(localMatches, usedWebSearch, citations, intentId 
   };
 }
 
-function buildStructuredPlan(intent, localMatches) {
+function buildStructuredPlan(intent, localMatches, query = "") {
   const basePlan = intent?.plan || defaultIntent.plan;
-  const bestRoute = localMatches[0]?.title || "best local route";
+  const fuseAssociations = findFuseAssociations(query);
+  const bestRoute = pickPrimaryRoute(intent, localMatches, fuseAssociations)?.title || "best local route";
+  const firstAssociation = fuseAssociations[0] || null;
+  const nowLead = buildDoThisNowLine(intent, fuseAssociations, "Describe the exact symptom in one short sentence before opening routes.");
+
   return {
-    now: [...(basePlan.now || []), `Use ${bestRoute} as your first route.`].slice(0, 3),
-    next: (basePlan.next || []).slice(0, 3),
-    stop: (basePlan.stop || []).slice(0, 3)
+    now: [
+      nowLead,
+      ...(basePlan.now || []),
+      `Use ${bestRoute} as your first route.`
+    ].slice(0, 3),
+    next: [
+      firstAssociation?.likely?.length
+        ? `Look for label words first: ${firstAssociation.likely.join(", ")}.`
+        : "Follow one route at a time and stop when a step clearly does not match your symptom.",
+      ...(basePlan.next || [])
+    ].slice(0, 3),
+    stop: [
+      ...(basePlan.stop || []),
+      "If wording is unclear, use the Fuse Label Decoder before replacing anything."
+    ].slice(0, 3)
   };
 }
 
@@ -664,6 +1001,7 @@ function buildModelInput(query, localMatches, mode = "quick") {
     .join("\n");
 
   const threadContext = state.thread.slice(-4).map((line, index) => `${index + 1}. ${line}`).join("\n");
+  const fuseAssociationContext = buildFuseAssociationContext(query);
 
   return [
     "You are Anton for the Ridgeline service site.",
@@ -672,9 +1010,13 @@ function buildModelInput(query, localMatches, mode = "quick") {
       : "Quick mode: provide a short direct answer first, then minimal next steps.",
     "Always prioritize local Ridgeline context. Use web context only when available and needed.",
     "Use plain language and keep each step concrete.",
-    "Formatting requirements: use sections in this order: Summary, Do This Now, Next Routes, Note.",
+    "Assume the user may be non-technical. Avoid jargon unless you define it in one short sentence.",
+    "When the user asks for site polish, keep improving the Ridgeline home cockpit: curved dashboard arc, vehicle status chips, vehicle schematic, and layout reordering. Prefer implementation-ready suggestions over abstract design notes.",
+    "Formatting requirements: use sections in this order: Summary, Do This Now, Beginner Steps, Next Routes, Note.",
+    "Under Beginner Steps, provide a short numbered list for someone who has never used a fuse table before.",
     "Under Next Routes, include 2-4 local links in markdown format like [Diagnostics](diagnostics.html#warning-light-workflow) when relevant.",
     "For safety-critical instructions, include a verification reminder.",
+    fuseAssociationContext ? `Fuse association hints:\n${fuseAssociationContext}` : "No specific fuse association hints detected.",
     localContext ? `Local context:\n${localContext}` : "No strong local context.",
     threadContext ? `Recent follow-up thread:\n${threadContext}` : "No follow-up thread.",
     `Question: ${query}`
@@ -714,8 +1056,11 @@ async function requestModelAnswer(query, localMatches, options) {
   }
 
   if (!response || !response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Model request failed with ${response?.status || "unknown"}`);
+    const detail = response ? await response.text() : "";
+    const message = normalizeErrorMessage(detail || `Model request failed with ${response?.status || "unknown"}`);
+    const error = new Error(message);
+    error.statusCode = Number(response?.status || 0);
+    throw error;
   }
 
   const data = await response.json();
@@ -732,7 +1077,8 @@ async function requestModelAnswer(query, localMatches, options) {
 }
 
 function makeLocalAnswer(query, intent, localMatches, mode = "quick") {
-  const top = localMatches[0] || null;
+  const fuseAssociations = findFuseAssociations(query);
+  const top = pickPrimaryRoute(intent, localMatches, fuseAssociations);
   const nextRoutes = localMatches
     .slice(0, 4)
     .map((entry) => `- [${entry.title}](${entry.url})${entry.excerpt ? `: ${entry.excerpt}` : ""}`)
@@ -744,30 +1090,41 @@ function makeLocalAnswer(query, intent, localMatches, mode = "quick") {
 
   const immediateStep = intent?.plan?.now?.[0] || "Capture the current symptom before changing state.";
   const followupStep = intent?.plan?.next?.[0] || "Open the best matching workflow and follow it step by step.";
+  const beginnerSteps = buildBeginnerSteps(query, intent, localMatches, fuseAssociations);
+  const doThisNowLine = buildDoThisNowLine(intent, fuseAssociations, immediateStep);
+  const fuseAssociationSummary = fuseAssociations.length
+    ? `Likely fuse paths for this symptom: ${fuseAssociations.map((item) => `${item.label} (${item.likely.join(", ")})`).join("; ")}.`
+    : "";
+  const fuseRoutes = buildFuseAssociationRoutes(query);
 
   if (mode === "deep") {
     return [
       "Summary",
-      summary,
+      fuseAssociationSummary ? `${summary} ${fuseAssociationSummary}` : summary,
       "Do This Now",
-      `- ${immediateStep}`,
+      `- ${doThisNowLine}`,
       `- ${followupStep}`,
+      ...(fuseAssociations.length ? [`- Compare likely labels: ${fuseAssociations[0].likely.join(", ")} against the truck cover label.`] : []),
+      "Beginner Steps",
+      beginnerSteps,
       "Next Routes",
-      nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
+      fuseRoutes || nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
       "Note",
-      "Enable internet for this question if you want current outside references."
+      fuseAssociations[0]?.note || "Enable internet for this question if you want current outside references."
     ].filter(Boolean).join("\n\n");
   }
 
   return [
     "Summary",
-    summary,
+    fuseAssociationSummary ? `${summary} ${fuseAssociationSummary}` : summary,
     "Do This Now",
-    `- ${immediateStep}`,
+    `- ${doThisNowLine}`,
+    "Beginner Steps",
+    beginnerSteps,
     "Next Routes",
-    nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
+    fuseRoutes || nextRoutes || "- [Diagnostics](diagnostics.html#workflow-index)",
     "Note",
-    "Enable internet for this question if you need current outside sources."
+    fuseAssociations[0]?.note || "Enable internet for this question if you need current outside sources."
   ].filter(Boolean).join("\n\n");
 }
 
@@ -1288,6 +1645,9 @@ function renderTranscript() {
 function renderSettings() {
   if (els.endpoint) {
     els.endpoint.value = state.settings.endpoint;
+    if (!els.endpoint.placeholder) {
+      els.endpoint.placeholder = defaultProxyEndpoint();
+    }
   }
   if (els.model) {
     els.model.value = state.settings.model;
@@ -1359,7 +1719,7 @@ async function handleQuestionSubmit(event) {
   const forceWebForThisQuestion = Boolean(els.webThis?.checked);
   const intent = detectIntent(query);
   const localMatches = updateGrounding(query);
-  const plan = buildStructuredPlan(intent, localMatches);
+  const plan = buildStructuredPlan(intent, localMatches, query);
   const decisionTree = intent.decisionTree || null;
   const guardrail = isPartsIntent(query, intent) ? buildPartsGuardrail() : "";
 
@@ -1452,7 +1812,7 @@ async function handleQuestionSubmit(event) {
       partsGuardrail: guardrail
     });
 
-    setStatus(`Proxy/model request failed. Fallback local answer shown: ${error.message}`, "warn");
+    setStatus(explainProxyError(error?.statusCode || 0, error?.message || ""), "warn");
   } finally {
     state.busy = false;
     if (els.submit) {
@@ -1463,6 +1823,26 @@ async function handleQuestionSubmit(event) {
     }
     if (els.input) {
       els.input.focus();
+    }
+  }
+}
+
+async function checkProxyHealth() {
+  const healthUrl = endpointHealthUrl(state.settings.endpoint);
+  if (!healthUrl || !els.settingsStatus) {
+    return;
+  }
+
+  try {
+    const response = await fetch(healthUrl, { method: "GET" });
+    if (response.ok) {
+      setStatus(`Proxy reachable at ${healthUrl}.`, "success", els.settingsStatus);
+      return;
+    }
+    setStatus(`Proxy health check returned ${response.status}.`, "warn", els.settingsStatus);
+  } catch {
+    if (window.location.protocol === "file:") {
+      setStatus("Proxy not reachable yet. Start tools/ask-anton-proxy and keep endpoint on 127.0.0.1:8787 for model answers.", "info", els.settingsStatus);
     }
   }
 }
@@ -1630,7 +2010,8 @@ function syncInitialUi() {
   renderTranscript();
   renderThreadMemory();
   formatSources([]);
-  setStatus("Ready. Ask Anton includes intent routing, quick/deep modes, decision trees, action buttons, voice input, and shop/tow handoff packs.", "info");
+  setStatus("Ready. Ask Anton includes intent routing, quick/deep modes, decision trees, action buttons, voice input, shop/tow handoff packs, and home cockpit improvement guidance.", "info");
+  checkProxyHealth();
 }
 
 els.form?.addEventListener("submit", handleQuestionSubmit);
