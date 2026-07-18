@@ -14,6 +14,9 @@ const statFix = document.querySelector('[data-drive-stat="fix"]');
 const statSpeed = document.querySelector('[data-drive-stat="speed"]');
 const statTrail = document.querySelector('[data-drive-stat="trail"]');
 
+const LEAFLET_CSS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+const LEAFLET_JS_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+
 let map = null;
 let marker = null;
 let accuracyRing = null;
@@ -49,6 +52,68 @@ function formatHeading(headingDegrees) {
   const normalized = ((headingDegrees % 360) + 360) % 360;
   const index = Math.round(normalized / 45);
   return `${Math.round(normalized)} deg ${directions[index]}`;
+}
+
+function loadLeafletCss() {
+  if (document.querySelector(`link[href="${LEAFLET_CSS_URL}"]`)) {
+    return;
+  }
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = LEAFLET_CSS_URL;
+  link.crossOrigin = "";
+  document.head.appendChild(link);
+}
+
+function loadLeafletScript() {
+  if (window.L) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${LEAFLET_JS_URL}"]`);
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    const timer = window.setTimeout(() => {
+      reject(new Error("Leaflet load timed out"));
+    }, 8000);
+
+    script.src = LEAFLET_JS_URL;
+    script.crossOrigin = "";
+    script.async = true;
+    script.addEventListener("load", () => {
+      window.clearTimeout(timer);
+      resolve();
+    }, { once: true });
+    script.addEventListener("error", () => {
+      window.clearTimeout(timer);
+      reject(new Error("Leaflet failed to load"));
+    }, { once: true });
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureMapEngine() {
+  if (location.protocol === "file:") {
+    setStatus("Map engine skipped in file mode", "Open the hosted site for live map tiles. Snapshot controls still show the GPS fallback.");
+    setActionStatus("Local file audits skip the online map engine to keep the page responsive.");
+    return false;
+  }
+
+  loadLeafletCss();
+  try {
+    await loadLeafletScript();
+    return true;
+  } catch {
+    setStatus("Map engine unavailable", "Live map tiles need network access. You can still copy the GPS fallback note.");
+    setActionStatus("Leaflet did not load before timeout; reload when online for the visual map.");
+    return false;
+  }
 }
 
 function formatCoordinate(value) {
@@ -119,7 +184,8 @@ function ensureMap() {
 
   map = window.L.map(mapCanvas, {
     zoomControl: true,
-    attributionControl: true
+    attributionControl: true,
+    fadeAnimation: false
   });
 
   window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -135,6 +201,11 @@ function ensureMap() {
   }).addTo(map);
 
   map.setView([39.8283, -98.5795], 4);
+  window.requestAnimationFrame(() => {
+    map?.invalidateSize();
+  });
+  window.addEventListener("load", () => map?.invalidateSize(), { once: true });
+  window.addEventListener("resize", () => map?.invalidateSize());
   return true;
 }
 
@@ -379,13 +450,18 @@ function initActions() {
   });
 }
 
-if (ensureMap()) {
+async function initDriveMap() {
   updateFollowButton();
   updateTrackingButton();
   updateStats();
   initActions();
-  startTracking();
+
+  if (await ensureMapEngine() && ensureMap()) {
+    startTracking();
+  }
 }
+
+initDriveMap();
 
 window.addEventListener("pagehide", () => {
   stopTracking();

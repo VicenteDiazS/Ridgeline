@@ -13,12 +13,20 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://tile.openstreetmap.org" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       crossorigin=""
     />
+    <link rel="stylesheet" href="styles.css" />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
   </head>
   <body class="drive-map-page">
     <div class="app-shell">
@@ -62,10 +70,26 @@
             </div>
           </div>
         </section>
+
+        <section id="drive-map-handoff" class="drive-map-guide" aria-labelledby="drive-map-guide-title">
+          <div>
+            <p class="eyebrow">iPhone handoff</p>
+            <h2 id="drive-map-guide-title">Share the live location before details get fuzzy</h2>
+            <p>
+              Use Copy Snapshot or Share after the first GPS fix. If Safari blocks the clipboard
+              or share sheet, the manual copy box keeps the exact coordinate, speed, heading,
+              accuracy, trail count, and map link visible.
+            </p>
+          </div>
+          <div class="drive-map-guide-actions">
+            <a class="utility-link utility-link-strong" href="#drive-map">Back To Live Map</a>
+            <a class="utility-link" href="quick-sheet.html#roadside-dispatch-pack">Roadside Dispatch</a>
+            <a class="utility-link" href="garage.html#recent-handoffs">Garage Handoffs</a>
+          </div>
+        </section>
       </main>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script type="module" src="shared-ui.js"></script>
     <script type="module" src="drive-map.js"></script>
   </body>

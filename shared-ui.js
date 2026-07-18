@@ -2265,11 +2265,12 @@ function bindCompactStickyHeader() {
   }
 
   const isHomePage = document.body.classList.contains("is-home-page");
+  const isDriveMapPage = document.body.classList.contains("drive-map-page");
 
   const update = () => {
     const compact =
       window.matchMedia("(max-width: 760px)").matches &&
-      (window.scrollY > 84 || isHomePage);
+      (window.scrollY > 84 || isHomePage || isDriveMapPage);
     topbar.classList.toggle("is-compact", compact);
     document.body.classList.toggle("has-compact-topbar", compact);
   };

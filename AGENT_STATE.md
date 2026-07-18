@@ -1,6 +1,6 @@
 # Ridgeline Agent State
 
-Last updated: 2026-05-31
+Last updated: 2026-07-18
 
 ## Current Site Status
 
@@ -18,7 +18,7 @@ Last updated: 2026-05-31
   - `garage.html`: recent handoffs, restore plan, backup/restore, structured notes
   - `hood.html` / `cabin.html`: saved-fuse review, counter pack, glossary/decoder tools
   - `tires.html`: pressure recheck and tire shop pack
-- The most recent Anton-delivered feature is the Quick Sheet Roadside Command strip plus Diagnostics shareable symptom URLs and Search live-roadside resume: Quick Sheet now summarizes the selected roadside plan, contact/session/cache readiness, Diagnostics symptom buttons update `?diagnostic=` history, and Global Search can reopen a running roadside session with the selected stack preserved.
+- The most recent Anton-delivered feature is the Drive Map iPhone handoff pass: `drive-map.html` now has copy/share trip snapshots, manual-copy fallback, compact GPS stats, a below-map handoff guide, file-mode map-engine fallback for local audits, direct Drive Map bottom actions, and Home/search/header routes that keep the page discoverable.
 - Garage Recent Handoffs now has a latest-handoff review card with Copy, Share, Open Source, and manual-copy fallback for iOS clipboard/share failures; the owner-auth listener was also moved out of the maintenance staging save path so repeated saves do not stack callbacks.
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
@@ -32,6 +32,7 @@ Last updated: 2026-05-31
 - Garage maintenance staging now filters Maintenance Minder brake-fluid calendar cautions out of need-to-buy lines, preserving the caution in notes without sending it to parts-counter staging.
 - Quick Sheet and Global Search now use one shared offline route contract for Roadside Stack, Diagnostics Guide, Hood Fuses, Cabin Fuses, 7-Way Pinout, and Garage Backup, so the two iPhone readiness surfaces cannot drift.
 - Global Search Recent Work now avoids showing duplicate roadside work when a live roadside session and saved roadside note both exist, preserving the three most useful recent routes: diagnostic, roadside, and service receipt.
+- Home has a restored compact Anton latest-impact card target for `agent-status.js`, and the shared compact iPhone header now hides the redundant current-page action while fitting the added Drive shortcut without wrapping.
 
 ## Current Queue
 
@@ -78,6 +79,8 @@ Last updated: 2026-05-31
 - Added Quick Sheet Roadside Command, Diagnostics `?diagnostic=` history/back persistence, Search live-roadside resume routing, and updated the Quick Sheet/search smoke assertions that had fallen behind the current critical strip and route-prime behavior.
 - Added Maintenance service route persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so brake-fluid calendar cautions are not treated as need-to-buy parts lines.
 - Consolidated Quick Sheet and Global Search offline route readiness into `offline-routes.js`, bumped the PWA cache to `ridgeline-console-v427`, and fixed Search Recent Work ordering so a live roadside session no longer hides the latest service receipt.
+- Finished the Drive Map iPhone utility path by adding copy/share location snapshots, manual copy fallback, GPS stat chips, a handoff guide, local file-mode map fallback, direct bottom actions, and compact-header fixes for the added Drive route.
+- Restored the Home Anton latest-impact card markup so the existing status renderer and iPhone audit target have a visible compact card again.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -99,7 +102,7 @@ Last updated: 2026-05-31
 
 Use the next Anton run to verify or improve a high-impact iPhone path outside Maintenance/Garage unless a regression appears. The best near-term bets are:
 
-- run a real iPhone/browser smoke of the Ask Anton local route-answer path, home Ask Anton links, Diagnostics/Quick Sheet bottom action bars, and the new Quick Sheet Roadside Command once the broader browser audit wrapper is healthy
+- run a real iPhone/browser smoke of the new Drive Map hosted GPS/tile path, Home Drive shortcut, Ask Anton local route-answer path, Diagnostics/Quick Sheet bottom action bars, and the Quick Sheet Roadside Command once the broader browser audit wrapper is healthy
 - unify Search and Quick Sheet offline route readiness so roadside route confidence cannot drift between the two surfaces
 - Garage clarity or Anton status clarity that reduces confusion for real phone use
 
@@ -119,7 +122,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added shared offline-route readiness via `offline-routes.js`, wired Quick Sheet and Global Search to the same six route targets, bumped the PWA cache to `ridgeline-console-v427`, and fixed Search Recent Work ordering so saved diagnostic, roadside, and service receipt routes stay visible even with a live roadside session stored. `Test-InternalLinks.ps1` and `git diff --check` passed. A direct localhost Playwright probe passed for Quick Sheet module load/offline labels and Search offline labels/recent-work routes. `Invoke-BrowserSmoke.ps1 -Pages @('quick-sheet.html','index.html')`, plus single-page retries, timed out, matching the existing wrapper-health caution.
+- Anton's latest scheduled run finished the Drive Map iPhone handoff path and restored the Home Anton latest-impact card. `git diff --check`, `node --check drive-map.js`, `node --check shared-ui.js`, `node --check search-data.js`, and `Test-InternalLinks.ps1` passed. Direct Edge/Playwright iPhone probes passed for Drive Map fallback snapshot copy/manual-copy behavior, bottom bar labels, compact header height/no-overflow, Home Anton card render/height, Home compact header rail width/height/no-overflow, and Drive Map search results. `Invoke-BrowserSmoke.ps1 -Pages @('index.html')` reached past the compact-header fix but then timed out; `Invoke-BrowserSmoke.ps1 -Pages @('drive-map.html')` also timed out, matching the current wrapper-health caution for these file-mode audits.
 
 ## Archive
 
