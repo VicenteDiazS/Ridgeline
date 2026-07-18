@@ -13771,6 +13771,108 @@ body[data-site-theme="light"] .fuse-confidence-badge.is-pending {
   padding-left: 10px;
 }
 
+.diagnostic-local-resume {
+  display: grid;
+  gap: 14px;
+  border-color: rgba(118, 198, 255, 0.2);
+}
+
+.diagnostic-local-resume[hidden] {
+  display: none;
+}
+
+.diagnostic-local-resume-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(118, 198, 255, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(118, 198, 255, 0.12), rgba(255, 211, 106, 0.08)),
+    rgba(8, 17, 27, 0.66);
+}
+
+.diagnostic-local-resume-card span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.diagnostic-local-resume-card strong {
+  display: block;
+  color: var(--text);
+  line-height: 1.28;
+}
+
+.diagnostic-local-resume-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.diagnostic-local-resume-card ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagnostic-local-resume-card li {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.diagnostic-local-resume-card li strong {
+  color: #fff1c4;
+  font-size: 0.78rem;
+}
+
+.diagnostic-local-resume-card li span {
+  margin: 0;
+  color: rgba(241, 247, 255, 0.72);
+  font-size: 0.84rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.diagnostic-local-resume-card .utility-link {
+  flex: 1 1 150px;
+  justify-content: center;
+}
+
+body[data-site-theme="light"] .diagnostic-local-resume-card {
+  border-color: rgba(45, 101, 143, 0.18);
+  background:
+    linear-gradient(135deg, rgba(218, 241, 255, 0.86), rgba(255, 242, 204, 0.7)),
+    rgba(255, 255, 255, 0.8);
+}
+
+body[data-site-theme="light"] .diagnostic-local-resume-card li {
+  border-color: rgba(45, 101, 143, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+body[data-site-theme="light"] .diagnostic-local-resume-card li strong {
+  color: #6a4b11;
+}
+
+body[data-site-theme="light"] .diagnostic-local-resume-card li span {
+  color: #4e6678;
+}
+
 .diagnostic-first-minute {
   display: grid;
   gap: 14px;
@@ -14278,6 +14380,51 @@ body[data-site-theme="light"] .fuse-confidence-badge.is-pending {
   }
 
   .diagnostics-page .diagnostic-decision-card .utility-link {
+    min-width: 0;
+    min-height: 38px;
+    padding-inline: 7px;
+  }
+
+  .diagnostics-page .diagnostic-local-resume {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card {
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card span {
+    font-size: 0.64rem;
+    letter-spacing: 0.07em;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card strong {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card p,
+  .diagnostics-page .diagnostic-local-resume-card ul {
+    font-size: 0.84rem;
+    line-height: 1.38;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card .inspector-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .diagnostics-page .diagnostic-local-resume-card .utility-link {
     min-width: 0;
     min-height: 38px;
     padding-inline: 7px;
@@ -17584,10 +17731,9 @@ body[data-site-theme="light"] .header-nav-button-ask {
 
   .topbar.is-compact .header-current-page {
     grid-column: 1;
-    grid-template-columns: minmax(52px, auto) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
     min-height: 32px;
-    gap: 0 7px;
     padding: 2px 8px;
   }
 
@@ -17601,14 +17747,13 @@ body[data-site-theme="light"] .header-nav-button-ask {
   }
 
   .topbar.is-compact .header-current-page small {
-    color: var(--text);
-    font-size: 0.69rem;
+    display: none;
   }
 
   .topbar.is-compact .topbar-actions {
     grid-column: 2;
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     width: 100%;
     max-width: none;
     min-width: 0;
@@ -17631,13 +17776,13 @@ body[data-site-theme="light"] .header-nav-button-ask {
   .topbar.is-compact .topbar-actions > .search-button {
     min-height: 32px;
     border-radius: 10px;
+    font-size: 0;
+    gap: 0;
+    padding-inline: 4px;
   }
 
   .topbar.is-compact .topbar-actions > .header-nav-button-ask {
-    font-size: 0.58rem;
-    gap: 4px;
     min-width: 0;
-    padding-inline: 7px;
   }
 
   .topbar.is-compact .topbar-actions > .header-nav-button-ask::before {
@@ -20689,6 +20834,11 @@ body[data-site-theme="light"] .home-signal-card span {
 .quick-roadside-command-actions {
   grid-column: 1 / -1;
   margin-top: 0;
+}
+
+.quick-roadside-command-card > .small-note,
+.quick-roadside-command-card > .manual-copy-fallback {
+  grid-column: 1 / -1;
 }
 
 .quick-print-pack-section {

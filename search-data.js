@@ -89,6 +89,20 @@ export const searchIndex = [
     keywords: ["diagnostic call summary", "copy diagnostic call", "shop call summary", "tow call summary", "diagnostic phone call", "repair shop handoff", "tow driver handoff", "parts counter diagnostic", "copy call summary", "garage call note", "iphone diagnostic call"]
   },
   {
+    title: "Diagnostic Local Resume",
+    url: "diagnostics.html#diagnostic-local-resume",
+    category: "Diagnostics",
+    excerpt: "Near-top Diagnostics resume card that reopens the latest local handoff, first checks, or call draft saved on this iPhone and copies the combined context.",
+    keywords: ["diagnostic local resume", "resume diagnostic", "latest diagnostic context", "last diagnostic thread", "copy latest diagnostic", "continue diagnostic", "diagnostic call draft", "latest first checks", "saved handoff resume", "iphone diagnostic resume"]
+  },
+  {
+    title: "Roadside Command",
+    url: "quick-sheet.html#roadside-command",
+    category: "Quick Sheet",
+    excerpt: "Top Quick Sheet command card for checking roadside readiness, starting a live roadside session, and copying the dispatch pack without scrolling into the full stack.",
+    keywords: ["roadside command", "start roadside session", "copy roadside dispatch", "roadside readiness", "top roadside command", "quick sheet command", "iphone roadside command", "live roadside session", "dispatch pack"]
+  },
+  {
     title: "Owner Shortcut Strip",
     url: "quick-sheet.html#print-offline-pack",
     category: "Navigation",

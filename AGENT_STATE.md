@@ -23,7 +23,7 @@ Last updated: 2026-07-18
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is bumped to `ridgeline-console-v427` for shared offline route readiness between Quick Sheet and Global Search.
+- The PWA cache is currently `ridgeline-console-v428`.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
@@ -33,6 +33,8 @@ Last updated: 2026-07-18
 - Quick Sheet and Global Search now use one shared offline route contract for Roadside Stack, Diagnostics Guide, Hood Fuses, Cabin Fuses, 7-Way Pinout, and Garage Backup, so the two iPhone readiness surfaces cannot drift.
 - Global Search Recent Work now avoids showing duplicate roadside work when a live roadside session and saved roadside note both exist, preserving the three most useful recent routes: diagnostic, roadside, and service receipt.
 - Home has a restored compact Anton latest-impact card target for `agent-status.js`, and the shared compact iPhone header now hides the redundant current-page action while fitting the added Drive shortcut without wrapping.
+- Diagnostics now has a near-top local resume card that is always reachable and fills with saved diagnostic handoff, first-check, or call-draft context from this iPhone, with copy/share and Recent Handoffs routes.
+- Quick Sheet Roadside Command now offers Start Session and Copy Dispatch directly from the top command card, and the compact shared iPhone header is icon-only in compact mode so seven actions fit under the 56px smoke limit.
 
 ## Current Queue
 
@@ -80,6 +82,7 @@ Last updated: 2026-07-18
 - Added Maintenance service route persistence for prep, closeout, follow-up, and run-pack selections; fixed Garage staging so brake-fluid calendar cautions are not treated as need-to-buy parts lines.
 - Consolidated Quick Sheet and Global Search offline route readiness into `offline-routes.js`, bumped the PWA cache to `ridgeline-console-v427`, and fixed Search Recent Work ordering so a live roadside session no longer hides the latest service receipt.
 - Finished the Drive Map iPhone utility path by adding copy/share location snapshots, manual copy fallback, GPS stat chips, a handoff guide, local file-mode map fallback, direct bottom actions, and compact-header fixes for the added Drive route.
+- Added a Diagnostics local resume card, Quick Sheet top-command Start Session/Copy Dispatch actions, search routes for both, and compact-header CSS so the iPhone action rail stays one row.
 - Restored the Home Anton latest-impact card markup so the existing status renderer and iPhone audit target have a visible compact card again.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
@@ -122,7 +125,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run finished the Drive Map iPhone handoff path and restored the Home Anton latest-impact card. `git diff --check`, `node --check drive-map.js`, `node --check shared-ui.js`, `node --check search-data.js`, and `Test-InternalLinks.ps1` passed. Direct Edge/Playwright iPhone probes passed for Drive Map fallback snapshot copy/manual-copy behavior, bottom bar labels, compact header height/no-overflow, Home Anton card render/height, Home compact header rail width/height/no-overflow, and Drive Map search results. `Invoke-BrowserSmoke.ps1 -Pages @('index.html')` reached past the compact-header fix but then timed out; `Invoke-BrowserSmoke.ps1 -Pages @('drive-map.html')` also timed out, matching the current wrapper-health caution for these file-mode audits.
+- Anton's latest scheduled run added the Diagnostics local resume card and Quick Sheet Roadside Command direct Start Session/Copy Dispatch actions, plus compact-header CSS that keeps seven iPhone actions in one row. `node --check diagnostics.js`, `node --check quick-sheet.js`, `node --check search-data.js`, `node --check shared-ui.js`, `git diff --check`, and `Test-InternalLinks.ps1` passed. Direct localhost Playwright probes passed for seeded Diagnostics resume render/copy fallback, compact header height at about 48px, Quick Sheet warning-light Start Session and Copy Dispatch fallback, and Search results for Roadside Command and Diagnostic Local Resume. `Invoke-BrowserSmoke.ps1 -Pages @('diagnostics.html','quick-sheet.html')` first exposed the compact-header height regression and later timed out after the fix, matching the current wrapper-health caution.
 
 ## Archive
 

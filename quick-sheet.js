@@ -527,6 +527,57 @@ function renderRoadsideCommand() {
   });
 }
 
+function setRoadsideCommandStatus(root, message) {
+  const status = root.querySelector("[data-command-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function startRoadsideSession(planKey = currentRoadsidePlanKey()) {
+  const key = roadsidePlans[planKey] ? planKey : "flat";
+  saveRoadsideSession({
+    planKey: key,
+    startedAt: new Date().toISOString(),
+    checkpoints: [{
+      label: "Session started",
+      at: new Date().toISOString()
+    }]
+  });
+  document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => {
+    renderRoadsideSession(stackRoot);
+    renderRoadsideDispatch(stackRoot);
+  });
+  renderRoadsideCommand();
+  return roadsidePlans[key] || roadsidePlans.flat;
+}
+
+function initRoadsideCommand() {
+  document.querySelectorAll("[data-roadside-command]").forEach((root) => {
+    root.querySelector("[data-command-start-session]")?.addEventListener("click", () => {
+      const plan = startRoadsideSession();
+      setRoadsideCommandStatus(root, `${plan.kicker} live session started on this iPhone.`);
+    });
+
+    root.querySelector("[data-command-copy-dispatch]")?.addEventListener("click", async (event) => {
+      const stackRoot = document.querySelector("[data-roadside-stack]");
+      const text = buildRoadsideDispatchText(stackRoot);
+      try {
+        const copied = await copyText(text);
+        if (copied) {
+          hideManualCopyFallback(event.currentTarget);
+        } else {
+          showManualCopyFallback(event.currentTarget, text);
+        }
+        setRoadsideCommandStatus(root, copied ? "Roadside dispatch pack copied." : "Copy is unavailable in this browser.");
+      } catch (error) {
+        showManualCopyFallback(event.currentTarget, text);
+        setRoadsideCommandStatus(root, "Copy failed. Select the fallback text below.");
+      }
+    });
+  });
+}
+
 function prependGarageGeneralNote(noteText) {
   const notes = loadJson(STORAGE.notes, {});
   const existing = `${notes.general_notes || ""}`.trim();
@@ -1127,16 +1178,7 @@ function initRoadsideStack() {
 
   root.querySelector("[data-start-roadside-session]")?.addEventListener("click", (event) => {
     const planKey = root.dataset.currentRoadsidePlan || "flat";
-    saveRoadsideSession({
-      planKey,
-      startedAt: new Date().toISOString(),
-      checkpoints: [{
-        label: "Session started",
-        at: new Date().toISOString()
-      }]
-    });
-    renderRoadsideSession(root);
-    renderRoadsideDispatch(root);
+    startRoadsideSession(planKey);
     setActionStatus(root, event.currentTarget, "Live roadside session started on this iPhone.");
   });
 
@@ -1268,5 +1310,6 @@ function initRoadsideStack() {
 
 initQuickPrintPack();
 initFuseCheckNote();
+initRoadsideCommand();
 initRoadsideStack();
 initGarageCloudSync();

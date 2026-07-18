@@ -446,6 +446,73 @@ function latestDiagnosticCheckEntry() {
     .sort((a, b) => `${b.updatedAt}`.localeCompare(`${a.updatedAt}`))[0] || null;
 }
 
+function hasUsefulDiagnosticCallState(state = loadDiagnosticCallSummary()) {
+  return ["truckStatus", "callback", "ask"].some((key) => `${state?.[key] || ""}`.trim());
+}
+
+function latestDiagnosticResumeItems() {
+  const receipt = loadDiagnosticReceipt();
+  const latestCheck = latestDiagnosticCheckEntry();
+  const call = loadDiagnosticCallSummary();
+  const items = [];
+
+  if (receipt) {
+    items.push({
+      label: "Saved handoff",
+      title: receipt.title || "Diagnostic handoff",
+      summary: receipt.summary || "Saved diagnostic note on this iPhone.",
+      detail: receipt.reference ? `Route: ${receipt.reference}` : "Route: Diagnostics",
+      savedAt: receipt.savedAt || "",
+      text: receipt.text || ""
+    });
+  }
+
+  if (latestCheck) {
+    const markedCount = latestCheck.markedChecks.length;
+    items.push({
+      label: "First checks",
+      title: latestCheck.plan.kicker,
+      summary: `${markedCount} of ${latestCheck.plan.checks.length} checks marked.`,
+      detail: latestCheck.detail || latestCheck.plan.next,
+      savedAt: latestCheck.updatedAt || "",
+      text: buildDiagnosticCheckText(latestCheck.plan, latestCheck.markedChecks, latestCheck.detail)
+    });
+  }
+
+  if (hasUsefulDiagnosticCallState(call)) {
+    const target = call.target || "Repair shop";
+    items.push({
+      label: "Call draft",
+      title: `Call summary for ${target}`,
+      summary: call.truckStatus || call.ask || "Diagnostic call details saved on this iPhone.",
+      detail: call.callback ? `Callback: ${call.callback}` : "Open Call Summary to finish the ask.",
+      savedAt: call.updatedAt || "",
+      text: [
+        `Ridgeline diagnostic call summary for ${target}`,
+        call.truckStatus ? `Truck status: ${call.truckStatus}` : "",
+        call.callback ? `Callback: ${call.callback}` : "",
+        call.ask ? `Question / ask: ${call.ask}` : "",
+        "Use the truck, current warning state, fuse labels, owner manual, and roadside conditions as final authority."
+      ].filter(Boolean).join("\n")
+    });
+  }
+
+  return items.sort((a, b) => `${b.savedAt || ""}`.localeCompare(`${a.savedAt || ""}`));
+}
+
+function buildDiagnosticResumeText() {
+  const items = latestDiagnosticResumeItems();
+  if (!items.length) {
+    return "";
+  }
+  const lines = ["Ridgeline latest diagnostic context"];
+  items.forEach((item, index) => {
+    lines.push("", `${index + 1}. ${item.label}: ${item.title}`, item.summary, item.detail);
+  });
+  lines.push("", "Current warnings, truck labels, fuse covers, owner manual, and roadside conditions remain final authority.");
+  return lines.join("\n");
+}
+
 function diagnosticCallTimestamp() {
   return new Date().toLocaleString("en-US", {
     month: "short",
@@ -531,6 +598,104 @@ function setDiagnosticCallStatus(root, message) {
   if (status) {
     status.textContent = message;
   }
+}
+
+function setDiagnosticResumeStatus(root, message) {
+  const status = root.querySelector("[data-diagnostic-resume-status]");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function renderDiagnosticResumeCards() {
+  const items = latestDiagnosticResumeItems();
+  document.querySelectorAll("[data-diagnostic-local-resume]").forEach((root) => {
+    root.hidden = false;
+    if (!items.length) {
+      root.querySelector("[data-diagnostic-resume-kicker]").textContent = "No local context";
+      root.querySelector("[data-diagnostic-resume-title]").textContent = "No saved diagnostic thread yet";
+      root.querySelector("[data-diagnostic-resume-summary]").textContent =
+        "Save a handoff, mark first checks, or draft a call summary to make this iPhone resume the thread here.";
+      const list = root.querySelector("[data-diagnostic-resume-list]");
+      list.innerHTML = "";
+      const li = document.createElement("li");
+      const strong = document.createElement("strong");
+      const span = document.createElement("span");
+      strong.textContent = "Next:";
+      span.textContent = "Use Decision Guide, First Checks, or Call Summary to create local context.";
+      li.append(strong, span);
+      list.appendChild(li);
+      return;
+    }
+
+    const latest = items[0];
+    root.querySelector("[data-diagnostic-resume-kicker]").textContent = latest.label;
+    root.querySelector("[data-diagnostic-resume-title]").textContent = latest.title;
+    root.querySelector("[data-diagnostic-resume-summary]").textContent = latest.summary;
+
+    const list = root.querySelector("[data-diagnostic-resume-list]");
+    list.innerHTML = "";
+    items.slice(0, 3).forEach((item) => {
+      const li = document.createElement("li");
+      const strong = document.createElement("strong");
+      const span = document.createElement("span");
+      strong.textContent = item.label;
+      span.textContent = item.detail;
+      li.append(strong, span);
+      list.appendChild(li);
+    });
+  });
+}
+
+function initDiagnosticLocalResume() {
+  document.querySelectorAll("[data-diagnostic-local-resume]").forEach((root) => {
+    root.querySelector("[data-copy-diagnostic-resume]")?.addEventListener("click", async (event) => {
+      const text = buildDiagnosticResumeText();
+      if (!text) {
+        setDiagnosticResumeStatus(root, "Save a diagnostic handoff, first check, or call draft first.");
+        return;
+      }
+      try {
+        const copied = await copyText(text);
+        if (copied) {
+          hideManualCopyFallback(event.currentTarget);
+        } else {
+          showManualCopyFallback(event.currentTarget, text);
+        }
+        setDiagnosticResumeStatus(root, copied ? "Latest diagnostic context copied." : "Copy is unavailable in this browser.");
+      } catch (error) {
+        showManualCopyFallback(event.currentTarget, text);
+        setDiagnosticResumeStatus(root, "Copy failed. Select the fallback text below.");
+      }
+    });
+
+    root.querySelector("[data-share-diagnostic-resume]")?.addEventListener("click", async (event) => {
+      const text = buildDiagnosticResumeText();
+      if (!text) {
+        setDiagnosticResumeStatus(root, "Save a diagnostic handoff, first check, or call draft first.");
+        return;
+      }
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Ridgeline latest diagnostic context", text });
+          hideManualCopyFallback(event.currentTarget);
+          setDiagnosticResumeStatus(root, "Latest diagnostic context shared.");
+          return;
+        }
+        const copied = await copyText(text);
+        if (copied) {
+          hideManualCopyFallback(event.currentTarget);
+        } else {
+          showManualCopyFallback(event.currentTarget, text);
+        }
+        setDiagnosticResumeStatus(root, copied ? "Share unavailable; latest context copied instead." : "Share is unavailable in this browser.");
+      } catch (error) {
+        showManualCopyFallback(event.currentTarget, text);
+        setDiagnosticResumeStatus(root, "Share canceled or unavailable. Select the fallback text below.");
+      }
+    });
+  });
+  renderDiagnosticResumeCards();
 }
 
 function prependGarageGeneralNote(noteText) {
@@ -820,6 +985,7 @@ function initDiagnosticShareBuilder() {
       });
       renderDiagnosticReceipt(root);
       document.querySelectorAll("[data-diagnostic-call-summary]").forEach(renderDiagnosticCallSummary);
+      renderDiagnosticResumeCards();
       setDiagnosticShareStatus(root, `${plan.kicker} saved to Garage Notes.`);
     } catch (error) {
       setDiagnosticShareStatus(root, "Could not save the diagnostic note in this browser session.");
@@ -971,12 +1137,14 @@ function initDiagnosticCheckTracker() {
     if (event.target.matches("[data-diagnostic-check]")) {
       updateDiagnosticCheckCount(root);
       persistDiagnosticCheckState(root);
+      renderDiagnosticResumeCards();
       setDiagnosticCheckStatus(root, "First-check tracker updated on this iPhone.");
     }
   });
 
   root.querySelector("[data-diagnostic-check-detail]")?.addEventListener("input", () => {
     persistDiagnosticCheckState(root);
+    renderDiagnosticResumeCards();
   });
 
   root.querySelector("[data-copy-diagnostic-checks]")?.addEventListener("click", async (event) => {
@@ -1024,6 +1192,7 @@ function initDiagnosticCheckTracker() {
     try {
       prependGarageGeneralNote(buildSavedDiagnosticCheckNote(plan, markedChecks, detail));
       document.querySelectorAll("[data-diagnostic-call-summary]").forEach(renderDiagnosticCallSummary);
+      renderDiagnosticResumeCards();
       setDiagnosticCheckStatus(root, `${plan.kicker} first checks saved to Garage Notes.`);
     } catch (error) {
       setDiagnosticCheckStatus(root, "Could not save first checks in this browser session.");
@@ -1061,10 +1230,12 @@ function initDiagnosticCallSummary() {
     field.addEventListener("input", () => {
       persistDiagnosticCallSummary(root);
       renderDiagnosticCallSummary(root);
+      renderDiagnosticResumeCards();
     });
     field.addEventListener("change", () => {
       persistDiagnosticCallSummary(root);
       renderDiagnosticCallSummary(root);
+      renderDiagnosticResumeCards();
     });
   });
 
@@ -1109,6 +1280,7 @@ function initDiagnosticCallSummary() {
   root.querySelector("[data-save-diagnostic-call]")?.addEventListener("click", () => {
     try {
       prependGarageGeneralNote(`[${diagnosticCallTimestamp()} - Diagnostic Call Summary]\n${buildDiagnosticCallText(root)}`);
+      renderDiagnosticResumeCards();
       setDiagnosticCallStatus(root, "Diagnostic call summary saved to Garage Notes.");
     } catch (error) {
       setDiagnosticCallStatus(root, "Could not save the call summary in this browser session.");
@@ -1120,6 +1292,7 @@ function initDiagnosticCallSummary() {
 }
 
 initDiagnosticDecisionGuide();
+initDiagnosticLocalResume();
 initDiagnosticShareBuilder();
 initDiagnosticCheckTracker();
 initDiagnosticCallSummary();
