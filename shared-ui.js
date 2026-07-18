@@ -721,6 +721,7 @@ stripLiveRefreshParam();
 
 const menuLinks = [
   { label: "Vehicle Map", href: "index.html#viewer", match: "index.html", note: "3D truck viewer and interactive zones" },
+  { label: "Drive Map", href: "drive-map.html", match: "drive-map.html", note: "Full-screen live map with GPS tracking while driving" },
   { label: "Engine Explorer", href: "engine.html", match: "engine.html", note: "Interactive J35Y6 technical engine model" },
   { label: "Tire And Wheel Lab", href: "tires.html", match: "tires.html", note: "3D tire model, wheel specs, and fitment guidance" },
   { label: "NFC Tags", href: "nfc.html", match: "nfc.html", note: "Program truck tags that open exact pages and diagrams" },
@@ -1127,6 +1128,14 @@ function buildUniversalHeaderActions() {
       icon: "map",
       aria: "Open vehicle map",
       title: "Vehicle map"
+    },
+    {
+      key: "drive",
+      label: "Drive",
+      href: "drive-map.html",
+      icon: "map",
+      aria: "Open drive tracking map",
+      title: "Drive map"
     },
     {
       key: "service",
@@ -2255,8 +2264,12 @@ function bindCompactStickyHeader() {
     return;
   }
 
+  const isHomePage = document.body.classList.contains("is-home-page");
+
   const update = () => {
-    const compact = window.matchMedia("(max-width: 760px)").matches && window.scrollY > 84;
+    const compact =
+      window.matchMedia("(max-width: 760px)").matches &&
+      (window.scrollY > 84 || isHomePage);
     topbar.classList.toggle("is-compact", compact);
     document.body.classList.toggle("has-compact-topbar", compact);
   };
@@ -2992,6 +3005,13 @@ function actionForPage(page) {
       { label: "Dispatch", href: "#roadside-dispatch-pack", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
+    "drive-map.html": [
+      { label: "Map", href: "#drive-map", icon: "map" },
+      { label: "Copy", action: "drive-copy", icon: "note" },
+      { label: "Share", action: "drive-share", icon: "share" },
+      { label: "Center", action: "drive-recenter", icon: "map" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
     "rear-hitch.html": [
       { label: "Tow Day", href: "#tow-day-readiness", icon: "wrench" },
       { label: "Pinout", href: "#pinout", icon: "bolt" },
@@ -3047,6 +3067,12 @@ function performUiAction(action) {
   }
   if (action === "search") {
     openSearch();
+    return;
+  }
+  if (action === "drive-copy" || action === "drive-share" || action === "drive-recenter") {
+    window.dispatchEvent(new CustomEvent("ridgeline:drive-action", {
+      detail: { action: action.replace("drive-", "") }
+    }));
     return;
   }
   if (action === "share") {
@@ -5061,7 +5087,8 @@ const SEARCH_PAGE_URLS = [
   "nfc-landing.html",
   "ar-lab.html",
   "photo-atlas.html",
-  "quick-sheet.html"
+  "quick-sheet.html",
+  "drive-map.html"
 ];
 
 const SEARCH_OFFLINE_ROUTES = RIDGELINE_OFFLINE_ROUTES;

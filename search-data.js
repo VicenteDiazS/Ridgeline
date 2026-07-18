@@ -6,6 +6,13 @@ export const searchIndex = [
     keywords: ["3d", "truck", "viewer", "hotspots", "zones", "map", "explorer"]
   },
   {
+    title: "Drive Map",
+    url: "drive-map.html#drive-map",
+    category: "Navigation",
+    excerpt: "Full-screen iPhone drive map with live GPS tracking, follow mode, recenter, trail clearing, and copy/share snapshot handoffs for location status.",
+    keywords: ["drive map", "live map", "gps", "gps tracking", "follow mode", "drive tracking", "share location", "copy location", "current location", "trip snapshot", "location snapshot", "recenter map", "clear trail", "iphone map"]
+  },
+  {
     title: "Truck Snapshot",
     url: "index.html#truck-profile",
     category: "Navigation",

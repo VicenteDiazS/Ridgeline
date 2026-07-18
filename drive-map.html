@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#071019" />
+    <meta
+      name="description"
+      content="Full-screen Ridgeline drive map with live GPS tracking and follow mode."
+    />
+    <title>Ridgeline Drive Map</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+  </head>
+  <body class="drive-map-page">
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
+        <nav class="topnav" aria-label="Primary">
+          <a href="index.html#viewer">Vehicle Map</a>
+          <a href="maintenance.html">Service</a>
+          <a href="garage.html">Garage</a>
+        </nav>
+        <div class="topbar-actions">
+          <button class="search-button" type="button" data-open-search aria-label="Search site" title="Search site">Search</button>
+        </div>
+      </header>
+
+      <main id="top" class="drive-map-main">
+        <section id="drive-map" class="drive-map-shell" aria-label="Live drive tracking map">
+          <div id="drive-map-canvas" aria-label="Live map"></div>
+
+          <div class="drive-map-overlay" role="status" aria-live="polite">
+            <p class="drive-map-kicker">Drive Tracking</p>
+            <strong id="drive-map-status">Connecting to GPS...</strong>
+            <p id="drive-map-meta">Waiting for the first location fix.</p>
+            <div class="drive-map-stats" aria-label="Current drive snapshot">
+              <span><small>Fix</small><strong data-drive-stat="fix">Waiting</strong></span>
+              <span><small>Speed</small><strong data-drive-stat="speed">-- mph</strong></span>
+              <span><small>Trail</small><strong data-drive-stat="trail">0 pts</strong></span>
+            </div>
+            <div class="drive-map-actions">
+              <button class="utility-link utility-link-strong" type="button" data-drive-action="tracking">Pause Tracking</button>
+              <button class="utility-link" type="button" data-drive-action="follow" aria-pressed="true">Follow: On</button>
+              <button class="utility-link" type="button" data-drive-action="recenter">Recenter</button>
+              <button class="utility-link" type="button" data-drive-action="clear">Clear Trail</button>
+              <button class="utility-link" type="button" data-drive-action="copy">Copy Snapshot</button>
+              <button class="utility-link" type="button" data-drive-action="share">Share</button>
+            </div>
+            <p class="drive-map-action-status" data-drive-action-status aria-live="polite"></p>
+            <div class="manual-copy-fallback drive-map-copy-fallback" data-drive-copy-fallback hidden>
+              <span>Manual copy fallback</span>
+              <textarea readonly data-drive-copy-text aria-label="Drive snapshot text"></textarea>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script type="module" src="shared-ui.js"></script>
+    <script type="module" src="drive-map.js"></script>
+  </body>
+</html>
