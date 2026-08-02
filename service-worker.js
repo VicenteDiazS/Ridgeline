@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v428";
+const CACHE_NAME = "ridgeline-console-v442";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -84,6 +84,27 @@ function shouldRuntimeCache(request) {
   );
 }
 
+function shouldPreferFresh(request) {
+  if (request.method !== "GET") {
+    return false;
+  }
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) {
+    return false;
+  }
+
+  return (
+    request.mode === "navigate" ||
+    request.destination === "document" ||
+    request.destination === "script" ||
+    request.destination === "style" ||
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css")
+  );
+}
+
 function shouldBypassCache(request) {
   if (request.method !== "GET") {
     return false;
@@ -152,6 +173,19 @@ self.addEventListener("fetch", (event) => {
   if (shouldRuntimeCache(event.request)) {
     event.respondWith(
       fetch(event.request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() => caches.match(event.request, { ignoreSearch: true }))
+    );
+    return;
+  }
+
+  if (shouldPreferFresh(event.request)) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-cache" }).then((response) => {
         if (response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));

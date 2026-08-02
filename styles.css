@@ -23047,17 +23047,45 @@ body.drive-map-page .app-shell {
   padding: 8px;
 }
 
+body.drive-map-page {
+  overflow-x: hidden;
+}
+
+body.drive-map-page .mobile-nav-accordion,
+body.drive-map-page .current-page-wrapper,
+body.drive-map-page .ask-anton-fab,
+body.drive-map-page .quick-capture-fab,
+body.drive-map-page .quick-capture-modal,
+body.drive-map-page .subpage-support-panel,
+body.drive-map-page .breadcrumb-trail,
+body.drive-map-page .recent-strip,
+body.drive-map-page .sync-status-badges,
+body.drive-map-page .page-action-bar,
+body.drive-map-page .need-launcher,
+body.drive-map-page .favorite-pins,
+body.drive-map-page .visual-site-map {
+  display: none !important;
+}
+
 body.drive-map-page .topbar {
   margin: 0;
 }
 
 body.drive-map-page .drive-map-main {
   margin-top: 8px;
+  max-width: 100%;
+  min-height: calc(100vh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: calc(100dvh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   min-height: calc(100svh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 }
 
 body.drive-map-page .drive-map-shell {
+  --drive-puck-x: 50%;
+  --drive-puck-y: 50%;
   position: relative;
+  max-width: 100%;
+  height: calc(100vh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   height: calc(100svh - 98px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   min-height: 420px;
   overflow: hidden;
@@ -23068,12 +23096,167 @@ body.drive-map-page .drive-map-shell {
 }
 
 body.drive-map-page #drive-map-canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  min-height: 100%;
+}
+
+body.drive-map-page .drive-position-puck {
+  position: absolute;
+  left: var(--drive-puck-x);
+  top: var(--drive-puck-y);
+  z-index: 850;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  border: 3px solid #061018;
+  background:
+    radial-gradient(circle at 50% 50%, #6fffb4 0 7px, transparent 7.5px),
+    radial-gradient(circle at 50% 50%, rgba(111, 255, 180, 0.28) 0 19px, rgba(121, 212, 255, 0.16) 19px 100%);
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.84),
+    0 0 0 12px rgba(111, 255, 180, 0.2),
+    0 10px 28px rgba(0, 0, 0, 0.38);
+  pointer-events: none;
+}
+
+body.drive-map-page .drive-position-puck[hidden] {
+  display: none !important;
+}
+
+body.drive-map-page .drive-position-puck span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #061018;
+  box-shadow: 0 0 0 5px #6fffb4;
+}
+
+body.drive-map-page .drive-hud {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 14px;
+  z-index: 880;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 8px;
+  max-width: 420px;
+  pointer-events: none;
+}
+
+body.drive-map-page .drive-hud[hidden] {
+  display: none !important;
+}
+
+body.drive-map-page .drive-hud span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 15px;
+  border: 1px solid rgba(121, 212, 255, 0.24);
+  background: rgba(4, 10, 18, 0.86);
+  backdrop-filter: blur(14px);
+}
+
+body.drive-map-page .drive-hud small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+body.drive-map-page .drive-hud strong {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.drive-map-page .drive-marker-toast {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  z-index: 960;
+  width: min(340px, calc(100% - 32px));
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(111, 255, 180, 0.5);
+  background:
+    linear-gradient(135deg, rgba(111, 255, 180, 0.98), rgba(121, 212, 255, 0.96));
+  color: #061018;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.38);
+  pointer-events: none;
+}
+
+body.drive-map-page .drive-marker-toast[hidden] {
+  display: none !important;
+}
+
+body.drive-map-page .drive-marker-toast.is-hiding {
+  opacity: 0;
+  transform: translate(-50%, -44%);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+body.drive-map-page .drive-marker-toast strong {
+  font-size: 1.45rem;
+  font-weight: 950;
+}
+
+body.drive-map-page .drive-marker-toast span {
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+body.drive-map-page .drive-map-shell.is-heading-up .leaflet-tile-pane,
+body.drive-map-page .drive-map-shell.is-heading-up .leaflet-overlay-pane,
+body.drive-map-page .drive-map-shell.is-heading-up .leaflet-shadow-pane,
+body.drive-map-page .drive-map-shell.is-heading-up .leaflet-marker-pane {
+  transform: rotate(var(--drive-map-bearing, 0deg));
+  transform-origin: 50% 50%;
+}
+
+body.drive-map-page .drive-map-shell.is-heading-up .drive-marker-pin {
+  transform: rotate(calc(-45deg + var(--drive-marker-bearing, 0deg)));
+}
+
+body.drive-map-page .drive-map-shell.is-proximity-alert::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 940;
+  border: 5px solid rgba(255, 223, 110, 0.92);
+  box-shadow: inset 0 0 42px rgba(255, 145, 94, 0.56);
+  pointer-events: none;
+  animation: driveProximityPulse 420ms ease-in-out 3;
+}
+
+@keyframes driveProximityPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 body.drive-map-page .drive-map-overlay {
   position: absolute;
+  z-index: 900;
   left: 10px;
   right: 10px;
   bottom: 10px;
@@ -23086,6 +23269,91 @@ body.drive-map-page .drive-map-overlay {
     linear-gradient(180deg, rgba(8, 18, 28, 0.9), rgba(4, 10, 16, 0.86)),
     rgba(7, 13, 21, 0.86);
   backdrop-filter: blur(10px);
+}
+
+body.drive-map-page .drive-map-overlay[hidden] {
+  display: none !important;
+}
+
+body.drive-map-page .drive-quick-controls {
+  position: absolute;
+  left: 24px;
+  right: auto;
+  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  z-index: 930;
+  width: min(348px, calc(100vw - 48px));
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(70px, 0.65fr) minmax(94px, 0.9fr);
+  gap: 8px;
+  transform: none;
+  pointer-events: none;
+}
+
+body.drive-map-page .drive-marker-now,
+body.drive-map-page .drive-undo-now,
+body.drive-map-page .drive-controls-toggle {
+  min-width: 0;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(111, 255, 180, 0.46);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(111, 255, 180, 0.96), rgba(121, 212, 255, 0.94));
+  color: #061018;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 950;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.34);
+  touch-action: manipulation;
+  pointer-events: auto;
+}
+
+body.drive-map-page .drive-marker-now {
+  min-height: 64px;
+  font-size: 0.96rem;
+  text-transform: uppercase;
+}
+
+body.drive-map-page .drive-undo-now {
+  border-color: rgba(255, 223, 110, 0.46);
+  background:
+    linear-gradient(180deg, rgba(255, 223, 110, 0.2), rgba(255, 145, 94, 0.08)),
+    rgba(5, 12, 20, 0.94);
+  color: #ffffff;
+}
+
+body.drive-map-page .drive-controls-toggle {
+  border-color: rgba(121, 212, 255, 0.36);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(5, 12, 20, 0.94);
+  color: var(--text);
+}
+
+body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-quick-controls {
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: min(320px, calc(100% - 40px));
+  grid-template-columns: minmax(0, 1.25fr) minmax(64px, 0.65fr) minmax(82px, 0.85fr);
+}
+
+body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-marker-now,
+body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-undo-now,
+body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-controls-toggle {
+  min-height: 48px;
+  border-radius: 15px;
+  font-size: 0.78rem;
+}
+
+body.drive-map-page .drive-map-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 20px;
+  background: rgba(2, 7, 12, 0.18);
+  pointer-events: none;
 }
 
 body.drive-map-page .drive-map-kicker {
@@ -23109,21 +23377,66 @@ body.drive-map-page .drive-map-overlay p {
 
 body.drive-map-page .drive-map-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
-body.drive-map-page .drive-map-actions .utility-link {
+body.drive-map-page .drive-control {
   min-width: 0;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding-inline: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(121, 212, 255, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)),
+    rgba(5, 12, 20, 0.92);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0;
   text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+body.drive-map-page .drive-control-primary {
+  grid-column: span 2;
+  min-height: 58px;
+  border-color: rgba(111, 255, 180, 0.46);
+  background:
+    linear-gradient(135deg, rgba(111, 255, 180, 0.96), rgba(121, 212, 255, 0.94));
+  color: #061018;
+  font-size: 0.9rem;
+  box-shadow: 0 14px 30px rgba(68, 220, 176, 0.24);
+}
+
+body.drive-map-page .drive-control[aria-pressed="true"] {
+  border-color: rgba(111, 255, 180, 0.48);
+  background:
+    linear-gradient(180deg, rgba(111, 255, 180, 0.22), rgba(121, 212, 255, 0.1)),
+    rgba(5, 14, 22, 0.95);
+}
+
+body.drive-map-page .drive-control-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+body.drive-map-page .drive-control-secondary {
+  min-height: 40px;
+  border-color: rgba(132, 167, 196, 0.18);
+  color: var(--muted);
+  font-size: 0.7rem;
 }
 
 body.drive-map-page .drive-map-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -23156,6 +23469,47 @@ body.drive-map-page .drive-map-action-status {
   color: var(--accent);
   font-size: 0.76rem;
   font-weight: 750;
+}
+
+body.drive-map-page.drive-low-attention .topbar,
+body.drive-map-page.drive-low-attention .context-action-bar,
+body.drive-map-page.drive-low-attention .drive-map-guide,
+body.drive-map-page.drive-low-attention .drive-hud,
+body.drive-map-page.drive-low-attention .leaflet-control-container {
+  display: none !important;
+}
+
+body.drive-map-page.drive-low-attention .app-shell {
+  padding: 0;
+}
+
+body.drive-map-page.drive-low-attention .drive-map-main {
+  margin-top: 0;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
+}
+
+body.drive-map-page.drive-low-attention .drive-map-shell {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
+  border-radius: 0;
+  border: 0;
+}
+
+body.drive-map-page.drive-low-attention .drive-quick-controls {
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+
+body.drive-map-page.drive-low-attention .drive-map-shell:not(.is-controls-collapsed) .drive-quick-controls {
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
 }
 
 body.drive-map-page .drive-map-copy-fallback {
@@ -23225,6 +23579,38 @@ body.drive-map-page .leaflet-control-attribution {
   font-size: 0.62rem;
 }
 
+body.drive-map-page .leaflet-control-zoom a {
+  width: 42px;
+  height: 42px;
+  line-height: 40px;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+body.drive-map-page .drive-marker-pin {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px 999px 999px 4px;
+  border: 3px solid #061018;
+  background: linear-gradient(135deg, #ffdf6e, #ff915e);
+  color: #061018;
+  font-size: 0.9rem;
+  font-weight: 950;
+  transform: rotate(-45deg);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.38);
+}
+
+body.drive-map-page .drive-marker-pin span {
+  transform: rotate(45deg);
+}
+
+body.drive-map-page .leaflet-popup-content {
+  color: #173042;
+  font-size: 0.82rem;
+}
+
 .home-agent-card {
   display: grid;
   gap: 3px;
@@ -23277,6 +23663,8 @@ body[data-site-theme="light"] .home-agent-card strong {
 @media (max-width: 760px) {
   body.drive-map-page .app-shell {
     padding: 6px;
+    max-width: 100vw;
+    overflow: hidden;
   }
 
   body.drive-map-page .topbar {
@@ -23284,6 +23672,9 @@ body[data-site-theme="light"] .home-agent-card strong {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 6px;
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    overflow: hidden;
     min-height: 44px;
     padding: 4px;
     border-radius: 14px;
@@ -23323,14 +23714,17 @@ body[data-site-theme="light"] .home-agent-card strong {
   body.drive-map-page .topbar.is-compact .topbar-actions {
     align-self: center;
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    width: 100%;
-    min-width: 176px;
+    grid-template-columns: repeat(4, 34px);
+    justify-content: end;
+    width: auto;
+    min-width: 0;
+    max-width: calc(100vw - 132px);
     height: 32px;
+    overflow: hidden;
   }
 
   body.drive-map-page .topbar.is-compact {
-    grid-template-columns: minmax(92px, 1fr) minmax(176px, 190px);
+    grid-template-columns: minmax(92px, 1fr) auto;
   }
 
   body.drive-map-page .topbar.is-compact .search-button,
@@ -23344,10 +23738,18 @@ body[data-site-theme="light"] .home-agent-card strong {
 
   body.drive-map-page .drive-map-main {
     margin-top: 6px;
+    width: calc(100vw - 12px);
+    min-height: calc(100vh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100dvh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     min-height: calc(100svh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 
   body.drive-map-page .drive-map-shell {
+    --drive-puck-y: 28%;
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    height: calc(100vh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     height: calc(100svh - 86px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     border-radius: 16px;
   }
@@ -23356,14 +23758,106 @@ body[data-site-theme="light"] .home-agent-card strong {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  body.drive-map-page .drive-control {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-height: 52px;
+    border-radius: 15px;
+    font-size: 0.76rem;
+  }
+
+  body.drive-map-page .drive-control-primary {
+    min-height: 60px;
+    font-size: 0.88rem;
+  }
+
+  body.drive-map-page .drive-control-secondary {
+    min-height: 40px;
+    font-size: 0.68rem;
+  }
+
+  body.drive-map-page .drive-map-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  body.drive-map-page .drive-map-stats span {
+    padding: 7px 6px;
+  }
+
+  body.drive-map-page .drive-map-stats small {
+    font-size: 0.56rem;
+  }
+
+  body.drive-map-page .drive-map-stats strong {
+    font-size: 0.76rem;
+  }
+
   body.drive-map-page .drive-map-overlay {
-    max-height: min(48svh, 330px);
+    right: auto;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    width: min(340px, calc(100vw - 32px));
+    max-width: min(340px, calc(100vw - 32px));
+    max-height: min(58vh, 430px);
+    max-height: min(58dvh, 430px);
+    max-height: min(58svh, 430px);
     overflow: auto;
+  }
+
+  body.drive-map-page .drive-quick-controls {
+    left: 24px;
+    right: auto;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-quick-controls {
+    left: 24px;
+    right: auto;
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 
   body.drive-map-page .drive-map-guide {
     grid-template-columns: 1fr;
     border-radius: 14px;
+  }
+}
+
+@media (min-width: 420px) and (max-width: 760px) {
+  body.drive-map-page .drive-map-main {
+    width: calc(100vw - 14px);
+  }
+
+  body.drive-map-page .drive-map-shell {
+    --drive-puck-y: 30%;
+    width: calc(100vw - 14px);
+    max-width: calc(100vw - 14px);
+  }
+
+  body.drive-map-page .drive-quick-controls {
+    left: 30px;
+    width: min(376px, calc(100vw - 60px));
+    grid-template-columns: minmax(0, 1.45fr) minmax(78px, 0.68fr) minmax(108px, 0.9fr);
+    gap: 10px;
+  }
+
+  body.drive-map-page .drive-marker-now,
+  body.drive-map-page .drive-undo-now,
+  body.drive-map-page .drive-controls-toggle {
+    min-height: 68px;
+    border-radius: 20px;
+    font-size: 0.94rem;
+  }
+
+  body.drive-map-page .drive-marker-now {
+    font-size: 1.06rem;
+  }
+
+  body.drive-map-page .drive-map-shell:not(.is-controls-collapsed) .drive-quick-controls {
+    width: min(356px, calc(100vw - 60px));
+  }
+
+  body.drive-map-page .drive-hud {
+    max-width: 390px;
   }
 }
 

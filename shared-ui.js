@@ -1855,6 +1855,7 @@ function simplifyNavigationLayout() {
 
 function buildMobileNavAccordion(sections) {
   if (
+    document.body?.hasAttribute("data-no-navigation-support") ||
     !isMobileNavMode ||
     !topbar ||
     document.querySelector(".mobile-nav-accordion")
@@ -2219,7 +2220,7 @@ function buildBackToMapButton() {
 }
 
 function buildAskAntonFloatingButton() {
-  if (document.querySelector(".ask-anton-fab")) {
+  if (document.body.classList.contains("drive-map-page") || document.querySelector(".ask-anton-fab")) {
     return;
   }
 
@@ -3007,9 +3008,8 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "drive-map.html": [
-      { label: "Map", href: "#drive-map", icon: "map" },
-      { label: "Copy", action: "drive-copy", icon: "note" },
-      { label: "Share", action: "drive-share", icon: "share" },
+      { label: "Mark GPS", action: "drive-marker", icon: "note" },
+      { label: "Follow", action: "drive-follow", icon: "map" },
       { label: "Center", action: "drive-recenter", icon: "map" },
       { label: "More", action: "tools", icon: "menu" }
     ],
@@ -3070,7 +3070,7 @@ function performUiAction(action) {
     openSearch();
     return;
   }
-  if (action === "drive-copy" || action === "drive-share" || action === "drive-recenter") {
+  if (action === "drive-copy" || action === "drive-share" || action === "drive-recenter" || action === "drive-marker" || action === "drive-follow") {
     window.dispatchEvent(new CustomEvent("ridgeline:drive-action", {
       detail: { action: action.replace("drive-", "") }
     }));
@@ -3278,7 +3278,11 @@ function toggleMiniToolsDrawer() {
 }
 
 function buildCurrentPageChip(sections) {
-  if (!main || document.querySelector(".current-page-chip")) {
+  if (
+    document.body?.hasAttribute("data-no-navigation-support") ||
+    !main ||
+    document.querySelector(".current-page-chip")
+  ) {
     return;
   }
 
@@ -4493,7 +4497,7 @@ function buildVisualSiteMap() {
 }
 
 function buildQuickCapture() {
-  if (document.querySelector(".quick-capture-modal")) {
+  if (document.body.classList.contains("drive-map-page") || document.querySelector(".quick-capture-modal")) {
     return;
   }
 
@@ -4839,6 +4843,10 @@ function openQuickCaptureWithKind(kind) {
 
 function getNavigationSupportHost() {
   const isHome = currentPageName() === "index.html";
+  if (document.body.classList.contains("drive-map-page")) {
+    return null;
+  }
+
   let host = document.querySelector(isHome ? ".home-support-panel" : ".subpage-support-panel");
   if (host) {
     return host;
@@ -5760,13 +5768,15 @@ buildViewModeRail();
 setContentMode(getSavedContentMode(), false);
 buildMobileNavAccordion(pageSections);
 simplifyNavigationLayout();
-buildBreadcrumbTrail(pageSections);
-buildRecentStrip();
-buildSyncStatusBadges();
-buildPageActionBar();
-buildNeedLauncher();
-buildFavoritePins();
-buildVisualSiteMap();
+if (!document.body.classList.contains("drive-map-page")) {
+  buildBreadcrumbTrail(pageSections);
+  buildRecentStrip();
+  buildSyncStatusBadges();
+  buildPageActionBar();
+  buildNeedLauncher();
+  buildFavoritePins();
+  buildVisualSiteMap();
+}
 buildQuickCapture();
 buildSyncSettingsPanel();
 buildEmptyStates();

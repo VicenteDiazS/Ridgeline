@@ -15,11 +15,26 @@
     <link rel="apple-touch-icon" href="assets/icons/ridgeline-icon-180.png" />
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="preconnect" href="https://tile.openstreetmap.org" />
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       crossorigin=""
     />
+    <style>
+      body.drive-map-page .subpage-support-panel,
+      body.drive-map-page .mobile-nav-accordion,
+      body.drive-map-page .current-page-wrapper,
+      body.drive-map-page .breadcrumb-trail,
+      body.drive-map-page .recent-strip,
+      body.drive-map-page .sync-status-badges,
+      body.drive-map-page .page-action-bar,
+      body.drive-map-page .need-launcher,
+      body.drive-map-page .favorite-pins,
+      body.drive-map-page .visual-site-map {
+        display: none !important;
+      }
+    </style>
     <link rel="stylesheet" href="styles.css" />
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -28,7 +43,7 @@
       defer
     ></script>
   </head>
-  <body class="drive-map-page">
+  <body class="drive-map-page" data-no-navigation-support>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Return to the Ridgeline Service Console home page" title="Return to home">Ridgeline Service Console</a>
@@ -45,29 +60,54 @@
       <main id="top" class="drive-map-main">
         <section id="drive-map" class="drive-map-shell" aria-label="Live drive tracking map">
           <div id="drive-map-canvas" aria-label="Live map"></div>
+          <div class="drive-position-puck" data-drive-position-puck hidden aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="drive-hud" data-drive-hud hidden aria-label="Driving speed and heading">
+            <span><small>Speed</small><strong data-drive-hud="speed">-- mph</strong></span>
+            <span><small>Heading</small><strong data-drive-hud="heading">--</strong></span>
+            <span><small>Fix</small><strong data-drive-hud="accuracy">-- m</strong></span>
+          </div>
+          <div class="drive-marker-toast" data-drive-marker-toast hidden aria-live="assertive"></div>
 
           <div class="drive-map-overlay" role="status" aria-live="polite">
-            <p class="drive-map-kicker">Drive Tracking</p>
+            <p class="drive-map-kicker">Live GPS</p>
             <strong id="drive-map-status">Connecting to GPS...</strong>
             <p id="drive-map-meta">Waiting for the first location fix.</p>
             <div class="drive-map-stats" aria-label="Current drive snapshot">
               <span><small>Fix</small><strong data-drive-stat="fix">Waiting</strong></span>
               <span><small>Speed</small><strong data-drive-stat="speed">-- mph</strong></span>
               <span><small>Trail</small><strong data-drive-stat="trail">0 pts</strong></span>
+              <span><small>Pins</small><strong data-drive-stat="markers">0</strong></span>
             </div>
             <div class="drive-map-actions">
-              <button class="utility-link utility-link-strong" type="button" data-drive-action="tracking">Pause Tracking</button>
-              <button class="utility-link" type="button" data-drive-action="follow" aria-pressed="true">Follow: On</button>
-              <button class="utility-link" type="button" data-drive-action="recenter">Recenter</button>
-              <button class="utility-link" type="button" data-drive-action="clear">Clear Trail</button>
-              <button class="utility-link" type="button" data-drive-action="copy">Copy Snapshot</button>
-              <button class="utility-link" type="button" data-drive-action="share">Share</button>
+              <button class="drive-control drive-control-primary" type="button" data-drive-action="marker">Mark GPS</button>
+              <button class="drive-control" type="button" data-drive-action="undo-marker">Undo</button>
+              <button class="drive-control" type="button" data-drive-action="follow" aria-pressed="true">Follow On</button>
+              <button class="drive-control" type="button" data-drive-action="recenter">Center</button>
+              <button class="drive-control drive-control-icon" type="button" data-drive-action="zoom-out" aria-label="Zoom out">-</button>
+              <button class="drive-control drive-control-icon" type="button" data-drive-action="zoom-in" aria-label="Zoom in">+</button>
+              <button class="drive-control" type="button" data-drive-action="compass" aria-pressed="false">Enable Compass</button>
+              <button class="drive-control" type="button" data-drive-action="heading-up" aria-pressed="false">Heading Up</button>
+              <button class="drive-control" type="button" data-drive-action="hud" aria-pressed="false">HUD</button>
+              <button class="drive-control" type="button" data-drive-action="basemap">Dark Map</button>
+              <button class="drive-control" type="button" data-drive-action="proximity">Alerts 100 ft</button>
+              <button class="drive-control" type="button" data-drive-action="wake-lock" aria-pressed="false">Keep Awake</button>
+              <button class="drive-control" type="button" data-drive-action="low-attention" aria-pressed="false">Low Attention</button>
+              <button class="drive-control" type="button" data-drive-action="tracking">Pause GPS</button>
+              <button class="drive-control drive-control-secondary" type="button" data-drive-action="clear">Clear Trail</button>
+              <button class="drive-control drive-control-secondary" type="button" data-drive-action="clear-markers">Clear Pins</button>
             </div>
             <p class="drive-map-action-status" data-drive-action-status aria-live="polite"></p>
             <div class="manual-copy-fallback drive-map-copy-fallback" data-drive-copy-fallback hidden>
               <span>Manual copy fallback</span>
               <textarea readonly data-drive-copy-text aria-label="Drive snapshot text"></textarea>
             </div>
+          </div>
+          <div class="drive-quick-controls" aria-label="Fast drive map actions">
+            <button class="drive-marker-now" type="button" data-drive-action="marker">Mark GPS</button>
+            <button class="drive-undo-now" type="button" data-drive-action="undo-marker">Undo</button>
+            <button class="drive-controls-toggle" type="button" data-drive-controls-toggle aria-expanded="false">Controls</button>
           </div>
         </section>
 
