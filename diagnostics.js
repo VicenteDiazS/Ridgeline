@@ -701,7 +701,7 @@ function initDiagnosticLocalResume() {
 function prependGarageGeneralNote(noteText) {
   const notes = loadJson(STORAGE.notes, {});
   const existing = `${notes.general_notes || ""}`.trim();
-  saveJson(STORAGE.notes, {
+  return saveJson(STORAGE.notes, {
     ...notes,
     general_notes: existing ? `${noteText}\n\n${existing}` : noteText
   });
@@ -974,7 +974,9 @@ function initDiagnosticShareBuilder() {
     });
 
     try {
-      prependGarageGeneralNote(noteText);
+      if (!prependGarageGeneralNote(noteText)) {
+        throw new Error("Garage note write blocked");
+      }
       saveDiagnosticReceipt({
         planKey,
         title: plan.kicker,
@@ -1190,7 +1192,9 @@ function initDiagnosticCheckTracker() {
   root.querySelector("[data-save-diagnostic-checks]")?.addEventListener("click", () => {
     const { plan, markedChecks, detail } = getDiagnosticCheckState(root);
     try {
-      prependGarageGeneralNote(buildSavedDiagnosticCheckNote(plan, markedChecks, detail));
+      if (!prependGarageGeneralNote(buildSavedDiagnosticCheckNote(plan, markedChecks, detail))) {
+        throw new Error("Garage note write blocked");
+      }
       document.querySelectorAll("[data-diagnostic-call-summary]").forEach(renderDiagnosticCallSummary);
       renderDiagnosticResumeCards();
       setDiagnosticCheckStatus(root, `${plan.kicker} first checks saved to Garage Notes.`);
@@ -1279,7 +1283,9 @@ function initDiagnosticCallSummary() {
 
   root.querySelector("[data-save-diagnostic-call]")?.addEventListener("click", () => {
     try {
-      prependGarageGeneralNote(`[${diagnosticCallTimestamp()} - Diagnostic Call Summary]\n${buildDiagnosticCallText(root)}`);
+      if (!prependGarageGeneralNote(`[${diagnosticCallTimestamp()} - Diagnostic Call Summary]\n${buildDiagnosticCallText(root)}`)) {
+        throw new Error("Garage note write blocked");
+      }
       renderDiagnosticResumeCards();
       setDiagnosticCallStatus(root, "Diagnostic call summary saved to Garage Notes.");
     } catch (error) {

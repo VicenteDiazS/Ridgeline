@@ -137,6 +137,9 @@ SEARCH_EXPECTATIONS = {
     "roadside dispatch pack": "Roadside Dispatch Pack",
     "copy roadside dispatch": "Roadside Dispatch Pack",
     "save dispatch log": "Roadside Dispatch Pack",
+    "roadside arrival pack": "Roadside Arrival Pack",
+    "copy arrival handoff": "Roadside Arrival Pack",
+    "shop arrival handoff": "Roadside Arrival Pack",
     "fuse check note": "Fuse Check Note",
     "copy fuse note": "Fuse Check Note",
     "save fuse note": "Fuse Check Note",
@@ -1153,6 +1156,7 @@ async def assert_quick_sheet(page, page_name):
             const sources = document.querySelector("#source-confidence");
             const contact = document.querySelector("[data-roadside-contact-card]");
             const dispatch = document.querySelector("[data-roadside-dispatch-pack]");
+            const arrival = document.querySelector("[data-roadside-arrival-pack]");
             const requiredCriticalTargets = [
                 "#tires",
                 "hood.html#wiring",
@@ -1203,7 +1207,7 @@ async def assert_quick_sheet(page, page_name):
                 missingPrintPackTargets: requiredPrintPackTargets.filter((href) => !printPack?.querySelector(`a[href="${href}"]`)),
                 hasCritical: Boolean(critical),
                 criticalCards: critical ? critical.querySelectorAll(".quick-critical-card").length : 0,
-                criticalText: critical ? critical.innerText.toLowerCase() : "",
+                criticalText: critical ? critical.textContent.toLowerCase() : "",
                 missingCriticalTargets: requiredCriticalTargets.filter((href) => !critical?.querySelector(`a[href="${href}"]`)),
                 hasRouter: Boolean(router),
                 routerCards: router ? router.querySelectorAll(".roadside-action-grid .dashboard-card").length : 0,
@@ -1239,6 +1243,14 @@ async def assert_quick_sheet(page, page_name):
                 hasShareDispatch: Boolean(dispatch?.querySelector("[data-share-roadside-dispatch]")),
                 hasSaveDispatch: Boolean(dispatch?.querySelector("[data-save-roadside-dispatch]")),
                 hasDispatchHandoffRoute: Boolean(dispatch?.querySelector('a[href="garage.html#recent-handoffs"]')),
+                hasArrivalPack: Boolean(arrival),
+                arrivalText: arrival?.innerText.toLowerCase() || "",
+                arrivalPreview: arrival?.querySelector("[data-roadside-arrival-preview]")?.textContent || "",
+                arrivalChecklistItems: arrival ? arrival.querySelectorAll(".roadside-arrival-checklist span").length : 0,
+                hasCopyArrival: Boolean(arrival?.querySelector("[data-copy-roadside-arrival]")),
+                hasShareArrival: Boolean(arrival?.querySelector("[data-share-roadside-arrival]")),
+                hasSaveArrival: Boolean(arrival?.querySelector("[data-save-roadside-arrival]")),
+                hasArrivalHandoffRoute: Boolean(arrival?.querySelector('a[href="garage.html#recent-handoffs"]')),
                 hasTriage: Boolean(triage),
                 triageCards: triage ? triage.querySelectorAll(".quick-sheet-triage-grid .dashboard-card").length : 0,
                 missingTargets: requiredTargets.filter((href) => !triage?.querySelector(`a[href="${href}"]`)),
@@ -1359,6 +1371,14 @@ async def assert_quick_sheet(page, page_name):
     assert_true(state["hasDispatchHandoffRoute"], "roadside dispatch pack is missing Recent Handoffs route")
     for phrase in ["roadside dispatch pack", "selected situation", "contact card", "live checkpoints", "route-cache status"]:
         assert_true(phrase in state["dispatchText"], f"roadside dispatch pack is missing text: {phrase}")
+    assert_true(state["hasArrivalPack"], "roadside action stack is missing the arrival pack")
+    assert_true(state["arrivalChecklistItems"] == 3, "roadside arrival pack should expose three readiness chips")
+    assert_true(state["hasCopyArrival"], "roadside arrival pack is missing Copy Arrival")
+    assert_true(state["hasShareArrival"], "roadside arrival pack is missing Share")
+    assert_true(state["hasSaveArrival"], "roadside arrival pack is missing Save Arrival Log")
+    assert_true(state["hasArrivalHandoffRoute"], "roadside arrival pack is missing Recent Handoffs route")
+    for phrase in ["tow / shop arrival pack", "contact details", "checkpoints", "reference routes"]:
+        assert_true(phrase in state["arrivalText"], f"roadside arrival pack is missing text: {phrase}")
     for phrase in ["flat tire", "94 lb-ft", "copy handoff", "save note"]:
         assert_true(phrase in state["stackText"], f"roadside action stack is missing default text: {phrase}")
     await page.evaluate("""() => document.querySelector('[data-roadside-plan="warning"]').click()""")
@@ -1502,6 +1522,38 @@ async def assert_quick_sheet(page, page_name):
     assert_true("Offline route status:" in dispatch_state["note"], "roadside dispatch pack did not include offline route status")
     assert_true("owner's manual remain final authority" in dispatch_state["note"], "roadside dispatch pack should preserve source authority")
     assert_true(not dispatch_state["overflow"], "roadside dispatch pack introduced horizontal overflow")
+    await page.locator("[data-copy-roadside-arrival]").click()
+    await page.wait_for_timeout(200)
+    await page.locator("[data-save-roadside-arrival]").click()
+    await page.wait_for_timeout(250)
+    arrival_state = await page.evaluate(
+        """() => {
+            const stack = document.querySelector("#roadside-action-stack");
+            const notes = JSON.parse(localStorage.getItem("ridgeline-notes") || "{}");
+            return {
+                preview: stack?.querySelector("[data-roadside-arrival-preview]")?.textContent || "",
+                status: stack?.querySelector("[data-roadside-status]")?.textContent || "",
+                chips: [...stack?.querySelectorAll(".roadside-arrival-checklist span") || []].map((item) => ({
+                    text: item.textContent || "",
+                    state: item.dataset.arrivalState || ""
+                })),
+                note: notes.general_notes || "",
+                overflow: document.documentElement.scrollWidth > window.innerWidth + 1
+            };
+        }"""
+    )
+    assert_true("Warning light" in arrival_state["preview"], "roadside arrival preview should preserve the selected situation")
+    assert_true("contact ready" in arrival_state["preview"], "roadside arrival preview should reflect completed contact details")
+    assert_true("2 checkpoints" in arrival_state["preview"], "roadside arrival preview should reflect live checkpoints")
+    assert_true(any(chip["state"] == "ready" and "Contact ready" in chip["text"] for chip in arrival_state["chips"]), "roadside arrival pack should show contact readiness")
+    assert_true(any(chip["state"] == "ready" and "2 checkpoints" in chip["text"] for chip in arrival_state["chips"]), "roadside arrival pack should show session readiness")
+    assert_true("arrival pack saved to Garage Notes" in arrival_state["status"], "roadside arrival save did not report Garage Notes status")
+    assert_true("Ridgeline tow/shop arrival: Warning light or MID message" in arrival_state["note"], "Garage Notes did not receive the roadside arrival pack")
+    assert_true("I-35 SB shoulder near exit 230" in arrival_state["note"], "roadside arrival pack did not include contact location")
+    assert_true("What happened before arrival:" in arrival_state["note"], "roadside arrival pack did not include the arrival timeline")
+    assert_true("Open references:" in arrival_state["note"], "roadside arrival pack did not include reference routes")
+    assert_true("owner's manual" in arrival_state["note"], "roadside arrival pack should preserve source authority")
+    assert_true(not arrival_state["overflow"], "roadside arrival pack introduced horizontal overflow")
     assert_true(state["hasTriage"], "quick sheet is missing fuse triage section")
     assert_true(state["triageCards"] == 4, "fuse triage should expose four routing cards")
     assert_true(not state["missingTargets"], f"fuse triage is missing routes: {state['missingTargets']}")
@@ -1564,6 +1616,7 @@ async def assert_quick_sheet(page, page_name):
             const contact = document.querySelector("[data-roadside-contact-card]");
             const live = document.querySelector("[data-roadside-live-session]");
             const dispatch = document.querySelector("[data-roadside-dispatch-pack]");
+            const arrival = document.querySelector("[data-roadside-arrival-pack]");
             const fuseNote = document.querySelector("[data-fuse-check-note]");
             const grid = critical?.querySelector(".quick-critical-grid");
             const printGrid = printPack?.querySelector(".quick-print-pack-grid");
@@ -1574,6 +1627,9 @@ async def assert_quick_sheet(page, page_name):
             const liveGrid = live?.querySelector(".roadside-live-actions");
             const dispatchActions = [...(dispatch?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const dispatchGrid = dispatch?.querySelector(".roadside-dispatch-actions");
+            const arrivalActions = [...(arrival?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
+            const arrivalGrid = arrival?.querySelector(".roadside-arrival-actions");
+            const arrivalChecklist = arrival?.querySelector(".roadside-arrival-checklist");
             const fusePicker = fuseNote?.querySelector(".quick-fuse-note-picker");
             const fuseActions = [...(fuseNote?.querySelectorAll("button, a") || [])].map((action) => action.getBoundingClientRect().height);
             const printCards = [...printPack?.querySelectorAll(".quick-print-pack-card") || []].map((card) => {
@@ -1599,6 +1655,10 @@ async def assert_quick_sheet(page, page_name):
                 dispatchVisible: Boolean(dispatch && dispatch.getBoundingClientRect().height > 0),
                 dispatchActionColumns: dispatchGrid ? getComputedStyle(dispatchGrid).gridTemplateColumns.split(" ").length : 0,
                 minDispatchActionHeight: dispatchActions.length ? Math.min(...dispatchActions) : 0,
+                arrivalVisible: Boolean(arrival && arrival.getBoundingClientRect().height > 0),
+                arrivalActionColumns: arrivalGrid ? getComputedStyle(arrivalGrid).gridTemplateColumns.split(" ").length : 0,
+                arrivalChecklistColumns: arrivalChecklist ? getComputedStyle(arrivalChecklist).gridTemplateColumns.split(" ").length : 0,
+                minArrivalActionHeight: arrivalActions.length ? Math.min(...arrivalActions) : 0,
                 fuseNoteVisible: Boolean(fuseNote && fuseNote.getBoundingClientRect().height > 0),
                 fusePickerColumns: fusePicker ? getComputedStyle(fusePicker).gridTemplateColumns.split(" ").length : 0,
                 minFuseActionHeight: fuseActions.length ? Math.min(...fuseActions) : 0,
@@ -1624,6 +1684,10 @@ async def assert_quick_sheet(page, page_name):
     assert_true(mobile_state["dispatchVisible"], "roadside dispatch pack is not visible at iPhone width")
     assert_true(mobile_state["dispatchActionColumns"] == 2, "roadside dispatch actions should use two compact columns on iPhone")
     assert_true(mobile_state["minDispatchActionHeight"] >= 38, "roadside dispatch actions should stay thumb-readable on iPhone")
+    assert_true(mobile_state["arrivalVisible"], "roadside arrival pack is not visible at iPhone width")
+    assert_true(mobile_state["arrivalActionColumns"] == 1, "roadside arrival actions should stack on iPhone")
+    assert_true(mobile_state["arrivalChecklistColumns"] == 1, "roadside arrival readiness chips should stack on iPhone")
+    assert_true(mobile_state["minArrivalActionHeight"] >= 38, "roadside arrival actions should stay thumb-readable on iPhone")
     assert_true(mobile_state["fuseNoteVisible"], "quick sheet fuse check note should stay visible at iPhone width")
     assert_true(mobile_state["fusePickerColumns"] == 2, "quick sheet fuse check symptom chips should use two columns on iPhone")
     assert_true(mobile_state["minFuseActionHeight"] >= 38, "quick sheet fuse check actions should remain thumb-readable")
@@ -4793,6 +4857,8 @@ async def set_search_query(page, query):
 async def run_overlay_checks(page, page_name):
     await page.evaluate(
         """() => {
+            localStorage.removeItem("ridgeline-diagnostic-call-summary");
+            localStorage.removeItem("ridgeline-diagnostic-first-checks");
             localStorage.setItem("ridgeline-roadside-last-handoff", JSON.stringify({
                 title: "Warning light roadside note",
                 summary: "Saved warning-light roadside handoff",

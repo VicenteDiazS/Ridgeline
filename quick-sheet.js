@@ -379,6 +379,35 @@ function buildRoadsideDispatchText(root) {
   ].filter(Boolean).join("\n");
 }
 
+function buildRoadsideArrivalText(root) {
+  const session = loadRoadsideSession();
+  const planKey = session?.planKey || root?.dataset.currentRoadsidePlan || currentRoadsidePlanKey();
+  const plan = roadsidePlans[planKey] || roadsidePlans.flat;
+  const checkpoints = Array.isArray(session?.checkpoints) ? session.checkpoints : [];
+  const checkpointLines = checkpoints.length
+    ? checkpoints.map((item, index) => `${index + 1}. ${item.label} - ${formatSessionTime(item.at)}`)
+    : ["1. No live checkpoints saved on this iPhone yet."];
+  return [
+    `Ridgeline tow/shop arrival: ${plan.kicker}`,
+    plan.title,
+    session ? `Roadside session started: ${formatSessionTime(session.startedAt)}` : "Roadside session: not started on this iPhone.",
+    session ? formatElapsed(session.startedAt) : "",
+    "",
+    ...roadsideContactLines(),
+    "",
+    "What happened before arrival:",
+    ...checkpointLines,
+    "",
+    "Open references:",
+    `- ${plan.primary.label}: ${plan.primary.href}`,
+    `- ${plan.secondary.label}: ${plan.secondary.href}`,
+    "- Recent handoffs: garage.html#recent-handoffs",
+    "",
+    plan.reference,
+    "Use the truck labels, owner's manual, service advisor guidance, and current conditions as final authority."
+  ].filter(Boolean).join("\n");
+}
+
 function renderRoadsideContact(root) {
   const card = root.querySelector("[data-roadside-contact-card]");
   if (!card) {
@@ -466,6 +495,39 @@ function renderRoadsideDispatch(root) {
   renderRoadsideCommand();
 }
 
+function renderRoadsideArrival(root) {
+  const card = root.querySelector("[data-roadside-arrival-pack]");
+  if (!card) {
+    return;
+  }
+
+  const session = loadRoadsideSession();
+  const plan = roadsidePlans[session?.planKey] || roadsidePlans[root.dataset.currentRoadsidePlan] || roadsidePlans.flat;
+  const contact = loadRoadsideContact();
+  const checkpoints = Array.isArray(session?.checkpoints) ? session.checkpoints : [];
+  const preview = card.querySelector("[data-roadside-arrival-preview]");
+  const contactStatus = card.querySelector("[data-arrival-contact]");
+  const sessionStatus = card.querySelector("[data-arrival-session]");
+  const routesStatus = card.querySelector("[data-arrival-routes]");
+  if (preview) {
+    preview.textContent = `${plan.kicker} / ${hasRoadsideContact(contact) ? "contact ready" : "contact not filled"} / ${checkpoints.length} checkpoints / ${plan.primary.label} + ${plan.secondary.label}.`;
+  }
+  if (contactStatus) {
+    contactStatus.textContent = hasRoadsideContact(contact) ? "Contact ready" : "Contact not filled";
+    contactStatus.dataset.arrivalState = hasRoadsideContact(contact) ? "ready" : "missing";
+  }
+  if (sessionStatus) {
+    sessionStatus.textContent = session
+      ? `${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"} saved`
+      : "No session running";
+    sessionStatus.dataset.arrivalState = session ? "ready" : "missing";
+  }
+  if (routesStatus) {
+    routesStatus.textContent = `${plan.primary.label} / ${plan.secondary.label}`;
+    routesStatus.dataset.arrivalState = "ready";
+  }
+}
+
 function currentRoadsidePlanKey() {
   const stack = document.querySelector("[data-roadside-stack]");
   return stack?.dataset.currentRoadsidePlan || requestedRoadsidePlanKey() || "flat";
@@ -547,6 +609,7 @@ function startRoadsideSession(planKey = currentRoadsidePlanKey()) {
   document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => {
     renderRoadsideSession(stackRoot);
     renderRoadsideDispatch(stackRoot);
+    renderRoadsideArrival(stackRoot);
   });
   renderRoadsideCommand();
   return roadsidePlans[key] || roadsidePlans.flat;
@@ -566,7 +629,10 @@ function initRoadsideCommand() {
           setPrintPackStatus(printPack, `${receipt.readyCount}/${receipt.totalCount} key offline routes found from Roadside Command.`);
         }
         renderRoadsideCommand();
-        document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => renderRoadsideDispatch(stackRoot));
+        document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => {
+          renderRoadsideDispatch(stackRoot);
+          renderRoadsideArrival(stackRoot);
+        });
         setRoadsideCommandStatus(root, `${receipt.readyCount}/${receipt.totalCount} key offline routes found.`);
       } catch (error) {
         renderRoadsideCommand();
@@ -595,13 +661,30 @@ function initRoadsideCommand() {
         setRoadsideCommandStatus(root, "Copy failed. Select the fallback text below.");
       }
     });
+
+    root.querySelector("[data-command-copy-arrival]")?.addEventListener("click", async (event) => {
+      const stackRoot = document.querySelector("[data-roadside-stack]");
+      const text = buildRoadsideArrivalText(stackRoot);
+      try {
+        const copied = await copyText(text);
+        if (copied) {
+          hideManualCopyFallback(event.currentTarget);
+        } else {
+          showManualCopyFallback(event.currentTarget, text);
+        }
+        setRoadsideCommandStatus(root, copied ? "Roadside arrival pack copied." : "Copy is unavailable in this browser.");
+      } catch (error) {
+        showManualCopyFallback(event.currentTarget, text);
+        setRoadsideCommandStatus(root, "Copy failed. Select the fallback text below.");
+      }
+    });
   });
 }
 
 function prependGarageGeneralNote(noteText) {
   const notes = loadJson(STORAGE.notes, {});
   const existing = `${notes.general_notes || ""}`.trim();
-  saveJson(STORAGE.notes, {
+  return saveJson(STORAGE.notes, {
     ...notes,
     general_notes: existing ? `${noteText}\n\n${existing}` : noteText
   });
@@ -678,6 +761,7 @@ function updateRoadsidePlan(root, key, options = {}) {
   setStatus(root, `${plan.kicker} handoff ready.`);
   renderRoadsideSession(root);
   renderRoadsideDispatch(root);
+  renderRoadsideArrival(root);
   renderRoadsideCommand();
 }
 
@@ -1021,7 +1105,9 @@ function initFuseCheckNote() {
       buildFuseNoteText(root)
     ].join("\n");
     try {
-      prependGarageGeneralNote(text);
+      if (!prependGarageGeneralNote(text)) {
+        throw new Error("Garage note write blocked");
+      }
       saveLastFuseNote(root, text);
       setFuseNoteStatus(root, `${plan.label} saved to Garage Notes.`);
     } catch (error) {
@@ -1094,7 +1180,9 @@ function initRoadsideStack() {
     });
 
     try {
-      prependGarageGeneralNote(noteText);
+      if (!prependGarageGeneralNote(noteText)) {
+        throw new Error("Garage note write blocked");
+      }
       saveRoadsideReceipt({
         planKey,
         title: plan.kicker,
@@ -1166,6 +1254,7 @@ function initRoadsideStack() {
       saveRoadsideContact(contact);
       renderRoadsideContact(root);
       renderRoadsideDispatch(root);
+      renderRoadsideArrival(root);
       setActionStatus(root, field, "Roadside contact card saved on this iPhone.");
     });
   });
@@ -1188,7 +1277,9 @@ function initRoadsideStack() {
 
   root.querySelector("[data-save-roadside-contact]")?.addEventListener("click", (event) => {
     try {
-      prependGarageGeneralNote(buildRoadsideContactText());
+      if (!prependGarageGeneralNote(buildRoadsideContactText())) {
+        throw new Error("Garage note write blocked");
+      }
       renderRoadsideDispatch(root);
       setActionStatus(root, event.currentTarget, "Roadside contact card saved to Garage Notes.");
     } catch (error) {
@@ -1219,6 +1310,7 @@ function initRoadsideStack() {
       saveRoadsideSession(session);
       renderRoadsideSession(root);
       renderRoadsideDispatch(root);
+      renderRoadsideArrival(root);
       setActionStatus(root, event.currentTarget, `${button.dataset.roadsideCheckpoint} checkpoint added.`);
     });
   });
@@ -1251,8 +1343,11 @@ function initRoadsideStack() {
       return;
     }
     try {
-      prependGarageGeneralNote(buildRoadsideSessionText(session));
+      if (!prependGarageGeneralNote(buildRoadsideSessionText(session))) {
+        throw new Error("Garage note write blocked");
+      }
       renderRoadsideDispatch(root);
+      renderRoadsideArrival(root);
       setActionStatus(root, event.currentTarget, "Live roadside session saved to Garage Notes.");
     } catch (error) {
       setActionStatus(root, event.currentTarget, "Could not save the live roadside session in this browser.");
@@ -1263,6 +1358,7 @@ function initRoadsideStack() {
     clearRoadsideSession();
     renderRoadsideSession(root);
     renderRoadsideDispatch(root);
+    renderRoadsideArrival(root);
     setActionStatus(root, event.currentTarget, "Live roadside session reset on this iPhone.");
   });
 
@@ -1304,9 +1400,60 @@ function initRoadsideStack() {
     }
   });
 
+  root.querySelector("[data-copy-roadside-arrival]")?.addEventListener("click", async (event) => {
+    const text = buildRoadsideArrivalText(root);
+    try {
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Roadside arrival pack copied." : "Copy is unavailable in this browser.");
+    } catch (error) {
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Copy failed. Select the fallback text below.");
+    }
+  });
+
+  root.querySelector("[data-share-roadside-arrival]")?.addEventListener("click", async (event) => {
+    const text = buildRoadsideArrivalText(root);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ridgeline tow/shop arrival pack", text });
+        hideManualCopyFallback(event.currentTarget);
+        setActionStatus(root, event.currentTarget, "Roadside arrival pack shared.");
+        return;
+      }
+      const copied = await copyText(text);
+      if (copied) {
+        hideManualCopyFallback(event.currentTarget);
+      } else {
+        showManualCopyFallback(event.currentTarget, text);
+      }
+      setActionStatus(root, event.currentTarget, copied ? "Share unavailable; arrival pack copied instead." : "Share is unavailable in this browser.");
+    } catch (error) {
+      showManualCopyFallback(event.currentTarget, text);
+      setActionStatus(root, event.currentTarget, "Share canceled or unavailable. Select the fallback text below.");
+    }
+  });
+
+  root.querySelector("[data-save-roadside-arrival]")?.addEventListener("click", (event) => {
+    try {
+      if (!prependGarageGeneralNote(buildRoadsideArrivalText(root))) {
+        throw new Error("Garage note write blocked");
+      }
+      setActionStatus(root, event.currentTarget, "Roadside arrival pack saved to Garage Notes.");
+    } catch (error) {
+      setActionStatus(root, event.currentTarget, "Could not save the roadside arrival pack in this browser.");
+    }
+  });
+
   root.querySelector("[data-save-roadside-dispatch]")?.addEventListener("click", (event) => {
     try {
-      prependGarageGeneralNote(buildRoadsideDispatchText(root));
+      if (!prependGarageGeneralNote(buildRoadsideDispatchText(root))) {
+        throw new Error("Garage note write blocked");
+      }
       setActionStatus(root, event.currentTarget, "Roadside dispatch pack saved to Garage Notes.");
     } catch (error) {
       setActionStatus(root, event.currentTarget, "Could not save the roadside dispatch pack in this browser.");
@@ -1319,9 +1466,11 @@ function initRoadsideStack() {
   renderRoadsideContact(root);
   renderRoadsideSession(root);
   renderRoadsideDispatch(root);
+  renderRoadsideArrival(root);
   window.setInterval(() => {
     renderRoadsideSession(root);
     renderRoadsideDispatch(root);
+    renderRoadsideArrival(root);
   }, 60000);
   window.addEventListener("popstate", () => {
     updateRoadsidePlan(root, requestedRoadsidePlanKey() || "flat");

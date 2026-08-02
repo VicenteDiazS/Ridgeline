@@ -3004,7 +3004,7 @@ function actionForPage(page) {
       { label: "Emergency", href: "#emergency-card", icon: "flash" },
       { label: "Offline", href: "#print-offline-pack", icon: "save" },
       { label: "Stack", href: "#roadside-action-stack", icon: "check" },
-      { label: "Dispatch", href: "#roadside-dispatch-pack", icon: "note" },
+      { label: "Arrival", href: "#roadside-arrival-pack", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "drive-map.html": [

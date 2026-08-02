@@ -82,9 +82,11 @@
               <button class="utility-link" type="button" data-command-check-routes>Check Routes</button>
               <button class="utility-link" type="button" data-command-start-session>Start Session</button>
               <button class="utility-link" type="button" data-command-copy-dispatch>Copy Dispatch</button>
+              <button class="utility-link" type="button" data-command-copy-arrival>Copy Arrival</button>
               <a class="utility-link" href="#roadside-contact-card">Contact</a>
               <a class="utility-link" href="#roadside-live-session">Live Session</a>
               <a class="utility-link" href="#roadside-dispatch-pack">Dispatch</a>
+              <a class="utility-link" href="#roadside-arrival-pack">Arrival</a>
               <a class="utility-link" href="#print-offline-pack">Offline Pack</a>
             </div>
             <p class="small-note" aria-live="polite" data-command-status></p>
@@ -304,6 +306,7 @@
             <a class="utility-link utility-link-strong" href="#roadside-contact-card">Contact</a>
             <a class="utility-link" href="#roadside-live-session">Live Session</a>
             <a class="utility-link" href="#roadside-dispatch-pack">Dispatch Pack</a>
+            <a class="utility-link" href="#roadside-arrival-pack">Arrival Pack</a>
           </div>
           <article class="dashboard-card roadside-stack-card" aria-live="polite">
             <div>
@@ -437,6 +440,33 @@
             <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
               <span>Manual copy fallback</span>
               <textarea readonly rows="6" data-manual-copy-text aria-label="Generated roadside dispatch text"></textarea>
+            </div>
+          </article>
+          <article class="dashboard-card roadside-arrival-card" id="roadside-arrival-pack" data-roadside-arrival-pack>
+            <div>
+              <span>Tow / Shop Arrival Pack</span>
+              <strong>Show what happened before the handoff</strong>
+              <p>Compresses the current roadside situation, contact details, checkpoints, and open reference routes into a handoff for the tow driver, counter, or service advisor.</p>
+            </div>
+            <div class="roadside-arrival-preview" data-roadside-arrival-preview>
+              Start a session, fill contact detail, or pick a situation to build the arrival pack.
+            </div>
+            <div class="roadside-arrival-checklist" aria-label="Arrival handoff checklist">
+              <span data-arrival-contact>Contact not filled</span>
+              <span data-arrival-session>No session running</span>
+              <span data-arrival-routes>Reference routes ready</span>
+            </div>
+            <div class="inspector-actions roadside-arrival-actions">
+              <button class="utility-link utility-link-strong" type="button" data-copy-roadside-arrival>Copy Arrival</button>
+              <button class="utility-link" type="button" data-share-roadside-arrival>Share</button>
+              <button class="utility-link" type="button" data-save-roadside-arrival>Save Arrival Log</button>
+              <a class="utility-link" href="garage.html#recent-handoffs">Recent Handoffs</a>
+            </div>
+            <p class="small-note">Arrival details stay local until copied, shared, or saved into Garage Notes.</p>
+            <p class="small-note" aria-live="polite" data-roadside-local-status></p>
+            <div class="manual-copy-fallback" data-manual-copy-fallback hidden>
+              <span>Manual copy fallback</span>
+              <textarea readonly rows="6" data-manual-copy-text aria-label="Generated roadside arrival text"></textarea>
             </div>
           </article>
           <div class="section-callout">

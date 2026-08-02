@@ -159,6 +159,13 @@ export const searchIndex = [
     keywords: ["roadside dispatch pack", "copy roadside dispatch", "save dispatch log", "tow dispatch note", "helper dispatch note", "roadside complete update", "dispatch handoff", "copy dispatch pack", "iphone dispatch pack"]
   },
   {
+    title: "Roadside Arrival Pack",
+    url: "quick-sheet.html#roadside-arrival-pack",
+    category: "Quick Sheet",
+    excerpt: "Quick Sheet tow/shop arrival handoff that combines the selected roadside situation, contact card, live checkpoints, and open reference routes for the tow driver, parts counter, or service advisor.",
+    keywords: ["roadside arrival pack", "tow arrival pack", "shop arrival handoff", "copy arrival handoff", "save arrival log", "service advisor handoff", "tow driver handoff", "parts counter roadside", "roadside timeline", "what happened before arrival", "iphone arrival pack"]
+  },
+  {
     title: "Roadside Contact Card",
     url: "quick-sheet.html#roadside-action-stack",
     category: "Quick Sheet",
