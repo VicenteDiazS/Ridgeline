@@ -250,6 +250,7 @@ function loadRoadsideContact() {
 
 function saveRoadsideContact(contact) {
   localStorage.setItem(ROADSIDE_CONTACT_KEY, JSON.stringify(contact));
+  window.dispatchEvent(new CustomEvent("ridgeline:roadside-contact-saved"));
 }
 
 function hasRoadsideContact(contact) {
@@ -1251,6 +1252,7 @@ function initRoadsideStack() {
     field.addEventListener("input", () => {
       const contact = loadRoadsideContact();
       contact[field.dataset.roadsideContactField] = field.value.trim();
+      contact.updatedAt = new Date().toISOString();
       saveRoadsideContact(contact);
       renderRoadsideContact(root);
       renderRoadsideDispatch(root);

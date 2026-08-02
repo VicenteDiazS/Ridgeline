@@ -6272,6 +6272,26 @@ function buildDriveMapRecentItem() {
   };
 }
 
+function hasSearchRoadsideContact(contact) {
+  return ["location", "callback", "helper", "eta"].some((key) => `${contact?.[key] || ""}`.trim());
+}
+
+function buildRoadsideContactRecentItem() {
+  const contact = readSearchStorage("ridgeline-roadside-contact-card", {});
+  if (!hasSearchRoadsideContact(contact)) {
+    return null;
+  }
+
+  const detail = contact.location || contact.helper || contact.callback || contact.eta || "Roadside contact card";
+  return {
+    label: "Roadside contact",
+    detail: shortSearchText(detail),
+    meta: formatSearchRecentDate(contact.updatedAt),
+    at: searchRecentTimestamp(contact.updatedAt),
+    href: "quick-sheet.html#roadside-arrival-pack"
+  };
+}
+
 function buildSearchRecentItems() {
   const items = [];
   const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
@@ -6282,6 +6302,7 @@ function buildSearchRecentItems() {
   const diagnosticCall = buildDiagnosticCallRecentItem();
   const diagnosticChecks = buildDiagnosticCheckRecentItem();
   const driveSnapshot = buildDriveMapRecentItem();
+  const roadsideContact = buildRoadsideContactRecentItem();
 
   if (diagnostic?.title || diagnostic?.summary || diagnostic?.reference) {
     items.push({
@@ -6339,6 +6360,10 @@ function buildSearchRecentItems() {
       at: searchRecentTimestamp(roadsideSession.startedAt),
       href: `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`
     });
+  }
+
+  if (roadsideContact) {
+    items.push(roadsideContact);
   }
 
   if (driveSnapshot) {

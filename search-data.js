@@ -29,8 +29,8 @@ export const searchIndex = [
     title: "Home Resume Work",
     url: "index.html#viewer",
     category: "Navigation",
-    excerpt: "Home first-screen panel that finds recent locally saved roadside, diagnostic, fuse, tire, tow, or service notes on this iPhone, copies the latest note, and routes to Garage Recent Handoffs.",
-    keywords: ["home resume work", "resume saved work", "copy latest home note", "latest owner note", "continue saved note", "home recent handoff", "iphone saved work", "resume garage handoff", "home handoffs"]
+    excerpt: "Home first-screen panel that finds recent locally saved roadside contacts, live sessions, diagnostic, fuse, tire, tow, or service notes on this iPhone, copies the latest note, and routes back to the right workflow.",
+    keywords: ["home resume work", "resume saved work", "copy latest home note", "latest owner note", "continue saved note", "home recent handoff", "iphone saved work", "resume garage handoff", "home handoffs", "roadside contact resume", "resume roadside contact"]
   },
   {
     title: "Anton Owner Check",
@@ -127,8 +127,8 @@ export const searchIndex = [
     title: "Recent Work Search Strip",
     url: "garage.html#diagnostic-activity",
     category: "Navigation",
-    excerpt: "Global Search strip that appears when this iPhone has saved diagnostic notes, diagnostic call drafts, first checks, roadside handoffs, service receipts, or Garage notes, letting the owner resume recent work from any page.",
-    keywords: ["recent work search strip", "recent owner work", "continue recent work", "last diagnostic note", "latest diagnostic note", "saved diagnostic note", "diagnostic call draft", "diagnostic first checks", "garage diagnostic activity", "last roadside note", "latest service receipt", "garage notes shortcut", "recent handoff", "iphone recent work"]
+    excerpt: "Global Search strip that appears when this iPhone has saved diagnostic notes, diagnostic call drafts, first checks, roadside contacts, roadside handoffs, service receipts, or Garage notes, letting the owner resume recent work from any page.",
+    keywords: ["recent work search strip", "recent owner work", "continue recent work", "last diagnostic note", "latest diagnostic note", "saved diagnostic note", "diagnostic call draft", "diagnostic first checks", "garage diagnostic activity", "last roadside note", "roadside contact", "roadside contact resume", "latest service receipt", "garage notes shortcut", "recent handoff", "iphone recent work"]
   },
   {
     title: "Garage Recent Handoffs",

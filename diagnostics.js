@@ -463,6 +463,7 @@ function latestDiagnosticResumeItems() {
       summary: receipt.summary || "Saved diagnostic note on this iPhone.",
       detail: receipt.reference ? `Route: ${receipt.reference}` : "Route: Diagnostics",
       savedAt: receipt.savedAt || "",
+      href: "#diagnostic-share-builder",
       text: receipt.text || ""
     });
   }
@@ -475,6 +476,7 @@ function latestDiagnosticResumeItems() {
       summary: `${markedCount} of ${latestCheck.plan.checks.length} checks marked.`,
       detail: latestCheck.detail || latestCheck.plan.next,
       savedAt: latestCheck.updatedAt || "",
+      href: "#first-check-tracker",
       text: buildDiagnosticCheckText(latestCheck.plan, latestCheck.markedChecks, latestCheck.detail)
     });
   }
@@ -487,6 +489,7 @@ function latestDiagnosticResumeItems() {
       summary: call.truckStatus || call.ask || "Diagnostic call details saved on this iPhone.",
       detail: call.callback ? `Callback: ${call.callback}` : "Open Call Summary to finish the ask.",
       savedAt: call.updatedAt || "",
+      href: "#diagnostic-call-summary",
       text: [
         `Ridgeline diagnostic call summary for ${target}`,
         call.truckStatus ? `Truck status: ${call.truckStatus}` : "",
@@ -616,6 +619,11 @@ function renderDiagnosticResumeCards() {
       root.querySelector("[data-diagnostic-resume-title]").textContent = "No saved diagnostic thread yet";
       root.querySelector("[data-diagnostic-resume-summary]").textContent =
         "Save a handoff, mark first checks, or draft a call summary to make this iPhone resume the thread here.";
+      const openLatest = root.querySelector("[data-diagnostic-resume-open]");
+      if (openLatest) {
+        openLatest.setAttribute("href", "#diagnostic-decision-guide");
+        openLatest.textContent = "Start Guide";
+      }
       const list = root.querySelector("[data-diagnostic-resume-list]");
       list.innerHTML = "";
       const li = document.createElement("li");
@@ -632,6 +640,11 @@ function renderDiagnosticResumeCards() {
     root.querySelector("[data-diagnostic-resume-kicker]").textContent = latest.label;
     root.querySelector("[data-diagnostic-resume-title]").textContent = latest.title;
     root.querySelector("[data-diagnostic-resume-summary]").textContent = latest.summary;
+    const openLatest = root.querySelector("[data-diagnostic-resume-open]");
+    if (openLatest) {
+      openLatest.setAttribute("href", latest.href || "#diagnostic-call-summary");
+      openLatest.textContent = `Open ${latest.label}`;
+    }
 
     const list = root.querySelector("[data-diagnostic-resume-list]");
     list.innerHTML = "";

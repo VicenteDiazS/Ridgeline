@@ -7,6 +7,7 @@ const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
 const DRIVE_MAP_LAST_SNAPSHOT_KEY = "ridgeline-drive-map-last-snapshot";
+const ROADSIDE_CONTACT_KEY = "ridgeline-roadside-contact-card";
 const HOME_RESUME_NOTE_TYPES = [
   { match: /roadside|live roadside/i, label: "Roadside note", href: "quick-sheet.html#roadside-action-stack" },
   { match: /first checks|diagnostic|warning light|no-start|12v|audio|trailer-light/i, label: "Diagnostic note", href: "diagnostics.html#first-check-tracker" },
@@ -167,6 +168,36 @@ function diagnosticCallResumeItem() {
   };
 }
 
+function hasHomeRoadsideContact(contact) {
+  return ["location", "callback", "helper", "eta"].some((key) => `${contact?.[key] || ""}`.trim());
+}
+
+function roadsideContactResumeItem() {
+  const contact = readStoredJson(ROADSIDE_CONTACT_KEY, {});
+  if (!hasHomeRoadsideContact(contact)) {
+    return null;
+  }
+
+  const lines = [
+    "Ridgeline roadside contact card",
+    contact.location ? `Location / landmark: ${contact.location}` : "",
+    contact.callback ? `Callback / party: ${contact.callback}` : "",
+    contact.helper ? `Help / tow detail: ${contact.helper}` : "",
+    contact.eta ? `ETA / next check: ${contact.eta}` : "",
+    contact.updatedAt ? `Updated: ${formatDate(contact.updatedAt)}` : "",
+    "Use current roadside conditions, local emergency guidance, truck labels, and the owner's manual as final authority."
+  ].filter(Boolean);
+
+  return {
+    title: contact.location || contact.helper || contact.callback || "Roadside contact card",
+    label: "Roadside contact",
+    body: lines.join("\n"),
+    href: "quick-sheet.html#roadside-arrival-pack",
+    source: "Quick Sheet",
+    at: homeResumeTimestamp(contact.updatedAt)
+  };
+}
+
 function driveMapResumeItem() {
   const snapshot = readStoredJson(DRIVE_MAP_LAST_SNAPSHOT_KEY, null);
   const at = homeResumeTimestamp(snapshot?.timestamp);
@@ -198,6 +229,7 @@ function getHomeResumeItems() {
   const roadsideSession = readStoredJson("ridgeline-roadside-live-session", null);
   const diagnosticReceipt = readStoredJson("ridgeline-diagnostic-last-handoff", null);
   const fuseNote = readStoredJson("ridgeline-fuse-check-last-note", null);
+  const roadsideContact = roadsideContactResumeItem();
 
   if (roadsideReceipt?.text) {
     items.unshift({
@@ -227,6 +259,10 @@ function getHomeResumeItems() {
       source: "Quick Sheet",
       at: homeResumeTimestamp(roadsideSession.startedAt)
     });
+  }
+
+  if (roadsideContact) {
+    items.unshift(roadsideContact);
   }
 
   if (diagnosticReceipt?.text) {
@@ -282,6 +318,9 @@ function homeResumeActionForItem(item) {
 
   if (label.includes("roadside session")) {
     return { kicker: "Live", title: "Continue Roadside", href: item.href };
+  }
+  if (label.includes("roadside contact")) {
+    return { kicker: "Contact", title: "Open Arrival", href: item.href };
   }
   if (label.includes("roadside")) {
     return { kicker: "Roadside", title: "Open Stack", href: item.href };
@@ -441,6 +480,7 @@ function renderHomeResumePanel() {
 window.addEventListener("storage", renderHomeResumePanel);
 window.addEventListener("ridgeline:storage-hydrated", () => window.setTimeout(renderHomeResumePanel, 250));
 window.addEventListener("ridgeline:quick-capture-saved", () => window.setTimeout(renderHomeResumePanel, 250));
+window.addEventListener("ridgeline:roadside-contact-saved", () => window.setTimeout(renderHomeResumePanel, 250));
 
 function firstUsefulLine(value = "") {
   return `${value}`
