@@ -6210,6 +6210,44 @@ function buildDiagnosticCallRecentItem() {
   };
 }
 
+function buildDiagnosticCheckRecentItem() {
+  const checks = readSearchStorage("ridgeline-diagnostic-first-checks", {});
+  const timestamp = (value) => {
+    const date = new Date(value || "");
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  };
+  const latest = Object.entries(checks || {})
+    .map(([planKey, value]) => ({
+      planKey,
+      value: value || {},
+      at: timestamp(value?.updatedAt)
+    }))
+    .filter((entry) => entry.at || entry.value?.detail || entry.value?.markedChecks?.length)
+    .sort((a, b) => b.at - a.at)[0];
+
+  if (!latest) {
+    return null;
+  }
+
+  const planLabels = {
+    start: "No start",
+    warning: "Warning light",
+    power: "12V power",
+    audio: "Audio/display",
+    trailer: "Trailer lights"
+  };
+  const markedCount = Array.isArray(latest.value.markedChecks) ? latest.value.markedChecks.length : 0;
+  const label = planLabels[latest.planKey] || "Diagnostic";
+  return {
+    label: "First checks",
+    detail: shortSearchText(
+      latest.value.detail || `${markedCount} ${markedCount === 1 ? "check" : "checks"} marked for ${label.toLowerCase()}`
+    ),
+    meta: formatSearchRecentDate(latest.value.updatedAt),
+    href: "diagnostics.html#first-check-tracker"
+  };
+}
+
 function buildSearchRecentItems() {
   const items = [];
   const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
@@ -6218,6 +6256,7 @@ function buildSearchRecentItems() {
   const maintenanceLog = readSearchStorage("ridgeline-maintenance-log", []);
   const notes = readSearchStorage("ridgeline-notes", {});
   const diagnosticCall = buildDiagnosticCallRecentItem();
+  const diagnosticChecks = buildDiagnosticCheckRecentItem();
 
   if (diagnostic?.title || diagnostic?.summary || diagnostic?.reference) {
     items.push({
@@ -6245,6 +6284,10 @@ function buildSearchRecentItems() {
       meta: "Open diagnostics",
       href: "garage.html#diagnostic-activity"
     });
+  }
+
+  if (diagnosticChecks) {
+    items.push(diagnosticChecks);
   }
 
   const hasSavedRoadsideNote = Boolean(roadside?.title || roadside?.summary);

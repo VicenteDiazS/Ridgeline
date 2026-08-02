@@ -127,8 +127,8 @@ export const searchIndex = [
     title: "Recent Work Search Strip",
     url: "garage.html#diagnostic-activity",
     category: "Navigation",
-    excerpt: "Global Search strip that appears when this iPhone has saved diagnostic notes, roadside handoffs, service receipts, or Garage notes, letting the owner resume recent work from any page.",
-    keywords: ["recent work search strip", "recent owner work", "continue recent work", "last diagnostic note", "latest diagnostic note", "saved diagnostic note", "garage diagnostic activity", "last roadside note", "latest service receipt", "garage notes shortcut", "recent handoff", "iphone recent work"]
+    excerpt: "Global Search strip that appears when this iPhone has saved diagnostic notes, diagnostic call drafts, first checks, roadside handoffs, service receipts, or Garage notes, letting the owner resume recent work from any page.",
+    keywords: ["recent work search strip", "recent owner work", "continue recent work", "last diagnostic note", "latest diagnostic note", "saved diagnostic note", "diagnostic call draft", "diagnostic first checks", "garage diagnostic activity", "last roadside note", "latest service receipt", "garage notes shortcut", "recent handoff", "iphone recent work"]
   },
   {
     title: "Garage Recent Handoffs",

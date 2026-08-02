@@ -249,6 +249,7 @@ function renderHomeResumePanel() {
   const summaryNode = homeResumePanel.querySelector("[data-home-resume-summary]");
   const copyButton = homeResumePanel.querySelector("[data-home-resume-copy]");
   const openLink = homeResumePanel.querySelector("[data-home-resume-open]");
+  const routesNode = homeResumePanel.querySelector("[data-home-resume-routes]");
   const statusNode = homeResumePanel.querySelector("[data-home-resume-status]");
   const items = getHomeResumeItems();
   const latest = items[0];
@@ -290,8 +291,34 @@ function renderHomeResumePanel() {
     openLink.textContent = latest ? "Open Latest" : "Open Handoffs";
     openLink.toggleAttribute("aria-disabled", !latest);
   }
+  if (routesNode) {
+    const seen = new Set();
+    const routes = items
+      .filter((item) => item?.href)
+      .filter((item) => {
+        const key = `${item.label}|${item.href}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 3);
+
+    routesNode.hidden = !routes.length;
+    routesNode.innerHTML = routes
+      .map((item) => `
+        <a href="${escapeHtml(item.href)}">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(compactNoteBody(item.title, 46))}</strong>
+        </a>
+      `)
+      .join("");
+  }
   if (statusNode) {
-    statusNode.textContent = latest ? "Latest local note is ready to copy or reopen at its source route." : "";
+    statusNode.textContent = latest
+      ? "Latest local note is ready to copy; recent routes stay one tap below."
+      : "";
   }
 }
 

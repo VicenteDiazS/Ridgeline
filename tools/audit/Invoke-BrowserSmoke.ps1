@@ -446,6 +446,25 @@ async def assert_home_anton_status(page, page_name):
             localStorage.setItem("ridgeline-notes", JSON.stringify({
                 general_notes: "[2026-05-24 - Diagnostic Note: Warning light]\\nContext: amber warning on first start.\\nNext: open Garage Recent Handoffs."
             }));
+            localStorage.setItem("ridgeline-diagnostic-call-summary", JSON.stringify({
+                target: "Tow or roadside help",
+                truckStatus: "parked with amber warning after restart",
+                callback: "text first",
+                ask: "confirm whether to tow or continue",
+                updatedAt: "2026-05-24T18:15:00.000Z"
+            }));
+            localStorage.setItem("ridgeline-diagnostic-first-checks", JSON.stringify({
+                warning: {
+                    markedChecks: ["Record exact dash/MID wording", "Check whether warning returns after restart"],
+                    detail: "amber warning returned after restart",
+                    updatedAt: "2026-05-24T18:10:00.000Z"
+                }
+            }));
+            localStorage.setItem("ridgeline-roadside-live-session", JSON.stringify({
+                planKey: "warning",
+                startedAt: "2026-05-24T18:05:00.000Z",
+                checkpoints: [{ label: "Stopped safely" }]
+            }));
         }"""
     )
     await page.reload(wait_until="load")
@@ -455,6 +474,10 @@ async def assert_home_anton_status(page, page_name):
             const panel = document.querySelector("[data-home-resume-work]");
             const rect = panel?.getBoundingClientRect();
             const actions = [...panel?.querySelectorAll("a") || []].map((link) => link.getAttribute("href"));
+            const routeLinks = [...panel?.querySelectorAll("[data-home-resume-routes] a") || []].map((link) => ({
+                href: link.getAttribute("href"),
+                text: link.textContent || ""
+            }));
             const button = panel?.querySelector("[data-home-resume-copy]");
             const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
             return {
@@ -464,6 +487,7 @@ async def assert_home_anton_status(page, page_name):
                 text: panel?.textContent || "",
                 copyEnabled: Boolean(button && !button.disabled),
                 actions,
+                routeLinks,
                 overflow: width > document.documentElement.clientWidth + 1
             };
         }"""
@@ -472,10 +496,13 @@ async def assert_home_anton_status(page, page_name):
     assert_true(resume_state["visible"], "home resume work panel is not visible")
     assert_true(resume_state["state"] == "ready", "home resume work panel did not detect seeded Garage Notes")
     assert_true(resume_state["copyEnabled"], "home resume work Copy Latest button should enable with seeded notes")
-    for phrase in ["Resume Work", "Diagnostic note", "Garage Notes", "Recent Handoffs"]:
+    for phrase in ["Resume Work", "Diagnostic call", "Diagnostics has", "Recent Handoffs"]:
         assert_true(phrase in resume_state["text"], f"home resume work panel is missing {phrase}")
-    for href in ["garage.html#recent-handoffs", "quick-sheet.html#roadside-action-stack", "diagnostics.html#first-check-tracker"]:
+    for href in ["garage.html#recent-handoffs", "quick-sheet.html#roadside-action-stack", "diagnostics.html#diagnostic-call-summary", "diagnostics.html#first-check-tracker", "quick-sheet.html?roadside=warning#roadside-action-stack"]:
         assert_true(href in resume_state["actions"], f"home resume work panel is missing route {href}")
+    assert_true(len(resume_state["routeLinks"]) == 3, "home resume work should show three compact recent routes")
+    for phrase in ["Diagnostic call", "Diagnostic checks", "Roadside session"]:
+        assert_true(any(phrase in route["text"] for route in resume_state["routeLinks"]), f"home resume route row is missing {phrase}")
     assert_true(not resume_state["overflow"], "home resume work panel introduced desktop horizontal overflow")
     await page.set_viewport_size({"width": 390, "height": 844})
     await page.wait_for_timeout(250)
@@ -4899,6 +4926,60 @@ async def run_overlay_checks(page, page_name):
     assert_true(not quick_state["recentMissing"], f"search recent work strip is missing routes: {quick_state['recentMissing']}")
     for phrase in ["Recent Work", "Diagnostic note", "Roadside note", "Service receipt"]:
         assert_true(phrase in quick_state["recentText"], f"search recent work strip is missing {phrase}")
+    await page.locator("[data-close-search]").last.click()
+    await page.wait_for_timeout(150)
+    await page.evaluate(
+        """() => {
+            localStorage.removeItem("ridgeline-diagnostic-last-handoff");
+            localStorage.removeItem("ridgeline-roadside-last-handoff");
+            localStorage.setItem("ridgeline-maintenance-log", JSON.stringify([]));
+            localStorage.setItem("ridgeline-notes", JSON.stringify({}));
+            localStorage.setItem("ridgeline-diagnostic-call-summary", JSON.stringify({
+                target: "Tow or roadside help",
+                truckStatus: "parked with amber warning after restart",
+                callback: "text first",
+                ask: "confirm whether to tow or continue",
+                updatedAt: "2026-05-24T18:15:00.000Z"
+            }));
+            localStorage.setItem("ridgeline-diagnostic-first-checks", JSON.stringify({
+                warning: {
+                    markedChecks: ["Record exact dash/MID wording", "Check whether warning returns after restart"],
+                    detail: "amber warning returned after restart",
+                    updatedAt: "2026-05-24T18:10:00.000Z"
+                }
+            }));
+            localStorage.setItem("ridgeline-roadside-live-session", JSON.stringify({
+                planKey: "warning",
+                startedAt: "2026-05-24T18:05:00.000Z",
+                checkpoints: [{ label: "Stopped safely" }]
+            }));
+        }"""
+    )
+    await page.locator("[data-open-search]").first.click()
+    await page.wait_for_timeout(300)
+    recent_resume_state = await page.evaluate(
+        """() => {
+            const recent = document.querySelector("[data-search-recent-work]");
+            const links = [...recent?.querySelectorAll("[data-search-recent-list] a") || []].map((link) => ({
+                href: link.getAttribute("href"),
+                text: link.textContent || ""
+            }));
+            const width = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+            return {
+                hasRecent: Boolean(recent && !recent.hidden),
+                links,
+                text: recent?.textContent || "",
+                overflow: width > document.documentElement.clientWidth + 1
+            };
+        }"""
+    )
+    assert_true(recent_resume_state["hasRecent"], "search recent work strip should appear for diagnostic drafts and live roadside session")
+    assert_true(len(recent_resume_state["links"]) == 3, "search recent work should show call draft, first checks, and live roadside when no saved handoff exists")
+    for href in ["diagnostics.html#diagnostic-call-summary", "diagnostics.html#first-check-tracker", "quick-sheet.html?roadside=warning#roadside-action-stack"]:
+        assert_true(any(link["href"] == href for link in recent_resume_state["links"]), f"search diagnostic resume routes are missing {href}")
+    for phrase in ["Call draft", "First checks", "Live roadside"]:
+        assert_true(phrase in recent_resume_state["text"], f"search diagnostic resume routes are missing {phrase}")
+    assert_true(not recent_resume_state["overflow"], "search diagnostic resume routes introduced horizontal overflow")
     assert_true("Offline pack" in quick_state["offlineText"], "search offline launch pad should show offline pack status")
     assert_true("Before Signal Drops" in quick_state["offlineText"], "search offline launch pad should include signal-loss prep")
     assert_true("Print Sheet" in quick_state["offlineText"], "search offline launch pad should include the Quick Sheet print route")

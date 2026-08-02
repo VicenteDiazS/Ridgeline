@@ -23,7 +23,7 @@ Last updated: 2026-08-02
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is currently `ridgeline-console-v443`.
+- The PWA cache is currently `ridgeline-console-v445`.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
@@ -38,6 +38,7 @@ Last updated: 2026-08-02
 - Home Resume Work now preserves live roadside situation context when reopening the Quick Sheet action stack, refreshes after local memory hydration/capture events, and handles unavailable Clipboard API without throwing.
 - Quick Sheet Roadside Command now includes a top-card Check Routes action that updates the shared offline route receipt, command cache chip, and roadside dispatch route-cache summary without requiring a scroll into the offline pack.
 - Global Search Recent Work can surface a diagnostic call draft when no saved diagnostic receipt exists, so an iPhone user can resume a locally drafted shop/tow call from Search.
+- Home Resume Work now shows up to three compact recent source routes under the latest local note, and Global Search Recent Work can show a diagnostic call draft, first-check tracker state, and live roadside session together when no saved handoff has been created yet.
 
 ## Current Queue
 
@@ -89,6 +90,7 @@ Last updated: 2026-08-02
 - Restored the Home Anton latest-impact card markup so the existing status renderer and iPhone audit target have a visible compact card again.
 - Promoted Diagnostics First Checks/Call Summary and Quick Sheet no-start/contact/live/dispatch paths into direct iPhone routes.
 - Added Home resume live-roadside deep-link preservation and copy fallback hardening, plus a Quick Sheet Roadside Command Check Routes button that syncs the top command card with offline route readiness.
+- Added Home Resume Work recent-route chips and Global Search first-check resume support so diagnostic call drafts, first checks, and live roadside sessions are reachable from the iPhone front door and search modal.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
 - Added Garage Recent Handoffs type filters for faster iPhone review of saved handoffs.
@@ -129,7 +131,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added Home resume live-roadside deep-link preservation/copy fallback hardening, Quick Sheet Roadside Command Check Routes, Search diagnostic-call draft surfacing, and bumped the PWA cache to `ridgeline-console-v443`. `node --check agent-status.js`, `node --check shared-ui.js`, `node --check quick-sheet.js`, `node --check search-data.js`, `node --check service-worker.js`, `git diff --check`, and `Test-InternalLinks.ps1` passed. A direct localhost Edge/Playwright iPhone probe passed for seeded Home live warning-light roadside resume (`quick-sheet.html?roadside=warning#roadside-action-stack`), Quick Sheet top Check Routes (`6/6 routes cached` in the local cache), visible offline receipt, and no horizontal overflow. `Invoke-BrowserSmoke.ps1 -Pages @('index.html','quick-sheet.html')` timed out again, matching the current wrapper-health caution.
+- Anton's latest scheduled run added Home Resume Work recent-route chips, Global Search first-check resume support, Search smoke coverage for diagnostic draft/check/session recent-work routes, and bumped the PWA cache to `ridgeline-console-v445`. `node --check agent-status.js`, `node --check shared-ui.js`, `node --check search-data.js`, `node --check service-worker.js`, `git diff --check`, `Test-InternalLinks.ps1`, and a PowerShell parse check for `Invoke-BrowserSmoke.ps1` passed. Direct localhost Edge/Playwright iPhone probes passed for seeded Home resume routes (`diagnostics.html#diagnostic-call-summary`, `diagnostics.html#first-check-tracker`, and `quick-sheet.html?roadside=warning#roadside-action-stack`) and Global Search Recent Work showing Call draft / First checks / Live roadside at 390px with no horizontal overflow. `Invoke-BrowserSmoke.ps1 -Pages @('index.html')` timed out again, matching the current wrapper-health caution.
 
 ## Archive
 

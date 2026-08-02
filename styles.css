@@ -15547,6 +15547,15 @@ body[data-site-theme="light"] .diagnostic-local-resume-card li span {
     font-size: 0.68rem;
   }
 
+  .home-resume-routes {
+    grid-template-columns: 1fr;
+  }
+
+  .home-resume-routes a {
+    min-height: 38px;
+    padding: 6px 8px;
+  }
+
   .collapsible-card-head {
     align-items: start;
   }
@@ -20307,6 +20316,45 @@ select:focus {
   opacity: 0.58;
 }
 
+.home-resume-routes {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.home-resume-routes[hidden] {
+  display: none;
+}
+
+.home-resume-routes a {
+  display: grid;
+  min-height: 42px;
+  align-content: center;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid rgba(121, 212, 255, 0.18);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.045);
+  overflow-wrap: anywhere;
+}
+
+.home-resume-routes span {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-resume-routes strong {
+  color: #f5fbff;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
 .home-resume-panel .small-note {
   grid-column: 1 / -1;
   margin-top: -2px;
@@ -22106,6 +22154,7 @@ body[data-site-theme="light"] .viewer-console,
 body[data-site-theme="light"] .home-status-pill,
 body[data-site-theme="light"] .home-quick-strip a,
 body[data-site-theme="light"] .home-resume-panel,
+body[data-site-theme="light"] .home-resume-routes a,
 body[data-site-theme="light"] .viewer-tools-button,
 body[data-site-theme="light"] .viewer-toggle,
 body[data-site-theme="light"] .viewer-link,
