@@ -99,8 +99,8 @@ export const searchIndex = [
     title: "Roadside Command",
     url: "quick-sheet.html#roadside-command",
     category: "Quick Sheet",
-    excerpt: "Top Quick Sheet command card for checking roadside readiness, starting a live roadside session, and copying the dispatch pack without scrolling into the full stack.",
-    keywords: ["roadside command", "start roadside session", "copy roadside dispatch", "roadside readiness", "top roadside command", "quick sheet command", "iphone roadside command", "live roadside session", "dispatch pack"]
+    excerpt: "Top Quick Sheet command card for checking cached roadside routes, reviewing readiness, starting a live roadside session, and copying the dispatch pack without scrolling into the full stack.",
+    keywords: ["roadside command", "check roadside routes", "check cached routes", "cached roadside routes", "start roadside session", "copy roadside dispatch", "roadside readiness", "top roadside command", "quick sheet command", "iphone roadside command", "live roadside session", "dispatch pack"]
   },
   {
     title: "Owner Shortcut Strip",

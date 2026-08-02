@@ -186,8 +186,10 @@ function getHomeResumeItems() {
 
   if (roadsideSession?.startedAt || roadsideSession?.checkpoints?.length) {
     const checkpoints = Array.isArray(roadsideSession.checkpoints) ? roadsideSession.checkpoints : [];
+    const planKey = `${roadsideSession.planKey || "flat"}`.trim().toLowerCase();
+    const routeKey = ["flat", "start", "warning", "trailer"].includes(planKey) ? planKey : "flat";
     const body = [
-      `Live roadside session: ${roadsideSession.planKey || "roadside"}`,
+      `Live roadside session: ${routeKey}`,
       roadsideSession.startedAt ? `Started: ${formatDate(roadsideSession.startedAt)}` : "",
       checkpoints.length ? `Checkpoints: ${checkpoints.map((item) => item.label || item).join(", ")}` : "No checkpoints marked yet."
     ].filter(Boolean).join("\n");
@@ -195,7 +197,7 @@ function getHomeResumeItems() {
       title: "Live roadside session",
       label: "Roadside session",
       body,
-      href: "quick-sheet.html#roadside-action-stack",
+      href: `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`,
       source: "Quick Sheet",
       at: homeResumeTimestamp(roadsideSession.startedAt)
     });
@@ -267,7 +269,10 @@ function renderHomeResumePanel() {
       if (!latest) {
         return;
       }
-      navigator.clipboard?.writeText(latest.body)
+      const write = navigator.clipboard?.writeText
+        ? navigator.clipboard.writeText(latest.body)
+        : Promise.reject(new Error("Clipboard unavailable"));
+      write
         .then(() => {
           if (statusNode) {
             statusNode.textContent = `Copied ${latest.label.toLowerCase()}.`;
@@ -289,6 +294,10 @@ function renderHomeResumePanel() {
     statusNode.textContent = latest ? "Latest local note is ready to copy or reopen at its source route." : "";
   }
 }
+
+window.addEventListener("storage", renderHomeResumePanel);
+window.addEventListener("ridgeline:storage-hydrated", () => window.setTimeout(renderHomeResumePanel, 250));
+window.addEventListener("ridgeline:quick-capture-saved", () => window.setTimeout(renderHomeResumePanel, 250));
 
 function firstUsefulLine(value = "") {
   return `${value}`

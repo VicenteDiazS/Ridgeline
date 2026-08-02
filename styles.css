@@ -20248,8 +20248,19 @@ select:focus {
     rgba(8, 15, 23, 0.7);
 }
 
+.home-resume-panel[data-resume-state="ready"]::before {
+  content: "";
+  position: absolute;
+  inset: 10px auto 10px 9px;
+  width: 3px;
+  border-radius: 999px;
+  background: #68ffbe;
+  box-shadow: 0 0 16px rgba(104, 255, 190, 0.34);
+}
+
 .home-resume-copy {
   min-width: 0;
+  padding-left: 7px;
 }
 
 .home-resume-copy span {
@@ -20289,6 +20300,11 @@ select:focus {
   justify-content: center;
   min-height: 38px;
   padding-inline: 8px;
+}
+
+.home-resume-actions .utility-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .home-resume-panel .small-note {

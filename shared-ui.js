@@ -6194,6 +6194,22 @@ function renderSearchResumeWork() {
   });
 }
 
+function buildDiagnosticCallRecentItem() {
+  const call = readSearchStorage("ridgeline-diagnostic-call-summary", {});
+  const hasUsefulCall = ["truckStatus", "callback", "ask"].some((key) => `${call?.[key] || ""}`.trim());
+  if (!hasUsefulCall) {
+    return null;
+  }
+
+  const target = `${call.target || "Repair shop"}`.trim() || "Repair shop";
+  return {
+    label: "Call draft",
+    detail: shortSearchText(call.truckStatus || call.ask || `Diagnostic call summary for ${target}`),
+    meta: formatSearchRecentDate(call.updatedAt),
+    href: "diagnostics.html#diagnostic-call-summary"
+  };
+}
+
 function buildSearchRecentItems() {
   const items = [];
   const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
@@ -6201,6 +6217,7 @@ function buildSearchRecentItems() {
   const roadsideSession = readSearchStorage("ridgeline-roadside-live-session", null);
   const maintenanceLog = readSearchStorage("ridgeline-maintenance-log", []);
   const notes = readSearchStorage("ridgeline-notes", {});
+  const diagnosticCall = buildDiagnosticCallRecentItem();
 
   if (diagnostic?.title || diagnostic?.summary || diagnostic?.reference) {
     items.push({
@@ -6209,6 +6226,8 @@ function buildSearchRecentItems() {
       meta: formatSearchRecentDate(diagnostic.savedAt),
       href: "garage.html#diagnostic-activity"
     });
+  } else if (diagnosticCall) {
+    items.push(diagnosticCall);
   } else if (
     notes?.warning_light_indicator ||
     notes?.warning_light_mid_message ||

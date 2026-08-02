@@ -554,6 +554,26 @@ function startRoadsideSession(planKey = currentRoadsidePlanKey()) {
 
 function initRoadsideCommand() {
   document.querySelectorAll("[data-roadside-command]").forEach((root) => {
+    root.querySelector("[data-command-check-routes]")?.addEventListener("click", async () => {
+      setRoadsideCommandStatus(root, "Checking cached roadside routes...");
+      try {
+        const routeResults = await checkOfflineRoutes();
+        const receipt = saveOfflineRouteReceipt(routeResults, "checked");
+        const printPack = document.querySelector("[data-quick-print-pack]");
+        if (printPack) {
+          renderOfflineRouteResults(printPack, routeResults);
+          renderOfflineRouteReceipt(printPack, receipt);
+          setPrintPackStatus(printPack, `${receipt.readyCount}/${receipt.totalCount} key offline routes found from Roadside Command.`);
+        }
+        renderRoadsideCommand();
+        document.querySelectorAll("[data-roadside-stack]").forEach((stackRoot) => renderRoadsideDispatch(stackRoot));
+        setRoadsideCommandStatus(root, `${receipt.readyCount}/${receipt.totalCount} key offline routes found.`);
+      } catch (error) {
+        renderRoadsideCommand();
+        setRoadsideCommandStatus(root, "Could not inspect cached routes in this browser session.");
+      }
+    });
+
     root.querySelector("[data-command-start-session]")?.addEventListener("click", () => {
       const plan = startRoadsideSession();
       setRoadsideCommandStatus(root, `${plan.kicker} live session started on this iPhone.`);
