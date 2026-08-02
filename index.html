@@ -226,6 +226,7 @@
               <strong data-home-resume-title>Checking saved notes...</strong>
               <p data-home-resume-summary>Looking for recent roadside, diagnostic, fuse, tire, tow, or service notes on this iPhone.</p>
             </div>
+            <div class="home-resume-active-actions" data-home-resume-active-actions aria-label="Active work shortcuts"></div>
             <div class="home-resume-actions">
               <button class="utility-link utility-link-strong" type="button" data-home-resume-copy disabled>Copy Latest</button>
               <a class="utility-link utility-link-strong" href="garage.html#recent-handoffs" data-home-resume-open>Open Latest</a>
@@ -234,6 +235,10 @@
             </div>
             <div class="home-resume-routes" data-home-resume-routes aria-label="Recent saved work routes"></div>
             <p class="small-note" data-home-resume-status aria-live="polite"></p>
+            <div class="manual-copy-fallback home-resume-copy-fallback" data-home-resume-copy-fallback hidden>
+              <span>Copy blocked. Press and hold the text below.</span>
+              <textarea readonly rows="5" data-home-resume-manual-copy aria-label="Latest home resume text"></textarea>
+            </div>
           </section>
         </section>
 

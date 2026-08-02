@@ -46,6 +46,7 @@ const HUD_STORAGE_KEY = "ridgeline-drive-map-hud";
 const LOW_ATTENTION_STORAGE_KEY = "ridgeline-drive-map-low-attention";
 const PROXIMITY_STORAGE_KEY = "ridgeline-drive-map-proximity";
 const WAKE_LOCK_STORAGE_KEY = "ridgeline-drive-map-wake-lock";
+const LAST_SNAPSHOT_STORAGE_KEY = "ridgeline-drive-map-last-snapshot";
 const PROXIMITY_ALERT_OPTIONS = [0, 50, 100, 200];
 const BASE_MAPS = {
   standard: {
@@ -655,6 +656,11 @@ function onLocation(position) {
     heading,
     timestamp: position.timestamp || Date.now()
   };
+  try {
+    localStorage.setItem(LAST_SNAPSHOT_STORAGE_KEY, JSON.stringify(lastSnapshot));
+  } catch {
+    // Home resume can still work without the optional drive snapshot.
+  }
   if (Number.isFinite(heading)) {
     lastHeading = heading;
   }

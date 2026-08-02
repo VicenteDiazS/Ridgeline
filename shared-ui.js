@@ -6206,21 +6206,23 @@ function buildDiagnosticCallRecentItem() {
     label: "Call draft",
     detail: shortSearchText(call.truckStatus || call.ask || `Diagnostic call summary for ${target}`),
     meta: formatSearchRecentDate(call.updatedAt),
+    at: searchRecentTimestamp(call.updatedAt),
     href: "diagnostics.html#diagnostic-call-summary"
   };
 }
 
+function searchRecentTimestamp(value) {
+  const date = new Date(value || "");
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
 function buildDiagnosticCheckRecentItem() {
   const checks = readSearchStorage("ridgeline-diagnostic-first-checks", {});
-  const timestamp = (value) => {
-    const date = new Date(value || "");
-    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-  };
   const latest = Object.entries(checks || {})
     .map(([planKey, value]) => ({
       planKey,
       value: value || {},
-      at: timestamp(value?.updatedAt)
+      at: searchRecentTimestamp(value?.updatedAt)
     }))
     .filter((entry) => entry.at || entry.value?.detail || entry.value?.markedChecks?.length)
     .sort((a, b) => b.at - a.at)[0];
@@ -6244,7 +6246,29 @@ function buildDiagnosticCheckRecentItem() {
       latest.value.detail || `${markedCount} ${markedCount === 1 ? "check" : "checks"} marked for ${label.toLowerCase()}`
     ),
     meta: formatSearchRecentDate(latest.value.updatedAt),
+    at: latest.at,
     href: "diagnostics.html#first-check-tracker"
+  };
+}
+
+function buildDriveMapRecentItem() {
+  const snapshot = readSearchStorage("ridgeline-drive-map-last-snapshot", null);
+  const at = searchRecentTimestamp(snapshot?.timestamp);
+  if (!snapshot?.latitude || !snapshot?.longitude || !at) {
+    return null;
+  }
+
+  const lat = Number(snapshot.latitude).toFixed(4);
+  const lon = Number(snapshot.longitude).toFixed(4);
+  const accuracy = Number.isFinite(Number(snapshot.accuracy))
+    ? ` / ${Math.round(Number(snapshot.accuracy))} m`
+    : "";
+  return {
+    label: "Drive snapshot",
+    detail: shortSearchText(`${lat}, ${lon}${accuracy}`),
+    meta: formatSearchRecentDate(snapshot.timestamp),
+    at,
+    href: "drive-map.html#drive-map"
   };
 }
 
@@ -6257,12 +6281,14 @@ function buildSearchRecentItems() {
   const notes = readSearchStorage("ridgeline-notes", {});
   const diagnosticCall = buildDiagnosticCallRecentItem();
   const diagnosticChecks = buildDiagnosticCheckRecentItem();
+  const driveSnapshot = buildDriveMapRecentItem();
 
   if (diagnostic?.title || diagnostic?.summary || diagnostic?.reference) {
     items.push({
       label: "Diagnostic note",
       detail: shortSearchText(diagnostic.summary || diagnostic.title || "Last saved diagnostic handoff"),
       meta: formatSearchRecentDate(diagnostic.savedAt),
+      at: searchRecentTimestamp(diagnostic.savedAt),
       href: "garage.html#diagnostic-activity"
     });
   } else if (diagnosticCall) {
@@ -6282,6 +6308,7 @@ function buildSearchRecentItems() {
           "Saved warning-light diagnostic memory"
       ),
       meta: "Open diagnostics",
+      at: 0,
       href: "garage.html#diagnostic-activity"
     });
   }
@@ -6296,6 +6323,7 @@ function buildSearchRecentItems() {
       label: "Roadside note",
       detail: shortSearchText(roadside.summary || roadside.title || "Last saved roadside handoff"),
       meta: formatSearchRecentDate(roadside.savedAt),
+      at: searchRecentTimestamp(roadside.savedAt),
       href: "quick-sheet.html#roadside-action-stack"
     });
   }
@@ -6308,8 +6336,13 @@ function buildSearchRecentItems() {
       label: "Live roadside",
       detail: shortSearchText(`${checkpoints.length} ${checkpoints.length === 1 ? "checkpoint" : "checkpoints"} / ${routeKey}`),
       meta: formatSearchRecentDate(roadsideSession.startedAt),
+      at: searchRecentTimestamp(roadsideSession.startedAt),
       href: `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`
     });
+  }
+
+  if (driveSnapshot) {
+    items.push(driveSnapshot);
   }
 
   const latestService = Array.isArray(maintenanceLog) ? maintenanceLog[0] : null;
@@ -6319,6 +6352,7 @@ function buildSearchRecentItems() {
       label: "Service receipt",
       detail: shortSearchText(`${serviceLabel}${latestService.mileageText ? ` at ${latestService.mileageText}` : ""}`),
       meta: formatSearchRecentDate(latestService.createdAt || latestService.date),
+      at: searchRecentTimestamp(latestService.createdAt || latestService.date),
       href: "maintenance.html#maintenance-updater"
     });
   }
@@ -6328,11 +6362,12 @@ function buildSearchRecentItems() {
       label: "Garage notes",
       detail: shortSearchText(notes.general_notes),
       meta: "Open saved notes",
+      at: 0,
       href: "garage.html#notes"
     });
   }
 
-  return items.slice(0, 3);
+  return items.sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 3);
 }
 
 function renderSearchRecentWork() {

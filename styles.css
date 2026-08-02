@@ -15559,6 +15559,10 @@ body[data-site-theme="light"] .diagnostic-local-resume-card li span {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .home-resume-active-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-resume-actions .utility-link {
     min-height: 36px;
     font-size: 0.68rem;
@@ -20322,6 +20326,47 @@ select:focus {
   gap: 6px;
 }
 
+.home-resume-active-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.home-resume-active-actions[hidden] {
+  display: none;
+}
+
+.home-resume-active-actions a {
+  display: grid;
+  min-height: 42px;
+  align-content: center;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid rgba(104, 255, 190, 0.2);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  background:
+    linear-gradient(180deg, rgba(104, 255, 190, 0.09), rgba(255, 255, 255, 0.022)),
+    rgba(255, 255, 255, 0.042);
+  overflow-wrap: anywhere;
+}
+
+.home-resume-active-actions span {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-resume-active-actions strong {
+  color: #ecfff8;
+  font-size: 0.75rem;
+  line-height: 1.18;
+}
+
 .home-resume-actions .utility-link {
   justify-content: center;
   min-height: 38px;
@@ -20375,6 +20420,10 @@ select:focus {
 .home-resume-panel .small-note {
   grid-column: 1 / -1;
   margin-top: -2px;
+}
+
+.home-resume-copy-fallback {
+  grid-column: 1 / -1;
 }
 
 .home-anton-spotlight {
@@ -22260,6 +22309,7 @@ body[data-site-theme="light"] .viewer-console,
 body[data-site-theme="light"] .home-status-pill,
 body[data-site-theme="light"] .home-quick-strip a,
 body[data-site-theme="light"] .home-resume-panel,
+body[data-site-theme="light"] .home-resume-active-actions a,
 body[data-site-theme="light"] .home-resume-routes a,
 body[data-site-theme="light"] .viewer-tools-button,
 body[data-site-theme="light"] .viewer-toggle,

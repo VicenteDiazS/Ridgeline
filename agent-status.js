@@ -6,6 +6,7 @@ const STALE_RUNNING_MINUTES = 20;
 const DEFAULT_CONTROL_URL = "http://127.0.0.1:8765";
 const CONTROL_URL_KEY = "ridgelineAntonControlUrl";
 const CONTROL_TOKEN_KEY = "ridgelineAntonControlToken";
+const DRIVE_MAP_LAST_SNAPSHOT_KEY = "ridgeline-drive-map-last-snapshot";
 const HOME_RESUME_NOTE_TYPES = [
   { match: /roadside|live roadside/i, label: "Roadside note", href: "quick-sheet.html#roadside-action-stack" },
   { match: /first checks|diagnostic|warning light|no-start|12v|audio|trailer-light/i, label: "Diagnostic note", href: "diagnostics.html#first-check-tracker" },
@@ -166,6 +167,31 @@ function diagnosticCallResumeItem() {
   };
 }
 
+function driveMapResumeItem() {
+  const snapshot = readStoredJson(DRIVE_MAP_LAST_SNAPSHOT_KEY, null);
+  const at = homeResumeTimestamp(snapshot?.timestamp);
+  if (!snapshot?.latitude || !snapshot?.longitude || !at) {
+    return null;
+  }
+
+  const lat = Number(snapshot.latitude).toFixed(5);
+  const lon = Number(snapshot.longitude).toFixed(5);
+  return {
+    title: "Latest drive location snapshot",
+    label: "Drive snapshot",
+    body: [
+      "Ridgeline drive snapshot",
+      `Location: ${lat}, ${lon}`,
+      Number.isFinite(Number(snapshot.accuracy)) ? `Accuracy: ${Math.round(Number(snapshot.accuracy))} m` : "",
+      Number.isFinite(Number(snapshot.speed)) ? `Speed: ${Math.round(Number(snapshot.speed) * 2.236936)} mph` : "",
+      `Updated: ${formatDate(snapshot.timestamp)}`
+    ].filter(Boolean).join("\n"),
+    href: "drive-map.html#drive-map",
+    source: "Drive Map",
+    at
+  };
+}
+
 function getHomeResumeItems() {
   const items = parseGarageGeneralNotes();
   const roadsideReceipt = readStoredJson("ridgeline-roadside-last-handoff", null);
@@ -235,9 +261,69 @@ function getHomeResumeItems() {
     });
   }
 
+  const driveSnapshot = driveMapResumeItem();
+  if (driveSnapshot) {
+    items.unshift(driveSnapshot);
+  }
+
   return items
     .sort((a, b) => (b.at || 0) - (a.at || 0))
     .slice(0, 8);
+}
+
+function homeResumeActionForItem(item) {
+  const label = `${item?.label || ""}`.toLowerCase();
+  const source = `${item?.source || ""}`.toLowerCase();
+  const fallback = {
+    kicker: item?.source || "Resume",
+    title: item?.label || "Open latest",
+    href: item?.href || "garage.html#recent-handoffs"
+  };
+
+  if (label.includes("roadside session")) {
+    return { kicker: "Live", title: "Continue Roadside", href: item.href };
+  }
+  if (label.includes("roadside")) {
+    return { kicker: "Roadside", title: "Open Stack", href: item.href };
+  }
+  if (label.includes("diagnostic call")) {
+    return { kicker: "Call", title: "Finish Summary", href: item.href };
+  }
+  if (label.includes("diagnostic checks")) {
+    return { kicker: "Checks", title: "Resume Checks", href: item.href };
+  }
+  if (label.includes("diagnostic")) {
+    return { kicker: "Diag", title: "Share Symptom", href: item.href };
+  }
+  if (label.includes("drive") || source.includes("drive")) {
+    return { kicker: "GPS", title: "Open Map", href: item.href };
+  }
+  if (label.includes("service")) {
+    return { kicker: "Service", title: "Follow Up", href: item.href };
+  }
+  if (label.includes("fuse")) {
+    return { kicker: "Fuse", title: "Review Fuse", href: item.href };
+  }
+  if (label.includes("tire")) {
+    return { kicker: "Tire", title: "Recheck Tire", href: item.href };
+  }
+
+  return fallback;
+}
+
+function getHomeResumeActions(items = []) {
+  const seen = new Set();
+  return items
+    .map(homeResumeActionForItem)
+    .filter((action) => {
+      const key = `${action.kicker}|${action.title}|${action.href}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 4);
 }
 
 function renderHomeResumePanel() {
@@ -249,8 +335,11 @@ function renderHomeResumePanel() {
   const summaryNode = homeResumePanel.querySelector("[data-home-resume-summary]");
   const copyButton = homeResumePanel.querySelector("[data-home-resume-copy]");
   const openLink = homeResumePanel.querySelector("[data-home-resume-open]");
+  const activeActionsNode = homeResumePanel.querySelector("[data-home-resume-active-actions]");
   const routesNode = homeResumePanel.querySelector("[data-home-resume-routes]");
   const statusNode = homeResumePanel.querySelector("[data-home-resume-status]");
+  const manualCopyPanel = homeResumePanel.querySelector("[data-home-resume-copy-fallback]");
+  const manualCopyField = homeResumePanel.querySelector("[data-home-resume-manual-copy]");
   const items = getHomeResumeItems();
   const latest = items[0];
 
@@ -275,13 +364,22 @@ function renderHomeResumePanel() {
         : Promise.reject(new Error("Clipboard unavailable"));
       write
         .then(() => {
+          if (manualCopyPanel) {
+            manualCopyPanel.hidden = true;
+          }
           if (statusNode) {
             statusNode.textContent = `Copied ${latest.label.toLowerCase()}.`;
           }
         })
         .catch(() => {
+          if (manualCopyField) {
+            manualCopyField.value = latest.body;
+          }
+          if (manualCopyPanel) {
+            manualCopyPanel.hidden = false;
+          }
           if (statusNode) {
-            statusNode.textContent = "Copy is unavailable in this browser. Open Handoffs to copy manually.";
+            statusNode.textContent = "Copy is unavailable in this browser. Select the fallback text below.";
           }
         });
     };
@@ -290,6 +388,18 @@ function renderHomeResumePanel() {
     openLink.setAttribute("href", latest?.href || "garage.html#recent-handoffs");
     openLink.textContent = latest ? "Open Latest" : "Open Handoffs";
     openLink.toggleAttribute("aria-disabled", !latest);
+  }
+  if (activeActionsNode) {
+    const activeActions = getHomeResumeActions(items);
+    activeActionsNode.hidden = !activeActions.length;
+    activeActionsNode.innerHTML = activeActions
+      .map((action) => `
+        <a href="${escapeHtml(action.href)}">
+          <span>${escapeHtml(action.kicker)}</span>
+          <strong>${escapeHtml(action.title)}</strong>
+        </a>
+      `)
+      .join("");
   }
   if (routesNode) {
     const seen = new Set();
@@ -319,6 +429,12 @@ function renderHomeResumePanel() {
     statusNode.textContent = latest
       ? "Latest local note is ready to copy; recent routes stay one tap below."
       : "";
+  }
+  if (manualCopyPanel && !latest) {
+    manualCopyPanel.hidden = true;
+  }
+  if (manualCopyField && latest) {
+    manualCopyField.value = latest.body;
   }
 }
 
