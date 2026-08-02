@@ -2967,9 +2967,10 @@ function actionForPage(page) {
       { label: "More", action: "tools", icon: "menu" }
     ],
     "maintenance.html": [
-      { label: "Done", href: "#service-closeout", icon: "check" },
-      { label: "Prep", href: "#service-prep", icon: "check" },
-      { label: "Follow", href: "#service-followup", icon: "note" },
+      { label: "Done", href: "maintenance.html?action=closeout#service-closeout", icon: "check" },
+      { label: "Prep", href: "maintenance.html?action=prep#service-prep", icon: "check" },
+      { label: "Follow", href: "maintenance.html?action=followup#service-followup", icon: "note" },
+      { label: "Run Pack", href: "maintenance.html?action=run-pack#service-run-pack", icon: "note" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "tires.html": [
@@ -3005,6 +3006,20 @@ function actionForPage(page) {
       { label: "Offline", href: "#print-offline-pack", icon: "save" },
       { label: "Stack", href: "#roadside-action-stack", icon: "check" },
       { label: "Arrival", href: "#roadside-arrival-pack", icon: "note" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "hood.html": [
+      { label: "Finder", href: "#hood-fuse-quick-finder", icon: "search" },
+      { label: "Fuses", href: "#fuses", icon: "bolt" },
+      { label: "Check", href: "#hood-fuse-pull-checklist", icon: "check" },
+      { label: "Saved", href: "#hood-saved-fuse-review", icon: "save" },
+      { label: "More", action: "tools", icon: "menu" }
+    ],
+    "cabin.html": [
+      { label: "Finder", href: "#cabin-fuse-quick-finder", icon: "search" },
+      { label: "Fuses", href: "#fuses", icon: "bolt" },
+      { label: "Check", href: "#cabin-fuse-pull-checklist", icon: "check" },
+      { label: "Saved", href: "#cabin-saved-fuse-review", icon: "save" },
       { label: "More", action: "tools", icon: "menu" }
     ],
     "drive-map.html": [

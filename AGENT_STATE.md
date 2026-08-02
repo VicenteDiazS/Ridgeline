@@ -23,7 +23,7 @@ Last updated: 2026-08-02
 - Home and `anton.html` now treat a still-`running` Anton status with a heartbeat older than 20 minutes as stale-running, prompting the owner to refresh, inspect controls, or check the log instead of waiting indefinitely.
 - Ask Anton now has a no-API local route-answer mode plus iPhone-friendly answer controls for quick/deep mode, follow-up memory, decision prompts, copy/read-aloud actions, and Garage handoff saves; legacy saved settings/chats migrate into the new storage key.
 - Maintenance launcher links now preserve the existing audit-safe anchors while selecting the matching service prep/log/run-pack context on tap, and externally shared service/action URLs can preselect prep, closeout, follow-up, or run-pack tools.
-- The PWA cache is currently `ridgeline-console-v448`.
+- The PWA cache is currently `ridgeline-console-v449`.
 - Diagnostics and Quick Sheet now expose their high-value page-specific routes in the shared iPhone bottom action bar, replacing important section-dock shortcuts that shared UI removes on mobile.
 - Diagnostics now has a top-of-page Decision Guide that keeps the symptom, stop/record/route guidance, handoff builder, first-check tracker, and mobile dock synchronized from deep links or picker taps.
 - Quick Sheet roadside mode now persists in the URL/history when the iPhone user switches Flat Tire, No Start, Warning Light, or Trailer Lights, so reload/share/back keeps the selected roadside stack.
@@ -45,6 +45,9 @@ Last updated: 2026-08-02
 - Home Resume Work now shows active shortcut chips for the freshest local roadside, diagnostic, service/fuse/tire, and Drive Map snapshot states, and exposes an in-card manual-copy fallback if iOS blocks Copy Latest.
 - Drive Map now stores the latest GPS snapshot locally for Home and Global Search resume surfaces, and Global Search Recent Work sorts by freshness so the newest Drive snapshot, roadside session, diagnostic draft/check, or service receipt gets the first iPhone tap.
 - Quick Sheet roadside contact cards now get a local timestamp and appear in Home Resume Work plus Global Search Recent Work, with copy/open routes back to the tow/shop arrival pack.
+- Anton review/sign-off copy and share actions now expose selectable manual-copy fallback text when iOS blocks Clipboard or Share, and the Review Pack can be dropped directly into the iPhone sign-off note.
+- Hood and Cabin fuse pages now have page-specific iPhone bottom actions for Finder, Fuses, Check, Saved, and More, so fuse triage tools are reachable without scrolling through long tables.
+- Maintenance iPhone bottom actions now use the existing URL-persistent service contexts for Done, Prep, Follow, and Run Pack, so reload/share/back keeps the selected service workflow.
 
 ## Current Queue
 
@@ -100,6 +103,7 @@ Last updated: 2026-08-02
 - Added Quick Sheet Tow / Shop Arrival Pack, promoted it to the Quick Sheet iPhone bottom action bar and Global Search, and hardened Quick Sheet/Diagnostics Garage-note save status against owner-auth write blocks.
 - Added Home Resume active work shortcuts, Drive Map snapshot resume storage, freshness-sorted Search Recent Work with Drive snapshots, and Home Copy Latest manual fallback; bumped the PWA cache to `ridgeline-console-v447`.
 - Added roadside contact resume support so a filled Quick Sheet contact card can resurface from Home Resume Work and Global Search Recent Work, then open directly to the tow/shop arrival pack; bumped the PWA cache to `ridgeline-console-v448`.
+- Added Anton review/sign-off manual-copy fallbacks and a Use In Sign-Off action, promoted Hood/Cabin fuse Finder/Fuses/Check/Saved shortcuts plus Maintenance Run Pack/persistent service routes into the iPhone bottom bar, and bumped the PWA cache to `ridgeline-console-v449`.
 - Added a Diagnostics Open Latest action so the local resume card routes directly to the freshest diagnostic handoff, first-check, or call draft instead of always starting with Call Summary.
 - Added the Service Run Pack in `maintenance.html#service-run-pack` for parts-counter/shop helper handoffs.
 - Added the Roadside Dispatch Pack in `quick-sheet.html#roadside-action-stack`.
@@ -141,7 +145,7 @@ For shared UI, owner auth, search, offline, service worker, or storage changes:
 
 ## Latest Verification
 
-- Anton's latest scheduled run added roadside contact resume support across Quick Sheet, Home Resume Work, and Global Search Recent Work, added a dynamic Diagnostics Open Latest route, and bumped the PWA cache to `ridgeline-console-v448`. `node --check agent-status.js`, `node --check quick-sheet.js`, `node --check shared-ui.js`, `node --check diagnostics.js`, `node --check service-worker.js`, `Test-InternalLinks.ps1`, and `git diff --check` passed; `git diff --check` only reported LF-to-CRLF working-copy warnings. `Invoke-BrowserSmoke.ps1` timed out on `index.html`/`quick-sheet.html`, and the browser plugin control tool was not exposed, so this run could not complete an interactive iPhone browser probe.
+- Anton's latest scheduled run added Anton review/sign-off manual-copy fallback text plus Use In Sign-Off, promoted Hood/Cabin fuse Finder/Fuses/Check/Saved shortcuts into the iPhone bottom action bar, added Maintenance persistent Done/Prep/Follow/Run Pack bottom actions, and bumped the PWA cache to `ridgeline-console-v449`. `node --check anton-console.js`, `node --check shared-ui.js`, `node --check service-worker.js`, `Test-InternalLinks.ps1`, and `git diff --check` passed; `git diff --check` only reported LF-to-CRLF working-copy warnings. `Invoke-BrowserSmoke.ps1 -Pages @('anton.html')` timed out, matching the known wrapper reliability issue, so interactive browser smoke remains the next verification target.
 
 ## Archive
 

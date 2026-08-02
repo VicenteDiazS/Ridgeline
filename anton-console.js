@@ -366,6 +366,39 @@ function setSignoffStatus(message = "") {
   }
 }
 
+function showManualText(container, text = "", label = "Manual copy") {
+  if (!container) {
+    return;
+  }
+
+  let panel = container.querySelector("[data-anton-manual-copy]");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.className = "anton-manual-copy";
+    panel.dataset.antonManualCopy = "";
+    panel.innerHTML = `
+      <span data-anton-manual-copy-label>${escapeHtml(label)}</span>
+      <textarea readonly rows="6" data-anton-manual-copy-text></textarea>
+    `;
+    container.append(panel);
+  }
+
+  const labelNode = panel.querySelector("[data-anton-manual-copy-label]");
+  const field = panel.querySelector("[data-anton-manual-copy-text]");
+  if (labelNode) {
+    labelNode.textContent = label;
+  }
+  if (field) {
+    field.value = text;
+    field.focus();
+    field.select();
+  }
+}
+
+function hideManualText(container) {
+  container?.querySelector("[data-anton-manual-copy]")?.remove();
+}
+
 function buildSignoffRecord(status = state.latestStatus, context = state.latestReviewContext) {
   const note = els.signoffNote?.value?.trim() || "";
   const changedPage = context?.changedPage || "index.html";
@@ -559,16 +592,24 @@ function renderReviewQueue(status, context) {
       <div class="anton-review-pack-actions">
         <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-copy-review-pack>Copy Pack</button>
         <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-share-review-pack>Share Pack</button>
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-anton-use-review-pack>Use In Sign-Off</button>
       </div>
       <p class="anton-review-pack-status" data-anton-review-pack-status aria-live="polite"></p>
     </article>
   `;
+  const reviewPackCard = els.reviewQueue.querySelector("[data-anton-review-card='review-pack']");
   els.reviewQueue.querySelector("[data-anton-copy-review-pack]")?.addEventListener("click", async () => {
     try {
       const copied = await copyText(reviewPackText);
       setReviewPackStatus(copied ? "Review pack copied." : "Copy is unavailable in this browser.");
+      if (copied) {
+        hideManualText(reviewPackCard);
+      } else {
+        showManualText(reviewPackCard, reviewPackText, "Select and copy review pack");
+      }
     } catch {
-      setReviewPackStatus("Copy failed. Select the review cards manually.");
+      showManualText(reviewPackCard, reviewPackText, "Select and copy review pack");
+      setReviewPackStatus("Copy failed. Select the review pack text below.");
     }
   });
   els.reviewQueue.querySelector("[data-anton-share-review-pack]")?.addEventListener("click", async () => {
@@ -576,12 +617,27 @@ function renderReviewQueue(status, context) {
       if (navigator.share) {
         await navigator.share({ title: "Ridgeline Anton review pack", text: reviewPackText });
         setReviewPackStatus("Review pack shared.");
+        hideManualText(reviewPackCard);
         return;
       }
       const copied = await copyText(reviewPackText);
       setReviewPackStatus(copied ? "Share unavailable; review pack copied instead." : "Share is unavailable in this browser.");
+      if (copied) {
+        hideManualText(reviewPackCard);
+      } else {
+        showManualText(reviewPackCard, reviewPackText, "Select and copy review pack");
+      }
     } catch {
-      setReviewPackStatus("Share canceled or unavailable.");
+      showManualText(reviewPackCard, reviewPackText, "Select and copy review pack");
+      setReviewPackStatus("Share canceled or unavailable. Select the review pack text below.");
+    }
+  });
+  els.reviewQueue.querySelector("[data-anton-use-review-pack]")?.addEventListener("click", () => {
+    if (els.signoffNote) {
+      els.signoffNote.value = reviewPackText;
+      els.signoffNote.focus();
+      setSignoffStatus("Review pack placed in the sign-off note.");
+      document.querySelector("#anton-signoff")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
 }
@@ -943,8 +999,15 @@ els.signoffCopy?.addEventListener("click", async () => {
     const record = buildSignoffRecord();
     const copied = await copyText(record.text);
     setSignoffStatus(copied ? "Sign-off copied." : "Copy is unavailable in this browser.");
+    if (copied) {
+      hideManualText(els.signoff);
+    } else {
+      showManualText(els.signoff, record.text, "Select and copy sign-off");
+    }
   } catch {
-    setSignoffStatus("Copy failed. Select the sign-off text manually.");
+    const record = buildSignoffRecord();
+    showManualText(els.signoff, record.text, "Select and copy sign-off");
+    setSignoffStatus("Copy failed. Select the sign-off text below.");
   }
 });
 
@@ -954,12 +1017,20 @@ els.signoffShare?.addEventListener("click", async () => {
     if (navigator.share) {
       await navigator.share({ title: "Ridgeline Anton iPhone sign-off", text: record.text });
       setSignoffStatus("Sign-off shared.");
+      hideManualText(els.signoff);
       return;
     }
     const copied = await copyText(record.text);
     setSignoffStatus(copied ? "Share unavailable; sign-off copied instead." : "Share is unavailable in this browser.");
+    if (copied) {
+      hideManualText(els.signoff);
+    } else {
+      showManualText(els.signoff, record.text, "Select and copy sign-off");
+    }
   } catch {
-    setSignoffStatus("Share canceled or unavailable.");
+    const record = buildSignoffRecord();
+    showManualText(els.signoff, record.text, "Select and copy sign-off");
+    setSignoffStatus("Share canceled or unavailable. Select the sign-off text below.");
   }
 });
 

@@ -20076,12 +20076,43 @@ select:focus {
 .anton-review-pack-actions {
   display: grid;
   gap: 0.45rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
 }
 
 .anton-review-pack-status {
   color: #ffd77a;
   min-height: 1.2em;
+}
+
+.anton-manual-copy {
+  border: 1px solid rgba(255, 207, 104, 0.24);
+  border-radius: 12px;
+  background: rgba(8, 11, 14, 0.72);
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+}
+
+.anton-manual-copy span {
+  color: #ffe3a3;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.anton-manual-copy textarea {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(1, 6, 11, 0.84);
+  color: #e9f6ff;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  min-height: 132px;
+  padding: 0.65rem;
+  resize: vertical;
+  width: 100%;
 }
 
 .anton-signoff-panel {
@@ -22849,6 +22880,7 @@ body[data-site-theme="light"] .section-utility-nav a.is-current-link {
   body[data-site-theme="light"] .anton-signoff-panel,
   body[data-site-theme="light"] .anton-signoff-latest,
   body[data-site-theme="light"] .anton-history-item,
+  body[data-site-theme="light"] .anton-manual-copy,
   body[data-site-theme="light"] .anton-markdown-view {
     border-color: rgba(61, 101, 137, 0.16);
     background:
@@ -22858,6 +22890,16 @@ body[data-site-theme="light"] .section-utility-nav a.is-current-link {
     box-shadow:
       0 18px 42px rgba(85, 111, 135, 0.12),
       inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  }
+
+  body[data-site-theme="light"] .anton-manual-copy span {
+    color: #5e4700;
+  }
+
+  body[data-site-theme="light"] .anton-manual-copy textarea {
+    border-color: rgba(12, 48, 58, 0.18);
+    background: rgba(255, 255, 255, 0.96);
+    color: #18333d;
   }
 
   body[data-site-theme="light"] .section-page-hero::before,
