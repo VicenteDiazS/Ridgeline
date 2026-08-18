@@ -24,6 +24,18 @@ const HOME_DIAGNOSTIC_CHECK_LABELS = {
   trailer: "Trailer light or connector issue"
 };
 
+function homeRoadsideRouteHref(planKey) {
+  const key = `${planKey || ""}`.trim().toLowerCase();
+  const routeKey = ["flat", "start", "warning", "trailer"].includes(key) ? key : "flat";
+  return `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`;
+}
+
+function homeDiagnosticRouteHref(planKey, hash = "diagnostic-share-builder") {
+  const key = `${planKey || ""}`.trim().toLowerCase();
+  const routeKey = ["start", "warning", "power", "audio", "trailer"].includes(key) ? key : "start";
+  return `diagnostics.html?diagnostic=${routeKey}#${hash}`;
+}
+
 function formatDate(value) {
   if (!value) {
     return "Not recorded";
@@ -140,7 +152,7 @@ function latestDiagnosticCheckResumeItem() {
       latest.value.detail ? `Result or next clue: ${latest.value.detail}` : "",
       latest.value.updatedAt ? `Updated: ${formatDate(latest.value.updatedAt)}` : ""
     ].filter(Boolean).join("\n"),
-    href: "diagnostics.html#first-check-tracker",
+    href: homeDiagnosticRouteHref(latest.planKey, "first-check-tracker"),
     source: "Diagnostics",
     at: latest.at
   };
@@ -236,7 +248,7 @@ function getHomeResumeItems() {
       title: roadsideReceipt.title || "Latest roadside note",
       label: "Roadside receipt",
       body: roadsideReceipt.text,
-      href: "quick-sheet.html#roadside-action-stack",
+      href: homeRoadsideRouteHref(roadsideReceipt.planKey),
       source: "Quick Sheet",
       at: homeResumeTimestamp(roadsideReceipt.savedAt)
     });
@@ -270,7 +282,7 @@ function getHomeResumeItems() {
       title: diagnosticReceipt.title || "Latest diagnostic handoff",
       label: "Diagnostic receipt",
       body: diagnosticReceipt.text,
-      href: "diagnostics.html#diagnostic-share-builder",
+      href: homeDiagnosticRouteHref(diagnosticReceipt.planKey),
       source: "Diagnostics",
       at: homeResumeTimestamp(diagnosticReceipt.savedAt)
     });

@@ -4940,19 +4940,19 @@ async def run_overlay_checks(page, page_name):
                 recentCards: recent?.querySelectorAll("a").length || 0,
                 recentText: recent?.textContent || "",
                 recentMissing: [
-                    "garage.html#diagnostic-activity",
-                    "quick-sheet.html#roadside-action-stack",
+                    "diagnostics.html?diagnostic=warning#diagnostic-share-builder",
+                    "quick-sheet.html?roadside=flat#roadside-action-stack",
                     "maintenance.html#maintenance-updater"
                 ].filter((href) => !recent?.querySelector(`a[href="${href}"]`)),
                 intentMissing: [
                     "maintenance.html#service-closeout",
                     "garage.html#garage-fill-in-checklist",
-                    "diagnostics.html#diagnostic-share-builder",
+                    "diagnostics.html#diagnostic-decision-guide",
                     "quick-sheet.html#print-offline-pack"
                 ].filter((href) => !intent?.querySelector(`a[href="${href}"]`)),
                 offlineMissing: [
-                    "quick-sheet.html#roadside-action-stack",
-                    "diagnostics.html#workflow-index",
+                    "quick-sheet.html?roadside=flat#roadside-action-stack",
+                    "diagnostics.html#diagnostic-decision-guide",
                     "hood.html#fuses",
                     "quick-sheet.html#emergency-card",
                     "garage.html#diagnostic-activity"

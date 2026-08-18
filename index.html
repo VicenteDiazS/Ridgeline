@@ -153,9 +153,9 @@
               <span>Roadside Now</span>
               <strong>Action Stack</strong>
             </a>
-            <a href="diagnostics.html#workflow-index">
+            <a href="diagnostics.html#diagnostic-decision-guide">
               <span>Diagnose</span>
-              <strong>Workflow Index</strong>
+              <strong>Decision Guide</strong>
             </a>
             <a href="maintenance.html?action=closeout#service-closeout">
               <span>Log Service</span>
@@ -261,8 +261,34 @@
             <p class="eyebrow">Before Signal Drops</p>
             <h2 id="home-signal-title">Make the next roadside route available offline.</h2>
             <p>Open the offline pack, save a Garage backup, and prime the pages most likely to matter before a trip, tow, or remote service stop.</p>
+            <div class="home-signal-readiness" data-home-signal-readiness>
+              <div>
+                <strong data-home-signal-status>No route check yet</strong>
+                <small data-home-signal-summary>Check or prime the key roadside routes while online.</small>
+              </div>
+              <ul data-home-signal-route-list>
+                <li data-route-status="unknown">Roadside Stack</li>
+                <li data-route-status="unknown">Diagnostics Guide</li>
+                <li data-route-status="unknown">Hood Fuses</li>
+                <li data-route-status="unknown">Cabin Fuses</li>
+                <li data-route-status="unknown">7-Way Pinout</li>
+                <li data-route-status="unknown">Garage Backup</li>
+              </ul>
+            </div>
           </div>
           <div class="home-signal-actions" aria-label="Signal-loss prep shortcuts">
+            <button class="home-signal-card home-signal-card-primary" type="button" data-home-signal-check-routes>
+              <span>Check Routes</span>
+              <strong>Confirm cached pages on this iPhone</strong>
+            </button>
+            <button class="home-signal-card" type="button" data-home-signal-prime-routes>
+              <span>Prime Routes</span>
+              <strong>Refresh key pages while online</strong>
+            </button>
+            <button class="home-signal-card" type="button" data-home-signal-copy-plan>
+              <span>Copy Plan</span>
+              <strong>Keep missing routes in one note</strong>
+            </button>
             <a class="home-signal-card home-signal-card-primary" href="quick-sheet.html#print-offline-pack">
               <span>Offline Pack</span>
               <strong>Refresh and check cached routes</strong>

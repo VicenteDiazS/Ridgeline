@@ -6368,7 +6368,7 @@ article[id],
   bottom: max(10px, env(safe-area-inset-bottom, 0px));
   z-index: 52;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--context-action-count, 4), minmax(0, 1fr));
   gap: 6px;
   max-width: 520px;
   margin-inline: auto;
@@ -6403,7 +6403,7 @@ article[id],
   color: var(--text);
   text-decoration: none;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: clamp(0.64rem, 1.8vw, 0.72rem);
   font-weight: 850;
   cursor: pointer;
 }
@@ -15550,6 +15550,9 @@ body[data-site-theme="light"] .diagnostic-local-resume-card li span {
 
   .home-resume-panel {
     grid-template-columns: 1fr;
+    justify-self: center;
+    width: min(100%, calc(100vw - 20px));
+    max-width: calc(100vw - 20px);
     gap: 8px;
     padding: 9px;
     border-radius: 12px;
@@ -20288,10 +20291,13 @@ select:focus {
   order: 6;
   position: relative;
   z-index: 13;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
   gap: 10px;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
   margin: 0 0 7px;
   padding: 10px;
   border: 1px solid rgba(104, 255, 190, 0.22);
@@ -20741,6 +20747,90 @@ body[data-site-theme="light"] .home-situation-card small {
   line-height: 1.45;
 }
 
+.home-signal-readiness {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 9px;
+  border: 1px solid rgba(111, 255, 180, 0.14);
+  border-radius: 12px;
+  background: rgba(3, 12, 18, 0.58);
+}
+
+.home-signal-readiness strong {
+  display: block;
+  color: #e7fff6;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.home-signal-readiness small {
+  display: block;
+  margin-top: 3px;
+  color: #a9c2b9;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.home-signal-readiness ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-signal-readiness li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 7px 6px 22px;
+  border: 1px solid rgba(111, 255, 180, 0.12);
+  border-radius: 9px;
+  color: #d4ece3;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.home-signal-readiness li::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(111, 255, 180, 0.42);
+  transform: translateY(-50%);
+}
+
+.home-signal-readiness li[data-route-status="ready"] {
+  border-color: rgba(111, 255, 180, 0.24);
+  color: #dcffeb;
+}
+
+.home-signal-readiness li[data-route-status="ready"]::before {
+  background: var(--accent-green);
+}
+
+.home-signal-readiness li[data-route-status="missing"] {
+  border-color: rgba(255, 207, 117, 0.2);
+  color: #ffe4a8;
+}
+
+.home-signal-readiness li[data-route-status="missing"]::before {
+  background: #ffd783;
+}
+
+.home-signal-readiness a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .home-signal-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -20748,17 +20838,22 @@ body[data-site-theme="light"] .home-situation-card small {
 }
 
 .home-signal-card {
+  appearance: none;
   display: grid;
   align-content: start;
+  width: 100%;
   min-height: 88px;
   padding: 11px;
   border: 1px solid rgba(111, 255, 180, 0.14);
   border-radius: 14px;
   color: inherit;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   background:
     linear-gradient(180deg, rgba(111, 255, 180, 0.07), rgba(255, 255, 255, 0.018)),
     rgba(4, 12, 18, 0.74);
+  cursor: pointer;
 }
 
 .home-signal-card-primary {
@@ -20805,6 +20900,28 @@ body[data-site-theme="light"] .home-signal-card strong {
 
 body[data-site-theme="light"] .home-signal-card span {
   color: #287955;
+}
+
+body[data-site-theme="light"] .home-signal-readiness {
+  border-color: rgba(40, 121, 85, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+body[data-site-theme="light"] .home-signal-readiness strong {
+  color: #173042;
+}
+
+body[data-site-theme="light"] .home-signal-readiness small,
+body[data-site-theme="light"] .home-signal-readiness li {
+  color: #4f6b80;
+}
+
+body[data-site-theme="light"] .home-signal-readiness li[data-route-status="ready"] {
+  color: #1e6c46;
+}
+
+body[data-site-theme="light"] .home-signal-readiness li[data-route-status="missing"] {
+  color: #80601e;
 }
 
 .agent-status-section {

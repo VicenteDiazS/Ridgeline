@@ -6,7 +6,10 @@ import {
   RIDGELINE_OFFLINE_ROUTES,
   buildOfflineRoutePlan as buildSharedOfflineRoutePlan,
   checkOfflineRoutes as checkSharedOfflineRoutes,
-  primeOfflineRoutes as primeSharedOfflineRoutes
+  formatOfflineRouteCheckTime as formatSharedOfflineRouteCheckTime,
+  loadOfflineRouteReceipt as loadSharedOfflineRouteReceipt,
+  primeOfflineRoutes as primeSharedOfflineRoutes,
+  saveOfflineRouteReceipt as saveSharedOfflineRouteReceipt
 } from "./offline-routes.js";
 
 const searchButtons = document.querySelectorAll("[data-open-search]");
@@ -3126,9 +3129,11 @@ function buildContextualBottomBar() {
   }
 
   const bar = document.createElement("nav");
+  const actions = actionForPage(currentPageName());
   bar.className = "context-action-bar";
   bar.setAttribute("aria-label", "Context actions");
-  bar.innerHTML = actionForPage(currentPageName())
+  bar.style.setProperty("--context-action-count", `${Math.max(4, Math.min(actions.length, 6))}`);
+  bar.innerHTML = actions
     .map((item) => {
       const attrs = item.action
         ? `href="#" data-context-action="${item.action}"`
@@ -3433,6 +3438,110 @@ function buildHomeCommandCenter() {
   } else {
     main.insertAdjacentElement("afterbegin", section);
   }
+}
+
+function renderHomeSignalRouteList(root, results = []) {
+  const list = root.querySelector("[data-home-signal-route-list]");
+  if (!list) {
+    return;
+  }
+
+  const routes = results.length ? results : RIDGELINE_OFFLINE_ROUTES.map((route) => ({ ...route, ready: null }));
+  list.replaceChildren();
+  routes.forEach((route) => {
+    const item = document.createElement("li");
+    item.dataset.routeStatus = route.ready === null ? "unknown" : route.ready ? "ready" : "missing";
+
+    if (route.ready === null) {
+      item.textContent = route.label;
+    } else {
+      const link = document.createElement("a");
+      link.href = route.path;
+      link.textContent = route.label;
+      item.appendChild(link);
+    }
+
+    list.appendChild(item);
+  });
+}
+
+function setHomeSignalStatus(root, statusText, summaryText = "") {
+  const status = root.querySelector("[data-home-signal-status]");
+  const summary = root.querySelector("[data-home-signal-summary]");
+  if (status) {
+    status.textContent = statusText;
+  }
+  if (summary && summaryText) {
+    summary.textContent = summaryText;
+  }
+}
+
+function renderHomeSignalReceipt(root, receipt = loadSharedOfflineRouteReceipt()) {
+  if (!receipt) {
+    renderHomeSignalRouteList(root);
+    setHomeSignalStatus(root, "No route check yet", "Check or prime the key roadside routes while online.");
+    return;
+  }
+
+  const missing = receipt.results.filter((route) => !route.ready).length;
+  const action = receipt.action === "primed" ? "prime" : "check";
+  renderHomeSignalRouteList(root, receipt.results);
+  setHomeSignalStatus(
+    root,
+    `${receipt.readyCount}/${receipt.totalCount} routes ready`,
+    `${formatSharedOfflineRouteCheckTime(receipt.savedAt)} after ${action}. ${missing ? "Open missing routes while online." : "All key routes were found in cache."}`
+  );
+}
+
+function initHomeSignalReadiness() {
+  const root = document.querySelector("[data-home-signal-readiness]")?.closest(".home-signal-prep");
+  if (currentPageName() !== "index.html" || !root) {
+    return;
+  }
+
+  renderHomeSignalReceipt(root);
+
+  root.querySelector("[data-home-signal-check-routes]")?.addEventListener("click", async () => {
+    setHomeSignalStatus(root, "Checking cached routes...", "Looking for the key roadside pages in this iPhone browser cache.");
+    try {
+      const results = await checkSharedOfflineRoutes(RIDGELINE_OFFLINE_ROUTES);
+      const receipt = saveSharedOfflineRouteReceipt(results, "checked");
+      renderHomeSignalReceipt(root, receipt);
+      showToast(`${receipt.readyCount}/${receipt.totalCount} offline routes ready`);
+    } catch {
+      setHomeSignalStatus(root, "Route check failed", "Open Quick Sheet while online if this browser blocks cache inspection.");
+      showToast("Could not inspect offline routes", "warning");
+    }
+  });
+
+  root.querySelector("[data-home-signal-prime-routes]")?.addEventListener("click", async () => {
+    setHomeSignalStatus(root, "Priming routes...", "Refreshing key pages while this iPhone still has signal.");
+    try {
+      const results = await primeSharedOfflineRoutes(RIDGELINE_OFFLINE_ROUTES);
+      const receipt = saveSharedOfflineRouteReceipt(results, "primed");
+      renderHomeSignalReceipt(root, receipt);
+      showToast(`${receipt.readyCount}/${receipt.totalCount} offline routes primed`);
+    } catch {
+      setHomeSignalStatus(root, "Prime failed", "Open each missing route while online, then check again.");
+      showToast("Could not prime offline routes", "warning");
+    }
+  });
+
+  root.querySelector("[data-home-signal-copy-plan]")?.addEventListener("click", async () => {
+    const receipt = loadSharedOfflineRouteReceipt();
+    const text = buildSharedOfflineRoutePlan(receipt?.results || [], {
+      uncheckedMessage: "No Home route check has been run yet. Check or prime routes while online before signal drops.",
+      title: "Ridgeline home signal-loss route plan"
+    });
+    try {
+      await copyText(text);
+      setHomeSignalStatus(root, "Route plan copied", "Paste it into Notes before leaving coverage.");
+      showToast("Offline route plan copied");
+    } catch {
+      setHomeSignalStatus(root, "Copy failed", "Use the Quick Sheet offline pack for the manual copy fallback.");
+      showToast("Could not copy route plan", "warning");
+    }
+  });
 }
 
 function buildMaintenanceJobMode() {
@@ -4991,8 +5100,8 @@ function buildSearchModal() {
           </ul>
         </div>
         <div class="search-offline-actions" aria-label="Offline-ready shortcuts">
-          <a href="quick-sheet.html#roadside-action-stack">Roadside</a>
-          <a href="diagnostics.html#workflow-index">Diagnostics</a>
+          <a href="quick-sheet.html?roadside=flat#roadside-action-stack">Roadside</a>
+          <a href="diagnostics.html#diagnostic-decision-guide">Diagnostics</a>
           <a href="hood.html#fuses">Fuses</a>
           <a href="quick-sheet.html#emergency-card">Print Sheet</a>
           <a href="garage.html#diagnostic-activity">Garage Backup</a>
@@ -5017,7 +5126,7 @@ function buildSearchModal() {
             <span>Fill Garage</span>
             <strong>See the next useful record to add before details fade.</strong>
           </a>
-          <a href="diagnostics.html#diagnostic-share-builder">
+          <a href="diagnostics.html#diagnostic-decision-guide">
             <span>Share symptom</span>
             <strong>Copy a no-start, warning, power, audio, or trailer-light handoff.</strong>
           </a>
@@ -5771,6 +5880,7 @@ if (brandLink) {
   brandLink.title = "Return to home";
 }
 buildHomeCommandCenter();
+initHomeSignalReadiness();
 bindHomeCockpitLayoutControls();
 buildMaintenanceJobMode();
 buildMaintenanceTimeline();
@@ -6307,6 +6417,18 @@ function buildRoadsideContactRecentItem() {
   };
 }
 
+function searchRoadsideReceiptHref(receipt) {
+  const planKey = `${receipt?.planKey || ""}`.trim().toLowerCase();
+  const routeKey = ["flat", "start", "warning", "trailer"].includes(planKey) ? planKey : "flat";
+  return `quick-sheet.html?roadside=${routeKey}#roadside-action-stack`;
+}
+
+function searchDiagnosticReceiptHref(receipt) {
+  const planKey = `${receipt?.planKey || ""}`.trim().toLowerCase();
+  const routeKey = ["start", "warning", "power", "audio", "trailer"].includes(planKey) ? planKey : "start";
+  return `diagnostics.html?diagnostic=${routeKey}#diagnostic-share-builder`;
+}
+
 function buildSearchRecentItems() {
   const items = [];
   const diagnostic = readSearchStorage("ridgeline-diagnostic-last-handoff", null);
@@ -6325,7 +6447,7 @@ function buildSearchRecentItems() {
       detail: shortSearchText(diagnostic.summary || diagnostic.title || "Last saved diagnostic handoff"),
       meta: formatSearchRecentDate(diagnostic.savedAt),
       at: searchRecentTimestamp(diagnostic.savedAt),
-      href: "garage.html#diagnostic-activity"
+      href: searchDiagnosticReceiptHref(diagnostic)
     });
   } else if (diagnosticCall) {
     items.push(diagnosticCall);
@@ -6360,7 +6482,7 @@ function buildSearchRecentItems() {
       detail: shortSearchText(roadside.summary || roadside.title || "Last saved roadside handoff"),
       meta: formatSearchRecentDate(roadside.savedAt),
       at: searchRecentTimestamp(roadside.savedAt),
-      href: "quick-sheet.html#roadside-action-stack"
+      href: searchRoadsideReceiptHref(roadside)
     });
   }
 
@@ -6894,9 +7016,9 @@ searchModal.querySelector("[data-search-refresh-pack]")?.addEventListener("click
   try {
     await refreshServiceWorkerRegistrations();
     const results = await checkSearchOfflineRoutes();
+    const receipt = saveSharedOfflineRouteReceipt(results, "checked");
     renderSearchRouteReadiness(results);
-    const readyCount = results.filter((route) => route.ready).length;
-    updateSearchOfflineCard(`Offline pack check complete. ${readyCount}/${results.length} routes visible in cache.`);
+    updateSearchOfflineCard(`Offline pack check complete. ${receipt.readyCount}/${receipt.totalCount} routes visible in cache.`);
   } catch {
     updateSearchOfflineCard("Could not update the offline pack in this browser session.");
   }
@@ -6905,9 +7027,9 @@ searchModal.querySelector("[data-search-check-routes]")?.addEventListener("click
   updateSearchOfflineCard("Checking cached routes...");
   try {
     const results = await checkSearchOfflineRoutes();
+    const receipt = saveSharedOfflineRouteReceipt(results, "checked");
     renderSearchRouteReadiness(results);
-    const readyCount = results.filter((route) => route.ready).length;
-    updateSearchOfflineCard(`${readyCount}/${results.length} key offline routes found.`);
+    updateSearchOfflineCard(`${receipt.readyCount}/${receipt.totalCount} key offline routes found.`);
   } catch {
     renderSearchRouteReadiness();
     updateSearchOfflineCard("Could not inspect cached routes in this browser session.");
@@ -6917,12 +7039,12 @@ searchModal.querySelector("[data-search-prime-routes]")?.addEventListener("click
   updateSearchOfflineCard("Priming key routes while online...");
   try {
     const results = await primeSearchOfflineRoutes();
+    const receipt = saveSharedOfflineRouteReceipt(results, "primed");
     renderSearchRouteReadiness(results);
-    const readyCount = results.filter((route) => route.ready).length;
     const unavailable = results.every((route) => route.unavailable);
     updateSearchOfflineCard(unavailable
-      ? `${readyCount}/${results.length} routes checked; browser cache unavailable in this session.`
-      : `${readyCount}/${results.length} routes primed for offline use.`);
+      ? `${receipt.readyCount}/${receipt.totalCount} routes checked; browser cache unavailable in this session.`
+      : `${receipt.readyCount}/${receipt.totalCount} routes primed for offline use.`);
   } catch {
     updateSearchOfflineCard("Could not prime routes in this browser session; open each key page once while online.");
   }
