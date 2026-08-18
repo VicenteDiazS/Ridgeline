@@ -8,9 +8,9 @@
     "actionRequired":  "No action needed. Refresh this page after the run finishes to see the commit, files, and summary.",
     "failureKind":  "",
     "diagnostic":  "",
-    "startedAt":  "2026-08-02T12:44:13.4946787-05:00",
+    "startedAt":  "2026-08-18T17:15:21.1331263-05:00",
     "finishedAt":  "",
-    "lastHeartbeatAt":  "2026-08-02T12:44:14.1559866-05:00",
+    "lastHeartbeatAt":  "2026-08-18T17:15:22.0278237-05:00",
     "intervalMinutes":  90,
     "nextExpectedRunAt":  null,
     "durationMinutes":  0,
@@ -18,7 +18,12 @@
     "pushed":  false,
     "summary":  "Agent run started.",
     "changedFiles":  [
-
+                         "agent-status.js",
+                         "index.html",
+                         "service-worker.js",
+                         "shared-ui.js",
+                         "styles.css",
+                         "tools/audit/Invoke-BrowserSmoke.ps1"
                      ],
     "impactScore":  null,
     "impactLabel":  "Not scored yet",
