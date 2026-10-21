@@ -1,4 +1,6 @@
-const CACHE_NAME = "ridgeline-console-v450";
+const CACHE_NAME = "ridgeline-console-v451";
+// Bump this version when model or texture assets change.
+const MODEL_CACHE_NAME = "ridgeline-models-v1";
 let bypassNextNavigation = false;
 const CORE_ASSETS = [
   "./",
@@ -138,7 +140,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== MODEL_CACHE_NAME).map((key) => caches.delete(key)))
     ).then(() => self.clients.claim())
   );
 });
@@ -172,13 +174,22 @@ self.addEventListener("fetch", (event) => {
 
   if (shouldRuntimeCache(event.request)) {
     event.respondWith(
-      fetch(event.request).then((response) => {
-        if (response.ok) {
+      caches.open(MODEL_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) {
+          return cached;
+        }
+
+        const response = await fetch(event.request);
+        // A partial response cannot be stored as a complete model.
+        if (response.ok && response.status !== 206) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          event.waitUntil(cache.put(event.request, copy).catch(() => {
+            // Storage limits must not prevent the model from loading.
+          }));
         }
         return response;
-      }).catch(() => caches.match(event.request, { ignoreSearch: true }))
+      })
     );
     return;
   }
