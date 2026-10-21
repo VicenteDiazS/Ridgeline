@@ -2062,6 +2062,7 @@ if (!renderer) {
     // Keep setup failures in the loading promise instead of losing them in a frame callback.
     return new Promise((resolve) => setTimeout(resolve, 0)).then(() => {
       applyLoadedModel(model);
+      renderer.render(scene, camera);
       window.dispatchEvent(new Event("ridgeline-model-ready"));
     });
   }
@@ -2314,40 +2315,87 @@ if (!renderer) {
         "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
       ];
 
+  function validateTruckData(data) {
+    if (data.byteLength < 12) throw new Error("The saved truck file is incomplete.");
+    const header = new DataView(data);
+    if (header.getUint32(0, true) !== 0x46546c67 ||
+        header.getUint32(4, true) !== 2 ||
+        header.getUint32(8, true) !== data.byteLength) {
+      throw new Error("The truck download is incomplete or invalid.");
+    }
+  }
+
+  function storageDeadline(promise) {
+    let timer;
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Device storage took too long to respond.")), 10000);
+      })
+    ]).finally(() => clearTimeout(timer));
+  }
+
   async function loadSavedTruck(url) {
     const request = new Request(new URL(url, location.href).href);
     let cache;
-    let response;
+    let data;
+    let fromCache = false;
     try {
-      cache = await caches.open("ridgeline-models-v1");
-      response = await cache.match(request);
-    } catch (error) {
-      console.warn("Model storage unavailable", error);
-    }
-    const fromCache = Boolean(response);
-    if (!response) response = await fetch(request);
-    if (!response.ok) throw new Error("Truck download failed: " + response.status);
-    const total = Number(response.headers.get("Content-Length")) || 0;
-    let loaded = 0;
-    const stream = response.body?.pipeThrough(new TransformStream({
-      transform(chunk, controller) {
-        loaded += chunk.byteLength;
-        updateModelProgress({ loaded, total });
-        controller.enqueue(chunk);
+      cache = await storageDeadline(caches.open("ridgeline-models-v1"));
+      const saved = await storageDeadline(cache.match(request));
+      if (saved) {
+        data = await storageDeadline(saved.arrayBuffer());
+        validateTruckData(data);
+        fromCache = true;
       }
-    }));
-    const data = await (stream ? new Response(stream) : response).arrayBuffer();
-    // Finish saving before parsing; even a renderer failure must not lose the download.
-    if (cache && !fromCache) {
-      modelProgress.heading.textContent = "Saving your truck";
-      modelProgress.detail.textContent = "Keeping the full-quality model on this device…";
-      try {
-        await cache.put(request, new Response(data, {
-          headers: { "Content-Type": "model/gltf-binary", "Content-Length": String(data.byteLength) }
-        }));
-      } catch (error) {
-        console.warn("Could not save model for offline use", error);
-        modelProgress.detail.textContent = "Device storage unavailable · Preparing model";
+    } catch (error) {
+      console.warn("Saved model unavailable", error);
+      data = undefined;
+      if (cache) cache.delete(request).catch(() => {});
+    }
+
+    if (!data) {
+      // The page owns this download and save, including on its first visit.
+      // Avoid a second 56 MB response clone/write in the service worker.
+      const response = await fetch(new Request(request, {
+        headers: { "X-Ridgeline-Model-Download": "page" }
+      }));
+      if (!response.ok) throw new Error("Truck download failed (HTTP " + response.status + ").");
+      // Network Content-Length may describe compressed bytes. The GLB header
+      // gives the full, decoded file size used by the progress reader.
+      let total = 0;
+      let loaded = 0;
+      const prefix = new Uint8Array(12);
+      let prefixLength = 0;
+      const stream = response.body?.pipeThrough(new TransformStream({
+        transform(chunk, controller) {
+          if (prefixLength < 12) {
+            const part = chunk.subarray(0, 12 - prefixLength);
+            prefix.set(part, prefixLength);
+            prefixLength += part.length;
+            if (prefixLength === 12) {
+              const header = new DataView(prefix.buffer);
+              if (header.getUint32(0, true) === 0x46546c67) total = header.getUint32(8, true);
+            }
+          }
+          loaded += chunk.byteLength;
+          updateModelProgress({ loaded, total });
+          controller.enqueue(chunk);
+        }
+      }));
+      data = await (stream ? new Response(stream) : response).arrayBuffer();
+      validateTruckData(data);
+      if (cache) {
+        modelProgress.heading.textContent = "Saving your truck";
+        modelProgress.detail.textContent = "Keeping the full-quality model on this device…";
+        try {
+          await storageDeadline(cache.put(request, new Response(data, {
+            headers: { "Content-Type": "model/gltf-binary", "Content-Length": String(data.byteLength) }
+          })));
+        } catch (error) {
+          console.warn("Could not confirm offline model save", error);
+          cache = undefined;
+        }
       }
     }
     modelProgress.value.textContent = "…";
@@ -2356,37 +2404,36 @@ if (!renderer) {
     modelProgress.heading.textContent = "Preparing your truck";
     modelProgress.detail.textContent = fromCache
       ? "Loaded from this device · Preparing the 3D view"
-      : "Download complete · Preparing the 3D view";
+      : cache ? "Saved on this device · Preparing the 3D view"
+      : "Preparing the 3D view · Offline save unavailable";
     return modelLoader.parseAsync(data, new URL(".", request.url).href);
   }
+
+  function showTruckError(error) {
+    console.error("Truck viewer failed", error);
+    viewerStatus.hidden = false;
+    viewerStatus.classList.remove("truck-load");
+    viewerStatus.textContent = "Truck could not be displayed: " +
+      (error?.message || String(error)) + " ";
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.textContent = "Try again";
+    retry.addEventListener("click", () => location.reload());
+    viewerStatus.appendChild(retry);
+  }
+
+  renderer.domElement.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    showTruckError(new Error("The browser lost its 3D graphics context. Reopen the viewer to try the saved model again."));
+  });
 
   async function loadPrimaryModel(index = 0) {
     beginModelProgress(index);
     try {
-      if (index < primaryModelUrls.length) {
-        const gltf = await loadSavedTruck(primaryModelUrls[index]);
-        await prepareLoadedModel(gltf.scene);
-        return;
-      }
-      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
-      const model = await fallbackLoader.loadAsync(
-        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx", updateModelProgress
-      );
-      await prepareLoadedModel(model);
+      const gltf = await loadSavedTruck(primaryModelUrls[index]);
+      await prepareLoadedModel(gltf.scene);
     } catch (error) {
-      console.error("Truck model load failed", error);
-      if (index < primaryModelUrls.length) return loadPrimaryModel(index + 1);
-      setFallbackVisualsVisible(true);
-      refreshExplodableNodes(truck);
-      viewerStatus.hidden = false;
-      viewerStatus.classList.remove("truck-load");
-      viewerStatus.textContent =
-        "The detailed truck could not be displayed on this device. The backup view is available. ";
-      const retry = document.createElement("button");
-      retry.type = "button";
-      retry.textContent = "Try again";
-      retry.addEventListener("click", () => loadPrimaryModel());
-      viewerStatus.appendChild(retry);
+      showTruckError(error);
     }
   }
 

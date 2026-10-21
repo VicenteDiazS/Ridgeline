@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v453";
+const CACHE_NAME = "ridgeline-console-v454";
 // Bump this version when model or texture assets change.
 const MODEL_CACHE_NAME = "ridgeline-models-v1";
 let bypassNextNavigation = false;
@@ -160,6 +160,11 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (shouldRuntimeCache(event.request) && event.request.headers.get("X-Ridgeline-Model-Download") === "page") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   if (shouldBypassCache(event.request)) {
     if (bypassNextNavigation && event.request.mode === "navigate") {
       setTimeout(() => {
