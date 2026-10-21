@@ -2059,10 +2059,11 @@ if (!renderer) {
   function prepareLoadedModel(model) {
     modelProgress.heading.textContent = "Preparing your truck";
     modelProgress.detail.textContent = "Building the full-quality 3D view…";
-    // Let the preparing state paint before synchronous scene setup.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    // Keep setup failures in the loading promise instead of losing them in a frame callback.
+    return new Promise((resolve) => setTimeout(resolve, 0)).then(() => {
       applyLoadedModel(model);
-    }));
+      window.dispatchEvent(new Event("ridgeline-model-ready"));
+    });
   }
 
 
@@ -2313,38 +2314,80 @@ if (!renderer) {
         "./assets/ridgeline-2021/honda-ridgeline-2021-ar.glb"
       ];
 
-  function loadPrimaryModel(index = 0) {
-    beginModelProgress(index);
-    if (index >= primaryModelUrls.length) {
-      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
-      fallbackLoader.load(
-        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
-        (fbx) => {
-          prepareLoadedModel(fbx);
-        },
-        updateModelProgress,
-        () => {
-          setFallbackVisualsVisible(true);
-          refreshExplodableNodes(truck);
-          viewerStatus.hidden = false;
-          viewerStatus.classList.remove("truck-load");
-          viewerStatus.textContent =
-            "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
-        }
-      );
-      return;
+  async function loadSavedTruck(url) {
+    const request = new Request(new URL(url, location.href).href);
+    let cache;
+    let response;
+    try {
+      cache = await caches.open("ridgeline-models-v1");
+      response = await cache.match(request);
+    } catch (error) {
+      console.warn("Model storage unavailable", error);
     }
-
-    modelLoader.load(
-      primaryModelUrls[index],
-      (gltf) => {
-        prepareLoadedModel(gltf.scene);
-      },
-      updateModelProgress,
-      () => {
-        loadPrimaryModel(index + 1);
+    const fromCache = Boolean(response);
+    if (!response) response = await fetch(request);
+    if (!response.ok) throw new Error("Truck download failed: " + response.status);
+    const total = Number(response.headers.get("Content-Length")) || 0;
+    let loaded = 0;
+    const stream = response.body?.pipeThrough(new TransformStream({
+      transform(chunk, controller) {
+        loaded += chunk.byteLength;
+        updateModelProgress({ loaded, total });
+        controller.enqueue(chunk);
       }
-    );
+    }));
+    const data = await (stream ? new Response(stream) : response).arrayBuffer();
+    // Finish saving before parsing; even a renderer failure must not lose the download.
+    if (cache && !fromCache) {
+      modelProgress.heading.textContent = "Saving your truck";
+      modelProgress.detail.textContent = "Keeping the full-quality model on this device…";
+      try {
+        await cache.put(request, new Response(data, {
+          headers: { "Content-Type": "model/gltf-binary", "Content-Length": String(data.byteLength) }
+        }));
+      } catch (error) {
+        console.warn("Could not save model for offline use", error);
+        modelProgress.detail.textContent = "Device storage unavailable · Preparing model";
+      }
+    }
+    modelProgress.value.textContent = "…";
+    modelProgress.track.removeAttribute("aria-valuenow");
+    modelProgress.track.classList.add("is-indeterminate");
+    modelProgress.heading.textContent = "Preparing your truck";
+    modelProgress.detail.textContent = fromCache
+      ? "Loaded from this device · Preparing the 3D view"
+      : "Download complete · Preparing the 3D view";
+    return modelLoader.parseAsync(data, new URL(".", request.url).href);
+  }
+
+  async function loadPrimaryModel(index = 0) {
+    beginModelProgress(index);
+    try {
+      if (index < primaryModelUrls.length) {
+        const gltf = await loadSavedTruck(primaryModelUrls[index]);
+        await prepareLoadedModel(gltf.scene);
+        return;
+      }
+      fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
+      const model = await fallbackLoader.loadAsync(
+        "./assets/ridgeline-2021/honda-ridgeline-2021.fbx", updateModelProgress
+      );
+      await prepareLoadedModel(model);
+    } catch (error) {
+      console.error("Truck model load failed", error);
+      if (index < primaryModelUrls.length) return loadPrimaryModel(index + 1);
+      setFallbackVisualsVisible(true);
+      refreshExplodableNodes(truck);
+      viewerStatus.hidden = false;
+      viewerStatus.classList.remove("truck-load");
+      viewerStatus.textContent =
+        "The detailed truck could not be displayed on this device. The backup view is available. ";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.textContent = "Try again";
+      retry.addEventListener("click", () => loadPrimaryModel());
+      viewerStatus.appendChild(retry);
+    }
   }
 
   loadPrimaryModel();

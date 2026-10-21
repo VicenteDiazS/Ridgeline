@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v452";
+const CACHE_NAME = "ridgeline-console-v453";
 // Bump this version when model or texture assets change.
 const MODEL_CACHE_NAME = "ridgeline-models-v1";
 let bypassNextNavigation = false;
@@ -116,6 +116,9 @@ function shouldBypassCache(request) {
   if (url.origin !== self.location.origin) {
     return false;
   }
+
+  // A code refresh should never force another full-quality model download.
+  if (shouldRuntimeCache(request)) return false;
 
   if (bypassNextNavigation) {
     return true;

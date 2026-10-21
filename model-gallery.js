@@ -416,11 +416,15 @@ if (!previewCards.length) {
     });
   }
 
-  previewCards.forEach((card) => initCard(card));
+  const initializedCards = new WeakSet();
 
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
+        if (entry.isIntersecting && !initializedCards.has(entry.target)) {
+          initializedCards.add(entry.target);
+          initCard(entry.target);
+        }
         const preview = previews.find((item) => item.renderer.domElement.parentElement === entry.target.querySelector("[data-model-preview]"));
         if (preview) {
           preview.visible = entry.isIntersecting;

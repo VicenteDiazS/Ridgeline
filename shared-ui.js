@@ -1051,7 +1051,7 @@ async function clearBrowserCaches() {
   }
 
   const keys = await caches.keys();
-  await Promise.all(keys.map((key) => caches.delete(key)));
+  await Promise.all(keys.filter((key) => key !== "ridgeline-models-v1").map((key) => caches.delete(key)));
 }
 
 async function triggerLiveRefresh(setStatus) {
