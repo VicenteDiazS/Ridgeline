@@ -24324,3 +24324,31 @@ html {
 @media (max-width: 480px) { .viewer-status.truck-load { inset: auto 14px 18px; padding: 17px; } }
 @media (prefers-reduced-motion: reduce) { .truck-load-track span { transition: none; } .truck-load-track.is-indeterminate span { animation: none; opacity: .65; } }
 body.motion-reduced .truck-load-track span { animation: none; transition: none; }
+
+/* Grouped navigation keeps the menu short and the current location clear. */
+#site-menu .site-menu-panel { box-sizing: border-box; padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+#site-menu .site-menu-head h2 { font-size: clamp(1.25rem, 5vw, 1.65rem); line-height: 1.2; margin: 6px 0 0; }
+#site-menu .site-menu-head .modal-close { flex-shrink: 0; }
+#site-menu .site-nav-group { border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.025); overflow: hidden; }
+#site-menu .site-nav-group > summary { display: flex; align-items: center; gap: 10px; padding: 16px; cursor: pointer; list-style: none; min-height: 64px; box-sizing: border-box; }
+#site-menu .site-nav-group > summary::-webkit-details-marker { display: none; }
+#site-menu .site-nav-group > summary > span { flex: 1; min-width: 0; }
+#site-menu .site-nav-group > summary strong { display: block; font-size: 1rem; color: var(--text); }
+#site-menu .site-nav-group > summary small { display: block; margin-top: 5px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+#site-menu .site-nav-group > summary::after { content: "+"; color: var(--muted); font-size: 1.3rem; }
+#site-menu .site-nav-group[open] > summary::after { content: "−"; }
+#site-menu .site-nav-group[open] > summary { background: rgba(97,223,255,.06); }
+#site-menu .site-nav-current { font-size: .62rem; color: #9ce0cf; font-style: normal; white-space: nowrap; }
+#site-menu .site-nav-children { display: grid; gap: 6px; padding: 0 10px 10px; }
+#site-menu .site-nav-children .site-menu-link { padding: 12px; border-radius: 11px; gap: 4px; }
+#site-menu .site-nav-children .site-menu-link strong { font-size: .9rem; }
+#site-menu .site-nav-children .site-menu-link span { font-size: .78rem; line-height: 1.4; }
+#site-menu .site-nav-children .site-menu-link em { font-size: .6rem; padding: 2px 6px; }
+#site-menu .site-nav-settings { margin-top: 10px; }
+#site-menu .site-nav-settings .site-menu-tools { margin: 0 10px 10px; }
+#site-menu summary:focus-visible { outline: 2px solid #61dfff; outline-offset: -3px; }
+body.site-menu-open .ask-anton-fab,
+body.site-menu-open .quick-capture-fab,
+body.site-menu-open .context-action-bar,
+body.site-menu-open .page-action-bar,
+body.site-menu-open .back-to-map { visibility: hidden !important; pointer-events: none !important; }

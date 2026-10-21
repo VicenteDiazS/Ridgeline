@@ -3950,20 +3950,43 @@ function buildSiteMenu() {
   menu.id = "site-menu";
   menu.hidden = true;
 
-  const linkMarkup = menuLinks
-    .map((link) => {
-      const activeClass = page === link.match ? " is-active" : "";
-      const ariaCurrent = page === link.match ? ` aria-current="page"` : "";
-      const currentBadge = page === link.match ? `<em>Current</em>` : "";
-      return `
-        <a class="site-menu-link${activeClass}" href="${link.href}"${ariaCurrent}>
-          <strong>${link.label}</strong>
-          ${currentBadge}
-          <span>${link.note}</span>
-        </a>
-      `;
-    })
-    .join("");
+  const groups = [
+    { title: "Explore Truck", note: "3D models, truck areas, and photos", pages: ["index.html", "engine.html", "tires.html", "photo-atlas.html", "ar-lab.html", "cargo.html"] },
+    { title: "Service & Troubleshooting", note: "Maintenance, fuses, diagnostics, and roadside help", pages: ["maintenance.html", "diagnostics.html", "hood.html", "cabin.html", "quick-sheet.html", "rear-hitch.html", "ask-anton.html"] },
+    { title: "My Garage", note: "Service history, notes, and saved information", pages: ["garage.html"] },
+    { title: "Driving", note: "GPS map and trip tracking", pages: ["drive-map.html"] }
+  ];
+  const menuNames = {
+    "index.html": "3D Truck",
+    "engine.html": "Engine",
+    "tires.html": "Tires & Wheels",
+    "photo-atlas.html": "Truck Photos",
+    "ar-lab.html": "View Truck in AR",
+    "hood.html": "Under-Hood Fuses",
+    "cabin.html": "Cabin Fuses & Electronics",
+    "quick-sheet.html": "Emergency Help",
+    "rear-hitch.html": "Towing",
+    "garage.html": "Open My Garage",
+    "drive-map.html": "Open Driving Map",
+    "nfc.html": "Set Up NFC Tags",
+    "anton.html": "Anton Controls"
+  };
+  const renderMenuLink = (link) => {
+    const current = page === link.match;
+    return `<a class="site-menu-link${current ? " is-active" : ""}" href="${link.href}"${current ? ' aria-current="page"' : ""}>
+      <strong>${menuNames[link.match] || link.label}</strong>
+      ${current ? "<em>Current</em>" : ""}
+      <span>${link.note}</span>
+    </a>`;
+  };
+  const linksForPages = (pages) => pages.map((match) => menuLinks.find((link) => link.match === match)).filter(Boolean).map(renderMenuLink).join("");
+  const linkMarkup = groups.map((group) => `
+    <details class="site-nav-group" name="site-navigation">
+      <summary><span><strong>${group.title}</strong><small>${group.note}</small></span>
+        ${group.pages.includes(page) ? '<em class="site-nav-current">You are here</em>' : ""}
+      </summary>
+      <div class="site-nav-children">${linksForPages(group.pages)}</div>
+    </details>`).join("");
 
   menu.innerHTML = `
     <div class="site-menu-backdrop" data-close-menu></div>
@@ -3971,7 +3994,7 @@ function buildSiteMenu() {
       <div class="site-menu-head">
         <div>
           <p class="eyebrow">Site Menu</p>
-          <h2 id="site-menu-title">Open A Section Fast</h2>
+          <h2 id="site-menu-title">Where do you want to go?</h2>
         </div>
         <button class="modal-close" type="button" data-close-menu aria-label="Close menu">Close</button>
       </div>
@@ -3987,6 +4010,9 @@ function buildSiteMenu() {
           ${buildRecentNavMarkup()}
         </div>
       </section>
+      <details class="site-nav-group site-nav-settings" name="site-navigation">
+        <summary><span><strong>Settings &amp; Tools</strong><small>Tag setup, Anton controls, and app settings</small></span></summary>
+        <div class="site-nav-children">${linksForPages(["nfc.html", "anton.html"])}</div>
       <section class="site-menu-tools" aria-label="Quick tools">
         <button class="site-menu-tools-toggle" type="button" data-tools-toggle aria-expanded="false">
           <span>Quick Tools</span>
@@ -4017,11 +4043,21 @@ function buildSiteMenu() {
           <p class="site-menu-tool-status" data-tool-status aria-live="polite"></p>
         </div>
       </section>
+      </details>
     </aside>
   `;
 
   document.body.appendChild(menu);
   bindFocusTrap(menu);
+  // Keep one group open, including browsers without details[name] support.
+  menu.querySelectorAll(".site-nav-group").forEach((group) => {
+    group.addEventListener("toggle", () => {
+      if (!group.open) return;
+      menu.querySelectorAll(".site-nav-group").forEach((other) => {
+        if (other !== group) other.open = false;
+      });
+    });
+  });
   let menuReturnFocus = null;
 
   const openMenu = (event) => {
@@ -4033,12 +4069,13 @@ function buildSiteMenu() {
           : null;
     refreshRecentPanel(recentPanel);
     menu.hidden = false;
-    document.body.classList.add("modal-open");
+    document.body.classList.add("modal-open", "site-menu-open");
     focusFirstIn(menu, ".site-menu-panel button, .site-menu-link, .site-menu-panel a");
   };
 
   const closeMenu = () => {
     menu.hidden = true;
+    document.body.classList.remove("site-menu-open");
     if (!isAnyModalOpen()) {
       document.body.classList.remove("modal-open");
     }
