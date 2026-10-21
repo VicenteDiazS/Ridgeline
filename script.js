@@ -2448,6 +2448,7 @@ if (!renderer) {
   const hotspotMeshes = systems.map((item) => {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), hotspotMaterial.clone());
     mesh.position.copy(item.point);
+    mesh.visible = false; // Revealed only together with its label.
     truck.add(mesh);
     return mesh;
   });
@@ -3111,8 +3112,10 @@ if (!renderer) {
     });
 
     const hotspotCandidates = [];
+    // Reset every frame so culled, offscreen, and mode-hidden labels leave no orphan spheres.
+    hotspotMeshes.forEach((mesh) => { mesh.visible = false; });
 
-    systems.forEach((system) => {
+    systems.forEach((system, index) => {
       const button = hotspotButtons.get(system.id);
       const callout = calloutElements.get(system.id);
       const isActive = system.id === selectedSystem?.id;
@@ -3156,6 +3159,7 @@ if (!renderer) {
       const anchorY = isActive ? clampY(y, 24) : y;
       hotspotCandidates.push({
         system,
+        mesh: hotspotMeshes[index],
         button,
         callout,
         isActive,
@@ -3183,7 +3187,7 @@ if (!renderer) {
     }
 
     hotspotCandidates.forEach((entry) => {
-      const { system, button, callout, isActive, x, y, anchorX, anchorY } = entry;
+      const { system, mesh, button, callout, isActive, x, y, anchorX, anchorY } = entry;
       const shouldShow =
         !visibleHotspotIds || visibleHotspotIds.has(system.id) || isActive;
 
@@ -3195,7 +3199,8 @@ if (!renderer) {
         return;
       }
 
-      button.style.display = "block";
+      mesh.visible = Boolean(callout);
+      button.style.display = callout ? "block" : "none";
       button.style.left = `${anchorX}px`;
       button.style.top = `${anchorY}px`;
       if (!callout) {
@@ -3322,8 +3327,11 @@ if (!renderer) {
       return;
     }
 
-    renderer.render(scene, camera);
+    // Project and synchronize label/marker visibility before drawing this frame.
+    scene.updateMatrixWorld(true);
+    camera.updateMatrixWorld(true);
     projectHotspots(now);
+    renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }
 
