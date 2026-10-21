@@ -2014,7 +2014,57 @@ if (!renderer) {
   const modelLoader = new GLTFLoader();
   const fallbackLoader = new FBXLoader();
   viewerStatus.hidden = false;
-  viewerStatus.textContent = "Loading real Ridgeline model...";
+
+  let modelProgress;
+  function beginModelProgress(attempt) {
+    viewerStatus.hidden = false;
+    viewerStatus.classList.add("truck-load");
+    viewerStatus.innerHTML = `
+      <div class="truck-load-top"><span class="truck-load-eyebrow">RIDGELINE · 3D</span><span class="truck-load-value">—</span></div>
+      <div class="truck-load-heading" role="status" aria-live="polite">Loading your truck</div>
+      <div class="truck-load-track" role="progressbar" aria-label="Truck model download" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+      <div class="truck-load-bottom"><span class="truck-load-detail">Connecting…</span><span>Full quality</span></div>`;
+    modelProgress = {
+      value: viewerStatus.querySelector(".truck-load-value"),
+      heading: viewerStatus.querySelector(".truck-load-heading"),
+      track: viewerStatus.querySelector(".truck-load-track"),
+      fill: viewerStatus.querySelector(".truck-load-track span"),
+      detail: viewerStatus.querySelector(".truck-load-detail")
+    };
+    modelProgress.track.classList.add("is-indeterminate");
+    if (attempt) modelProgress.detail.textContent = "Trying another model source…";
+  }
+
+  function updateModelProgress(event) {
+    if (!modelProgress) return;
+    const loaded = Math.max(0, event.loaded || 0);
+    const total = event.total || 0;
+    const mb = (bytes) => (bytes / 1000000).toFixed(1) + " MB";
+    if (total > 0) {
+      const percent = Math.min(100, Math.floor(loaded / total * 100));
+      modelProgress.track.classList.remove("is-indeterminate");
+      modelProgress.track.setAttribute("aria-valuenow", String(percent));
+      modelProgress.fill.style.width = percent + "%";
+      modelProgress.value.textContent = percent + "%";
+      modelProgress.detail.textContent = mb(loaded) + " / " + mb(total);
+      if (loaded >= total) {
+        modelProgress.heading.textContent = "Preparing your truck";
+        modelProgress.detail.textContent = "Download complete · Preparing the 3D view";
+      }
+    } else {
+      modelProgress.detail.textContent = mb(loaded) + " loaded";
+    }
+  }
+
+  function prepareLoadedModel(model) {
+    modelProgress.heading.textContent = "Preparing your truck";
+    modelProgress.detail.textContent = "Building the full-quality 3D view…";
+    // Let the preparing state paint before synchronous scene setup.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      applyLoadedModel(model);
+    }));
+  }
+
 
   function nameIncludes(text, keywords) {
     return keywords.some((keyword) => text.includes(keyword));
@@ -2264,18 +2314,20 @@ if (!renderer) {
       ];
 
   function loadPrimaryModel(index = 0) {
+    beginModelProgress(index);
     if (index >= primaryModelUrls.length) {
       fallbackLoader.setResourcePath("./assets/ridgeline-2021/textures/");
       fallbackLoader.load(
         "./assets/ridgeline-2021/honda-ridgeline-2021.fbx",
         (fbx) => {
-          applyLoadedModel(fbx);
+          prepareLoadedModel(fbx);
         },
-        undefined,
+        updateModelProgress,
         () => {
           setFallbackVisualsVisible(true);
           refreshExplodableNodes(truck);
           viewerStatus.hidden = false;
+          viewerStatus.classList.remove("truck-load");
           viewerStatus.textContent =
             "The real truck model could not be loaded, so the backup vehicle view is being used instead.";
         }
@@ -2286,9 +2338,9 @@ if (!renderer) {
     modelLoader.load(
       primaryModelUrls[index],
       (gltf) => {
-        applyLoadedModel(gltf.scene);
+        prepareLoadedModel(gltf.scene);
       },
-      undefined,
+      updateModelProgress,
       () => {
         loadPrimaryModel(index + 1);
       }

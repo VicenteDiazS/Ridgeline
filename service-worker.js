@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v451";
+const CACHE_NAME = "ridgeline-console-v452";
 // Bump this version when model or texture assets change.
 const MODEL_CACHE_NAME = "ridgeline-models-v1";
 let bypassNextNavigation = false;
