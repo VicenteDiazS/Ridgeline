@@ -42,3 +42,58 @@ const clock=new T.Clock();function frame(now){const dt=Math.min(clock.getDelta()
 renderer.setAnimationLoop(frame);document.addEventListener('visibilitychange',()=>{renderer.setAnimationLoop(document.hidden?null:frame);clock.getDelta();});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();renderer.setAnimationLoop(null);$('status').textContent='3D view paused. Refresh to restore it.';});
 if(new URLSearchParams(location.search).get('reveal')==='1')opened=true;sync();
+
+// User-measured trunk dimensions. Model coordinates are illustrative, never physical units.
+const fields = [
+  ['width','Interior width','Side to side at the narrowest usable point'],
+  ['depth','Interior depth','Front to back at the narrowest usable point'],
+  ['height','Interior height','Floor to the lowest obstruction with lid closed'],
+  ['openingWidth','Opening width','Narrowest clear side-to-side opening'],
+  ['openingDepth','Opening depth','Narrowest clear front-to-back opening']
+];
+const storageKey='ridgeline-trunk-measurements-v1';
+let measures={};try{measures=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch{}
+const valid=n=>typeof n==='number'&&Number.isFinite(n)&&n>0&&n<=300;
+let unit='in',dimensions=false;
+const measurementLayer=new T.Group();scene.add(measurementLayer);
+const dimensionLabels=[];
+function ruler(a,b,key,caption,offset){
+  const start=new T.Vector3(...a),end=new T.Vector3(...b),direction=end.clone().sub(start);const length=direction.length();direction.normalize();
+  measurementLayer.add(new T.ArrowHelper(direction,start,length,0x65ffe0,.10,.055));
+  measurementLayer.add(new T.ArrowHelper(direction.clone().negate(),end,length,0x65ffe0,.10,.055));
+  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;
+  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
+  const sprite=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:false}));sprite.scale.set(1.75,.29,1);sprite.position.copy(start).add(end).multiplyScalar(.5).add(new T.Vector3(...offset));sprite.renderOrder=10;measurementLayer.add(sprite);
+  dimensionLabels.push({key,caption,canvas,texture,sprite,arrows:measurementLayer.children.slice(-3,-1)});
+}
+ruler([-1.5,1.06,1.1],[1.5,1.06,1.1],'width','Width',[0,.14,0]);
+ruler([1.98,.35,-.72],[1.98,.35,.72],'depth','Depth',[.1,.22,0]);
+ruler([-1.94,.22,.3],[-1.94,.94,.3],'height','Height',[-.1,.12,0]);
+ruler([-1.5,1.1,1.1],[1.5,1.1,1.1],'openingWidth','Opening width',[0,.15,0]);
+ruler([1.98,1.1,-.72],[1.98,1.1,.72],'openingDepth','Opening depth',[0,.22,0]);
+const panel=$('measure-panel');panel.innerHTML=`
+<div class="row"><select id="measure-area" aria-label="Measurement area"><option value="inside">Interior</option><option value="opening">Opening</option></select><button id="measure-unit" type="button">Show cm</button></div>
+<div id="measurement-values" aria-live="polite"></div>
+<p id="measurement-note">Enter your measurements below. Unknown dimensions are not estimated.</p>
+<details><summary>Add / edit your measurements</summary><p>Measure the empty trunk at its narrowest points. These values are saved in this browser only.</p><form id="measure-form"><div class="measure-grid">${fields.map(([key,label,hint])=>`<label>${label} (<span class="measure-unit-label">in</span>)<input name="${key}" type="number" inputmode="decimal" min="0.01" step="any" placeholder="Not measured" aria-label="${label}" title="${hint}"><small>${hint}</small></label>`).join('')}</div><button type="submit">Save measurements</button><p id="measure-save-status" role="status"></p></form></details>
+<details><summary>NFC tag link</summary><p>Write this URL to the tag by your trunk handle. It opens this dimension view directly.</p><a id="trunk-nfc-link" class="nfc-link"></a><p><button id="copy-trunk-nfc" type="button">Copy NFC link</button></p><p id="nfc-copy-status" role="status"></p></details>
+<p>Trunk capacity: <a href="https://www.hondainfocenter.com/2019/Ridgeline/Feature-Guide/Exterior-Features/Innovative-In-Bed-Trunk/" target="_blank" rel="noreferrer">7.3 ft³ · Honda</a>. Capacity alone does not determine fit. The diagram is illustrative; check the opening, tapered walls, lid clearance, and space occupied by your tools.</p>`;
+const form=$('measure-form');
+const format=key=>valid(measures[key])?`${Number((measures[key]*(unit==='cm'?2.54:1)).toFixed(2))} ${unit}`:'Not measured';
+function fillForm(){for(const [key]of fields)form.elements[key].value=valid(measures[key])?Number((measures[key]*(unit==='cm'?2.54:1)).toFixed(3)):'';document.querySelectorAll('.measure-unit-label').forEach(el=>el.textContent=unit);}
+function updateMeasurements(){
+  const opening=$('measure-area').value==='opening';
+  for(const label of dimensionLabels){const visible=label.key.startsWith('opening')===opening;label.sprite.visible=visible;label.arrows.forEach(a=>a.visible=visible);const ctx=label.canvas.getContext('2d');ctx.clearRect(0,0,768,128);ctx.fillStyle='#071019';ctx.fillRect(0,0,768,128);ctx.strokeStyle='#57ccba';ctx.strokeRect(2,2,764,124);ctx.fillStyle='#dffcf6';ctx.font='bold 36px system-ui';ctx.textAlign='center';ctx.fillText(`${label.caption}: ${format(label.key)}`,384,78);label.texture.needsUpdate=true;}
+  const chosen=fields.filter(([key])=>key.startsWith('opening')===opening);$('measurement-values').replaceChildren(...chosen.map(([key,label])=>{const span=document.createElement('span');span.textContent=`${label}: ${format(key)}`;return span;}));
+  $('measurement-note').textContent=chosen.every(([key])=>valid(measures[key]))?'Your saved measurements · Verify clearance before loading.':'Measure once to add real dimensions. Unverified values are left blank.';
+}
+form.addEventListener('submit',e=>{e.preventDefault();const next={};for(const [key] of fields){const raw=form.elements[key].value;if(raw==='')continue;const n=Number(raw)/(unit==='cm'?2.54:1);if(!valid(n)){$('measure-save-status').textContent='Enter positive measurements up to 300 inches (762 cm).';return;}next[key]=n;}measures=next;try{localStorage.setItem(storageKey,JSON.stringify(measures));$('measure-save-status').textContent='Saved on this browser.';}catch{$('measure-save-status').textContent='Shown for this session. Browser storage is unavailable.';}updateMeasurements();});
+$('measure-unit').onclick=()=>{unit=unit==='in'?'cm':'in';$('measure-unit').textContent=unit==='in'?'Show cm':'Show inches';fillForm();updateMeasurements();};$('measure-area').onchange=updateMeasurements;
+const nfcUrl=new URL('trunk.html',location.href);nfcUrl.search='?view=dimensions';$('trunk-nfc-link').href=nfcUrl.href;$('trunk-nfc-link').textContent=nfcUrl.href;
+$('copy-trunk-nfc').onclick=async()=>{try{await navigator.clipboard.writeText(nfcUrl.href);$('nfc-copy-status').textContent='Link copied. Paste it into your NFC tag writer.';}catch{$('nfc-copy-status').textContent='Press and hold the link above to copy it.';}};
+function resizeTrunk(){const rect=$('stage').getBoundingClientRect();camera.aspect=rect.width/Math.max(1,rect.height);camera.updateProjectionMatrix();renderer.setSize(rect.width,rect.height);}
+function setDimensions(on){dimensions=on;touring=false;amount=0;opened=on||opened;measurementLayer.visible=on;items.forEach(i=>i.g.visible=!on);panel.hidden=!on;$('explode-controls').hidden=on;$('reveal').hidden=on;$('tour').hidden=on;$('dimensions').textContent=on?'Back to tools':'Dimensions';$('dimensions').setAttribute('aria-pressed',String(on));document.body.classList.toggle('dimensions-mode',on);camera.position.set(4.5,4.7,6.2);controls.target.set(0,.9,0);sync();updateMeasurements();resizeTrunk();}
+$('dimensions').onclick=()=>setDimensions(!dimensions);
+const oldReset=$('reset').onclick;$('reset').onclick=()=>dimensions?setDimensions(true):oldReset();
+addEventListener('resize',resizeTrunk);new ResizeObserver(resizeTrunk).observe($('stage'));
+fillForm();setDimensions(new URLSearchParams(location.search).get('view')==='dimensions');
