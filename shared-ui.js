@@ -2317,7 +2317,7 @@ function buildOwnerAuthModal() {
       <button class="search-close" type="button" data-close-owner-auth aria-label="Close owner sign-in">Close</button>
       <div class="owner-auth-head">
         <p class="eyebrow">Owner Access</p>
-        <h2 id="owner-auth-title" data-owner-auth-title>Sign In To Change Site Memory</h2>
+        <h2 id="owner-auth-title" data-owner-auth-title>Sign In</h2>
         <p data-owner-auth-detail>Anyone can browse memory content. Only the owner account can change it.</p>
       </div>
       <section class="owner-auth-session-card" data-owner-auth-session hidden>
@@ -2337,6 +2337,7 @@ function buildOwnerAuthModal() {
           <span>Password</span>
           <input type="password" name="password" autocomplete="current-password" required />
         </label>
+        <button class="agent-control-button agent-control-button-secondary" type="button" data-toggle-password aria-pressed="false">Show password</button>
         <div class="owner-auth-actions">
           <button class="agent-control-button" type="submit" data-owner-auth-submit>Sign In</button>
         </div>
@@ -2367,6 +2368,14 @@ function buildOwnerAuthModal() {
   });
 
   const form = modal.querySelector("[data-owner-auth-form]");
+  const passwordInput = form.querySelector('[name="password"]');
+  const passwordToggle = form.querySelector('[data-toggle-password]');
+  passwordToggle.addEventListener('click', () => {
+    const show = passwordInput.type === 'password';
+    passwordInput.type = show ? 'text' : 'password';
+    passwordToggle.textContent = show ? 'Hide password' : 'Show password';
+    passwordToggle.setAttribute('aria-pressed', String(show));
+  });
   const message = modal.querySelector("[data-owner-auth-message]");
   const signOutButton = modal.querySelector("[data-owner-auth-signout]");
   const detail = modal.querySelector("[data-owner-auth-detail]");
@@ -2388,7 +2397,7 @@ function buildOwnerAuthModal() {
         ? "Owner Account"
         : signedIn
           ? "Signed In"
-          : "Sign In To Change Site Memory";
+          : "Sign In";
     }
 
     if (detail) {
@@ -2458,6 +2467,10 @@ function buildOwnerAuthModal() {
     try {
       await ownerAuth.signInOwner(email, password);
       form.reset();
+      passwordInput.type = 'password';
+      passwordToggle.textContent = 'Show password';
+      passwordToggle.setAttribute('aria-pressed', 'false');
+      render();
       showToast("Signed in successfully.");
       close();
     } catch (error) {
@@ -2467,7 +2480,6 @@ function buildOwnerAuthModal() {
     } finally {
       submit.disabled = false;
       submit.textContent = "Sign In";
-      render();
     }
   });
 
@@ -3998,6 +4010,7 @@ function buildSiteMenu() {
         </div>
         <button class="modal-close" type="button" data-close-menu aria-label="Close menu">Close</button>
       </div>
+      <button class="site-menu-tool-button" type="button" data-tool-action="owner-auth" style="margin:12px 0;width:100%;min-height:48px;border-color:#62e5ce">Sign In</button>
       <div class="site-menu-links">
         ${linkMarkup}
       </div>
@@ -4028,9 +4041,6 @@ function buildSiteMenu() {
           <button class="site-menu-tool-button" type="button" data-tool-action="refresh-live">
             Live Refresh
           </button>
-          <button class="site-menu-tool-button" type="button" data-tool-action="owner-auth">
-            Owner Sign In
-          </button>
           <button class="site-menu-tool-button" type="button" data-tool-action="resume-section">
             Resume Last Section
           </button>
@@ -4049,6 +4059,12 @@ function buildSiteMenu() {
 
   document.body.appendChild(menu);
   bindFocusTrap(menu);
+  const updateAccountButton = () => {
+    const button = menu.querySelector('[data-tool-action="owner-auth"]');
+    button.textContent = ownerAuth.getOwnerAuthState().user ? 'My Account' : 'Sign In';
+  };
+  ownerAuth.onOwnerAuthChange(updateAccountButton);
+  updateAccountButton();
   // Keep one group open, including browsers without details[name] support.
   menu.querySelectorAll(".site-nav-group").forEach((group) => {
     group.addEventListener("toggle", () => {

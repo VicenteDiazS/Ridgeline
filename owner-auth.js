@@ -87,21 +87,32 @@ function authHeaders(accessToken = "") {
 }
 
 async function authRequest(path, options = {}) {
-  const response = await fetch(`${SUPABASE_PUBLIC_CONFIG.url}/auth/v1/${path}`, {
-    cache: "no-store",
-    ...options,
-    headers: {
-      ...authHeaders(options.accessToken || ""),
-      ...(options.headers || {})
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${SUPABASE_PUBLIC_CONFIG.url}/auth/v1/${path}`, {
+      cache: "no-store",
+      ...options,
+      signal: controller.signal,
+      headers: {
+        ...authHeaders(options.accessToken || ""),
+        ...(options.headers || {})
+      }
+    });
+    const payload = await response.json().catch((error) => {
+      if (controller.signal.aborted) throw error;
+      return {};
+    });
+    if (!response.ok) {
+      throw new Error(payload.error_description || payload.msg || payload.message || `Auth request failed: ${response.status}`);
     }
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.error_description || payload.msg || payload.message || `Auth request failed: ${response.status}`);
+    return payload;
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("Sign-in service took too long to respond. Check your connection and try again.");
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return payload;
 }
 
 function sessionExpired(session) {

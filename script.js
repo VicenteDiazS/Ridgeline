@@ -1017,6 +1017,7 @@ const systems = [
       ["Body", "Crew cab pickup"]
     ],
     actions: [
+      { label: "Explore 3D Trunk", href: "trunk.html?reveal=1", description: "Animated lid, illuminated interior, and exploded equipment view." },
       {
         label: "Bed Utility",
         href: "cargo.html",
