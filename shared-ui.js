@@ -4011,6 +4011,7 @@ function buildSiteMenu() {
         <button class="modal-close" type="button" data-close-menu aria-label="Close menu">Close</button>
       </div>
       <button class="site-menu-tool-button" type="button" data-tool-action="owner-auth" style="margin:12px 0;width:100%;min-height:48px;border-color:#62e5ce">Sign In</button>
+      <a class="site-menu-link trunk-menu-link" href="trunk.html?reveal=1"><strong>Open 3D Trunk</strong><small>Animated trunk and equipment</small></a>
       <div class="site-menu-links">
         ${linkMarkup}
       </div>
