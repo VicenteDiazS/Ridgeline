@@ -1,3 +1,8 @@
+// Route recovery links to the password form, including links sent to the site root.
+const recoveryParams = new URLSearchParams(location.hash.slice(1));
+if (recoveryParams.get("type") === "recovery" || recoveryParams.has("error_description")) {
+  location.replace(new URL("./reset-password.html", location.href).href + location.hash);
+}
 import { searchIndex } from "./search-data.js";
 import { nfcTargets } from "./nfc-data.js";
 import * as ownerAuth from "./owner-auth.js";
@@ -2340,6 +2345,7 @@ function buildOwnerAuthModal() {
         <button class="agent-control-button agent-control-button-secondary" type="button" data-toggle-password aria-pressed="false">Show password</button>
         <div class="owner-auth-actions">
           <button class="agent-control-button" type="submit" data-owner-auth-submit>Sign In</button>
+          <a class="utility-link" href="./reset-password.html">Forgot password?</a>
         </div>
       </form>
       <p class="agent-status-summary owner-auth-message" data-owner-auth-message aria-live="polite"></p>
