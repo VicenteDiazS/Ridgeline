@@ -1,4 +1,4 @@
-const CACHE_NAME = "ridgeline-console-v458";
+const CACHE_NAME = "ridgeline-console-v459";
 // Bump this version when model or texture assets change.
 const MODEL_CACHE_NAME = "ridgeline-models-v1";
 let bypassNextNavigation = false;
@@ -162,7 +162,15 @@ self.addEventListener("message", (event) => {
   }
 });
 
+async function cachedOrNetworkError(request) {
+  return (await caches.match(request, { ignoreSearch: true })) || Response.error();
+}
+
 self.addEventListener("fetch", (event) => {
+  // Auth/API requests must go directly to the network, never through offline caching.
+  const url = new URL(event.request.url);
+  if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
+
   if (shouldRuntimeCache(event.request) && event.request.headers.get("X-Ridgeline-Model-Download") === "page") {
     event.respondWith(fetch(event.request));
     return;
@@ -177,7 +185,7 @@ self.addEventListener("fetch", (event) => {
 
     event.respondWith(
       fetch(event.request, { cache: "no-store" }).catch(() =>
-        caches.match(event.request, { ignoreSearch: true })
+        cachedOrNetworkError(event.request)
       )
     );
     return;
@@ -213,7 +221,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return response;
-      }).catch(() => caches.match(event.request, { ignoreSearch: true }))
+      }).catch(() => cachedOrNetworkError(event.request))
     );
     return;
   }
