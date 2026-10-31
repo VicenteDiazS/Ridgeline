@@ -61,7 +61,7 @@ function markVisitLogged(page = currentPageName()) {
 function requestHeaders(accessToken = "") {
   return {
     apikey: SUPABASE_PUBLIC_CONFIG.publishableKey,
-    Authorization: `Bearer ${accessToken || SUPABASE_PUBLIC_CONFIG.publishableKey}`,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     "Content-Type": "application/json"
   };
 }
