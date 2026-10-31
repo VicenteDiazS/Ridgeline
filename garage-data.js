@@ -20,7 +20,7 @@ const SUPABASE = SUPABASE_PUBLIC_CONFIG;
 
 const DEVICE_ID_KEY = "ridgeline-device-id";
 const REMOTE_ENABLED_KEY = "ridgeline-remote-enabled";
-const REMOTE_DISABLED_UNTIL_KEY = "ridgeline-remote-disabled-until";
+const REMOTE_DISABLED_UNTIL_KEY = "ridgeline-remote-disabled-until-uqswuvutvmgganekppma";
 const GITHUB_BACKUP_ENDPOINT_KEY = "ridgeline-github-backup-endpoint";
 const REMOTE_DISABLED_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 const SYNCABLE_KEYS = new Set([
@@ -75,7 +75,7 @@ function supabaseHeaders(json = true) {
   const accessToken = getOwnerAccessToken();
   const headers = {
     apikey: SUPABASE.publishableKey,
-    Authorization: `Bearer ${accessToken || SUPABASE.publishableKey}`
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
   };
 
   if (json) {
