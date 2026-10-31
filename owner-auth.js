@@ -1,6 +1,6 @@
 export const SUPABASE_PUBLIC_CONFIG = {
-  url: "https://liogrqeevozzwefnketm.supabase.co",
-  publishableKey: "sb_publishable_LFaNldVgRH4iXHX3U0OVUg_nE1DiHfs",
+  url: "https://uqswuvutvmgganekppma.supabase.co",
+  publishableKey: "sb_publishable_NTA92ry3iTbgVPKzImDOYQ_-0MH81m9",
   table: "garage_kv",
   bucket: "2019 Honda Ridgeline Main",
   bucketFallback: "2019-honda-ridgeline-main",
@@ -9,7 +9,7 @@ export const SUPABASE_PUBLIC_CONFIG = {
   ownerEmails: ["vicente.diaz.sal@gmail.com"]
 };
 
-const SESSION_STORAGE_KEY = "ridgeline-owner-auth-session-v1";
+const SESSION_STORAGE_KEY = "ridgeline-owner-auth-session-uqswuvutvmgganekppma-v1";
 const listeners = new Set();
 let initPromise = null;
 
@@ -79,9 +79,7 @@ function clearSession() {
 function authHeaders(accessToken = "") {
   return {
     apikey: SUPABASE_PUBLIC_CONFIG.publishableKey,
-    Authorization: accessToken
-      ? `Bearer ${accessToken}`
-      : `Bearer ${SUPABASE_PUBLIC_CONFIG.publishableKey}`,
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     "Content-Type": "application/json"
   };
 }
