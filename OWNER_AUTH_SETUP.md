@@ -1,43 +1,59 @@
-# Owner Login Setup
+# Ridgeline owner login and recovery
 
-This site is now wired for:
+## Account and project
 
-- public read access to Garage and site memory
-- owner-only write, upload, restore, edit, and delete actions
+- App: https://vicentediazs.github.io/Ridgeline/
+- Owner email: `vicente.diaz.sal@gmail.com`
+- Supabase project: `uqswuvutvmgganekppma` (Ridgeline)
+- Organization: VicenteDiazS's Org
+- Dashboard: https://supabase.com/dashboard/project/uqswuvutvmgganekppma
+- The app password is separate from the GitHub and Supabase dashboard passwords.
+- Store the password in a password manager. This repository intentionally does not store it.
 
-To finish the secure setup, do these three steps.
+## First-time owner account setup
 
-## 1. Set the real owner email
+The new project, Garage tables, photo buckets and access policies were created on October 31, 2026.
+The owner account still needs to be created (verified before this documentation update).
 
-Open [owner-auth.js](c:/Users/diazv/Desktop/Ridgeline/owner-auth.js) and replace:
+1. Open Authentication > Users in the project dashboard.
+2. Select Add user > Create new user.
+3. Use `vicente.diaz.sal@gmail.com`, enter your chosen password privately, and leave Auto confirm user checked.
+4. Select Create user.
+5. Open the app, select Sign In, and use that email and password.
 
-`vicente.diaz.sal@gmail.com`
+Do not post passwords in source code, SQL files, comments, issues or commits.
 
-with the exact email address you will use to sign in through Supabase Auth.
+## Forgot password
 
-## 2. Apply the secure Supabase policies
+1. Select **Forgot password?** in the app sign-in dialog, or open:
+   https://vicentediazs.github.io/Ridgeline/reset-password.html
+2. Enter the owner email and select **Send reset email**.
+3. Check the inbox and spam folder. Open the newest reset link.
+4. Enter the new password twice and select **Save new password**.
+5. Return to Ridgeline and sign in with the new password.
 
-Run the SQL in [supabase-setup.sql](c:/Users/diazv/Desktop/Ridgeline/supabase-setup.sql) in the Supabase SQL editor for this project.
+The email flow requires an existing Auth user and successful email delivery.
+A successful request does not confirm that the address has an account.
+Expired or already-used links require a new reset email.
 
-Those policies are designed to:
+## Redirect configuration
 
-- allow `SELECT` for public visitors on the shared site memory rows
-- allow storage reads for public visitors
-- allow `INSERT`, `UPDATE`, and `DELETE` only for the signed-in owner email
-- migrate older per-device Garage rows into the new shared site-memory key before the tighter rules take over
-- create an owner-only visitor log with public insert and owner-only read
+Saved in the new project's Authentication > URL Configuration:
 
-## 3. Create the owner account in Supabase Auth
+- Site URL: `https://vicentediazs.github.io/Ridgeline/`
+- Allowed redirect: `https://vicentediazs.github.io/Ridgeline/reset-password.html`
 
-In the Supabase dashboard:
+The reset page processes recovery tokens in the URL fragment, removes them from the address bar, and sends password changes to Supabase over HTTPS. It does not save passwords in browser storage.
 
-1. Go to `Authentication`
-2. Enable email/password sign-in if it is not already enabled
-3. Create the owner user with the same email you placed in `owner-auth.js`
-4. Set its password in Supabase Auth
+## Connection troubleshooting
 
-After that, open the site, tap `Owner Sign In`, and sign in with that email/password pair.
+“Cannot reach the password service” indicates a network failure or timeout, not a rejected password.
+Check project health and the project URL/key in [owner-auth.js](./owner-auth.js) and [reset-password.html](./reset-password.html).
+Do not clear Safari website data during recovery: it may contain the only remaining copies of Garage records or photos.
 
-## Important note
+## Database setup and data limits
 
-The UI lock is helpful, but the real security comes from the Supabase RLS and storage policies. Do not skip step 2.
+The schema is described in [supabase-setup.sql](./supabase-setup.sql). The deployed owner-check function also uses an empty search_path.
+The existing behavior allows public shared-memory/photo reads and owner-only record edits/uploads; visitor logging allows public inserts and owner-only reads.
+The old project's data was not migrated. Local Garage storage keys were preserved, while authentication sessions and failed-connection cooldowns were scoped to the new project.
+Garage JSON backups include photo metadata, not image files.
